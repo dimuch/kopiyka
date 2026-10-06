@@ -23,6 +23,7 @@ function Screens() {
       <Stack.Protected guard={signedIn}>
         <Stack.Screen name="index" />
         <Stack.Screen name="category/[categoryId]" />
+        <Stack.Screen name="expense" options={{ presentation: 'modal' }} />
       </Stack.Protected>
       <Stack.Protected guard={!signedIn}>
         <Stack.Screen name="login" />

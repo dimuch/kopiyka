@@ -1,12 +1,15 @@
-import { router, useLocalSearchParams } from 'expo-router';
-import { useMemo } from 'react';
+import { router, useFocusEffect, useLocalSearchParams } from 'expo-router';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { api } from '@/api/client';
 import type { Expense } from '@/api/types';
 import { useSession } from '@/auth/AuthContext';
+import { AddExpenseButton } from '@/components/AddExpenseButton';
 import { CategoryTile } from '@/components/CategoryTile';
 import { Icon } from '@/components/Icon';
 import { useMonth } from '@/data/useMonth';
+import { takePendingUndo, type PendingUndo } from '@/data/undo';
 import { dayLabel, eur, monthLabel, monthName, toCents, uah } from '@/format';
 import { colors, fonts } from '@/theme';
 
@@ -15,7 +18,28 @@ export default function CategoryBreakdown() {
   const params = useLocalSearchParams<{ categoryId: string; month: string }>();
   const categoryId = Number(params.categoryId);
   const month = params.month;
-  const { data, error } = useMonth(ledger.ledgerId, month, categoryId);
+  const { data, error, reload } = useMonth(ledger.ledgerId, month, categoryId);
+  const [undo, setUndo] = useState<PendingUndo | null>(null);
+
+  // Coming back from a delete: offer Undo for a few seconds.
+  useFocusEffect(
+    useCallback(() => {
+      const pending = takePendingUndo();
+      if (pending) setUndo(pending);
+    }, []),
+  );
+  useEffect(() => {
+    if (!undo) return;
+    const timer = setTimeout(() => setUndo(null), 10_000);
+    return () => clearTimeout(timer);
+  }, [undo]);
+
+  async function restore() {
+    if (!undo) return;
+    setUndo(null);
+    await api(`/api/ledgers/${undo.ledgerId}/expenses/${undo.expenseId}/restore`, { method: 'POST' }).catch(() => {});
+    reload();
+  }
 
   const category = data?.categories.find((c) => c.categoryId === categoryId);
   const days = useMemo(() => {
@@ -60,7 +84,7 @@ export default function CategoryBreakdown() {
             <Text style={styles.caption}>≈ {uah(totalUah)} at entry-day rates</Text>
           </View>
 
-          <ScrollView contentContainerStyle={{ gap: 16, paddingBottom: 40 }}>
+          <ScrollView contentContainerStyle={{ gap: 16, paddingBottom: 104 }}>
             {days.length === 0 && <Text style={[styles.caption, { paddingHorizontal: 4 }]}>No expenses in {monthName(month)}.</Text>}
             {days.map((d) => (
               <View key={d.date} style={{ gap: 8 }}>
@@ -70,19 +94,37 @@ export default function CategoryBreakdown() {
                 </View>
                 <View style={styles.dayCard}>
                   {d.items.map((e, i) => (
-                    <View key={e.expenseId} style={[styles.item, i < d.items.length - 1 && styles.divider]}>
+                    <Pressable
+                      key={e.expenseId}
+                      accessibilityRole="button"
+                      accessibilityHint="Edit this expense"
+                      onPress={() => router.push({ pathname: '/expense', params: { expenseId: e.expenseId } })}
+                      style={[styles.item, i < d.items.length - 1 && styles.divider]}
+                    >
                       <View style={{ gap: 2, flex: 1 }}>
                         <Text style={styles.itemName}>{e.name || category.displayName}</Text>
                         <Text style={styles.small}>{uah(toCents(e.amountUah))}</Text>
                       </View>
                       <Text style={styles.itemAmount}>{eur(toCents(e.amountEur))}</Text>
-                    </View>
+                    </Pressable>
                   ))}
                 </View>
               </View>
             ))}
           </ScrollView>
         </>
+      )}
+      {undo ? (
+        <View accessibilityLiveRegion="polite" style={styles.toast}>
+          <Text numberOfLines={1} style={styles.toastText}>
+            Deleted “{undo.label}”
+          </Text>
+          <Pressable accessibilityRole="button" onPress={restore} style={styles.undo}>
+            <Text style={styles.undoText}>Undo</Text>
+          </Pressable>
+        </View>
+      ) : (
+        <AddExpenseButton categoryId={categoryId} />
       )}
     </SafeAreaView>
   );
@@ -104,5 +146,23 @@ const styles = StyleSheet.create({
   item: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 12, paddingVertical: 10, paddingHorizontal: 16 },
   divider: { borderBottomWidth: 1, borderBottomColor: colors.border },
   itemName: { fontFamily: fonts.bodyMedium, fontSize: 15, color: colors.text },
+  toast: {
+    position: 'absolute',
+    left: 20,
+    right: 20,
+    bottom: 32,
+    minHeight: 56,
+    borderRadius: 18,
+    backgroundColor: '#22262D',
+    borderWidth: 1,
+    borderColor: colors.borderStrong,
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingLeft: 18,
+    gap: 12,
+  },
+  toastText: { flex: 1, fontFamily: fonts.bodyMedium, fontSize: 15, color: colors.text },
+  undo: { height: 56, paddingHorizontal: 18, justifyContent: 'center' },
+  undoText: { fontFamily: fonts.bodySemi, fontSize: 15, color: colors.accent },
   itemAmount: { fontFamily: fonts.bodySemi, fontSize: 15, color: colors.text, fontVariant: ['tabular-nums'] },
 });

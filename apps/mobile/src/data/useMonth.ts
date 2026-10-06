@@ -12,6 +12,7 @@ interface MonthData {
 export function useMonth(ledgerId: number, month: string, categoryId?: number) {
   const [data, setData] = useState<MonthData | null>(null);
   const [error, setError] = useState(false);
+  const [version, setVersion] = useState(0);
 
   useFocusEffect(
     useCallback(() => {
@@ -27,8 +28,9 @@ export function useMonth(ledgerId: number, month: string, categoryId?: number) {
       return () => {
         live = false;
       };
-    }, [ledgerId, month, categoryId]),
+    }, [ledgerId, month, categoryId, version]),
   );
 
-  return { data, error };
+  const reload = useCallback(() => setVersion((v) => v + 1), []);
+  return { data, error, reload };
 }

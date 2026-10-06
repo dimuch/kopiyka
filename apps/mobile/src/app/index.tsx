@@ -3,6 +3,7 @@ import { useMemo, useState } from 'react';
 import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useSession } from '@/auth/AuthContext';
+import { AddExpenseButton } from '@/components/AddExpenseButton';
 import { CategoryTile } from '@/components/CategoryTile';
 import { Icon } from '@/components/Icon';
 import { useMonth } from '@/data/useMonth';
@@ -92,6 +93,7 @@ export default function Home() {
           </Pressable>
         </ScrollView>
       )}
+      <AddExpenseButton />
     </SafeAreaView>
   );
 }
@@ -111,7 +113,7 @@ const styles = StyleSheet.create({
   sectionHead: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'baseline', paddingHorizontal: 4 },
   sectionTitle: { fontFamily: fonts.display, fontSize: 17, color: colors.text },
   small: { fontFamily: fonts.body, fontSize: 12, color: colors.muted },
-  listPad: { paddingBottom: 40 },
+  listPad: { paddingBottom: 104 },
   listCard: { backgroundColor: colors.surface, borderColor: colors.border, borderWidth: 1, borderRadius: 22, paddingVertical: 4 },
   row: { flexDirection: 'row', alignItems: 'center', gap: 12, paddingVertical: 12, paddingHorizontal: 16 },
   divider: { borderBottomWidth: 1, borderBottomColor: colors.border },

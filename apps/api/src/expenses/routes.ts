@@ -153,4 +153,28 @@ export async function expenseRoutes(app: FastifyInstance, deps: AppDeps): Promis
     );
     return loadExpense(req.ledger!.ledgerId, expenseId);
   });
+
+  /** Sets or clears deleted_at on an expense of this ledger; false when no expense was in the other state. */
+  async function setDeleted(ledgerId: number, expenseId: number, deleted: boolean): Promise<boolean> {
+    const [res] = await db.query<ResultSetHeader>(
+      `UPDATE expenses e JOIN categories c ON c.category_id = e.category_id
+          SET e.deleted_at = ?, e.updated_at = e.updated_at -- not an edit; keep ON UPDATE from firing
+        WHERE e.expense_id = ? AND c.ledger_id = ? AND e.deleted_at IS ${deleted ? '' : 'NOT '}NULL`,
+      [deleted ? now() : null, expenseId, ledgerId],
+    );
+    return res.affectedRows === 1;
+  }
+
+  // Soft delete: the row stays so the app's Undo can restore it.
+  app.delete('/api/ledgers/:id/expenses/:expenseId', guards, async (req, reply) => {
+    const { expenseId } = ExpenseParams.parse(req.params);
+    if (!(await setDeleted(req.ledger!.ledgerId, expenseId, true))) return reply.code(404).send({ error: 'not_found' });
+    return reply.code(204).send();
+  });
+
+  app.post('/api/ledgers/:id/expenses/:expenseId/restore', guards, async (req, reply) => {
+    const { expenseId } = ExpenseParams.parse(req.params);
+    if (!(await setDeleted(req.ledger!.ledgerId, expenseId, false))) return reply.code(404).send({ error: 'not_found' });
+    return loadExpense(req.ledger!.ledgerId, expenseId);
+  });
 }

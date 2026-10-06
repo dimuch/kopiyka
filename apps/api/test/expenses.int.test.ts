@@ -176,6 +176,51 @@ describe.skipIf(!(await testDbReachable()))('expenses API (MySQL)', () => {
     });
   });
 
+  describe('DELETE and restore', () => {
+    const del = (expenseId: number, headers = auth) => app.inject({ method: 'DELETE', url: url(`/${expenseId}`), headers });
+    const restore = (expenseId: number, headers = auth) =>
+      app.inject({ method: 'POST', url: url(`/${expenseId}/restore`), headers });
+    let created: { expenseId: number };
+
+    beforeEach(async () => {
+      created = (await post(groceries())).json();
+    });
+
+    it('hides a deleted expense and Undo brings it back unchanged', async () => {
+      expect((await del(created.expenseId)).statusCode).toBe(204);
+      expect((await list('?month=2026-10')).json().expenses).toEqual([]);
+
+      const res = await restore(created.expenseId);
+      expect(res.statusCode).toBe(200);
+      expect(res.json()).toEqual(created);
+      expect((await list('?month=2026-10')).json().expenses).toEqual([created]);
+    });
+
+    it('does not edit a deleted expense', async () => {
+      await del(created.expenseId);
+      const res = await app.inject({ method: 'PUT', url: url(`/${created.expenseId}`), payload: groceries(), headers: auth });
+      expect(res.statusCode).toBe(404);
+    });
+
+    it('answers 404 for deleting twice or restoring a live expense', async () => {
+      expect((await restore(created.expenseId)).statusCode).toBe(404);
+      await del(created.expenseId);
+      expect((await del(created.expenseId)).statusCode).toBe(404);
+    });
+
+    it("cannot delete or restore another ledger's expense", async () => {
+      const stranger = await makeUser(db, config, 'stranger');
+      const strangerAuth = await authHeader(app, stranger, clock);
+      const res = await app.inject({
+        method: 'DELETE',
+        url: `/api/ledgers/${stranger.ledgerId}/expenses/${created.expenseId}`,
+        headers: strangerAuth,
+      });
+      expect(res.statusCode).toBe(404);
+      expect((await list('?month=2026-10')).json().expenses).toHaveLength(1);
+    });
+  });
+
   describe('GET', () => {
     beforeEach(async () => {
       await post(groceries({ expenseDate: '2026-10-01', name: 'first' }));

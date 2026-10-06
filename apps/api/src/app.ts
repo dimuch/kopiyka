@@ -33,7 +33,12 @@ export async function buildApp(deps: AppDeps): Promise<FastifyInstance> {
   await app.register(cookie);
   // Off unless CORS_ORIGINS is set: in production the web app and API share one origin.
   if (deps.config.corsOrigins.length) {
-    await app.register(cors, { origin: deps.config.corsOrigins, credentials: true });
+    await app.register(cors, {
+      origin: deps.config.corsOrigins,
+      credentials: true,
+      // The plugin's default leaves out PUT and DELETE, which the expense routes use.
+      methods: ['GET', 'HEAD', 'POST', 'PUT', 'DELETE'],
+    });
   }
 
   app.setErrorHandler((err, req, reply) => {

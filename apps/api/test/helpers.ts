@@ -48,6 +48,7 @@ export async function resetSchema(): Promise<void> {
 }
 
 const DATA_TABLES = [
+  'exchange_rates',
   'category_budgets',
   'expenses',
   'categories',

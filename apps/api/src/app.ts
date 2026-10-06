@@ -6,12 +6,16 @@ import { categoryRoutes } from './categories/routes.js';
 import type { Config } from './config.js';
 import type { Db } from './db.js';
 import { ledgerAccess } from './ledgers/access.js';
+import type { RateFetcher } from './rates/nbu.js';
+import { rateRoutes } from './rates/routes.js';
 
 export interface AppDeps {
   config: Config;
   db: Db;
   /** Injectable clock for tests. */
   now: () => Date;
+  /** NBU EUR rate lookup; tests pass a stub. */
+  fetchRate: RateFetcher;
 }
 
 export async function buildApp(deps: AppDeps): Promise<FastifyInstance> {
@@ -41,6 +45,7 @@ export async function buildApp(deps: AppDeps): Promise<FastifyInstance> {
   await authRoutes(app, deps);
   ledgerAccess(app, deps);
   await categoryRoutes(app, deps);
+  await rateRoutes(app, deps);
 
   return app;
 }

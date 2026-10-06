@@ -4,7 +4,7 @@ import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest';
 import { buildApp } from '../src/app.js';
 import { hotp, timeStep } from '../src/auth/totp.js';
 import { createDb, type Db } from '../src/db.js';
-import { clearData, makeUser, resetSchema, TEST_DB_URL, testConfig, testDbReachable } from './helpers.js';
+import { clearData, offlineRates, makeUser, resetSchema, TEST_DB_URL, testConfig, testDbReachable } from './helpers.js';
 
 const HOUR = 60 * 60 * 1000;
 
@@ -22,7 +22,7 @@ describe.skipIf(!(await testDbReachable()))('auth routes (MySQL)', () => {
   beforeAll(async () => {
     await resetSchema();
     db = createDb(TEST_DB_URL!);
-    app = await buildApp({ config, db, now: () => clock });
+    app = await buildApp({ config, db, now: () => clock, fetchRate: offlineRates });
   });
 
   afterAll(async () => {

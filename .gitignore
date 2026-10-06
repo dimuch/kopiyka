@@ -1,0 +1,20 @@
+node_modules/
+dist/
+coverage/
+*.tsbuildinfo
+.DS_Store
+
+# env files hold the TOTP encryption key and DB passwords
+.env
+.env.*
+!.env.example
+
+# Yarn 4 (no zero-installs)
+.yarn/*
+!.yarn/patches
+!.yarn/releases
+.pnp.*
+
+# editors
+.idea/
+.vscode/

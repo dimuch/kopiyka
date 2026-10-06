@@ -62,14 +62,22 @@ describe.skipIf(!(await testDbReachable()))('auth routes (MySQL)', () => {
     expect(cookie.httpOnly).toBe(true);
     expect(cookie.sameSite).toBe('Strict');
 
-    const out = await app.inject({ method: 'POST', url: '/api/auth/logout', cookies: { kopiyka_session: cookie.value } });
+    const out = await app.inject({
+      method: 'POST',
+      url: '/api/auth/logout',
+      cookies: { kopiyka_session: cookie.value },
+    });
     expect(out.statusCode).toBe(204);
   });
 
   it('ends the session 30 minutes after login regardless of activity', async () => {
     const { token } = (await login({ username: 'ivanka', code: codeAt(), client: 'native' })).json();
     clock = new Date(clock.getTime() + 30 * 60_000 + 1000);
-    const res = await app.inject({ method: 'POST', url: '/api/auth/logout', headers: { authorization: `Bearer ${token}` } });
+    const res = await app.inject({
+      method: 'POST',
+      url: '/api/auth/logout',
+      headers: { authorization: `Bearer ${token}` },
+    });
     expect(res.statusCode).toBe(401);
   });
 

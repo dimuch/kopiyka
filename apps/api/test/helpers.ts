@@ -96,11 +96,7 @@ export async function makeUser(db: Db, config: Config, username: string): Promis
 }
 
 /** Logs in as a native client and returns the bearer header for later requests. */
-export async function authHeader(
-  app: FastifyInstance,
-  user: TestUser,
-  now: Date,
-): Promise<{ authorization: string }> {
+export async function authHeader(app: FastifyInstance, user: TestUser, now: Date): Promise<{ authorization: string }> {
   const res = await app.inject({
     method: 'POST',
     url: '/api/auth/login',

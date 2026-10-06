@@ -34,11 +34,7 @@ function divRound(a: bigint, b: bigint): bigint {
 }
 
 /** The entered amount in both currencies; the entered side stays exact. */
-export function convert(
-  cents: bigint,
-  currency: Currency,
-  rateE4: bigint,
-): { eurCents: bigint; uahCents: bigint } {
+export function convert(cents: bigint, currency: Currency, rateE4: bigint): { eurCents: bigint; uahCents: bigint } {
   return currency === 'EUR'
     ? { eurCents: cents, uahCents: divRound(cents * rateE4, 10_000n) }
     : { eurCents: divRound(cents * 10_000n, rateE4), uahCents: cents };

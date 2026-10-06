@@ -26,11 +26,6 @@
     },
     "scheme": "kopiyka",
     "backgroundColor": "#0E1013",
-    "plugins": [
-      "expo-router",
-      "expo-secure-store",
-      "expo-font",
-      "@react-native-community/datetimepicker"
-    ]
+    "plugins": ["expo-router", "expo-secure-store", "expo-font", "@react-native-community/datetimepicker"]
   }
 }

@@ -16,7 +16,12 @@ export function CategorySheet({ visible, categories, onPick, onClose }: Props) {
   return (
     <Modal visible={visible} transparent animationType="slide" onRequestClose={onClose}>
       <View style={styles.backdrop}>
-        <Pressable accessibilityRole="button" accessibilityLabel="Close category list" style={{ flex: 1 }} onPress={onClose} />
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel="Close category list"
+          style={{ flex: 1 }}
+          onPress={onClose}
+        />
         <View accessibilityViewIsModal style={styles.sheet}>
           <View style={styles.handle} />
           <View style={styles.head}>

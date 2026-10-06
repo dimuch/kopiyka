@@ -4,10 +4,10 @@ A small shared budget app: monthly category budgets, expenses in EUR with the UA
 National Bank of Ukraine rate of the day. One Expo codebase serves the iPhone app and the web app;
 a Fastify API sits in front of MySQL.
 
-| Path | What |
-| --- | --- |
-| `apps/api` | Node 24 + TypeScript + Fastify + Zod, MySQL 8.0 |
-| `apps/mobile` | Expo (React Native) app, iOS + web |
+| Path          | What                                            |
+| ------------- | ----------------------------------------------- |
+| `apps/api`    | Node 24 + TypeScript + Fastify + Zod, MySQL 8.0 |
+| `apps/mobile` | Expo (React Native) app, iOS + web              |
 
 ## Local setup
 

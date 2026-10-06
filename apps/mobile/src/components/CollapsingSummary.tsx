@@ -49,7 +49,11 @@ export function CompactTotal({
   const over = budgetCents != null && spentCents > budgetCents;
   const amounts = budgetCents != null ? `${eur(spentCents)} of ${eur(budgetCents)} spent` : `${eur(spentCents)} spent`;
   return (
-    <Animated.View accessible accessibilityLabel={label ? `${label}, ${amounts}` : amounts} style={[styles.compact, style]}>
+    <Animated.View
+      accessible
+      accessibilityLabel={label ? `${label}, ${amounts}` : amounts}
+      style={[styles.compact, style]}
+    >
       {label && (
         <Text numberOfLines={1} style={styles.label}>
           {label}

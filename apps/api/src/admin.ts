@@ -28,16 +28,18 @@ export async function createUserWithLedger(
       [input.username, input.email, encryptSecret(secret, totpKey)],
     );
     const userId = user.insertId;
-    const [ledger] = await conn.query<ResultSetHeader>(
-      'INSERT INTO ledgers (name, owner_user_id) VALUES (?, ?)',
-      [input.ledgerName, userId],
-    );
+    const [ledger] = await conn.query<ResultSetHeader>('INSERT INTO ledgers (name, owner_user_id) VALUES (?, ?)', [
+      input.ledgerName,
+      userId,
+    ]);
     const ledgerId = ledger.insertId;
-    await conn.query("INSERT INTO ledger_members (ledger_id, user_id, role) VALUES (?, ?, 'owner')", [ledgerId, userId]);
-    await conn.query(
-      'INSERT INTO categories (ledger_id, tech_name, display_name, sort_order) VALUES ?',
-      [DEFAULT_CATEGORIES.map((c, i) => [ledgerId, c.techName, c.displayName, (i + 1) * 10])],
-    );
+    await conn.query("INSERT INTO ledger_members (ledger_id, user_id, role) VALUES (?, ?, 'owner')", [
+      ledgerId,
+      userId,
+    ]);
+    await conn.query('INSERT INTO categories (ledger_id, tech_name, display_name, sort_order) VALUES ?', [
+      DEFAULT_CATEGORIES.map((c, i) => [ledgerId, c.techName, c.displayName, (i + 1) * 10]),
+    ]);
     await conn.commit();
     return { userId, ledgerId, otpauthUri: otpauthUri(input.username, secret) };
   } catch (err) {

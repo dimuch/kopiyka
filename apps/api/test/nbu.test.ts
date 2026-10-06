@@ -2,7 +2,8 @@ import { describe, expect, it, vi } from 'vitest';
 import { nbuFetcher } from '../src/rates/nbu.js';
 
 function fakeFetch(body: unknown, status = 200) {
-  return vi.fn(async () => new Response(JSON.stringify(body), { status })) as unknown as typeof fetch & ReturnType<typeof vi.fn>;
+  return vi.fn(async () => new Response(JSON.stringify(body), { status })) as unknown as typeof fetch &
+    ReturnType<typeof vi.fn>;
 }
 
 describe('nbuFetcher', () => {

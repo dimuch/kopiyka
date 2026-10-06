@@ -37,6 +37,8 @@ export function loadConfig(source: NodeJS.ProcessEnv = process.env): Config {
     totpKey: parseKey(env.TOTP_ENC_KEY),
     sessionTtlMinutes: env.SESSION_TTL_MINUTES,
     cookieSecure: env.COOKIE_SECURE,
-    corsOrigins: env.CORS_ORIGINS.split(',').map((o) => o.trim()).filter(Boolean),
+    corsOrigins: env.CORS_ORIGINS.split(',')
+      .map((o) => o.trim())
+      .filter(Boolean),
   };
 }

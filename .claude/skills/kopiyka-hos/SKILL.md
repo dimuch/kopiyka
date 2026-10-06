@@ -82,6 +82,9 @@ the brief can't answer, ask the user now — before the skeptic.
 1. Spawn a **fresh** `kopiyka-plan-skeptic` with only the brief and plan
    paths — not the planner's reasoning or your opinion.
 2. `APPROVE` → set the plan's `Status: skeptic-approved`, go to Gate A.
+   `APPROVE WITH EDITS` → have the planner apply exactly those edits (no
+   other changes), set `skeptic-approved`, go to Gate A without another
+   skeptic round.
 3. `REVISE` → send the BLOCKERS (verbatim) to `kopiyka-planner` for a
    revision (resume the same planner via SendMessage if available), then a
    new skeptic pass. Max **2 revision rounds**; still blocked → Gate A with
@@ -185,7 +188,9 @@ Ask: push and open the PR / change something / stop.
   `.claude/settings*.json` permissions.
 - Never base work on another feature branch unless the user says so
   (stacked PRs: say so on top of the PR body).
-- Never edit `kopiyka-conventions`, agents or this skill as part of a
-  feature; propose the change at the end ("convention candidate: …").
+- Don't edit `kopiyka-conventions`, agents or this skill as part of a
+  feature, except to correct a fact the feature itself changes (planned
+  as its own slice). Other improvements: propose at the end
+  ("convention candidate: …").
 - One brief = one branch = one PR. Too big → split the brief at Gate A.
 - Never invent requirements; ask.

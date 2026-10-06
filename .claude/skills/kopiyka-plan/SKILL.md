@@ -16,9 +16,17 @@ tests (§6), gates (§7), commits (§8).
 
 - **Input**: the brief, `docs/features/<NNN>-<slug>/brief.md` (or a path
   the orchestrator gives you), plus any skeptic/user feedback to address.
-- **Output**: `docs/features/<NNN>-<slug>/plan.md` in the template below,
-  and a ≤10-line summary back to the caller: approach, slice count,
-  estimated changed lines, open questions, new dependencies (or none).
+- **Output**: `docs/features/<NNN>-<slug>/plan.md` (or the path the
+  caller gives — the caller's path wins) in the template below, and a
+  ≤10-line summary back to the caller: approach, base, slice count,
+  estimated changed lines, new dependencies (or none), open questions,
+  and any deliberate departure from official docs or library skills
+  (what + why).
+- **Verifying facts**: you may run repo code read-only to check behaviour
+  or compute expected test values (e.g. a scratch script under the system
+  temp dir run with `tsx`). Never write inside the repo except the plan.
+- **Bugs found while planning** that no AC covers: don't plan a fix; list
+  them under `## Follow-ups` (and in Open questions if they affect an AC).
 
 ## Process
 
@@ -75,7 +83,8 @@ stable where possible.
 
 Status: draft <!-- draft → skeptic-approved → approved (by the user) -->
 Brief: ./brief.md
-Branch: feat/<slug>
+Branch: <feat|fix|chore>/<slug>
+Base: origin/main <!-- or: stacked on <branch> — then the PR says so -->
 
 ## Approach
 
@@ -115,6 +124,10 @@ Alternative considered: <one line + why not>.
 
 - <blocking? yes/no> — <question> — <assumption used meanwhile>
 
+## Follow-ups
+
+<out-of-scope bugs or ideas found while planning or building>
+
 ## Deviations
 
 <filled by the developer during build>
@@ -138,12 +151,17 @@ A plan is **blocked** if any of these fail:
    tests or exact verification; no "tests in the last slice".
 6. **Ordered**: contracts before consumers; no slice depends on a later one.
 7. **Sized**: slices ≤ ~150 lines, total ≤ ~400, or a split is proposed.
-8. **Grounded**: APIs, files and functions referenced actually exist (or
-   are created in an earlier slice); Expo/RN usage matches SDK 57 docs.
+8. **Grounded**: APIs, files and functions referenced exist **on the
+   plan's Base** (or are created in an earlier slice); Expo/RN usage
+   matches SDK 57 docs, or the plan states why it departs from them.
 9. **Contracts explicit**: request/response/error shapes, migration
    columns and DTO changes are written down, with their consumers.
 10. **Risks and questions honest**: blocking questions are marked; no
     assumption that changes behaviour is hidden in a slice.
+
+Docs updates are part of the change when it makes a stated fact stale
+(e.g. adding a test runner updates conventions §6) — in their own slice
+or commit. Other convention changes are proposals, not plan slices.
 
 Not reasons to block: style preferences, alternative designs of similar
 complexity, naming that conventions don't decide.

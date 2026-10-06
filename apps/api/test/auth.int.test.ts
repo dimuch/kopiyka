@@ -1,41 +1,15 @@
-import { randomBytes } from 'node:crypto';
 import type { FastifyInstance } from 'fastify';
-import mysql from 'mysql2/promise';
+import type mysql from 'mysql2/promise';
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest';
-import { createUserWithLedger } from '../src/admin.js';
 import { buildApp } from '../src/app.js';
-import { base32Decode, hotp, timeStep } from '../src/auth/totp.js';
-import type { Config } from '../src/config.js';
+import { hotp, timeStep } from '../src/auth/totp.js';
 import { createDb, type Db } from '../src/db.js';
-import { runMigrations } from '../src/migrate.js';
-
-const url = process.env.DATABASE_URL_TEST;
-
-async function reachable(): Promise<boolean> {
-  if (!url) return false;
-  try {
-    const conn = await mysql.createConnection({ uri: url, connectTimeout: 1000 });
-    await conn.end();
-    return true;
-  } catch {
-    return false;
-  }
-}
+import { clearData, makeUser, resetSchema, TEST_DB_URL, testConfig, testDbReachable } from './helpers.js';
 
 const HOUR = 60 * 60 * 1000;
 
-describe.skipIf(!(await reachable()))('auth routes (MySQL)', () => {
-  const totpKey = randomBytes(32);
-  const config: Config = {
-    env: 'test',
-    host: '127.0.0.1',
-    port: 0,
-    logLevel: 'silent',
-    databaseUrl: url!,
-    totpKey,
-    sessionTtlMinutes: 30,
-    cookieSecure: false,
-  };
+describe.skipIf(!(await testDbReachable()))('auth routes (MySQL)', () => {
+  const config = testConfig();
   let db: Db;
   let app: FastifyInstance;
   let clock: Date;
@@ -46,15 +20,8 @@ describe.skipIf(!(await reachable()))('auth routes (MySQL)', () => {
     app.inject({ method: 'POST', url: '/api/auth/login', payload: body, remoteAddress: ip });
 
   beforeAll(async () => {
-    const conn = await mysql.createConnection({ uri: url!, multipleStatements: true });
-    const [tables] = await conn.query<mysql.RowDataPacket[]>('SHOW TABLES');
-    const names = tables.map((t) => Object.values(t)[0] as string);
-    if (names.length) {
-      await conn.query(`SET FOREIGN_KEY_CHECKS = 0; DROP TABLE ${names.map((n) => `\`${n}\``).join(', ')}; SET FOREIGN_KEY_CHECKS = 1;`);
-    }
-    await conn.end();
-    await runMigrations(url!);
-    db = createDb(url!);
+    await resetSchema();
+    db = createDb(TEST_DB_URL!);
     app = await buildApp({ config, db, now: () => clock });
   });
 
@@ -64,14 +31,9 @@ describe.skipIf(!(await reachable()))('auth routes (MySQL)', () => {
   });
 
   beforeEach(async () => {
-    await db.query('SET FOREIGN_KEY_CHECKS = 0');
-    for (const t of ['sessions', 'login_throttle', 'categories', 'ledger_members', 'ledgers', 'users']) {
-      await db.query(`DELETE FROM ${t}`);
-    }
-    await db.query('SET FOREIGN_KEY_CHECKS = 1');
+    await clearData(db);
     clock = new Date('2026-10-06T10:00:00Z');
-    const user = await createUserWithLedger(db, totpKey, { username: 'ivanka', email: 'i@example.com', ledgerName: 'Home' });
-    secret = base32Decode(new URL(user.otpauthUri).searchParams.get('secret')!);
+    ({ secret } = await makeUser(db, config, 'ivanka'));
   });
 
   it('seeds the new ledger with 15 categories', async () => {

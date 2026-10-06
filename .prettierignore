@@ -5,3 +5,8 @@ coverage/
 yarn.lock
 apps/mobile/ios/
 apps/mobile/android/
+
+# Vendored third-party skills: keep byte-identical to upstream (skills-lock.json)
+.claude/skills/*
+!.claude/skills/kopiyka-*
+skills-lock.json

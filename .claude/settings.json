@@ -1,0 +1,9 @@
+{
+  "permissions": {
+    "deny": [
+      "Bash(npx submit-expo-feedback:*)",
+      "Bash(npx -y submit-expo-feedback:*)",
+      "Bash(npx --yes submit-expo-feedback:*)"
+    ]
+  }
+}

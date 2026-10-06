@@ -11,12 +11,12 @@ a Fastify API sits in front of MySQL.
 
 ## Local setup
 
-Needs Node 24, Yarn 4 (`corepack enable`), Docker Desktop, and Xcode for the iPhone app.
+Needs Node 24, Yarn 4 (`corepack enable`), MySQL 8.0 or newer (production runs 8.0), and Xcode for the iPhone app.
 
 ```bash
 yarn install
-yarn db:up                                   # MySQL 8.0 in Docker
-cp apps/api/.env.example apps/api/.env       # then set TOTP_ENC_KEY (openssl rand -base64 32)
+mysql -u root -p < apps/api/scripts/setup-local-db.sql   # app user + databases; set your own password first
+cp apps/api/.env.example apps/api/.env       # then set the DB password and TOTP_ENC_KEY (openssl rand -base64 32)
 yarn api migrate
 yarn api create-user --username you --email you@example.com   # prints a QR for Google Authenticator
 yarn api dev                                 # API on http://127.0.0.1:3000

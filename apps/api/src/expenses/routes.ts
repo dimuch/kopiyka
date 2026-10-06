@@ -117,6 +117,13 @@ export async function expenseRoutes(app: FastifyInstance, deps: AppDeps): Promis
     return { expenses: rows.map(toDto) };
   });
 
+  app.get('/api/ledgers/:id/expenses/:expenseId', guards, async (req, reply) => {
+    const { expenseId } = ExpenseParams.parse(req.params);
+    const expense = await loadExpense(req.ledger!.ledgerId, expenseId);
+    if (!expense) return reply.code(404).send({ error: 'not_found' });
+    return expense;
+  });
+
   app.post('/api/ledgers/:id/expenses', guards, async (req, reply) => {
     const input = ExpenseBody.parse(req.body);
     if (!(await checkCategory(req, reply, input.categoryId))) return reply;

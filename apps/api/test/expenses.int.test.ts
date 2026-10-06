@@ -124,6 +124,25 @@ describe.skipIf(!(await testDbReachable()))('expenses API (MySQL)', () => {
     });
   });
 
+  describe('GET one', () => {
+    it('returns a single expense, 404 once deleted or from another ledger', async () => {
+      const created = (await post(groceries())).json();
+      const get = (id: number, headers = auth) => app.inject({ method: 'GET', url: url(`/${id}`), headers });
+      expect((await get(created.expenseId)).json()).toEqual(created);
+
+      const stranger = await makeUser(db, config, 'stranger');
+      const res = await app.inject({
+        method: 'GET',
+        url: `/api/ledgers/${stranger.ledgerId}/expenses/${created.expenseId}`,
+        headers: await authHeader(app, stranger, clock),
+      });
+      expect(res.statusCode).toBe(404);
+
+      await app.inject({ method: 'DELETE', url: url(`/${created.expenseId}`), headers: auth });
+      expect((await get(created.expenseId)).statusCode).toBe(404);
+    });
+  });
+
   describe('PUT', () => {
     const put = (expenseId: number, payload: Record<string, unknown>, headers = auth) =>
       app.inject({ method: 'PUT', url: url(`/${expenseId}`), payload, headers });

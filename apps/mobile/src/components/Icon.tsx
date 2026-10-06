@@ -15,9 +15,28 @@ const PATHS = {
 
 export type IconName = keyof typeof PATHS;
 
-export function Icon({ name, size = 20, color, strokeWidth = name === 'more' ? 3.6 : 2 }: { name: IconName; size?: number; color: string; strokeWidth?: number }) {
+export function Icon({
+  name,
+  size = 20,
+  color,
+  strokeWidth = name === 'more' ? 3.6 : 2,
+}: {
+  name: IconName;
+  size?: number;
+  color: string;
+  strokeWidth?: number;
+}) {
   return (
-    <Svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={strokeWidth} strokeLinecap="round" strokeLinejoin="round">
+    <Svg
+      width={size}
+      height={size}
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke={color}
+      strokeWidth={strokeWidth}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
       {PATHS[name].map((d) => (
         <Path key={d} d={d} />
       ))}

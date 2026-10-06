@@ -42,7 +42,10 @@ function toDto(r: RowDataPacket): ExpenseDto {
 
 const ExpenseBody = z.object({
   categoryId: z.number().int().positive(),
-  expenseDate: z.string().refine(isCalendarDate, 'expected a YYYY-MM-DD date').refine((d) => d >= '2000-01-01', 'too early'),
+  expenseDate: z
+    .string()
+    .refine(isCalendarDate, 'expected a YYYY-MM-DD date')
+    .refine((d) => d >= '2000-01-01', 'too early'),
   name: z.string().trim().max(200).default(''),
   // A string keeps the cents exact; numbers like 12.5 are accepted too.
   amount: z
@@ -135,8 +138,18 @@ export async function expenseRoutes(app: FastifyInstance, deps: AppDeps): Promis
       `INSERT INTO expenses (category_id, expense_date, name, amount_eur, amount_uah, eur_uah_rate,
                              entered_currency, created_by, created_at, updated_at)
        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-      [input.categoryId, input.expenseDate, input.name, priced.amountEur, priced.amountUah, priced.rate,
-        input.currency, req.auth!.userId, at, at],
+      [
+        input.categoryId,
+        input.expenseDate,
+        input.name,
+        priced.amountEur,
+        priced.amountUah,
+        priced.rate,
+        input.currency,
+        req.auth!.userId,
+        at,
+        at,
+      ],
     );
     return reply.code(201).send(await loadExpense(req.ledger!.ledgerId, res.insertId));
   });
@@ -155,8 +168,17 @@ export async function expenseRoutes(app: FastifyInstance, deps: AppDeps): Promis
       `UPDATE expenses SET category_id = ?, expense_date = ?, name = ?, amount_eur = ?, amount_uah = ?,
                            eur_uah_rate = ?, entered_currency = ?, updated_at = ?
         WHERE expense_id = ?`,
-      [input.categoryId, input.expenseDate, input.name, priced.amountEur, priced.amountUah, priced.rate,
-        input.currency, now(), expenseId],
+      [
+        input.categoryId,
+        input.expenseDate,
+        input.name,
+        priced.amountEur,
+        priced.amountUah,
+        priced.rate,
+        input.currency,
+        now(),
+        expenseId,
+      ],
     );
     return loadExpense(req.ledger!.ledgerId, expenseId);
   });
@@ -181,7 +203,8 @@ export async function expenseRoutes(app: FastifyInstance, deps: AppDeps): Promis
 
   app.post('/api/ledgers/:id/expenses/:expenseId/restore', guards, async (req, reply) => {
     const { expenseId } = ExpenseParams.parse(req.params);
-    if (!(await setDeleted(req.ledger!.ledgerId, expenseId, false))) return reply.code(404).send({ error: 'not_found' });
+    if (!(await setDeleted(req.ledger!.ledgerId, expenseId, false)))
+      return reply.code(404).send({ error: 'not_found' });
     return loadExpense(req.ledger!.ledgerId, expenseId);
   });
 }

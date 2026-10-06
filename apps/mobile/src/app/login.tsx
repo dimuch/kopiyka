@@ -1,5 +1,14 @@
 import { useState } from 'react';
-import { ActivityIndicator, KeyboardAvoidingView, Platform, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
+import {
+  ActivityIndicator,
+  KeyboardAvoidingView,
+  Platform,
+  Pressable,
+  StyleSheet,
+  Text,
+  TextInput,
+  View,
+} from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { ApiError } from '@/api/client';
 import { useAuth } from '@/auth/AuthContext';
@@ -47,7 +56,9 @@ export default function Login() {
 
         <View style={{ gap: 14 }}>
           <View style={styles.field}>
-            <Text nativeID="username-label" style={styles.label}>Username</Text>
+            <Text nativeID="username-label" style={styles.label}>
+              Username
+            </Text>
             <TextInput
               accessibilityLabel="Username"
               value={username}
@@ -62,7 +73,9 @@ export default function Login() {
             />
           </View>
           <View style={styles.field}>
-            <Text nativeID="code-label" style={styles.label}>6-digit code</Text>
+            <Text nativeID="code-label" style={styles.label}>
+              6-digit code
+            </Text>
             <TextInput
               accessibilityLabel="6-digit code"
               value={code}
@@ -117,7 +130,13 @@ const styles = StyleSheet.create({
   },
   codeInput: { fontFamily: fonts.display, fontSize: 26, letterSpacing: 8, fontVariant: ['tabular-nums'] },
   error: { fontFamily: fonts.bodyMedium, fontSize: 14, color: colors.over },
-  button: { height: 56, borderRadius: 28, backgroundColor: colors.accent, alignItems: 'center', justifyContent: 'center' },
+  button: {
+    height: 56,
+    borderRadius: 28,
+    backgroundColor: colors.accent,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
   buttonDisabled: { opacity: 0.4 },
   buttonText: { fontFamily: fonts.bodySemi, fontSize: 16, color: colors.onAccent },
 });

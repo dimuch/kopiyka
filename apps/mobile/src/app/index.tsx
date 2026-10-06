@@ -30,14 +30,24 @@ export default function Home() {
     <SafeAreaView style={styles.screen} edges={['top']}>
       <View style={styles.header}>
         <View style={styles.monthSwitch}>
-          <Pressable accessibilityRole="button" accessibilityLabel="Previous month" onPress={() => setMonth((m) => shiftMonth(m, -1))} style={styles.iconButton}>
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel="Previous month"
+            onPress={() => setMonth((m) => shiftMonth(m, -1))}
+            style={styles.iconButton}
+          >
             <Icon name="back" color={colors.muted} />
           </Pressable>
           <View>
             <Text style={styles.eyebrow}>BUDGET ’{month.slice(2, 4)}</Text>
             <Text style={styles.month}>{monthName(month)}</Text>
           </View>
-          <Pressable accessibilityRole="button" accessibilityLabel="Next month" onPress={() => setMonth((m) => shiftMonth(m, 1))} style={styles.iconButton}>
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel="Next month"
+            onPress={() => setMonth((m) => shiftMonth(m, 1))}
+            style={styles.iconButton}
+          >
             <Icon name="forward" color={colors.muted} />
           </Pressable>
         </View>
@@ -66,7 +76,9 @@ export default function Home() {
         </View>
 
         {error ? (
-          <Text style={[styles.caption, { padding: 20 }]}>Couldn’t load this month. Pull back later or check the API is running.</Text>
+          <Text style={[styles.caption, { padding: 20 }]}>
+            Couldn’t load this month. Pull back later or check the API is running.
+          </Text>
         ) : !rows ? (
           <ActivityIndicator color={colors.accent} style={{ marginTop: 24 }} />
         ) : (
@@ -77,7 +89,9 @@ export default function Home() {
                   key={r.categoryId}
                   accessibilityRole="button"
                   accessibilityLabel={`${r.displayName}, ${eur(r.spent)} spent`}
-                  onPress={() => router.push({ pathname: '/category/[categoryId]', params: { categoryId: r.categoryId, month } })}
+                  onPress={() =>
+                    router.push({ pathname: '/category/[categoryId]', params: { categoryId: r.categoryId, month } })
+                  }
                   style={[styles.row, i < rows.length - 1 && styles.divider]}
                 >
                   <CategoryTile techName={r.techName} label={r.displayName} />
@@ -112,15 +126,35 @@ const styles = StyleSheet.create({
   iconButton: { width: 44, height: 44, alignItems: 'center', justifyContent: 'center', borderRadius: 12 },
   eyebrow: { fontFamily: fonts.body, fontSize: 12, color: colors.muted, letterSpacing: 0.5 },
   month: { fontFamily: fonts.display, fontSize: 22, color: colors.text },
-  card: { backgroundColor: colors.surface, borderColor: colors.border, borderWidth: 1, borderRadius: 22, paddingVertical: 16, paddingHorizontal: 18, gap: 10 },
+  card: {
+    backgroundColor: colors.surface,
+    borderColor: colors.border,
+    borderWidth: 1,
+    borderRadius: 22,
+    paddingVertical: 16,
+    paddingHorizontal: 18,
+    gap: 10,
+  },
   totalRow: { flexDirection: 'row', alignItems: 'flex-end', justifyContent: 'space-between' },
   caption: { fontFamily: fonts.body, fontSize: 13, color: colors.muted },
-  total: { fontFamily: fonts.display, fontSize: 34, color: colors.text, letterSpacing: -0.7, fontVariant: ['tabular-nums'] },
+  total: {
+    fontFamily: fonts.display,
+    fontSize: 34,
+    color: colors.text,
+    letterSpacing: -0.7,
+    fontVariant: ['tabular-nums'],
+  },
   budget: { fontFamily: fonts.bodySemi, fontSize: 17, color: colors.muted },
   sectionHead: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'baseline', paddingHorizontal: 4 },
   sectionTitle: { fontFamily: fonts.display, fontSize: 17, color: colors.text },
   small: { fontFamily: fonts.body, fontSize: 12, color: colors.muted },
-  listCard: { backgroundColor: colors.surface, borderColor: colors.border, borderWidth: 1, borderRadius: 22, paddingVertical: 4 },
+  listCard: {
+    backgroundColor: colors.surface,
+    borderColor: colors.border,
+    borderWidth: 1,
+    borderRadius: 22,
+    paddingVertical: 4,
+  },
   row: { flexDirection: 'row', alignItems: 'center', gap: 12, paddingVertical: 12, paddingHorizontal: 16 },
   divider: { borderBottomWidth: 1, borderBottomColor: colors.border },
   rowTop: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'baseline', gap: 8 },

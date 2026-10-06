@@ -60,11 +60,22 @@ export default function CategoryBreakdown() {
   return (
     <SafeAreaView style={styles.screen} edges={['top']}>
       <View style={styles.header}>
-        <Pressable accessibilityRole="button" onPress={() => (router.canGoBack() ? router.back() : router.replace('/'))} style={styles.back}>
+        <Pressable
+          accessibilityRole="button"
+          onPress={() => (router.canGoBack() ? router.back() : router.replace('/'))}
+          style={styles.back}
+        >
           <Icon name="back" color={colors.muted} />
           <Text style={styles.backText}>{monthName(month)}</Text>
         </Pressable>
-        {category && <CompactTotal label={category.displayName} spentCents={totalEur} budgetCents={null} style={collapse.compactStyle} />}
+        {category && (
+          <CompactTotal
+            label={category.displayName}
+            spentCents={totalEur}
+            budgetCents={null}
+            style={collapse.compactStyle}
+          />
+        )}
         <HeaderDivider style={collapse.dividerStyle} />
       </View>
 
@@ -91,7 +102,9 @@ export default function CategoryBreakdown() {
           </Animated.View>
 
           <View style={{ gap: 16 }}>
-            {days.length === 0 && <Text style={[styles.caption, { paddingHorizontal: 4 }]}>No expenses in {monthName(month)}.</Text>}
+            {days.length === 0 && (
+              <Text style={[styles.caption, { paddingHorizontal: 4 }]}>No expenses in {monthName(month)}.</Text>
+            )}
             {days.map((d) => (
               <View key={d.date} style={{ gap: 8 }}>
                 <View style={styles.dayHead}>
@@ -138,7 +151,14 @@ export default function CategoryBreakdown() {
 
 const styles = StyleSheet.create({
   screen: { flex: 1, backgroundColor: colors.bg, paddingHorizontal: 20, paddingTop: 20 },
-  header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 12, paddingBottom: 6, zIndex: 1 },
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: 12,
+    paddingBottom: 6,
+    zIndex: 1,
+  },
   content: { gap: 14, paddingTop: 8, paddingBottom: 104 },
   back: { height: 44, flexDirection: 'row', alignItems: 'center', gap: 4, marginLeft: -8, paddingHorizontal: 8 },
   backText: { fontFamily: fonts.bodyMedium, fontSize: 15, color: colors.muted },
@@ -146,12 +166,33 @@ const styles = StyleSheet.create({
   title: { fontFamily: fonts.display, fontSize: 28, color: colors.text, letterSpacing: -0.3 },
   caption: { fontFamily: fonts.body, fontSize: 13, color: colors.muted },
   small: { fontFamily: fonts.body, fontSize: 12, color: colors.muted, fontVariant: ['tabular-nums'] },
-  card: { backgroundColor: colors.surface, borderColor: colors.border, borderWidth: 1, borderRadius: 22, paddingVertical: 16, paddingHorizontal: 18, gap: 2 },
-  total: { fontFamily: fonts.display, fontSize: 32, color: colors.text, letterSpacing: -0.6, fontVariant: ['tabular-nums'] },
+  card: {
+    backgroundColor: colors.surface,
+    borderColor: colors.border,
+    borderWidth: 1,
+    borderRadius: 22,
+    paddingVertical: 16,
+    paddingHorizontal: 18,
+    gap: 2,
+  },
+  total: {
+    fontFamily: fonts.display,
+    fontSize: 32,
+    color: colors.text,
+    letterSpacing: -0.6,
+    fontVariant: ['tabular-nums'],
+  },
   dayHead: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'baseline', paddingHorizontal: 4 },
   dayLabel: { fontFamily: fonts.bodySemi, fontSize: 13, color: colors.muted, letterSpacing: 0.5 },
   dayCard: { backgroundColor: colors.surface, borderColor: colors.border, borderWidth: 1, borderRadius: 18 },
-  item: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 12, paddingVertical: 10, paddingHorizontal: 16 },
+  item: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: 12,
+    paddingVertical: 10,
+    paddingHorizontal: 16,
+  },
   divider: { borderBottomWidth: 1, borderBottomColor: colors.border },
   itemName: { fontFamily: fonts.bodyMedium, fontSize: 15, color: colors.text },
   toast: {

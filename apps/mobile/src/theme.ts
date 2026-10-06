@@ -23,9 +23,21 @@ export const fonts = {
 
 // Tile hues per category, as on the canvas; anything new gets a stable hue from its name.
 const HUES: Record<string, number> = {
-  rent: 210, groceries: 140, education: 265, personal: 320, parking: 215,
-  clothes: 175, fun: 35, eating_out: 10, medication: 350, utilities: 190,
-  home_needs: 25, car: 0, gift: 300, sviat: 230, gym: 95,
+  rent: 210,
+  groceries: 140,
+  education: 265,
+  personal: 320,
+  parking: 215,
+  clothes: 175,
+  fun: 35,
+  eating_out: 10,
+  medication: 350,
+  utilities: 190,
+  home_needs: 25,
+  car: 0,
+  gift: 300,
+  sviat: 230,
+  gym: 95,
 };
 
 export function categoryTile(techName: string): { bg: string; fg: string } {

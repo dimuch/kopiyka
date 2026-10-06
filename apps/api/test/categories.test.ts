@@ -9,7 +9,9 @@ const row = (categoryId: number, sortOrder: number, lastUsedAt: string | null = 
 
 describe('pickQuick', () => {
   it('falls back to sort order when nothing has been used', () => {
-    expect(pickQuick([row(3, 30), row(1, 10), row(2, 20), row(6, 60), row(4, 40), row(5, 50)])).toEqual([1, 2, 3, 4, 5]);
+    expect(pickQuick([row(3, 30), row(1, 10), row(2, 20), row(6, 60), row(4, 40), row(5, 50)])).toEqual([
+      1, 2, 3, 4, 5,
+    ]);
   });
 
   it('puts recently used categories first, newest first, then fills by sort order', () => {

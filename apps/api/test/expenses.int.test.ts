@@ -3,7 +3,16 @@ import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest';
 import { buildApp } from '../src/app.js';
 import { createDb, type Db } from '../src/db.js';
 import type { RateFetcher } from '../src/rates/nbu.js';
-import { authHeader, clearData, makeUser, resetSchema, TEST_DB_URL, testConfig, testDbReachable, type TestUser } from './helpers.js';
+import {
+  authHeader,
+  clearData,
+  makeUser,
+  resetSchema,
+  TEST_DB_URL,
+  testConfig,
+  testDbReachable,
+  type TestUser,
+} from './helpers.js';
 
 describe.skipIf(!(await testDbReachable()))('expenses API (MySQL)', () => {
   const config = testConfig();
@@ -45,7 +54,9 @@ describe.skipIf(!(await testDbReachable()))('expenses API (MySQL)', () => {
     owner = await makeUser(db, config, 'ivanka');
     auth = await authHeader(app, owner, clock);
     const res = await app.inject({ method: 'GET', url: `/api/ledgers/${owner.ledgerId}/categories`, headers: auth });
-    cat = Object.fromEntries(res.json().categories.map((c: { techName: string; categoryId: number }) => [c.techName, c.categoryId]));
+    cat = Object.fromEntries(
+      res.json().categories.map((c: { techName: string; categoryId: number }) => [c.techName, c.categoryId]),
+    );
   });
 
   describe('POST', () => {
@@ -68,7 +79,12 @@ describe.skipIf(!(await testDbReachable()))('expenses API (MySQL)', () => {
       const res = await post(groceries({ expenseDate: '2026-10-05', amount: 1000, currency: 'UAH' }));
       expect(res.statusCode).toBe(201);
       // 1000.00 / 50.6000 = 19.7628 → 19.76
-      expect(res.json()).toMatchObject({ amountEur: '19.76', amountUah: '1000.00', eurUahRate: '50.6000', enteredCurrency: 'UAH' });
+      expect(res.json()).toMatchObject({
+        amountEur: '19.76',
+        amountUah: '1000.00',
+        eurUahRate: '50.6000',
+        enteredCurrency: 'UAH',
+      });
     });
 
     it('defaults the name to an empty string', async () => {
@@ -101,7 +117,9 @@ describe.skipIf(!(await testDbReachable()))('expenses API (MySQL)', () => {
         'SELECT category_id FROM categories WHERE ledger_id = ? LIMIT 1',
         [other.ledgerId],
       );
-      expect((await post(groceries({ categoryId: rows[0]!.category_id }))).json()).toEqual({ error: 'unknown_category' });
+      expect((await post(groceries({ categoryId: rows[0]!.category_id }))).json()).toEqual({
+        error: 'unknown_category',
+      });
 
       await db.query('UPDATE categories SET is_active = 0 WHERE category_id = ?', [cat.gym]);
       expect((await post(groceries({ categoryId: cat.gym }))).statusCode).toBe(400);
@@ -153,7 +171,10 @@ describe.skipIf(!(await testDbReachable()))('expenses API (MySQL)', () => {
     });
 
     it('updates every field and re-prices at the new date’s rate', async () => {
-      const res = await put(expenseId, groceries({ categoryId: cat.car, expenseDate: '2026-10-05', name: 'fuel', amount: '506', currency: 'UAH' }));
+      const res = await put(
+        expenseId,
+        groceries({ categoryId: cat.car, expenseDate: '2026-10-05', name: 'fuel', amount: '506', currency: 'UAH' }),
+      );
       expect(res.statusCode).toBe(200);
       expect(res.json()).toMatchObject({
         expenseId,
@@ -175,7 +196,7 @@ describe.skipIf(!(await testDbReachable()))('expenses API (MySQL)', () => {
       expect((await put(expenseId, groceries({ categoryId: cat.gym }))).json()).toEqual({ error: 'unknown_category' });
     });
 
-    it("answers 404 for a missing expense or one in another ledger", async () => {
+    it('answers 404 for a missing expense or one in another ledger', async () => {
       expect((await put(999_999, groceries())).statusCode).toBe(404);
       const stranger = await makeUser(db, config, 'stranger');
       const strangerAuth = await authHeader(app, stranger, clock);
@@ -196,7 +217,8 @@ describe.skipIf(!(await testDbReachable()))('expenses API (MySQL)', () => {
   });
 
   describe('DELETE and restore', () => {
-    const del = (expenseId: number, headers = auth) => app.inject({ method: 'DELETE', url: url(`/${expenseId}`), headers });
+    const del = (expenseId: number, headers = auth) =>
+      app.inject({ method: 'DELETE', url: url(`/${expenseId}`), headers });
     const restore = (expenseId: number, headers = auth) =>
       app.inject({ method: 'POST', url: url(`/${expenseId}/restore`), headers });
     let created: { expenseId: number };
@@ -217,7 +239,12 @@ describe.skipIf(!(await testDbReachable()))('expenses API (MySQL)', () => {
 
     it('does not edit a deleted expense', async () => {
       await del(created.expenseId);
-      const res = await app.inject({ method: 'PUT', url: url(`/${created.expenseId}`), payload: groceries(), headers: auth });
+      const res = await app.inject({
+        method: 'PUT',
+        url: url(`/${created.expenseId}`),
+        payload: groceries(),
+        headers: auth,
+      });
       expect(res.statusCode).toBe(404);
     });
 
@@ -255,12 +282,16 @@ describe.skipIf(!(await testDbReachable()))('expenses API (MySQL)', () => {
     });
 
     it('filters by category', async () => {
-      const names = (await list(`?month=2026-10&categoryId=${cat.car}`)).json().expenses.map((e: { name: string }) => e.name);
+      const names = (await list(`?month=2026-10&categoryId=${cat.car}`))
+        .json()
+        .expenses.map((e: { name: string }) => e.name);
       expect(names).toEqual(['fuel']);
     });
 
     it('keeps month edges right', async () => {
-      expect((await list('?month=2026-09')).json().expenses.map((e: { name: string }) => e.name)).toEqual(['september']);
+      expect((await list('?month=2026-09')).json().expenses.map((e: { name: string }) => e.name)).toEqual([
+        'september',
+      ]);
     });
 
     it('requires a valid month', async () => {

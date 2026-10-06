@@ -22,7 +22,10 @@ const { values } = parseArgs({
 
 const input = z
   .object({
-    username: z.string().trim().regex(/^[a-zA-Z0-9_.-]{3,64}$/, '3–64 letters, digits, _ . -'),
+    username: z
+      .string()
+      .trim()
+      .regex(/^[a-zA-Z0-9_.-]{3,64}$/, '3–64 letters, digits, _ . -'),
     email: z.email().max(255),
     ledger: z.string().trim().min(1).max(100),
   })

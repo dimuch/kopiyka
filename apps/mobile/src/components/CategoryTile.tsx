@@ -14,7 +14,9 @@ export function CategoryTile({ techName, label, size = 40 }: { techName: string;
         justifyContent: 'center',
       }}
     >
-      <Text style={{ fontFamily: fonts.display, fontSize: size * 0.43, color: tile.fg }}>{label.charAt(0).toUpperCase()}</Text>
+      <Text style={{ fontFamily: fonts.display, fontSize: size * 0.43, color: tile.fg }}>
+        {label.charAt(0).toUpperCase()}
+      </Text>
     </View>
   );
 }

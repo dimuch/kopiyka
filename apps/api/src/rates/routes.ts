@@ -5,7 +5,10 @@ import { addDays, isCalendarDate, kyivToday } from '../dates.js';
 import { getEurUahRate, RateUnavailableError } from './service.js';
 
 const RateQuery = z.object({
-  date: z.string().refine(isCalendarDate, 'expected a YYYY-MM-DD date').refine((d) => d >= '2000-01-01', 'too early'),
+  date: z
+    .string()
+    .refine(isCalendarDate, 'expected a YYYY-MM-DD date')
+    .refine((d) => d >= '2000-01-01', 'too early'),
 });
 
 export async function rateRoutes(app: FastifyInstance, { db, fetchRate, now }: AppDeps): Promise<void> {

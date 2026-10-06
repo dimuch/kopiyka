@@ -14,7 +14,10 @@ const LoginBody = z.object({
   username: z.string().trim().min(1).max(64),
   code: z.string().regex(/^\d{6}$/),
   // Random id the app generates once and keeps (SecureStore / localStorage).
-  deviceId: z.string().regex(/^[A-Za-z0-9_-]{8,64}$/).optional(),
+  deviceId: z
+    .string()
+    .regex(/^[A-Za-z0-9_-]{8,64}$/)
+    .optional(),
   // 'web' gets only the httpOnly cookie; 'native' (iPhone) also gets the token to keep in SecureStore.
   client: z.enum(['web', 'native']).default('web'),
 });

@@ -81,9 +81,10 @@ export default function ExpenseScreen() {
   useEffect(() => {
     (async () => {
       try {
-        const { categories: cats, quickCategoryIds } = await api<{ categories: Category[]; quickCategoryIds: number[] }>(
-          `${base}/categories`,
-        );
+        const { categories: cats, quickCategoryIds } = await api<{
+          categories: Category[];
+          quickCategoryIds: number[];
+        }>(`${base}/categories`);
         let q = quickCategoryIds;
         let pick = params.categoryId ? Number(params.categoryId) : (q[0] ?? null);
         if (editingId) {
@@ -260,7 +261,12 @@ export default function ExpenseScreen() {
                   );
                 })}
                 {moreCats.length > 0 && (
-                  <Pressable accessibilityRole="button" accessibilityLabel="More categories" onPress={() => setSheetOpen(true)} style={[styles.cat, styles.more]}>
+                  <Pressable
+                    accessibilityRole="button"
+                    accessibilityLabel="More categories"
+                    onPress={() => setSheetOpen(true)}
+                    style={[styles.cat, styles.more]}
+                  >
                     <Icon name="more" color={colors.muted} />
                     <Text style={[styles.catText, { color: colors.muted, flex: 0 }]}>{moreCats.length} more</Text>
                   </Pressable>
@@ -269,7 +275,9 @@ export default function ExpenseScreen() {
             </View>
 
             <View style={styles.group}>
-              <Text nativeID="name-label" style={styles.label}>What was it?</Text>
+              <Text nativeID="name-label" style={styles.label}>
+                What was it?
+              </Text>
               <TextInput
                 accessibilityLabel="What was it?"
                 value={name}
@@ -292,7 +300,9 @@ export default function ExpenseScreen() {
                       ]
                     : []),
                   <View key={cur} style={{ flex: 1, gap: 8 }}>
-                    <Text nativeID={`amount-${cur}`} style={styles.label}>Amount in {cur}</Text>
+                    <Text nativeID={`amount-${cur}`} style={styles.label}>
+                      Amount in {cur}
+                    </Text>
                     <View>
                       <Text style={styles.symbol}>{cur === 'UAH' ? '₴' : '€'}</Text>
                       <TextInput
@@ -320,7 +330,12 @@ export default function ExpenseScreen() {
               </Text>
             )}
 
-            <Pressable accessibilityRole="button" disabled={busy} onPress={save} style={[styles.primary, busy && { opacity: 0.6 }]}>
+            <Pressable
+              accessibilityRole="button"
+              disabled={busy}
+              onPress={save}
+              style={[styles.primary, busy && { opacity: 0.6 }]}
+            >
               {busy ? (
                 <ActivityIndicator color={colors.onAccent} />
               ) : (
@@ -386,18 +401,49 @@ const styles = StyleSheet.create({
   catGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
   cat: { ...field, width: '31.5%', paddingHorizontal: 8, flexDirection: 'row', alignItems: 'center', gap: 8 },
   catText: { flex: 1, fontFamily: fonts.bodyMedium, fontSize: 13, color: colors.text },
-  more: { borderStyle: 'dashed', borderColor: '#3A404A', backgroundColor: 'transparent', justifyContent: 'center', gap: 6 },
+  more: {
+    borderStyle: 'dashed',
+    borderColor: '#3A404A',
+    backgroundColor: 'transparent',
+    justifyContent: 'center',
+    gap: 6,
+  },
   input: { ...field, paddingHorizontal: 14, color: colors.text, fontFamily: fonts.body, fontSize: 16 },
   amountRow: { flexDirection: 'row', alignItems: 'flex-end', gap: 8 },
   swap: { height: 48, width: 20, alignItems: 'center', justifyContent: 'center' },
-  symbol: { position: 'absolute', left: 14, top: 13, zIndex: 1, fontFamily: fonts.body, fontSize: 16, color: colors.muted },
+  symbol: {
+    position: 'absolute',
+    left: 14,
+    top: 13,
+    zIndex: 1,
+    fontFamily: fonts.body,
+    fontSize: 16,
+    color: colors.muted,
+  },
   amountInput: { paddingLeft: 32, fontFamily: fonts.bodyMedium, fontVariant: ['tabular-nums'] },
   small: { fontFamily: fonts.body, fontSize: 12, color: colors.muted, fontVariant: ['tabular-nums'] },
   error: { fontFamily: fonts.bodyMedium, fontSize: 13, color: colors.over },
-  primary: { height: 56, borderRadius: 18, backgroundColor: colors.accent, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8 },
+  primary: {
+    height: 56,
+    borderRadius: 18,
+    backgroundColor: colors.accent,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+  },
   primaryText: { fontFamily: fonts.bodySemi, fontSize: 16, color: colors.onAccent },
   delete: { height: 48, alignItems: 'center', justifyContent: 'center' },
   deleteText: { fontFamily: fonts.bodyMedium, fontSize: 15, color: colors.danger },
-  added: { flexDirection: 'row', alignItems: 'center', gap: 10, padding: 14, borderRadius: 14, backgroundColor: '#16233A', borderWidth: 1, borderColor: '#2B4470' },
+  added: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+    padding: 14,
+    borderRadius: 14,
+    backgroundColor: '#16233A',
+    borderWidth: 1,
+    borderColor: '#2B4470',
+  },
   addedText: { flex: 1, fontFamily: fonts.body, fontSize: 14, color: colors.text },
 });

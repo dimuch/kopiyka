@@ -28,12 +28,9 @@ export function pickQuick(rows: Array<{ categoryId: number; sortOrder: number; l
 }
 
 export async function categoryRoutes(app: FastifyInstance, { db }: AppDeps): Promise<void> {
-  app.get(
-    '/api/ledgers/:id/categories',
-    { preHandler: [app.requireAuth, app.requireLedger] },
-    async (req) => {
-      const [rows] = await db.query<RowDataPacket[]>(
-        `SELECT c.category_id, c.tech_name, c.display_name, c.sort_order, u.last_used_at
+  app.get('/api/ledgers/:id/categories', { preHandler: [app.requireAuth, app.requireLedger] }, async (req) => {
+    const [rows] = await db.query<RowDataPacket[]>(
+      `SELECT c.category_id, c.tech_name, c.display_name, c.sort_order, u.last_used_at
            FROM categories c
            LEFT JOIN (
              SELECT category_id, MAX(created_at) AS last_used_at
@@ -43,19 +40,18 @@ export async function categoryRoutes(app: FastifyInstance, { db }: AppDeps): Pro
            ) u ON u.category_id = c.category_id
           WHERE c.ledger_id = ? AND c.is_active = 1
           ORDER BY c.sort_order, c.category_id`,
-        [req.ledger!.ledgerId],
-      );
+      [req.ledger!.ledgerId],
+    );
 
-      const categories: CategoryDto[] = rows.map((r) => ({
-        categoryId: r.category_id,
-        techName: r.tech_name,
-        displayName: r.display_name,
-        sortOrder: r.sort_order,
-      }));
-      const quickCategoryIds = pickQuick(
-        rows.map((r) => ({ categoryId: r.category_id, sortOrder: r.sort_order, lastUsedAt: r.last_used_at })),
-      );
-      return { categories, quickCategoryIds };
-    },
-  );
+    const categories: CategoryDto[] = rows.map((r) => ({
+      categoryId: r.category_id,
+      techName: r.tech_name,
+      displayName: r.display_name,
+      sortOrder: r.sort_order,
+    }));
+    const quickCategoryIds = pickQuick(
+      rows.map((r) => ({ categoryId: r.category_id, sortOrder: r.sort_order, lastUsedAt: r.last_used_at })),
+    );
+    return { categories, quickCategoryIds };
+  });
 }

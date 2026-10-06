@@ -2,7 +2,17 @@ import type { FastifyInstance } from 'fastify';
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest';
 import { buildApp } from '../src/app.js';
 import { createDb, type Db } from '../src/db.js';
-import { authHeader, clearData, offlineRates, makeUser, resetSchema, TEST_DB_URL, testConfig, testDbReachable, type TestUser } from './helpers.js';
+import {
+  authHeader,
+  clearData,
+  offlineRates,
+  makeUser,
+  resetSchema,
+  TEST_DB_URL,
+  testConfig,
+  testDbReachable,
+  type TestUser,
+} from './helpers.js';
 
 describe.skipIf(!(await testDbReachable()))('GET /api/ledgers/:id/categories (MySQL)', () => {
   const config = testConfig();

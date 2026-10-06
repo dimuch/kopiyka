@@ -1,10 +1,11 @@
 import { buildApp } from './app.js';
 import { loadConfig } from './config.js';
 import { createDb } from './db.js';
+import { nbuFetcher } from './rates/nbu.js';
 
 const config = loadConfig();
 const db = createDb(config.databaseUrl);
-const app = await buildApp({ config, db, now: () => new Date() });
+const app = await buildApp({ config, db, now: () => new Date(), fetchRate: nbuFetcher() });
 
 for (const signal of ['SIGINT', 'SIGTERM'] as const) {
   process.once(signal, async () => {

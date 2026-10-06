@@ -6,8 +6,14 @@ import { base32Decode, hotp, timeStep } from '../src/auth/totp.js';
 import type { Config } from '../src/config.js';
 import type { Db } from '../src/db.js';
 import { runMigrations } from '../src/migrate.js';
+import type { RateFetcher } from '../src/rates/nbu.js';
 
 export const TEST_DB_URL = process.env.DATABASE_URL_TEST;
+
+/** Default rate lookup for tests: never touches the network. */
+export const offlineRates: RateFetcher = async () => {
+  throw new Error('NBU is not reachable in tests');
+};
 
 export async function testDbReachable(): Promise<boolean> {
   if (!TEST_DB_URL) return false;

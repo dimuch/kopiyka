@@ -3,6 +3,7 @@ import Fastify, { type FastifyInstance } from 'fastify';
 import { ZodError } from 'zod';
 import { authRoutes } from './auth/routes.js';
 import { categoryRoutes } from './categories/routes.js';
+import { expenseRoutes } from './expenses/routes.js';
 import type { Config } from './config.js';
 import type { Db } from './db.js';
 import { ledgerAccess } from './ledgers/access.js';
@@ -46,6 +47,7 @@ export async function buildApp(deps: AppDeps): Promise<FastifyInstance> {
   ledgerAccess(app, deps);
   await categoryRoutes(app, deps);
   await rateRoutes(app, deps);
+  await expenseRoutes(app, deps);
 
   return app;
 }

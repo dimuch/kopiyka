@@ -4,6 +4,7 @@ import { ZodError } from 'zod';
 import { authRoutes } from './auth/routes.js';
 import type { Config } from './config.js';
 import type { Db } from './db.js';
+import { ledgerAccess } from './ledgers/access.js';
 
 export interface AppDeps {
   config: Config;
@@ -20,6 +21,7 @@ export async function buildApp(deps: AppDeps): Promise<FastifyInstance> {
   });
 
   app.decorateRequest('auth', null);
+  app.decorateRequest('ledger', null);
   await app.register(cookie);
 
   app.setErrorHandler((err, req, reply) => {
@@ -36,6 +38,7 @@ export async function buildApp(deps: AppDeps): Promise<FastifyInstance> {
 
   app.get('/api/health', async () => ({ ok: true }));
   await authRoutes(app, deps);
+  ledgerAccess(app, deps);
 
   return app;
 }

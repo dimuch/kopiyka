@@ -53,6 +53,8 @@ const ExpenseBody = z.object({
 });
 type ExpenseInput = z.infer<typeof ExpenseBody>;
 
+const ExpenseParams = z.object({ expenseId: z.coerce.number().int().positive() });
+
 const MonthQuery = z.object({
   month: z.string().regex(/^\d{4}-(0[1-9]|1[0-2])$/, 'expected YYYY-MM'),
   categoryId: z.coerce.number().int().positive().optional(),
@@ -130,5 +132,25 @@ export async function expenseRoutes(app: FastifyInstance, deps: AppDeps): Promis
         input.currency, req.auth!.userId, at, at],
     );
     return reply.code(201).send(await loadExpense(req.ledger!.ledgerId, res.insertId));
+  });
+
+  app.put('/api/ledgers/:id/expenses/:expenseId', guards, async (req, reply) => {
+    const { expenseId } = ExpenseParams.parse(req.params);
+    const input = ExpenseBody.parse(req.body);
+    const current = await loadExpense(req.ledger!.ledgerId, expenseId);
+    if (!current) return reply.code(404).send({ error: 'not_found' });
+    // Moving to another category needs an active one; staying in a since-hidden one is fine.
+    if (input.categoryId !== current.categoryId && !(await checkCategory(req, reply, input.categoryId))) return reply;
+    const priced = await price(req, reply, input);
+    if (!priced) return reply;
+
+    await db.query(
+      `UPDATE expenses SET category_id = ?, expense_date = ?, name = ?, amount_eur = ?, amount_uah = ?,
+                           eur_uah_rate = ?, entered_currency = ?, updated_at = ?
+        WHERE expense_id = ?`,
+      [input.categoryId, input.expenseDate, input.name, priced.amountEur, priced.amountUah, priced.rate,
+        input.currency, now(), expenseId],
+    );
+    return loadExpense(req.ledger!.ledgerId, expenseId);
   });
 }

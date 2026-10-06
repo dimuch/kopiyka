@@ -124,6 +124,58 @@ describe.skipIf(!(await testDbReachable()))('expenses API (MySQL)', () => {
     });
   });
 
+  describe('PUT', () => {
+    const put = (expenseId: number, payload: Record<string, unknown>, headers = auth) =>
+      app.inject({ method: 'PUT', url: url(`/${expenseId}`), payload, headers });
+    let expenseId: number;
+
+    beforeEach(async () => {
+      expenseId = (await post(groceries())).json().expenseId;
+    });
+
+    it('updates every field and re-prices at the new date’s rate', async () => {
+      const res = await put(expenseId, groceries({ categoryId: cat.car, expenseDate: '2026-10-05', name: 'fuel', amount: '506', currency: 'UAH' }));
+      expect(res.statusCode).toBe(200);
+      expect(res.json()).toMatchObject({
+        expenseId,
+        categoryId: cat.car,
+        expenseDate: '2026-10-05',
+        name: 'fuel',
+        amountEur: '10.00', // 506.00 / 50.6000
+        amountUah: '506.00',
+        eurUahRate: '50.6000',
+        enteredCurrency: 'UAH',
+        createdBy: owner.userId,
+      });
+      expect((await list('?month=2026-10')).json().expenses).toHaveLength(1);
+    });
+
+    it('keeps a since-hidden category but will not move into one', async () => {
+      await db.query('UPDATE categories SET is_active = 0 WHERE category_id IN (?, ?)', [cat.groceries, cat.gym]);
+      expect((await put(expenseId, groceries({ name: 'renamed' }))).statusCode).toBe(200);
+      expect((await put(expenseId, groceries({ categoryId: cat.gym }))).json()).toEqual({ error: 'unknown_category' });
+    });
+
+    it("answers 404 for a missing expense or one in another ledger", async () => {
+      expect((await put(999_999, groceries())).statusCode).toBe(404);
+      const stranger = await makeUser(db, config, 'stranger');
+      const strangerAuth = await authHeader(app, stranger, clock);
+      const res = await app.inject({
+        method: 'PUT',
+        url: `/api/ledgers/${stranger.ledgerId}/expenses/${expenseId}`,
+        payload: groceries(),
+        headers: strangerAuth,
+      });
+      expect(res.statusCode).toBe(404);
+    });
+
+    it('leaves the expense unchanged when the rate is unavailable', async () => {
+      fetchRate = async () => null;
+      expect((await put(expenseId, groceries({ expenseDate: '2026-09-01', amount: '99' }))).statusCode).toBe(503);
+      expect((await list('?month=2026-10')).json().expenses[0]).toMatchObject({ amountEur: '12.50' });
+    });
+  });
+
   describe('GET', () => {
     beforeEach(async () => {
       await post(groceries({ expenseDate: '2026-10-01', name: 'first' }));

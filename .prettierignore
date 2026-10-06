@@ -1,0 +1,7 @@
+.yarn/
+.expo/
+dist/
+coverage/
+yarn.lock
+apps/mobile/ios/
+apps/mobile/android/

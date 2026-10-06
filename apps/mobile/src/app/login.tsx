@@ -49,7 +49,7 @@ export default function Login() {
           <View style={styles.field}>
             <Text nativeID="username-label" style={styles.label}>Username</Text>
             <TextInput
-              accessibilityLabelledBy="username-label"
+              accessibilityLabel="Username"
               value={username}
               onChangeText={setUsername}
               autoCapitalize="none"
@@ -64,7 +64,7 @@ export default function Login() {
           <View style={styles.field}>
             <Text nativeID="code-label" style={styles.label}>6-digit code</Text>
             <TextInput
-              accessibilityLabelledBy="code-label"
+              accessibilityLabel="6-digit code"
               value={code}
               onChangeText={(t) => setCode(t.replace(/\D/g, '').slice(0, 6))}
               keyboardType="number-pad"

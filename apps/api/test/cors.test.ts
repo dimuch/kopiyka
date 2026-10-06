@@ -10,10 +10,10 @@ async function appWith(corsOrigins: string[]) {
   return { app, close: async () => (await app.close(), await db.end()) };
 }
 
-const preflight = (origin: string) => ({
+const preflight = (origin: string, method = 'POST') => ({
   method: 'OPTIONS' as const,
   url: '/api/auth/login',
-  headers: { origin, 'access-control-request-method': 'POST' },
+  headers: { origin, 'access-control-request-method': method },
 });
 
 describe('CORS', () => {
@@ -23,6 +23,15 @@ describe('CORS', () => {
     expect(res.headers['access-control-allow-origin']).toBe('http://localhost:8081');
     expect(res.headers['access-control-allow-credentials']).toBe('true');
     expect((await app.inject(preflight('https://evil.example'))).headers['access-control-allow-origin']).toBeUndefined();
+    await close();
+  });
+
+  it('allows PUT and DELETE for editing and deleting expenses', async () => {
+    const { app, close } = await appWith(['http://localhost:8081']);
+    for (const method of ['PUT', 'DELETE']) {
+      const allowed = (await app.inject(preflight('http://localhost:8081', method))).headers['access-control-allow-methods'];
+      expect(String(allowed).split(',').map((m) => m.trim())).toContain(method);
+    }
     await close();
   });
 

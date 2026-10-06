@@ -6,10 +6,14 @@
     "expo": "~57.0.26",
     "expo-status-bar": "~57.0.1",
     "react": "19.2.3",
-    "react-native": "0.86.3"
+    "react-dom": "19.2.3",
+    "react-native": "0.86.3",
+    "react-native-web": "^0.21.2"
   },
   "devDependencies": {
     "@types/react": "~19.2.2",
+    "@types/react-dom": "^19",
+    "@types/react-native-web": "^0",
     "typescript": "~6.0.3"
   },
   "scripts": {

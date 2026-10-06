@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react';
+import { useState } from 'react';
 import { Animated, StyleSheet, Text, type LayoutChangeEvent } from 'react-native';
 import { eur } from '@/format';
 import { colors, fonts } from '@/theme';
@@ -9,7 +9,7 @@ import { colors, fonts } from '@/theme';
  * Driven natively from the scroll position, so it stays smooth while scrolling.
  */
 export function useCollapsingSummary() {
-  const scrollY = useRef(new Animated.Value(0)).current;
+  const [scrollY] = useState(() => new Animated.Value(0));
   // Where the card sits in the scroll content; refined by onLayout.
   const [card, setCard] = useState({ y: 0, height: 110 });
 

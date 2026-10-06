@@ -60,6 +60,8 @@ export default function ExpenseScreen() {
   const base = `/api/ledgers/${ledger.ledgerId}`;
 
   const today = dateOf(new Date());
+  // TODO(lint): impure during render; derive both dates from one clock read.
+  // eslint-disable-next-line react-hooks/purity
   const yesterday = dateOf(new Date(Date.now() - 86_400_000));
 
   const [categories, setCategories] = useState<Category[] | null>(null);
@@ -126,6 +128,8 @@ export default function ExpenseScreen() {
     if (!rate?.value || rate.date !== date) return;
     const source = normalizeAmount(entered === 'UAH' ? uahText : eurText);
     const other = source ? centsToInput(convertPreview(toCents(source), entered, rate.value)) : '';
+    // TODO(lint): the other side is derived state; compute it instead of syncing it.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     if (entered === 'UAH') setEurText(other);
     else setUahText(other);
     // Only re-run when the typed side or the rate changes, not when we set the other side.

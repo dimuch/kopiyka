@@ -1,4 +1,5 @@
 import cookie from '@fastify/cookie';
+import cors from '@fastify/cors';
 import Fastify, { type FastifyInstance } from 'fastify';
 import { ZodError } from 'zod';
 import { authRoutes } from './auth/routes.js';
@@ -29,6 +30,10 @@ export async function buildApp(deps: AppDeps): Promise<FastifyInstance> {
   app.decorateRequest('auth', null);
   app.decorateRequest('ledger', null);
   await app.register(cookie);
+  // Off unless CORS_ORIGINS is set: in production the web app and API share one origin.
+  if (deps.config.corsOrigins.length) {
+    await app.register(cors, { origin: deps.config.corsOrigins, credentials: true });
+  }
 
   app.setErrorHandler((err, req, reply) => {
     if (err instanceof ZodError) {

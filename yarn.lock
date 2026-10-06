@@ -1558,6 +1558,16 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@fastify/cors@npm:^11.3.0":
+  version: 11.3.0
+  resolution: "@fastify/cors@npm:11.3.0"
+  dependencies:
+    fastify-plugin: "npm:^6.0.0"
+    toad-cache: "npm:^3.7.0"
+  checksum: 10c0/2b37bdf7f5a6c48dd329aeb1ab213514515f285969acd803c72a75a044cb2b6c30077c5d09f4c72bcf4dd5ade00adb4d34696ea9dcc0ffc39bf95e6b76a8d4b0
+  languageName: node
+  linkType: hard
+
 "@fastify/error@npm:^4.0.0":
   version: 4.2.0
   resolution: "@fastify/error@npm:4.2.0"
@@ -1698,6 +1708,7 @@ __metadata:
   resolution: "@kopiyka/api@workspace:apps/api"
   dependencies:
     "@fastify/cookie": "npm:^11.1.2"
+    "@fastify/cors": "npm:^11.3.0"
     "@types/node": "npm:^24.0.0"
     "@types/qrcode": "npm:^1.5.5"
     fastify: "npm:^5.12.5"

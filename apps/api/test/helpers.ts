@@ -36,6 +36,7 @@ export function testConfig(totpKey = randomBytes(32)): Config {
     totpKey,
     sessionTtlMinutes: 30,
     cookieSecure: false,
+    corsOrigins: [],
   };
 }
 

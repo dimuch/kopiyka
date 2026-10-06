@@ -10,6 +10,8 @@ const Env = z.object({
   TOTP_ENC_KEY: z.string().min(1),
   SESSION_TTL_MINUTES: z.coerce.number().int().positive().default(30),
   COOKIE_SECURE: z.stringbool().default(false),
+  // Comma-separated browser origins allowed to call the API, e.g. the Expo web dev server.
+  CORS_ORIGINS: z.string().default(''),
 });
 
 export interface Config {
@@ -21,6 +23,7 @@ export interface Config {
   totpKey: Buffer;
   sessionTtlMinutes: number;
   cookieSecure: boolean;
+  corsOrigins: string[];
 }
 
 export function loadConfig(source: NodeJS.ProcessEnv = process.env): Config {
@@ -34,5 +37,6 @@ export function loadConfig(source: NodeJS.ProcessEnv = process.env): Config {
     totpKey: parseKey(env.TOTP_ENC_KEY),
     sessionTtlMinutes: env.SESSION_TTL_MINUTES,
     cookieSecure: env.COOKIE_SECURE,
+    corsOrigins: env.CORS_ORIGINS.split(',').map((o) => o.trim()).filter(Boolean),
   };
 }

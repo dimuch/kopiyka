@@ -8,6 +8,7 @@ import { expenseRoutes } from './expenses/routes.js';
 import type { Config } from './config.js';
 import type { Db } from './db.js';
 import { ledgerAccess } from './ledgers/access.js';
+import { ledgerRoutes } from './ledgers/routes.js';
 import type { RateFetcher } from './rates/nbu.js';
 import { rateRoutes } from './rates/routes.js';
 
@@ -50,6 +51,7 @@ export async function buildApp(deps: AppDeps): Promise<FastifyInstance> {
   app.get('/api/health', async () => ({ ok: true }));
   await authRoutes(app, deps);
   ledgerAccess(app, deps);
+  await ledgerRoutes(app, deps);
   await categoryRoutes(app, deps);
   await rateRoutes(app, deps);
   await expenseRoutes(app, deps);

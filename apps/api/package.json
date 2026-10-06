@@ -11,7 +11,8 @@
     "create-user": "tsx --env-file-if-exists=.env scripts/create-user.ts",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "lint": "eslint ."
   },
   "dependencies": {
     "@fastify/cookie": "^11.1.2",
@@ -22,10 +23,15 @@
     "zod": "^4.6.5"
   },
   "devDependencies": {
+    "@eslint/js": "^9",
     "@types/node": "^24.0.0",
     "@types/qrcode": "^1.5.5",
+    "eslint": "^9",
+    "eslint-config-prettier": "^10.1.8",
+    "globals": "^17.13.0",
     "tsx": "^4.23.15",
     "typescript": "~6.0.3",
+    "typescript-eslint": "^8.71.1",
     "vitest": "^4.0.0"
   }
 }

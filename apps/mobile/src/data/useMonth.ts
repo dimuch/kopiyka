@@ -28,6 +28,8 @@ export function useMonth(ledgerId: number, month: string, categoryId?: number) {
       return () => {
         live = false;
       };
+      // `version` is the reload trigger: bumping it re-runs the load.
+      // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [ledgerId, month, categoryId, version]),
   );
 

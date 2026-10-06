@@ -1,11 +1,21 @@
 import * as SecureStore from 'expo-secure-store';
 import { Platform } from 'react-native';
 
-// iOS simulator and the web dev server reach the Mac's API on localhost.
-// A real iPhone needs the Mac's LAN address: set EXPO_PUBLIC_API_URL.
-export const API_URL = process.env.EXPO_PUBLIC_API_URL ?? 'http://localhost:3000';
-
 const isWeb = Platform.OS === 'web';
+
+// Web: the session cookie only travels to the same site, so the API is always
+// reached on the page's own host: port 3000 in development, the same origin in
+// production (nginx serves the app and proxies /api).
+// Native: the simulator reaches the Mac on localhost; a real iPhone needs the
+// Mac's LAN address in EXPO_PUBLIC_API_URL (apps/mobile/.env).
+function apiUrl(): string {
+  if (isWeb) {
+    return __DEV__ ? `${window.location.protocol}//${window.location.hostname}:3000` : '';
+  }
+  return process.env.EXPO_PUBLIC_API_URL ?? 'http://localhost:3000';
+}
+
+export const API_URL = apiUrl();
 const TOKEN_KEY = 'kopiyka.session';
 const DEVICE_KEY = 'kopiyka.device';
 

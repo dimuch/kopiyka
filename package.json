@@ -11,8 +11,6 @@
   "scripts": {
     "api": "yarn workspace @kopiyka/api",
     "mobile": "yarn workspace @kopiyka/mobile",
-    "db:up": "docker compose up -d mysql",
-    "db:down": "docker compose down",
     "typecheck": "yarn workspaces foreach -A run typecheck",
     "test": "yarn workspace @kopiyka/api test"
   }

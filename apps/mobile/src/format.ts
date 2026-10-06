@@ -48,3 +48,33 @@ export function dayLabel(date: string): string {
   const mon = day.toLocaleString('en-US', { month: 'short' });
   return `${weekday} ${d} ${mon}`.toUpperCase();
 }
+
+/** Typed amount → '12.50'-style string the API accepts, or null. A comma works as the decimal mark. */
+export function normalizeAmount(text: string): string | null {
+  const t = text.trim().replace(',', '.');
+  if (!/^\d{1,8}(\.\d{0,2})?$/.test(t)) return null;
+  const [whole, frac = ''] = t.split('.');
+  const value = `${Number(whole)}.${frac.padEnd(2, '0')}`;
+  return toCents(value) > 0 ? value : null;
+}
+
+/** Live preview of the other currency, rounded half up like the server. */
+export function convertPreview(cents: number, from: 'EUR' | 'UAH', rate: number): number {
+  const rateE4 = Math.round(rate * 10_000);
+  return from === 'EUR' ? Math.round((cents * rateE4) / 10_000) : Math.round((cents * 10_000) / rateE4);
+}
+
+export function centsToInput(cents: number): string {
+  return (cents / 100).toFixed(2);
+}
+
+/** 'YYYY-MM-DD' of a local date. */
+export function dateOf(d: Date): string {
+  return `${monthOf(d)}-${String(d.getDate()).padStart(2, '0')}`;
+}
+
+/** '6 Oct 2026' */
+export function shortDate(date: string): string {
+  const [y, m, d] = date.split('-').map(Number) as [number, number, number];
+  return new Date(y, m - 1, d).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
+}

@@ -2,6 +2,7 @@ import cookie from '@fastify/cookie';
 import Fastify, { type FastifyInstance } from 'fastify';
 import { ZodError } from 'zod';
 import { authRoutes } from './auth/routes.js';
+import { categoryRoutes } from './categories/routes.js';
 import type { Config } from './config.js';
 import type { Db } from './db.js';
 import { ledgerAccess } from './ledgers/access.js';
@@ -39,6 +40,7 @@ export async function buildApp(deps: AppDeps): Promise<FastifyInstance> {
   app.get('/api/health', async () => ({ ok: true }));
   await authRoutes(app, deps);
   ledgerAccess(app, deps);
+  await categoryRoutes(app, deps);
 
   return app;
 }

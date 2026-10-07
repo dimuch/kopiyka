@@ -134,6 +134,32 @@ describe.skipIf(!(await testDbReachable()))('auth routes (MySQL)', () => {
     expect((await login({ username: 'ivanka', code: codeAt() })).statusCode).toBe(429);
   });
 
+  it('throttles the address nginx appended', async () => {
+    const viaNginx = (body: Record<string, unknown>, forwardedFor: string, peer = '127.0.0.1') =>
+      app.inject({
+        method: 'POST',
+        url: '/api/auth/login',
+        payload: body,
+        remoteAddress: peer,
+        headers: { 'x-forwarded-for': forwardedFor },
+      });
+    for (let i = 0; i < 5; i++) {
+      expect((await viaNginx({ username: `guess${i}`, code: '000000' }, '6.6.6.6, 203.0.113.9')).statusCode).toBe(401);
+    }
+    const [rows] = await db.query<mysql.RowDataPacket[]>(
+      "SELECT key_value, locked_until > ? AS locked FROM login_throttle WHERE key_type = 'ip'",
+      [clock],
+    );
+    expect(rows.map((r) => [r.key_value, r.locked])).toEqual([['203.0.113.9', 1]]);
+
+    // The left-most entry is whatever the client sent; only the appended one counts.
+    expect((await viaNginx({ username: 'ivanka', code: codeAt() }, '1.2.3.4, 203.0.113.9')).statusCode).toBe(429);
+    // A peer that isn't the local proxy can't pick its address with the header.
+    expect((await viaNginx({ username: 'ivanka', code: codeAt() }, '203.0.113.9', '198.51.100.5')).statusCode).toBe(
+      200,
+    );
+  });
+
   it('clears the username count after a good login', async () => {
     const wrong = codeAt() === '000000' ? '111111' : '000000';
     for (let i = 0; i < 4; i++) {

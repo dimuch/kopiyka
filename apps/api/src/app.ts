@@ -24,8 +24,10 @@ export interface AppDeps {
 export async function buildApp(deps: AppDeps): Promise<FastifyInstance> {
   const app = Fastify({
     logger: deps.config.env === 'test' ? false : { level: deps.config.logLevel },
-    // nginx in front sets X-Forwarded-For; the API itself listens on 127.0.0.1 only.
-    trustProxy: true,
+    // Only the local nginx may set the client address: it appends the real one to X-Forwarded-For, and
+    // `true` would take the left-most, client-written entry. A hop count fails closed in Fastify 5
+    // (every client becomes 127.0.0.1, one shared throttle key).
+    trustProxy: 'loopback',
   });
 
   app.decorateRequest('auth', null);

@@ -86,7 +86,7 @@ Fastify 5.12.5 a number fails closed (`lib/request.js` `getTrustProxyFn` returns
       The `login_throttle` row for `('username','ivanka')` has `failed_attempts = 0`, and the
       `('ip','203.0.113.7')` row still has `4`.
   - Est. ~120 changed lines.
-- [ ] 2. Trust X-Forwarded-For only from the local nginx
+- [x] 2. Trust X-Forwarded-For only from the local nginx
   - Files: `apps/api/src/app.ts`, `apps/api/test/auth.int.test.ts`, `README.md`
   - Change: `trustProxy: 'loopback'` (127.0.0.0/8 and ::1), with a why-comment that mentions
     the fail-closed hop count. A short README "Deployment" note says nginx must append the client
@@ -173,6 +173,12 @@ Total ≈ 210 changed lines, 3 commits. Each commit passes `yarn format:check &&
   that pattern.
 - `login_throttle` grows by one row per new IP/device on success too, because the row is created
   before the check and committed. Old rows are never pruned; that would be a separate cleanup.
+
+- Deploy (from the droplet's current nginx config, shared in the session): every proxied vhost uses
+  `$proxy_add_x_forwarded_for`, so `'loopback'` reads the right address with no server change. No
+  kopiyka vhost exists yet, and `127.0.0.1:3000` (the API's default `PORT`) is taken by another app;
+  the kopiyka deploy needs its own port and an HTTPS-only vhost (a plain-HTTP fallback like the
+  other app's `:8945` would break web login once the cookie is Secure in slice 3).
 
 ## Deviations
 

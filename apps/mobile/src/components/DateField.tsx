@@ -1,6 +1,7 @@
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { createElement } from 'react';
 import { Platform, StyleSheet, View } from 'react-native';
+import { parseDate } from '@/format';
 import { colors, fonts } from '@/theme';
 
 interface Props {
@@ -8,11 +9,6 @@ interface Props {
   onChange: (date: string) => void;
   max: string;
   label: string;
-}
-
-function toDate(value: string): Date {
-  const [y, m, d] = value.split('-').map(Number) as [number, number, number];
-  return new Date(y, m - 1, d, 12);
 }
 
 function toValue(date: Date): string {
@@ -46,10 +42,10 @@ export function DateField({ value, onChange, max, label }: Props) {
   return (
     <View style={styles.native}>
       <DateTimePicker
-        value={toDate(value)}
+        value={parseDate(value)}
         mode="date"
         display="compact"
-        maximumDate={toDate(max)}
+        maximumDate={parseDate(max)}
         themeVariant="dark"
         accentColor={colors.accent}
         accessibilityLabel={label}

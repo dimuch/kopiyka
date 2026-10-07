@@ -21,14 +21,47 @@ export const eur = (cents: number) => money('€', cents, 'auto');
 /** ₴631 (whole hryvnias, as on the canvas) */
 export const uah = (cents: number) => money('₴', cents, 'never');
 
-/** 'YYYY-MM' of a local date. */
-export function monthOf(date: Date): string {
-  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+/** Local noon of a 'YYYY-MM-DD' date, only to display it or seed the picker; noon stays on that day across DST. */
+export function parseDate(date: string): Date {
+  const [y, m, d] = date.split('-').map(Number) as [number, number, number];
+  return new Date(y, m - 1, d, 12);
 }
 
+/** Shifts a 'YYYY-MM-DD' date by whole days; UTC arithmetic has no DST gaps. Mirrors apps/api/src/dates.ts. */
+export function addDays(date: string, days: number): string {
+  const d = new Date(`${date}T00:00:00Z`);
+  d.setUTCDate(d.getUTCDate() + days);
+  return d.toISOString().slice(0, 10);
+}
+
+// One field per formatter: a combined pattern takes its field order from the device's locale data, which differs
+// between iOS versions. Older tz databases only know the 'Europe/Kiev' spelling.
+function kyivFormat(options: Intl.DateTimeFormatOptions): Intl.DateTimeFormat {
+  try {
+    return new Intl.DateTimeFormat('en-US', { ...options, timeZone: 'Europe/Kyiv' });
+  } catch {
+    return new Intl.DateTimeFormat('en-US', { ...options, timeZone: 'Europe/Kiev' });
+  }
+}
+const kyivYear = kyivFormat({ year: 'numeric' });
+const kyivMonthNumber = kyivFormat({ month: '2-digit' });
+const kyivDay = kyivFormat({ day: '2-digit' });
+
+/** The 'YYYY-MM-DD' date in Kyiv at `now`, whatever the device's time zone: expenses are dated like NBU rates. */
+export function kyivToday(now: Date): string {
+  return `${kyivYear.format(now)}-${kyivMonthNumber.format(now)}-${kyivDay.format(now)}`;
+}
+
+/** The 'YYYY-MM' month in Kyiv at `now`. */
+export function kyivMonth(now: Date): string {
+  return kyivToday(now).slice(0, 7);
+}
+
+/** 'YYYY-MM' moved by `by` months ('2026-01', -1 → '2025-12'). */
 export function shiftMonth(month: string, by: number): string {
   const [y, m] = month.split('-').map(Number) as [number, number];
-  return monthOf(new Date(y, m - 1 + by, 1));
+  const index = y * 12 + (m - 1) + by;
+  return `${Math.floor(index / 12)}-${String((index % 12) + 1).padStart(2, '0')}`;
 }
 
 export function monthName(month: string): string {
@@ -42,11 +75,10 @@ export function monthLabel(month: string): string {
 
 /** 'TUE 29 SEP' for '2026-09-29'. */
 export function dayLabel(date: string): string {
-  const [y, m, d] = date.split('-').map(Number) as [number, number, number];
-  const day = new Date(y, m - 1, d);
+  const day = parseDate(date);
   const weekday = day.toLocaleString('en-US', { weekday: 'short' });
   const mon = day.toLocaleString('en-US', { month: 'short' });
-  return `${weekday} ${d} ${mon}`.toUpperCase();
+  return `${weekday} ${day.getDate()} ${mon}`.toUpperCase();
 }
 
 /** Typed amount → '12.50'-style string the API accepts, or null. A comma works as the decimal mark. */
@@ -68,13 +100,7 @@ export function centsToInput(cents: number): string {
   return (cents / 100).toFixed(2);
 }
 
-/** 'YYYY-MM-DD' of a local date. */
-export function dateOf(d: Date): string {
-  return `${monthOf(d)}-${String(d.getDate()).padStart(2, '0')}`;
-}
-
 /** '6 Oct 2026' */
 export function shortDate(date: string): string {
-  const [y, m, d] = date.split('-').map(Number) as [number, number, number];
-  return new Date(y, m - 1, d).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
+  return parseDate(date).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
 }

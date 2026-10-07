@@ -8,12 +8,12 @@ import { CategoryTile } from '@/components/CategoryTile';
 import { CompactTotal, HeaderDivider, useCollapsingSummary } from '@/components/CollapsingSummary';
 import { Icon } from '@/components/Icon';
 import { useMonth } from '@/data/useMonth';
-import { eur, monthName, monthOf, shiftMonth, toCents } from '@/format';
+import { eur, kyivMonth, monthName, shiftMonth, toCents } from '@/format';
 import { colors, fonts } from '@/theme';
 
 export default function Home() {
   const { ledger, user, logout } = useSession();
-  const [month, setMonth] = useState(() => monthOf(new Date()));
+  const [month, setMonth] = useState(() => kyivMonth(new Date()));
   const { data, error } = useMonth(ledger.ledgerId, month);
 
   const rows = useMemo(() => {

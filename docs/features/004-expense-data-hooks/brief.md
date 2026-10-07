@@ -48,15 +48,15 @@ Audit: `docs/audits/2026-10-architecture.md` M4, M11, M14, M16, M17, M24.
       the rate always has 4 decimals.
 - [ ] Leaving the screen while it loads produces no React state-update warning in the console.
 - [ ] VoiceOver/screen reader: the Add button announces "Add" (busy) while saving.
-- [ ] `expense.tsx` is ≤ ~300 lines; `yarn lint typecheck` green; iOS and web paths both checked
-      and recorded in the PR.
+- [ ] `expense.tsx` is ≤ ~320 lines (measured 317 after briefs 007 and 004; relaxed at Gate A);
+      `yarn lint typecheck` green; iOS and web paths both checked and recorded in the PR.
 
 ## Out of scope
 
 - The shared `LoadError` component and Home/Category retries (brief 005). This brief may inline
   a simple retry; 005 replaces it.
-- Splitting presentational pieces (`CategoryPicker`, `AmountFields`, `DateChips`) into
-  `components/`, unless needed to reach the line target.
+- Extracting presentational pieces (`CategoryPicker`, `AmountFields`, `DateChips`) into
+  `components/`: done by brief 007, which ships first.
 - Any API change. `rateDate` is already returned by `/api/rates/eur-uah`.
 - A data-fetching library.
 
@@ -64,3 +64,5 @@ Audit: `docs/audits/2026-10-architecture.md` M4, M11, M14, M16, M17, M24.
 
 - Builds on 003 (the amount field is already derived, so the hook split moves fewer effects).
 - Keep `errorText` and `confirmDelete` in the screen; the conventions place them there.
+- Split at Gate A (2026-10-07): the component extractions moved to brief 007, which ships first;
+  this brief starts from main after 007 merges.

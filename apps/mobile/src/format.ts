@@ -39,7 +39,8 @@ export function addDays(date: string, days: number): string {
 function kyivFormat(options: Intl.DateTimeFormatOptions): Intl.DateTimeFormat {
   try {
     return new Intl.DateTimeFormat('en-US', { ...options, timeZone: 'Europe/Kyiv' });
-  } catch {
+  } catch (err) {
+    if (!(err instanceof RangeError)) throw err;
     return new Intl.DateTimeFormat('en-US', { ...options, timeZone: 'Europe/Kiev' });
   }
 }

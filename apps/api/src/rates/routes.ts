@@ -1,21 +1,14 @@
 import type { FastifyInstance } from 'fastify';
 import { z } from 'zod';
 import type { AppDeps } from '../app.js';
-import { addDays, isCalendarDate, kyivToday } from '../dates.js';
-import { getEurUahRate, rateUnavailableReason } from './service.js';
+import { getEurUahRate, isAfterRateHorizon, RateDate, rateUnavailableReason } from './service.js';
 
-const RateQuery = z.object({
-  date: z
-    .string()
-    .refine(isCalendarDate, 'expected a YYYY-MM-DD date')
-    .refine((d) => d >= '2000-01-01', 'too early'),
-});
+const RateQuery = z.object({ date: RateDate });
 
 export async function rateRoutes(app: FastifyInstance, { db, fetchRate, now }: AppDeps): Promise<void> {
   app.get('/api/rates/eur-uah', { preHandler: app.requireAuth }, async (req, reply) => {
     const { date } = RateQuery.parse(req.query);
-    // The NBU publishes tomorrow's rate in the afternoon; anything later can't exist yet.
-    if (date > addDays(kyivToday(now()), 1)) {
+    if (isAfterRateHorizon(date, now())) {
       return reply.code(400).send({ error: 'date_in_future' });
     }
     try {

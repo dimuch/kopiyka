@@ -1,10 +1,22 @@
 import type { RowDataPacket } from 'mysql2/promise';
-import { addDays } from '../dates.js';
+import { z } from 'zod';
+import { addDays, isCalendarDate, kyivToday } from '../dates.js';
 import type { Db } from '../db.js';
 import type { RateFetcher } from './nbu.js';
 
 /** How far back to look when the NBU has no rate for the asked date yet. */
 export const MAX_FALLBACK_DAYS = 7;
+
+/** A real 'YYYY-MM-DD' date from 2000-01-01 on: the dates both routes look NBU rates up for. */
+export const RateDate = z
+  .string()
+  .refine(isCalendarDate, 'expected a YYYY-MM-DD date')
+  .refine((d) => d >= '2000-01-01', 'too early');
+
+/** True after tomorrow in Kyiv: the NBU publishes tomorrow's rate in the afternoon, later ones can't exist yet. */
+export function isAfterRateHorizon(date: string, now: Date): boolean {
+  return date > addDays(kyivToday(now), 1);
+}
 
 export interface EurUahRate {
   /** The date that was asked for. */

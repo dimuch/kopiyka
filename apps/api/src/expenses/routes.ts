@@ -2,9 +2,9 @@ import type { FastifyInstance, FastifyReply, FastifyRequest } from 'fastify';
 import type { ResultSetHeader, RowDataPacket } from 'mysql2/promise';
 import { z } from 'zod';
 import type { AppDeps } from '../app.js';
-import { addDays, isCalendarDate, kyivToday } from '../dates.js';
+import { addDays } from '../dates.js';
 import { AMOUNT_RE, centsToString, convert, e4ToString, rateToE4, toCents } from '../money.js';
-import { getEurUahRate, rateUnavailableReason } from '../rates/service.js';
+import { getEurUahRate, isAfterRateHorizon, RateDate, rateUnavailableReason } from '../rates/service.js';
 
 export interface ExpenseDto {
   expenseId: number;
@@ -42,10 +42,7 @@ function toDto(r: RowDataPacket): ExpenseDto {
 
 const ExpenseBody = z.object({
   categoryId: z.number().int().positive(),
-  expenseDate: z
-    .string()
-    .refine(isCalendarDate, 'expected a YYYY-MM-DD date')
-    .refine((d) => d >= '2000-01-01', 'too early'),
+  expenseDate: RateDate,
   name: z.string().trim().max(200).default(''),
   // A string keeps the cents exact; numbers like 12.5 are accepted too.
   amount: z
@@ -80,7 +77,7 @@ export async function expenseRoutes(app: FastifyInstance, deps: AppDeps): Promis
 
   /** The stored amounts for an input, at the NBU rate of its date. Replies 400/503 and returns null when it can't. */
   async function price(req: FastifyRequest, reply: FastifyReply, input: ExpenseInput) {
-    if (input.expenseDate > addDays(kyivToday(now()), 1)) {
+    if (isAfterRateHorizon(input.expenseDate, now())) {
       reply.code(400).send({ error: 'date_in_future' });
       return null;
     }

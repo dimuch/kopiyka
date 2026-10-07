@@ -162,10 +162,12 @@ export async function expenseRoutes(app: FastifyInstance, deps: AppDeps): Promis
     const priced = await price(req, reply, input);
     if (!priced) return reply;
 
-    await db.query(
-      `UPDATE expenses SET category_id = ?, expense_date = ?, name = ?, amount_eur = ?, amount_uah = ?,
-                           eur_uah_rate = ?, entered_currency = ?, updated_at = ?
-        WHERE expense_id = ?`,
+    // Scoped like the load above: the expense can be deleted while the rate is being fetched.
+    const [res] = await db.query<ResultSetHeader>(
+      `UPDATE expenses e JOIN categories c ON c.category_id = e.category_id
+          SET e.category_id = ?, e.expense_date = ?, e.name = ?, e.amount_eur = ?, e.amount_uah = ?,
+              e.eur_uah_rate = ?, e.entered_currency = ?, e.updated_at = ?
+        WHERE e.expense_id = ? AND c.ledger_id = ? AND e.deleted_at IS NULL`,
       [
         input.categoryId,
         input.expenseDate,
@@ -176,9 +178,11 @@ export async function expenseRoutes(app: FastifyInstance, deps: AppDeps): Promis
         input.currency,
         now(),
         expenseId,
+        req.ledger!.ledgerId,
       ],
     );
-    return loadExpense(req.ledger!.ledgerId, expenseId);
+    const updated = res.affectedRows === 1 ? await loadExpense(req.ledger!.ledgerId, expenseId) : null;
+    return updated ?? reply.code(404).send({ error: 'not_found' });
   });
 
   /** Sets or clears deleted_at on an expense of this ledger; false when no expense was in the other state. */

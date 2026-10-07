@@ -224,6 +224,20 @@ describe.skipIf(!(await testDbReachable()))('expenses API (MySQL)', () => {
       expect(res.statusCode).toBe(404);
     });
 
+    it('answers 404 when the expense is deleted while it is being priced', async () => {
+      // 2026-10-05 isn't cached yet, so the rate fetch runs between loading the expense and updating it.
+      fetchRate = async () => {
+        await db.query('UPDATE expenses SET deleted_at = ? WHERE expense_id = ?', [clock, expenseId]);
+        return 50.6;
+      };
+      const res = await put(expenseId, groceries({ expenseDate: '2026-10-05' }));
+      expect([res.statusCode, res.json()]).toEqual([404, { error: 'not_found' }]);
+    });
+
+    it('saves an unchanged expense', async () => {
+      expect((await put(expenseId, groceries())).statusCode).toBe(200);
+    });
+
     it('rejects an invalid body and a date after Kyiv tomorrow', async () => {
       const bad = await put(expenseId, groceries({ amount: '0' }));
       expect([bad.statusCode, bad.json().error]).toEqual([400, 'invalid_request']);

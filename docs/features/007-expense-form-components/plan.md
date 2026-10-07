@@ -65,7 +65,7 @@ Sizes are `git show --stat` on the scratch build: 385 changed lines in total, ne
     - A quick tap selects without reordering.
     - "N more" opens the sheet; a pick takes the last quick spot and closes it.
   - 152 lines (94+/58−).
-- [ ] 3. Move the date field and Today/Yesterday chips into a DateChips component
+- [x] 3. Move the date field and Today/Yesterday chips into a DateChips component
   - Files: `components/DateChips.tsx` (new), `app/expense.tsx`
   - Change: move the date row and the `dateRow`, `chip`, `chipOn` and `chipText` styles. `yesterday` leaves the screen.
   - Verify: the date row screenshot is identical. Today and Yesterday set the web date input to the Kyiv dates, and the

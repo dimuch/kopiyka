@@ -17,8 +17,7 @@ import { api, ApiError } from '@/api/client';
 import type { Category, Currency, Expense } from '@/api/types';
 import { useSession } from '@/auth/AuthContext';
 import { AmountFields } from '@/components/AmountFields';
-import { CategorySheet } from '@/components/CategorySheet';
-import { CategoryTile } from '@/components/CategoryTile';
+import { CategoryPicker } from '@/components/CategoryPicker';
 import { DateField } from '@/components/DateField';
 import { Icon } from '@/components/Icon';
 import { setPendingUndo } from '@/data/undo';
@@ -74,7 +73,6 @@ export default function ExpenseScreen() {
   // While editing, the stored other-side amount, shown until the amount or the date changes.
   const [storedOther, setStoredOther] = useState<string | null>(null);
   const [rate, setRate] = useState<{ date: string; value: number | null } | null>(null);
-  const [sheetOpen, setSheetOpen] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [added, setAdded] = useState<string | null>(null);
@@ -140,6 +138,12 @@ export default function ExpenseScreen() {
     setEntered(currency);
     setStoredOther(null);
     edit(setAmountText, text);
+  }
+
+  function pickCategory(c: Category) {
+    setQuick((q) => withQuick(q, c.categoryId));
+    setCategoryId(c.categoryId);
+    setError(null);
   }
 
   function pickDate(value: string) {
@@ -243,39 +247,7 @@ export default function ExpenseScreen() {
 
             <View style={styles.group}>
               <Text style={styles.label}>Category</Text>
-              <View style={styles.catGrid}>
-                {quickCats.map((c) => {
-                  const on = c.categoryId === categoryId;
-                  return (
-                    <Pressable
-                      key={c.categoryId}
-                      accessibilityRole="button"
-                      accessibilityState={{ selected: on }}
-                      onPress={() => {
-                        setCategoryId(c.categoryId);
-                        setError(null);
-                      }}
-                      style={[styles.cat, on && styles.chipOn]}
-                    >
-                      <CategoryTile techName={c.techName} label={c.displayName} size={26} />
-                      <Text numberOfLines={1} style={styles.catText}>
-                        {c.displayName}
-                      </Text>
-                    </Pressable>
-                  );
-                })}
-                {moreCats.length > 0 && (
-                  <Pressable
-                    accessibilityRole="button"
-                    accessibilityLabel="More categories"
-                    onPress={() => setSheetOpen(true)}
-                    style={[styles.cat, styles.more]}
-                  >
-                    <Icon name="more" color={colors.muted} />
-                    <Text style={[styles.catText, { color: colors.muted, flex: 0 }]}>{moreCats.length} more</Text>
-                  </Pressable>
-                )}
-              </View>
+              <CategoryPicker quick={quickCats} more={moreCats} selectedId={categoryId} onPick={pickCategory} />
             </View>
 
             <View style={styles.group}>
@@ -335,18 +307,6 @@ export default function ExpenseScreen() {
           </ScrollView>
         </KeyboardAvoidingView>
       )}
-
-      <CategorySheet
-        visible={sheetOpen}
-        categories={moreCats}
-        onClose={() => setSheetOpen(false)}
-        onPick={(c) => {
-          setQuick((q) => withQuick(q, c.categoryId));
-          setCategoryId(c.categoryId);
-          setSheetOpen(false);
-          setError(null);
-        }}
-      />
     </SafeAreaView>
   );
 }
@@ -372,16 +332,6 @@ const styles = StyleSheet.create({
   chip: { ...field, paddingHorizontal: 14, justifyContent: 'center' },
   chipOn: { borderColor: colors.accent, backgroundColor: '#16233A' },
   chipText: { fontFamily: fonts.bodyMedium, fontSize: 14, color: colors.text },
-  catGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
-  cat: { ...field, width: '31.5%', paddingHorizontal: 8, flexDirection: 'row', alignItems: 'center', gap: 8 },
-  catText: { flex: 1, fontFamily: fonts.bodyMedium, fontSize: 13, color: colors.text },
-  more: {
-    borderStyle: 'dashed',
-    borderColor: '#3A404A',
-    backgroundColor: 'transparent',
-    justifyContent: 'center',
-    gap: 6,
-  },
   input: { ...field, paddingHorizontal: 14, color: colors.text, fontFamily: fonts.body, fontSize: 16 },
   small: { fontFamily: fonts.body, fontSize: 12, color: colors.muted, fontVariant: ['tabular-nums'] },
   error: { fontFamily: fonts.bodyMedium, fontSize: 13, color: colors.over },

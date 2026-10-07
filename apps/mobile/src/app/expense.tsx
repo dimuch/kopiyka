@@ -294,35 +294,25 @@ export default function ExpenseScreen() {
 
             <View style={styles.group}>
               <View style={styles.amountRow}>
-                {(['UAH', 'EUR'] as const).flatMap((cur, i) => [
-                  ...(i === 1
-                    ? [
-                        <View key="swap" style={styles.swap}>
-                          <Icon name="swap" size={18} color="#6E757E" />
-                        </View>,
-                      ]
-                    : []),
-                  <View key={cur} style={{ flex: 1, gap: 8 }}>
-                    <Text nativeID={`amount-${cur}`} style={styles.label}>
-                      Amount in {cur}
-                    </Text>
-                    <View>
-                      <Text style={styles.symbol}>{cur === 'UAH' ? '₴' : '€'}</Text>
-                      <TextInput
-                        accessibilityLabel={`Amount in ${cur}`}
-                        value={cur === 'UAH' ? uahText : eurText}
-                        onChangeText={(t) => {
-                          setEntered(cur);
-                          edit(cur === 'UAH' ? setUahText : setEurText, t);
-                        }}
-                        keyboardType="decimal-pad"
-                        placeholder="0.00"
-                        placeholderTextColor="#6E757E"
-                        style={[styles.input, styles.amountInput]}
-                      />
-                    </View>
-                  </View>,
-                ])}
+                <AmountField
+                  currency="UAH"
+                  value={uahText}
+                  onChangeText={(t) => {
+                    setEntered('UAH');
+                    edit(setUahText, t);
+                  }}
+                />
+                <View style={styles.swap}>
+                  <Icon name="swap" size={18} color="#6E757E" />
+                </View>
+                <AmountField
+                  currency="EUR"
+                  value={eurText}
+                  onChangeText={(t) => {
+                    setEntered('EUR');
+                    edit(setEurText, t);
+                  }}
+                />
               </View>
               <Text style={styles.small}>{rateLabel}</Text>
             </View>
@@ -387,6 +377,36 @@ const field = {
   borderColor: colors.borderStrong,
   backgroundColor: colors.surface,
 } as const;
+
+function AmountField({
+  currency,
+  value,
+  onChangeText,
+}: {
+  currency: Currency;
+  value: string;
+  onChangeText: (text: string) => void;
+}) {
+  return (
+    <View style={{ flex: 1, gap: 8 }}>
+      <Text nativeID={`amount-${currency}`} style={styles.label}>
+        Amount in {currency}
+      </Text>
+      <View>
+        <Text style={styles.symbol}>{currency === 'UAH' ? '₴' : '€'}</Text>
+        <TextInput
+          accessibilityLabel={`Amount in ${currency}`}
+          value={value}
+          onChangeText={onChangeText}
+          keyboardType="decimal-pad"
+          placeholder="0.00"
+          placeholderTextColor="#6E757E"
+          style={[styles.input, styles.amountInput]}
+        />
+      </View>
+    </View>
+  );
+}
 
 const styles = StyleSheet.create({
   screen: { flex: 1, backgroundColor: colors.bg, paddingHorizontal: 20, paddingTop: 8 },

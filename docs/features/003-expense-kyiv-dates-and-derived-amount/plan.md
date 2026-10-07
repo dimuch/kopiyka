@@ -86,7 +86,7 @@ doesn't list it as supported. `format` is listed, so the plan uses only `format`
       Yesterday gives `2026-10-07`.
     - The category screen's day headers (`dayLabel`) and the date picker look unchanged at 390×844.
   - Est. ~82 lines (measured on the draft).
-- [ ] 2. Write out the two amount fields instead of building them in a loop
+- [x] 2. Write out the two amount fields instead of building them in a loop
   - Files: `apps/mobile/src/app/expense.tsx`
   - Change: the mechanical part only. Add `AmountField`, and lay out `<AmountField UAH/> <swap/> <AmountField EUR/>` with
     the same handlers as today. The labels, `nativeID`, `accessibilityLabel`, `keyboardType` and styles are unchanged.

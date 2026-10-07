@@ -70,7 +70,7 @@ Fastify 5.12.5 a number fails closed (`lib/request.js` `getTrustProxyFn` returns
 
 ## Slices
 
-- [ ] 1. Count parallel wrong login codes against the limit
+- [x] 1. Count parallel wrong login codes against the limit
   - Files: `apps/api/src/auth/throttle.ts`, `apps/api/src/auth/routes.ts`,
     `apps/api/test/auth.int.test.ts`
   - Change: add `throttledAttempt` as specified in Contracts and delete the three old functions.

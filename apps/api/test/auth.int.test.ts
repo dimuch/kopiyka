@@ -124,4 +124,31 @@ describe.skipIf(!(await testDbReachable()))('auth routes (MySQL)', () => {
   it('rejects a malformed body with 400', async () => {
     expect((await login({ username: 'ivanka', code: '12ab' })).statusCode).toBe(400);
   });
+
+  it('counts parallel wrong codes', async () => {
+    const wrong = codeAt() === '000000' ? '111111' : '000000';
+    const res = await Promise.all(Array.from({ length: 10 }, () => login({ username: 'ivanka', code: wrong })));
+    const statuses = res.map((r) => r.statusCode);
+    expect(statuses.filter((s) => s !== 401 && s !== 429)).toEqual([]);
+    expect(statuses.filter((s) => s === 401)).toHaveLength(5);
+    expect((await login({ username: 'ivanka', code: codeAt() })).statusCode).toBe(429);
+  });
+
+  it('clears the username count after a good login', async () => {
+    const wrong = codeAt() === '000000' ? '111111' : '000000';
+    for (let i = 0; i < 4; i++) {
+      expect((await login({ username: 'ivanka', code: wrong })).statusCode).toBe(401);
+    }
+    expect((await login({ username: 'ivanka', code: codeAt() })).statusCode).toBe(200);
+
+    const [rows] = await db.query<mysql.RowDataPacket[]>(
+      'SELECT key_type, key_value, failed_attempts FROM login_throttle ORDER BY key_type',
+    );
+    expect(rows.map((r) => [r.key_type, r.key_value, r.failed_attempts])).toEqual(
+      expect.arrayContaining([
+        ['username', 'ivanka', 0],
+        ['ip', '203.0.113.7', 4],
+      ]),
+    );
+  });
 });

@@ -2,7 +2,7 @@ import type { FastifyInstance, FastifyReply, FastifyRequest } from 'fastify';
 import type { ResultSetHeader, RowDataPacket } from 'mysql2/promise';
 import { z } from 'zod';
 import type { AppDeps } from '../app.js';
-import { addDays } from '../dates.js';
+import { nextMonthStart } from '../dates.js';
 import { AMOUNT_RE, centsToString, convert, e4ToString, rateToE4, toCents } from '../money.js';
 import { getEurUahRate, isAfterRateHorizon, RateDate, rateUnavailableReason } from '../rates/service.js';
 
@@ -106,7 +106,7 @@ export async function expenseRoutes(app: FastifyInstance, deps: AppDeps): Promis
   app.get('/api/ledgers/:id/expenses', guards, async (req) => {
     const { month, categoryId } = MonthQuery.parse(req.query);
     const first = `${month}-01`;
-    const next = addDays(`${month}-28`, 4).slice(0, 7) + '-01';
+    const next = nextMonthStart(month);
     const [rows] = await db.query<RowDataPacket[]>(
       `SELECT ${EXPENSE_COLUMNS} FROM expenses e JOIN categories c ON c.category_id = e.category_id
         WHERE c.ledger_id = ? AND e.deleted_at IS NULL

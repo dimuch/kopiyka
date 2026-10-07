@@ -48,6 +48,14 @@ describe('CORS', () => {
     await close();
   });
 
+  it('keeps CORS headers on the not_found reply', async () => {
+    const { app, close } = await appWith(['http://localhost:8081']);
+    const res = await app.inject({ method: 'GET', url: '/api/nope', headers: { origin: 'http://localhost:8081' } });
+    expect([res.statusCode, res.json()]).toEqual([404, { error: 'not_found' }]);
+    expect(res.headers['access-control-allow-origin']).toBe('http://localhost:8081');
+    await close();
+  });
+
   it('sends no CORS headers when no origin is configured', async () => {
     const { app, close } = await appWith([]);
     const res = await app.inject({ method: 'GET', url: '/api/health', headers: { origin: 'http://localhost:8081' } });

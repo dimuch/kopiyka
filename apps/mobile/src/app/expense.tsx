@@ -18,10 +18,10 @@ import type { Category, Currency, Expense } from '@/api/types';
 import { useSession } from '@/auth/AuthContext';
 import { AmountFields } from '@/components/AmountFields';
 import { CategoryPicker } from '@/components/CategoryPicker';
-import { DateField } from '@/components/DateField';
+import { DateChips } from '@/components/DateChips';
 import { Icon } from '@/components/Icon';
 import { setPendingUndo } from '@/data/undo';
-import { addDays, eur, kyivToday, normalizeAmount, otherAmountText, shortDate, toCents } from '@/format';
+import { eur, kyivToday, normalizeAmount, otherAmountText, shortDate, toCents } from '@/format';
 import { colors, fonts } from '@/theme';
 
 const QUICK_COUNT = 5;
@@ -60,7 +60,6 @@ export default function ExpenseScreen() {
 
   // Kyiv dates, like the NBU rates they're priced at; read the clock once, when the screen opens.
   const [today] = useState(() => kyivToday(new Date()));
-  const yesterday = addDays(today, -1);
 
   const [categories, setCategories] = useState<Category[] | null>(null);
   const [quick, setQuick] = useState<number[]>([]);
@@ -226,23 +225,7 @@ export default function ExpenseScreen() {
           <ScrollView contentContainerStyle={styles.form} keyboardShouldPersistTaps="handled">
             <View style={styles.group}>
               <Text style={styles.label}>Date</Text>
-              <View style={styles.dateRow}>
-                <DateField value={date} onChange={pickDate} max={today} label="Date" />
-                {[
-                  { label: 'Today', value: today },
-                  { label: 'Yesterday', value: yesterday },
-                ].map((d) => (
-                  <Pressable
-                    key={d.label}
-                    accessibilityRole="button"
-                    accessibilityState={{ selected: date === d.value }}
-                    onPress={() => pickDate(d.value)}
-                    style={[styles.chip, date === d.value && styles.chipOn]}
-                  >
-                    <Text style={styles.chipText}>{d.label}</Text>
-                  </Pressable>
-                ))}
-              </View>
+              <DateChips value={date} today={today} onChange={pickDate} />
             </View>
 
             <View style={styles.group}>
@@ -328,10 +311,6 @@ const styles = StyleSheet.create({
   form: { gap: 22, paddingBottom: 40 },
   group: { gap: 8 },
   label: { fontFamily: fonts.bodySemi, fontSize: 13, color: colors.muted },
-  dateRow: { flexDirection: 'row', gap: 8 },
-  chip: { ...field, paddingHorizontal: 14, justifyContent: 'center' },
-  chipOn: { borderColor: colors.accent, backgroundColor: '#16233A' },
-  chipText: { fontFamily: fonts.bodyMedium, fontSize: 14, color: colors.text },
   input: { ...field, paddingHorizontal: 14, color: colors.text, fontFamily: fonts.body, fontSize: 16 },
   small: { fontFamily: fonts.body, fontSize: 12, color: colors.muted, fontVariant: ['tabular-nums'] },
   error: { fontFamily: fonts.bodyMedium, fontSize: 13, color: colors.over },

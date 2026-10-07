@@ -100,6 +100,12 @@ export function centsToInput(cents: number): string {
   return (cents / 100).toFixed(2);
 }
 
+/** The other currency's field for `text` typed in `entered`: '' while the amount is invalid or no rate is known. */
+export function otherAmountText(text: string, entered: 'EUR' | 'UAH', rate: number | null): string {
+  const amount = normalizeAmount(text);
+  return amount && rate ? centsToInput(convertPreview(toCents(amount), entered, rate)) : '';
+}
+
 /** '6 Oct 2026' */
 export function shortDate(date: string): string {
   return parseDate(date).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });

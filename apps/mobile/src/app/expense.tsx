@@ -21,7 +21,7 @@ import { CategoryTile } from '@/components/CategoryTile';
 import { DateField } from '@/components/DateField';
 import { Icon } from '@/components/Icon';
 import { setPendingUndo } from '@/data/undo';
-import { addDays, centsToInput, convertPreview, eur, kyivToday, normalizeAmount, shortDate, toCents } from '@/format';
+import { addDays, eur, kyivToday, normalizeAmount, otherAmountText, shortDate, toCents } from '@/format';
 import { colors, fonts } from '@/theme';
 
 type Currency = 'EUR' | 'UAH';
@@ -68,9 +68,11 @@ export default function ExpenseScreen() {
   const [categoryId, setCategoryId] = useState<number | null>(null);
   const [date, setDate] = useState(today);
   const [name, setName] = useState('');
-  const [uahText, setUahText] = useState('');
-  const [eurText, setEurText] = useState('');
+  // Only the typed side is state; the other side is derived from it at the date's rate.
+  const [amountText, setAmountText] = useState('');
   const [entered, setEntered] = useState<Currency>('UAH');
+  // While editing, the stored other-side amount, shown until the amount or the date changes.
+  const [storedOther, setStoredOther] = useState<string | null>(null);
   const [rate, setRate] = useState<{ date: string; value: number | null } | null>(null);
   const [sheetOpen, setSheetOpen] = useState(false);
   const [busy, setBusy] = useState(false);
@@ -93,9 +95,9 @@ export default function ExpenseScreen() {
           pick = e.categoryId;
           setDate(e.expenseDate);
           setName(e.name);
-          setUahText(e.amountUah);
-          setEurText(e.amountEur);
           setEntered(e.enteredCurrency);
+          setAmountText(e.enteredCurrency === 'UAH' ? e.amountUah : e.amountEur);
+          setStoredOther(e.enteredCurrency === 'UAH' ? e.amountEur : e.amountUah);
           // An expense can sit in a since-hidden category; keep it pickable.
           if (!cats.some((c) => c.categoryId === e.categoryId)) {
             cats.push({ categoryId: e.categoryId, techName: 'hidden', displayName: 'hidden category', sortOrder: 0 });
@@ -122,18 +124,7 @@ export default function ExpenseScreen() {
     };
   }, [date]);
 
-  // Keep the other field in step with what was typed, at the current rate.
-  useEffect(() => {
-    if (!rate?.value || rate.date !== date) return;
-    const source = normalizeAmount(entered === 'UAH' ? uahText : eurText);
-    const other = source ? centsToInput(convertPreview(toCents(source), entered, rate.value)) : '';
-    // TODO(lint): the other side is derived state; compute it instead of syncing it.
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    if (entered === 'UAH') setEurText(other);
-    else setUahText(other);
-    // Only re-run when the typed side or the rate changes, not when we set the other side.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [rate, entered, entered === 'UAH' ? uahText : eurText]);
+  const otherText = storedOther ?? otherAmountText(amountText, entered, rate?.date === date ? rate.value : null);
 
   const byId = useMemo(() => new Map((categories ?? []).map((c) => [c.categoryId, c])), [categories]);
   const quickCats = quick.map((id) => byId.get(id)).filter((c): c is Category => !!c);
@@ -145,8 +136,19 @@ export default function ExpenseScreen() {
     setAdded(null);
   }
 
+  function typeAmount(currency: Currency, text: string) {
+    setEntered(currency);
+    setStoredOther(null);
+    edit(setAmountText, text);
+  }
+
+  function pickDate(value: string) {
+    setStoredOther(null);
+    edit(setDate, value);
+  }
+
   async function save() {
-    const amount = normalizeAmount(entered === 'UAH' ? uahText : eurText);
+    const amount = normalizeAmount(amountText);
     if (!name.trim() || !amount || !categoryId) {
       setError('Add a name and an amount first.');
       return;
@@ -164,8 +166,7 @@ export default function ExpenseScreen() {
       const cat = byId.get(saved.categoryId)?.displayName ?? '';
       setAdded(`Added “${saved.name}” to ${cat} · ${eur(toCents(saved.amountEur))} · ${shortDate(saved.expenseDate)}`);
       setName('');
-      setUahText('');
-      setEurText('');
+      setAmountText('');
     } catch (err) {
       setError(errorText(err));
     } finally {
@@ -222,7 +223,7 @@ export default function ExpenseScreen() {
             <View style={styles.group}>
               <Text style={styles.label}>Date</Text>
               <View style={styles.dateRow}>
-                <DateField value={date} onChange={(d) => edit(setDate, d)} max={today} label="Date" />
+                <DateField value={date} onChange={pickDate} max={today} label="Date" />
                 {[
                   { label: 'Today', value: today },
                   { label: 'Yesterday', value: yesterday },
@@ -231,7 +232,7 @@ export default function ExpenseScreen() {
                     key={d.label}
                     accessibilityRole="button"
                     accessibilityState={{ selected: date === d.value }}
-                    onPress={() => edit(setDate, d.value)}
+                    onPress={() => pickDate(d.value)}
                     style={[styles.chip, date === d.value && styles.chipOn]}
                   >
                     <Text style={styles.chipText}>{d.label}</Text>
@@ -296,22 +297,16 @@ export default function ExpenseScreen() {
               <View style={styles.amountRow}>
                 <AmountField
                   currency="UAH"
-                  value={uahText}
-                  onChangeText={(t) => {
-                    setEntered('UAH');
-                    edit(setUahText, t);
-                  }}
+                  value={entered === 'UAH' ? amountText : otherText}
+                  onChangeText={(t) => typeAmount('UAH', t)}
                 />
                 <View style={styles.swap}>
                   <Icon name="swap" size={18} color="#6E757E" />
                 </View>
                 <AmountField
                   currency="EUR"
-                  value={eurText}
-                  onChangeText={(t) => {
-                    setEntered('EUR');
-                    edit(setEurText, t);
-                  }}
+                  value={entered === 'EUR' ? amountText : otherText}
+                  onChangeText={(t) => typeAmount('EUR', t)}
                 />
               </View>
               <Text style={styles.small}>{rateLabel}</Text>

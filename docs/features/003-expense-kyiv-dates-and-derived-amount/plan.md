@@ -93,7 +93,7 @@ doesn't list it as supported. `format` is listed, so the plan uses only `format`
   - Verify: in the in-app browser at 390×844, a screenshot of the amount row before and after is identical. Typing 100 in
     UAH still fills EUR, and typing in EUR still fills UAH.
   - Est. ~70 lines.
-- [ ] 3. Compute the other currency's amount instead of syncing it
+- [x] 3. Compute the other currency's amount instead of syncing it
   - Files: `apps/mobile/src/format.ts`, `apps/mobile/src/app/expense.tsx`
   - Change: add `otherAmountText`, and make the state and handler changes in Contracts. Delete the effect at lines 126-137
     with its two suppressions, and drop the now-unused `centsToInput` and `convertPreview` imports from the screen.

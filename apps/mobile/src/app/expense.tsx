@@ -21,7 +21,7 @@ import { CategoryTile } from '@/components/CategoryTile';
 import { DateField } from '@/components/DateField';
 import { Icon } from '@/components/Icon';
 import { setPendingUndo } from '@/data/undo';
-import { centsToInput, convertPreview, dateOf, eur, normalizeAmount, shortDate, toCents } from '@/format';
+import { addDays, centsToInput, convertPreview, eur, kyivToday, normalizeAmount, shortDate, toCents } from '@/format';
 import { colors, fonts } from '@/theme';
 
 type Currency = 'EUR' | 'UAH';
@@ -59,10 +59,9 @@ export default function ExpenseScreen() {
   const editingId = params.expenseId ? Number(params.expenseId) : null;
   const base = `/api/ledgers/${ledger.ledgerId}`;
 
-  const today = dateOf(new Date());
-  // TODO(lint): impure during render; derive both dates from one clock read.
-  // eslint-disable-next-line react-hooks/purity
-  const yesterday = dateOf(new Date(Date.now() - 86_400_000));
+  // Kyiv dates, like the NBU rates they're priced at; read the clock once, when the screen opens.
+  const [today] = useState(() => kyivToday(new Date()));
+  const yesterday = addDays(today, -1);
 
   const [categories, setCategories] = useState<Category[] | null>(null);
   const [quick, setQuick] = useState<number[]>([]);

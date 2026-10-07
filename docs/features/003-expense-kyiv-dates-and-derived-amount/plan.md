@@ -72,7 +72,7 @@ doesn't list it as supported. `format` is listed, so the plan uses only `format`
 
 ## Slices
 
-- [ ] 1. Use Kyiv dates for Today, Yesterday and Home's month
+- [x] 1. Use Kyiv dates for Today, Yesterday and Home's month
   - Files: `apps/mobile/src/format.ts`, `apps/mobile/src/app/expense.tsx`, `apps/mobile/src/app/index.tsx`,
     `apps/mobile/src/components/DateField.tsx`
   - Change: the date contracts above. In `expense.tsx`, lines 62-65 become one `useState` clock read plus `addDays`. A

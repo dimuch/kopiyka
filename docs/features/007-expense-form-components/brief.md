@@ -5,7 +5,7 @@ Type: chore
 ## Why
 
 `apps/mobile/src/app/expense.tsx` is ~467 lines. It mixes data loading, form state and a lot of presentational markup,
-which makes it hard to read and review. Brief 004 (expense screen data hooks) wants the screen at about 300 lines, and
+which makes it hard to read and review. Brief 004 (expense screen data hooks) wants the screen at about 320 lines (relaxed from ~300 at Gate A), and
 measuring showed that hooks alone don't get there (451 lines). This brief is the first step of 004's split, agreed at
 Gate A: move the presentational pieces out first, as pure moves, so 004's diff is about behaviour only.
 

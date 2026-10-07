@@ -109,7 +109,7 @@ would then get a new error code. Today it is Zod's `400 invalid_request` (with `
 All test cases below were drafted in a scratch copy and run against the local test MySQL. All 133 tests pass on
 the draft. On Base, only the cases marked Prove-It fail.
 
-- [ ] 1. Cover expense routes' session, membership and id checks in tests
+- [x] 1. Cover expense routes' session, membership and id checks in tests
   - Files: `apps/api/test/expenses.int.test.ts`
   - Change: tests only. They pin today's guards before the refactors below.
   - Tests:

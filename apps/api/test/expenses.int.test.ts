@@ -209,6 +209,13 @@ describe.skipIf(!(await testDbReachable()))('expenses API (MySQL)', () => {
       expect(res.statusCode).toBe(404);
     });
 
+    it('rejects an invalid body and a date after Kyiv tomorrow', async () => {
+      const bad = await put(expenseId, groceries({ amount: '0' }));
+      expect([bad.statusCode, bad.json().error]).toEqual([400, 'invalid_request']);
+      const future = await put(expenseId, groceries({ expenseDate: '2026-10-08' }));
+      expect([future.statusCode, future.json()]).toEqual([400, { error: 'date_in_future' }]);
+    });
+
     it('leaves the expense unchanged when the rate is unavailable', async () => {
       fetchRate = async () => null;
       expect((await put(expenseId, groceries({ expenseDate: '2026-09-01', amount: '99' }))).statusCode).toBe(503);
@@ -264,6 +271,15 @@ describe.skipIf(!(await testDbReachable()))('expenses API (MySQL)', () => {
       });
       expect(res.statusCode).toBe(404);
       expect((await list('?month=2026-10')).json().expenses).toHaveLength(1);
+
+      await del(created.expenseId);
+      const restored = await app.inject({
+        method: 'POST',
+        url: `/api/ledgers/${stranger.ledgerId}/expenses/${created.expenseId}/restore`,
+        headers: strangerAuth,
+      });
+      expect(restored.statusCode).toBe(404);
+      expect((await list('?month=2026-10')).json().expenses).toEqual([]);
     });
   });
 
@@ -297,6 +313,43 @@ describe.skipIf(!(await testDbReachable()))('expenses API (MySQL)', () => {
     it('requires a valid month', async () => {
       expect((await list('')).statusCode).toBe(400);
       expect((await list('?month=2026-13')).statusCode).toBe(400);
+    });
+  });
+
+  describe.each([
+    { route: 'GET list', method: 'GET', path: () => '?month=2026-10', byId: false },
+    { route: 'GET one', method: 'GET', path: (id: number | string) => `/${id}`, byId: true },
+    { route: 'PUT', method: 'PUT', path: (id: number | string) => `/${id}`, byId: true },
+    { route: 'DELETE', method: 'DELETE', path: (id: number | string) => `/${id}`, byId: true },
+    { route: 'restore', method: 'POST', path: (id: number | string) => `/${id}/restore`, byId: true },
+  ] as const)('$route guards', ({ method, path, byId }) => {
+    let expenseId: number;
+    const call = (ledgerId: number, id: number | string, headers: Record<string, string> = {}) =>
+      app.inject({
+        method,
+        url: `/api/ledgers/${ledgerId}/expenses${path(id)}`,
+        headers,
+        ...(method === 'PUT' ? { payload: groceries() } : {}),
+      });
+
+    beforeEach(async () => {
+      expenseId = (await post(groceries())).json().expenseId;
+    });
+
+    it('answers 401 without a session', async () => {
+      const res = await call(owner.ledgerId, expenseId);
+      expect([res.statusCode, res.json()]).toEqual([401, { error: 'unauthorized' }]);
+    });
+
+    it("answers 404 for a ledger the user isn't a member of", async () => {
+      const stranger = await makeUser(db, config, 'stranger');
+      const res = await call(stranger.ledgerId, expenseId, auth);
+      expect([res.statusCode, res.json()]).toEqual([404, { error: 'not_found' }]);
+    });
+
+    it.skipIf(!byId)('answers 400 for a non-numeric expense id', async () => {
+      const res = await call(owner.ledgerId, 'abc', auth);
+      expect([res.statusCode, res.json().error]).toEqual([400, 'invalid_request']);
     });
   });
 });

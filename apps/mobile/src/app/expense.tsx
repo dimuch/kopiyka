@@ -14,8 +14,9 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { api, ApiError } from '@/api/client';
-import type { Category, Expense } from '@/api/types';
+import type { Category, Currency, Expense } from '@/api/types';
 import { useSession } from '@/auth/AuthContext';
+import { AmountFields } from '@/components/AmountFields';
 import { CategorySheet } from '@/components/CategorySheet';
 import { CategoryTile } from '@/components/CategoryTile';
 import { DateField } from '@/components/DateField';
@@ -24,7 +25,6 @@ import { setPendingUndo } from '@/data/undo';
 import { addDays, eur, kyivToday, normalizeAmount, otherAmountText, shortDate, toCents } from '@/format';
 import { colors, fonts } from '@/theme';
 
-type Currency = 'EUR' | 'UAH';
 const QUICK_COUNT = 5;
 
 function errorText(err: unknown): string {
@@ -294,21 +294,7 @@ export default function ExpenseScreen() {
             </View>
 
             <View style={styles.group}>
-              <View style={styles.amountRow}>
-                <AmountField
-                  currency="UAH"
-                  value={entered === 'UAH' ? amountText : otherText}
-                  onChangeText={(t) => typeAmount('UAH', t)}
-                />
-                <View style={styles.swap}>
-                  <Icon name="swap" size={18} color="#6E757E" />
-                </View>
-                <AmountField
-                  currency="EUR"
-                  value={entered === 'EUR' ? amountText : otherText}
-                  onChangeText={(t) => typeAmount('EUR', t)}
-                />
-              </View>
+              <AmountFields entered={entered} amountText={amountText} otherText={otherText} onChange={typeAmount} />
               <Text style={styles.small}>{rateLabel}</Text>
             </View>
 
@@ -373,36 +359,6 @@ const field = {
   backgroundColor: colors.surface,
 } as const;
 
-function AmountField({
-  currency,
-  value,
-  onChangeText,
-}: {
-  currency: Currency;
-  value: string;
-  onChangeText: (text: string) => void;
-}) {
-  return (
-    <View style={{ flex: 1, gap: 8 }}>
-      <Text nativeID={`amount-${currency}`} style={styles.label}>
-        Amount in {currency}
-      </Text>
-      <View>
-        <Text style={styles.symbol}>{currency === 'UAH' ? '₴' : '€'}</Text>
-        <TextInput
-          accessibilityLabel={`Amount in ${currency}`}
-          value={value}
-          onChangeText={onChangeText}
-          keyboardType="decimal-pad"
-          placeholder="0.00"
-          placeholderTextColor="#6E757E"
-          style={[styles.input, styles.amountInput]}
-        />
-      </View>
-    </View>
-  );
-}
-
 const styles = StyleSheet.create({
   screen: { flex: 1, backgroundColor: colors.bg, paddingHorizontal: 20, paddingTop: 8 },
   header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 },
@@ -427,18 +383,6 @@ const styles = StyleSheet.create({
     gap: 6,
   },
   input: { ...field, paddingHorizontal: 14, color: colors.text, fontFamily: fonts.body, fontSize: 16 },
-  amountRow: { flexDirection: 'row', alignItems: 'flex-end', gap: 8 },
-  swap: { height: 48, width: 20, alignItems: 'center', justifyContent: 'center' },
-  symbol: {
-    position: 'absolute',
-    left: 14,
-    top: 13,
-    zIndex: 1,
-    fontFamily: fonts.body,
-    fontSize: 16,
-    color: colors.muted,
-  },
-  amountInput: { paddingLeft: 32, fontFamily: fonts.bodyMedium, fontVariant: ['tabular-nums'] },
   small: { fontFamily: fonts.body, fontSize: 12, color: colors.muted, fontVariant: ['tabular-nums'] },
   error: { fontFamily: fonts.bodyMedium, fontSize: 13, color: colors.over },
   primary: {

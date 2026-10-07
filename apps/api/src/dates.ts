@@ -15,6 +15,11 @@ export function addDays(date: string, days: number): string {
   return d.toISOString().slice(0, 10);
 }
 
+/** First day of the month after a 'YYYY-MM' month: day 28 + 4 always lands in the next month. */
+export function nextMonthStart(month: string): string {
+  return addDays(`${month}-28`, 4).slice(0, 7) + '-01';
+}
+
 /** Today's date in Kyiv, where the NBU sets its rates. */
 export function kyivToday(now: Date): string {
   return new Intl.DateTimeFormat('en-CA', { timeZone: 'Europe/Kyiv' }).format(now);

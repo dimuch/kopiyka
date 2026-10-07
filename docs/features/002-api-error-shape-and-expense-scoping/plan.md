@@ -167,7 +167,7 @@ the draft. On Base, only the cases marked Prove-It fail.
   - Tests: `?date=1999-12-31` → 400 (rates); POST `expenseDate: '1999-12-31'` → 400 (expenses). Both pass before and after
     this commit, so they pin the moved rule. The existing `date_in_future` tests cover the other bound.
   - Est. ~35 lines.
-- [ ] 5. Move next-month arithmetic into dates.ts
+- [x] 5. Move next-month arithmetic into dates.ts
   - Files: `apps/api/src/dates.ts`, `apps/api/src/expenses/routes.ts`, `apps/api/test/dates.test.ts`
   - Change: add `nextMonthStart`; the list route uses `nextMonthStart(month)`, and drop the now-unused `addDays` import
     from `expenses/routes.ts`.

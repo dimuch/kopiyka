@@ -182,4 +182,4 @@ Total ≈ 210 changed lines, 3 commits. Each commit passes `yarn format:check &&
 
 ## Deviations
 
-<filled by the developer during build>
+None.

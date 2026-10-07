@@ -9,7 +9,8 @@ const Env = z.object({
   DATABASE_URL: z.string().min(1),
   TOTP_ENC_KEY: z.string().min(1),
   SESSION_TTL_MINUTES: z.coerce.number().int().positive().default(30),
-  COOKIE_SECURE: z.stringbool().default(false),
+  // Unset → Secure in production only.
+  COOKIE_SECURE: z.stringbool().optional(),
   // Comma-separated browser origins allowed to call the API, e.g. the Expo web dev server.
   CORS_ORIGINS: z.string().default(''),
 });
@@ -36,7 +37,7 @@ export function loadConfig(source: NodeJS.ProcessEnv = process.env): Config {
     databaseUrl: env.DATABASE_URL,
     totpKey: parseKey(env.TOTP_ENC_KEY),
     sessionTtlMinutes: env.SESSION_TTL_MINUTES,
-    cookieSecure: env.COOKIE_SECURE,
+    cookieSecure: env.COOKIE_SECURE ?? env.NODE_ENV === 'production',
     corsOrigins: env.CORS_ORIGINS.split(',')
       .map((o) => o.trim())
       .filter(Boolean),

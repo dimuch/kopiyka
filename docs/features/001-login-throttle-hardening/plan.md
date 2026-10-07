@@ -105,7 +105,7 @@ Fastify 5.12.5 a number fails closed (`lib/request.js` `getTrustProxyFn` returns
     cases to 203.0.113.9, 198.51.100.5 and 127.0.0.1; `1` resolves to 127.0.0.1; `true` resolves
     to 6.6.6.6.
   - Est. ~45 changed lines.
-- [ ] 3. Make the session cookie Secure by default in production
+- [x] 3. Make the session cookie Secure by default in production
   - Files: `apps/api/src/config.ts`, `apps/api/test/config.test.ts` (new),
     `apps/api/.env.example`, `README.md` (one line in the Deployment note: NODE_ENV=production makes the session cookie Secure; COOKIE_SECURE=false only for plain-HTTP serving)
   - Change: the config contract above. `.env.example` comment: "Defaults to true when

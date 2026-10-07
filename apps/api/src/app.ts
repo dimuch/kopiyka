@@ -31,7 +31,8 @@ export async function buildApp(deps: AppDeps): Promise<FastifyInstance> {
     // A malformed URL fails before routing and skips setErrorHandler; keep the { error: code } shape there too.
     // The option's generic reply type rejects reply.code(number), hence the cast.
     frameworkErrors: (err, _req, reply) => {
-      void (reply as FastifyReply).code(err.statusCode ?? 400).send({ error: 'invalid_request' });
+      const status = err.statusCode ?? 400;
+      void (reply as FastifyReply).code(status).send({ error: status < 500 ? 'invalid_request' : 'internal' });
     },
   });
 

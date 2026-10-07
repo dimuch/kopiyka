@@ -75,7 +75,7 @@ export async function expenseRoutes(app: FastifyInstance, deps: AppDeps): Promis
     return false;
   }
 
-  /** The stored amounts for an input, at the NBU rate of its date. Replies 400/503 and returns null when it can't. */
+  /** The stored amounts for an input, at the NBU rate of its date. Replies 400/503 and returns null when it can't; other errors (DB) propagate as a 500. */
   async function price(req: FastifyRequest, reply: FastifyReply, input: ExpenseInput) {
     if (isAfterRateHorizon(input.expenseDate, now())) {
       reply.code(400).send({ error: 'date_in_future' });

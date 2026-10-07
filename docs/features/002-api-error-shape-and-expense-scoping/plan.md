@@ -7,7 +7,7 @@ Base: origin/main (e51c74b)
 
 ## Approach
 
-Seven small commits, all in `apps/api`. The first one only adds tests that pin today's guards before the refactors.
+Six small commits (seven before Revision 2), all in `apps/api`. The first one only adds tests that pin today's guards before the refactors.
 
 1. **Error shape** (`app.ts`): the global handler maps every Fastify 4xx to `{ error: 'invalid_request' }` and keeps its
    status. `setNotFoundHandler` answers `404 { error: 'not_found' }`. The `frameworkErrors` option covers malformed URLs,
@@ -221,9 +221,9 @@ commit passes `yarn format:check && yarn lint && yarn typecheck && yarn test`.
 - A test that runs `RENAME TABLE` could leave the schema broken if it dies between the rename and the `finally`. The
   `finally` restores the table. Even if it didn't, the next suite's `resetSchema` drops every table (including
   `exchange_rates_off`) and re-runs the migrations. Slice 3 runs it on CI's MySQL 8.0; the draft passed locally.
-- The PUT's 404-on-no-match depends on the mysql2 default `FOUND_ROWS`. Slice 7's "saves an unchanged expense" fails if
+- The PUT's 404-on-no-match depends on the mysql2 default `FOUND_ROWS`. Slice 6's "saves an unchanged expense" fails if
   that ever changes.
-- A multi-table UPDATE that sets the join column `e.category_id`. Slice 7's existing "updates every field" test (which
+- A multi-table UPDATE that sets the join column `e.category_id`. Slice 6's existing "updates every field" test (which
   moves the expense to `cat.car`) proves that it still matches and updates.
 - The `frameworkErrors` reply cast. Slice 2's typecheck and the bad-URL test prove it.
 

@@ -1,6 +1,6 @@
 import cookie from '@fastify/cookie';
 import cors from '@fastify/cors';
-import Fastify, { type FastifyInstance } from 'fastify';
+import Fastify, { type FastifyInstance, type FastifyReply } from 'fastify';
 import { ZodError } from 'zod';
 import { authRoutes } from './auth/routes.js';
 import { categoryRoutes } from './categories/routes.js';
@@ -28,6 +28,11 @@ export async function buildApp(deps: AppDeps): Promise<FastifyInstance> {
     // `true` would take the left-most, client-written entry. A hop count fails closed in Fastify 5
     // (every client becomes 127.0.0.1, one shared throttle key).
     trustProxy: 'loopback',
+    // A malformed URL fails before routing and skips setErrorHandler; keep the { error: code } shape there too.
+    // The option's generic reply type rejects reply.code(number), hence the cast.
+    frameworkErrors: (err, _req, reply) => {
+      void (reply as FastifyReply).code(err.statusCode ?? 400).send({ error: 'invalid_request' });
+    },
   });
 
   app.decorateRequest('auth', null);
@@ -48,12 +53,16 @@ export async function buildApp(deps: AppDeps): Promise<FastifyInstance> {
       return reply.code(400).send({ error: 'invalid_request', issues: err.issues });
     }
     const status = (err as { statusCode?: number }).statusCode;
+    // Fastify's own client errors (bad JSON, body too large, wrong media type) carry a status; their message is
+    // human text, so answer with a code like every other error.
     if (status && status < 500) {
-      return reply.code(status).send({ error: (err as Error).message });
+      return reply.code(status).send({ error: 'invalid_request' });
     }
     req.log.error(err);
     return reply.code(500).send({ error: 'internal' });
   });
+
+  app.setNotFoundHandler((_req, reply) => reply.code(404).send({ error: 'not_found' }));
 
   app.get('/api/health', async () => ({ ok: true }));
   await authRoutes(app, deps);

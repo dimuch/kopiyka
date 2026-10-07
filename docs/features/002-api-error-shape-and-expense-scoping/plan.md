@@ -120,7 +120,7 @@ the draft. On Base, only the cases marked Prove-It fail.
     - "cannot delete or restore another ledger's expense" also checks the restore. The owner deletes the expense, the
       stranger's restore through the stranger's ledger answers 404, and the list stays empty.
   - All pass on Base. Est. ~50 lines.
-- [ ] 2. Answer malformed requests and unknown routes with snake_case error codes
+- [x] 2. Answer malformed requests and unknown routes with snake_case error codes
   - Files: `apps/api/src/app.ts`, `apps/api/test/errors.test.ts` (new; no DB, the unreachable pool as in
     `cors.test.ts`), `apps/api/test/cors.test.ts`
   - Change: the error-handler 4xx branch, `setNotFoundHandler`, and `frameworkErrors`, as in Contracts, each with a

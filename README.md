@@ -32,6 +32,12 @@ yarn api test        # unit tests; integration tests also run when DATABASE_URL_
 yarn typecheck
 ```
 
+## Deployment
+
+The API listens on `127.0.0.1` behind nginx on the same host, and trusts `X-Forwarded-For` only from
+loopback. nginx must append the client address (`proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;`
+or `$remote_addr`); the login throttle counts the last entry.
+
 ## Contributing
 
 `main` is protected. Everyone, maintainers included, merges through pull requests with passing checks.

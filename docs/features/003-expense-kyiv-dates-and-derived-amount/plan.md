@@ -287,7 +287,7 @@ real zone.
 
 ## Deviations
 
-<filled by the developer during build>
+None.
 
 ## Revision 1
 

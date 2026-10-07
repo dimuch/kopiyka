@@ -2,7 +2,7 @@ import type { FastifyInstance } from 'fastify';
 import { z } from 'zod';
 import type { AppDeps } from '../app.js';
 import { addDays, isCalendarDate, kyivToday } from '../dates.js';
-import { getEurUahRate, RateUnavailableError } from './service.js';
+import { getEurUahRate, rateUnavailableReason } from './service.js';
 
 const RateQuery = z.object({
   date: z
@@ -21,8 +21,9 @@ export async function rateRoutes(app: FastifyInstance, { db, fetchRate, now }: A
     try {
       return await getEurUahRate(db, fetchRate, date);
     } catch (err) {
+      const reason = rateUnavailableReason(err);
+      if (!reason) throw err;
       req.log.warn({ err, date }, 'EUR rate unavailable');
-      const reason = err instanceof RateUnavailableError ? 'no_rate' : 'nbu_unreachable';
       return reply.code(503).send({ error: 'rate_unavailable', reason });
     }
   });

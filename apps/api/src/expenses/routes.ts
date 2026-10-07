@@ -4,7 +4,7 @@ import { z } from 'zod';
 import type { AppDeps } from '../app.js';
 import { addDays, isCalendarDate, kyivToday } from '../dates.js';
 import { AMOUNT_RE, centsToString, convert, e4ToString, rateToE4, toCents } from '../money.js';
-import { getEurUahRate } from '../rates/service.js';
+import { getEurUahRate, rateUnavailableReason } from '../rates/service.js';
 
 export interface ExpenseDto {
   expenseId: number;
@@ -88,6 +88,7 @@ export async function expenseRoutes(app: FastifyInstance, deps: AppDeps): Promis
     try {
       rateE4 = rateToE4((await getEurUahRate(db, fetchRate, input.expenseDate)).eurUah);
     } catch (err) {
+      if (!rateUnavailableReason(err)) throw err;
       req.log.warn({ err, date: input.expenseDate }, 'EUR rate unavailable for expense');
       reply.code(503).send({ error: 'rate_unavailable' });
       return null;

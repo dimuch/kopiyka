@@ -21,6 +21,20 @@ export class RateUnavailableError extends Error {
   }
 }
 
+/** The NBU couldn't be asked (network, timeout, bad answer); anything the fetcher throws becomes this. */
+export class NbuUnreachableError extends Error {
+  constructor(date: string, cause: unknown) {
+    super(`NBU unreachable for ${date}: ${cause instanceof Error ? cause.message : String(cause)}`, { cause });
+  }
+}
+
+/** Why a rate lookup failed with a 503, or null for anything else (a bug or a DB failure: a 500). */
+export function rateUnavailableReason(err: unknown): 'no_rate' | 'nbu_unreachable' | null {
+  if (err instanceof RateUnavailableError) return 'no_rate';
+  if (err instanceof NbuUnreachableError) return 'nbu_unreachable';
+  return null;
+}
+
 async function cachedRate(db: Db, date: string): Promise<number | null> {
   const [rows] = await db.query<RowDataPacket[]>('SELECT eur_uah FROM exchange_rates WHERE rate_date = ?', [date]);
   return rows[0] ? Number(rows[0].eur_uah) : null;
@@ -36,7 +50,12 @@ export async function getEurUahRate(db: Db, fetchRate: RateFetcher, date: string
     const cached = await cachedRate(db, day);
     if (cached !== null) return { date, rateDate: day, eurUah: cached };
 
-    const fetched = await fetchRate(day);
+    let fetched: number | null;
+    try {
+      fetched = await fetchRate(day);
+    } catch (err) {
+      throw new NbuUnreachableError(day, err);
+    }
     if (fetched !== null) {
       await db.query('INSERT IGNORE INTO exchange_rates (rate_date, eur_uah) VALUES (?, ?)', [day, fetched]);
       // Read back so the answer has the stored 4-decimal precision.

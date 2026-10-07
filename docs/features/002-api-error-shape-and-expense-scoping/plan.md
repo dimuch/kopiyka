@@ -134,7 +134,7 @@ the draft. On Base, only the cases marked Prove-It fail.
     `cors.test.ts`: "keeps CORS headers on the not_found reply". Prove-It: the six `errors.test.ts` cases fail on Base.
 
   - Est. ~60 lines.
-- [ ] 3. Report database failures during rate lookups as 500, not 503
+- [x] 3. Report database failures during rate lookups as 500, not 503
   - Files: `apps/api/src/rates/service.ts`, `apps/api/src/rates/routes.ts`, `apps/api/src/expenses/routes.ts`,
     `apps/api/test/rates.int.test.ts`, `apps/api/test/rates.routes.int.test.ts`, `apps/api/test/expenses.int.test.ts`
   - Change: add `NbuUnreachableError`, the fetch-only wrap and `rateUnavailableReason`. Both catch blocks start with

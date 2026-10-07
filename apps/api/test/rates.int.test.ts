@@ -1,6 +1,6 @@
 import { afterAll, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
 import { createDb, type Db } from '../src/db.js';
-import { getEurUahRate, RateUnavailableError } from '../src/rates/service.js';
+import { getEurUahRate, NbuUnreachableError, RateUnavailableError } from '../src/rates/service.js';
 import { clearData, resetSchema, TEST_DB_URL, testDbReachable } from './helpers.js';
 
 describe.skipIf(!(await testDbReachable()))('getEurUahRate (MySQL)', () => {
@@ -51,7 +51,9 @@ describe.skipIf(!(await testDbReachable()))('getEurUahRate (MySQL)', () => {
     const fetchRate = vi.fn(async () => {
       throw new Error('NBU responded 503');
     });
-    await expect(getEurUahRate(db, fetchRate, '2026-10-06')).rejects.toThrow(/503/);
+    const lookup = getEurUahRate(db, fetchRate, '2026-10-06');
+    await expect(lookup).rejects.toBeInstanceOf(NbuUnreachableError);
+    await expect(lookup).rejects.toThrow(/503/);
     const [rows] = await db.query('SELECT * FROM exchange_rates');
     expect(rows).toEqual([]);
   });

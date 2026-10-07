@@ -135,6 +135,20 @@ describe.skipIf(!(await testDbReachable()))('expenses API (MySQL)', () => {
       expect((await list('?month=2026-10')).json().expenses).toEqual([]);
     });
 
+    it('answers 500 internal when the database fails during the rate lookup', async () => {
+      try {
+        // The rate cache table vanishes mid-lookup, so storing the fetched rate fails in MySQL, not at the NBU.
+        fetchRate = async () => {
+          await db.query('RENAME TABLE exchange_rates TO exchange_rates_off');
+          return 50.483;
+        };
+        const res = await post(groceries());
+        expect([res.statusCode, res.json()]).toEqual([500, { error: 'internal' }]);
+      } finally {
+        await db.query('RENAME TABLE exchange_rates_off TO exchange_rates').catch(() => {});
+      }
+    });
+
     it('needs a session and membership', async () => {
       expect((await post(groceries(), {} as typeof auth)).statusCode).toBe(401);
       const stranger = await makeUser(db, config, 'stranger');

@@ -5,7 +5,7 @@ import type { AppDeps } from '../app.js';
 import { ipKey } from './ipKey.js';
 import { decryptSecret } from './secretBox.js';
 import { createSession, deleteSession, findSession } from './sessions.js';
-import { anyLocked, recordFailure, resetAfterSuccess, throttleKeys } from './throttle.js';
+import { throttledAttempt, throttleKeys } from './throttle.js';
 import { generateSecret, verifyTotp } from './totp.js';
 
 export const SESSION_COOKIE = 'kopiyka_session';
@@ -43,36 +43,28 @@ export async function authRoutes(app: FastifyInstance, deps: AppDeps): Promise<v
     const at = now();
     const keys = throttleKeys({ username: body.username, ip: ipKey(req.ip), deviceId: body.deviceId ?? '' });
 
-    if (await anyLocked(db, keys, at)) {
-      return reply.code(429).send({ error: 'blocked' });
-    }
-
-    const [rows] = await db.query<RowDataPacket[]>(
-      'SELECT user_id, username, totp_secret_enc, last_totp_step FROM users WHERE username = ?',
-      [body.username],
-    );
-    const user = rows[0];
-    // Unknown usernames still run a check, so both cases take about as long and answer the same.
-    const secret = user ? decryptSecret(user.totp_secret_enc, config.totpKey) : generateSecret();
-    const step = verifyTotp(secret, body.code, at.getTime(), user ? Number(user.last_totp_step) : 0);
-
-    let accepted = false;
-    if (user && step !== null) {
+    const attempt = await throttledAttempt(db, keys, at, async (conn) => {
+      const [rows] = await conn.query<RowDataPacket[]>(
+        'SELECT user_id, username, totp_secret_enc, last_totp_step FROM users WHERE username = ?',
+        [body.username],
+      );
+      const user = rows[0];
+      // Unknown usernames still run a check, so both cases take about as long and answer the same.
+      const secret = user ? decryptSecret(user.totp_secret_enc, config.totpKey) : generateSecret();
+      const step = verifyTotp(secret, body.code, at.getTime(), user ? Number(user.last_totp_step) : 0);
+      if (!user || step === null) return null;
       // Guard against the same code racing in twice.
-      const [res] = await db.query<ResultSetHeader>(
+      const [res] = await conn.query<ResultSetHeader>(
         'UPDATE users SET last_totp_step = ? WHERE user_id = ? AND last_totp_step < ?',
         [step, user.user_id, step],
       );
-      accepted = res.affectedRows === 1;
-    }
+      return res.affectedRows === 1 ? { userId: user.user_id as number, username: user.username as string } : null;
+    });
+    if (attempt.outcome === 'blocked') return reply.code(429).send({ error: 'blocked' });
+    if (attempt.outcome === 'rejected') return reply.code(401).send({ error: 'invalid_credentials' });
 
-    if (!accepted) {
-      await recordFailure(db, keys, at);
-      return reply.code(401).send({ error: 'invalid_credentials' });
-    }
-
-    await resetAfterSuccess(db, keys);
-    const session = await createSession(db, user!.user_id, at, config.sessionTtlMinutes);
+    const user = attempt.value;
+    const session = await createSession(db, user.userId, at, config.sessionTtlMinutes);
     reply.setCookie(SESSION_COOKIE, session.token, {
       httpOnly: true,
       secure: config.cookieSecure,
@@ -83,7 +75,7 @@ export async function authRoutes(app: FastifyInstance, deps: AppDeps): Promise<v
     return {
       ...(body.client === 'native' ? { token: session.token } : {}),
       expiresAt: session.expiresAt.toISOString(),
-      user: { userId: user!.user_id, username: user!.username },
+      user,
     };
   });
 

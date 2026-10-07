@@ -56,7 +56,7 @@ Sizes are `git show --stat` on the scratch build: 385 changed lines in total, ne
     before and after. Typing 100 in UAH still fills EUR, and typing in EUR still fills UAH. Edit expense shows both
     stored amounts.
   - 155 lines (95+/60−).
-- [ ] 2. Move the category row and its sheet into a CategoryPicker component
+- [x] 2. Move the category row and its sheet into a CategoryPicker component
   - Files: `components/CategoryPicker.tsx` (new), `app/expense.tsx`
   - Change: move the tiles, the "N more" tile, `CategorySheet`, `sheetOpen` and the `catGrid`, `cat`, `catText` and
     `more` styles. One `pickCategory` replaces the two inline handlers.

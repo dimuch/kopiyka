@@ -65,6 +65,25 @@ describe.skipIf(!(await testDbReachable()))('GET /api/rates/eur-uah (MySQL)', ()
     expect(res.json()).toEqual({ error: 'rate_unavailable', reason: 'nbu_unreachable' });
   });
 
+  it('answers 503 no_rate when the NBU has none for the last 7 days', async () => {
+    fetchRate = async () => null;
+    const res = await get('?date=2026-10-06');
+    expect([res.statusCode, res.json()]).toEqual([503, { error: 'rate_unavailable', reason: 'no_rate' }]);
+  });
+
+  it('answers 500 internal when the database fails', async () => {
+    try {
+      fetchRate = async () => {
+        await db.query('RENAME TABLE exchange_rates TO exchange_rates_off');
+        return 50.483;
+      };
+      const res = await get('?date=2026-10-06');
+      expect([res.statusCode, res.json()]).toEqual([500, { error: 'internal' }]);
+    } finally {
+      await db.query('RENAME TABLE exchange_rates_off TO exchange_rates').catch(() => {});
+    }
+  });
+
   it('needs a session', async () => {
     expect((await get('?date=2026-10-06', {})).statusCode).toBe(401);
   });

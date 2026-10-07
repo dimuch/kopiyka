@@ -174,7 +174,7 @@ the draft. On Base, only the cases marked Prove-It fail.
   - Tests (`dates.test.ts`): `nextMonthStart('2026-12') === '2027-01-01'` and `nextMonthStart('2026-02') === '2026-03-01'`.
     The existing "keeps month edges right" still covers the route.
   - Est. ~14 lines.
-- [ ] 6. Update only a live expense of the URL's ledger on PUT
+- [x] 6. Update only a live expense of the URL's ledger on PUT
   - Files: `apps/api/src/expenses/routes.ts`, `apps/api/test/expenses.int.test.ts`
   - Change: the UPDATE becomes `UPDATE expenses e JOIN categories c ON c.category_id = e.category_id SET e.… WHERE
 e.expense_id = ? AND c.ledger_id = ? AND e.deleted_at IS NULL`, and it reads `affectedRows`. The handler then does
@@ -200,7 +200,7 @@ commit passes `yarn format:check && yarn lint && yarn typecheck && yarn test`.
 | Login body `{` + JSON → `400 invalid_request`                                                            | `errors.test.ts` "answers malformed JSON with invalid_request" (slice 2)                                                                                                                                       |
 | `GET /api/nope` → `404 not_found`                                                                        | `errors.test.ts` "answers unknown routes with not_found" (slice 2)                                                                                                                                             |
 | What: oversized body / media type → `invalid_request` with their 4xx; every error body snake_case        | `errors.test.ts` empty, 1 MiB (413), xml (415) and bad-URL cases (slice 2)                                                                                                                                     |
-| PUT of an expense deleted between load and update → 404                                                  | `expenses.int.test.ts` "answers 404 when the expense is deleted while it is being priced" (slice 7)                                                                                                            |
+| PUT of an expense deleted between load and update → 404                                                  | `expenses.int.test.ts` "answers 404 when the expense is deleted while it is being priced" (slice 6)                                                                                                            |
 | Plain-`Error` stub → POST 503 `rate_unavailable`; DB failure → `500 internal`                            | existing "answers 503 without saving when there is no rate" + new "answers 500 internal when the database fails during the rate lookup" + rates route "answers 500 internal when the database fails" (slice 3) |
 | `nextMonthStart` Dec→Jan, Feb→Mar                                                                        | `dates.test.ts` "finds the start of the next month…" (slice 5)                                                                                                                                                 |
 | `?date=1999-12-31` and expense POST with it → 400                                                        | `rates.routes.int.test.ts` "rejects malformed and impossible dates" + `expenses.int.test.ts` "rejects dates before 2000" (slice 4)                                                                             |
@@ -249,7 +249,7 @@ commit passes `yarn format:check && yarn lint && yarn typecheck && yarn test`.
 
 ## Deviations
 
-<filled by the developer during build>
+None. (`expenses/routes.ts` ends at 212 lines.)
 
 ## Revision 1
 

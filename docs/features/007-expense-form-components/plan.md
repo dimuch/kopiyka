@@ -49,7 +49,7 @@ with `git show --color-moved`.
 
 Sizes are `git show --stat` on the scratch build: 385 changed lines in total, nearly all moved.
 
-- [ ] 1. Move the amount inputs into an AmountFields component
+- [x] 1. Move the amount inputs into an AmountFields component
   - Files: `components/AmountFields.tsx` (new), `app/expense.tsx`, `api/types.ts` (`Currency`)
   - Change: move `AmountField`, the amount row and the `amountRow`, `swap`, `symbol` and `amountInput` styles.
   - Verify: in the in-app browser (launch configs `api` + `web`, 390×844), the amount row screenshot is identical

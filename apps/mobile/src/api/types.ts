@@ -1,5 +1,7 @@
 // Shapes returned by apps/api.
 
+export type Currency = 'EUR' | 'UAH';
+
 export interface User {
   userId: number;
   username: string;

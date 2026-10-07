@@ -157,7 +157,7 @@ the draft. On Base, only the cases marked Prove-It fail.
     - `rates.routes.int.test.ts` "answers 503 no_rate when the NBU has none for the last 7 days": `fetchRate` → `null`
       gives `[503, { error: 'rate_unavailable', reason: 'no_rate' }]`. The existing `nbu_unreachable` test stays as it is.
   - Est. ~68 lines.
-- [ ] 4. Keep the NBU rate-date rule in one place
+- [x] 4. Keep the NBU rate-date rule in one place
   - Files: `apps/api/src/rates/service.ts`, `apps/api/src/rates/routes.ts`, `apps/api/src/expenses/routes.ts`,
     `apps/api/test/rates.routes.int.test.ts`, `apps/api/test/expenses.int.test.ts`
   - Change: add `RateDate` and `isAfterRateHorizon`. `RateQuery = z.object({ date: RateDate })`,

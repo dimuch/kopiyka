@@ -53,6 +53,7 @@ describe.skipIf(!(await testDbReachable()))('GET /api/rates/eur-uah (MySQL)', ()
   it('rejects malformed and impossible dates', async () => {
     expect((await get('?date=06.10.2026')).statusCode).toBe(400);
     expect((await get('?date=2026-02-30')).statusCode).toBe(400);
+    expect((await get('?date=1999-12-31')).statusCode).toBe(400);
     expect((await get('')).statusCode).toBe(400);
   });
 

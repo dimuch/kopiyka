@@ -99,6 +99,7 @@ describe.skipIf(!(await testDbReachable()))('expenses API (MySQL)', () => {
         { amount: '1.234' },
         { amount: 'abc' },
         { expenseDate: '2026-02-30' },
+        { expenseDate: '1999-12-31' },
         { currency: 'USD' },
       ]) {
         expect((await post(groceries(bad))).statusCode, JSON.stringify(bad)).toBe(400);

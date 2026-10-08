@@ -40,8 +40,8 @@ export function testConfig(totpKey = randomBytes(32)): Config {
   };
 }
 
-/** Drops every table in the test database and runs all migrations. */
-export async function resetSchema(): Promise<void> {
+/** Drops every table in the test database and runs all migrations (or those in `migrationsDir`). */
+export async function resetSchema(migrationsDir?: string): Promise<void> {
   const conn = await mysql.createConnection({ uri: TEST_DB_URL!, multipleStatements: true });
   const [tables] = await conn.query<mysql.RowDataPacket[]>('SHOW TABLES');
   const names = tables.map((t) => Object.values(t)[0] as string);
@@ -51,7 +51,7 @@ export async function resetSchema(): Promise<void> {
     );
   }
   await conn.end();
-  await runMigrations(TEST_DB_URL!);
+  await runMigrations(TEST_DB_URL!, migrationsDir);
 }
 
 const DATA_TABLES = [

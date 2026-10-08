@@ -112,7 +112,7 @@ describe.skipIf(!(await testDbReachable()))('expenses API (MySQL)', () => {
       expect(res.json()).toEqual({ error: 'date_in_future' });
     });
 
-    it('rejects a category from another ledger or a hidden one', async () => {
+    it('rejects a category from another ledger or a deleted one', async () => {
       const other = await makeUser(db, config, 'stranger');
       const [rows] = await db.query<import('mysql2/promise').RowDataPacket[]>(
         'SELECT category_id FROM categories WHERE ledger_id = ? LIMIT 1',
@@ -122,8 +122,8 @@ describe.skipIf(!(await testDbReachable()))('expenses API (MySQL)', () => {
         error: 'unknown_category',
       });
 
-      await db.query('UPDATE categories SET is_active = 0 WHERE category_id = ?', [cat.gym]);
-      expect((await post(groceries({ categoryId: cat.gym }))).statusCode).toBe(400);
+      await db.query('UPDATE categories SET deleted_at = ? WHERE category_id = ?', [clock, cat.gym]);
+      expect((await post(groceries({ categoryId: cat.gym }))).json()).toEqual({ error: 'unknown_category' });
     });
 
     it('answers 503 without saving when there is no rate', async () => {
@@ -205,10 +205,16 @@ describe.skipIf(!(await testDbReachable()))('expenses API (MySQL)', () => {
       expect((await list('?month=2026-10')).json().expenses).toHaveLength(1);
     });
 
-    it('keeps a since-hidden category but will not move into one', async () => {
-      await db.query('UPDATE categories SET is_active = 0 WHERE category_id IN (?, ?)', [cat.groceries, cat.gym]);
-      expect((await put(expenseId, groceries({ name: 'renamed' }))).statusCode).toBe(200);
+    it('will not keep an expense in a deleted category or move it into one', async () => {
+      await db.query('UPDATE categories SET deleted_at = ? WHERE category_id IN (?, ?)', [
+        clock,
+        cat.groceries,
+        cat.gym,
+      ]);
+      expect((await put(expenseId, groceries({ name: 'renamed' }))).json()).toEqual({ error: 'unknown_category' });
       expect((await put(expenseId, groceries({ categoryId: cat.gym }))).json()).toEqual({ error: 'unknown_category' });
+      // The way out: move it to a live category.
+      expect((await put(expenseId, groceries({ categoryId: cat.rent }))).statusCode).toBe(200);
     });
 
     it('answers 404 for a missing expense or one in another ledger', async () => {
@@ -324,6 +330,14 @@ describe.skipIf(!(await testDbReachable()))('expenses API (MySQL)', () => {
       const res = await list('?month=2026-10');
       expect(res.statusCode).toBe(200);
       expect(res.json().expenses.map((e: { name: string }) => e.name)).toEqual(['latest', 'fuel', 'first']);
+    });
+
+    it('leaves out expenses in a deleted category', async () => {
+      await db.query('UPDATE categories SET deleted_at = ? WHERE category_id = ?', [clock, cat.car]);
+      expect((await list('?month=2026-10')).json().expenses.map((e: { name: string }) => e.name)).toEqual([
+        'latest',
+        'first',
+      ]);
     });
 
     it('filters by category', async () => {

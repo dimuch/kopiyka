@@ -154,7 +154,7 @@ Sizes are `git show --stat` on the scratch build (insertions + deletions). **PR 
 ignoring whitespace.** About 116 of the raw lines are re-indentation in slice 3. The split into briefs 007 and 004 was
 decided at Gate A.
 
-- [ ] 1. Show the rate's own date and four decimals on the expense screen
+- [x] 1. Show the rate's own date and four decimals on the expense screen
   - Files: `data/useRate.ts` (new), `api/types.ts` (`EurUahRate`), `app/expense.tsx`
   - Change: replace the rate effect and `rate` state with `useRate(date)`, and the inline label with `rateLabel`.
   - Verify:

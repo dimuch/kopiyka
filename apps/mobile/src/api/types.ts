@@ -33,3 +33,12 @@ export interface Expense {
   createdAt: string;
   updatedAt: string;
 }
+
+export interface EurUahRate {
+  /** The date asked for. */
+  date: string;
+  /** The NBU's date for the rate; earlier than `date` when the API fell back to the latest published one. */
+  rateDate: string;
+  /** 1 EUR in UAH, 4 decimals. */
+  eurUah: number;
+}

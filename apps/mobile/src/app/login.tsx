@@ -90,11 +90,11 @@ export default function Login() {
               placeholderTextColor={colors.fainter}
             />
           </View>
-          {error && (
+          {error ? (
             <Text accessibilityRole="alert" style={styles.error}>
               {error}
             </Text>
-          )}
+          ) : null}
         </View>
 
         <Pressable

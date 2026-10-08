@@ -117,7 +117,7 @@ slices 1, 2 and 5 were drafted in the system temp dir. **PR total ≈ 205 change
   - Verify: `rg -n "#[0-9A-Fa-f]{3,8}\b|rgba?\(" apps/mobile/src -g '!theme.ts'` is empty (14 hits on Base). Every
     literal removed in `git show` appears once in `theme.ts` with the same value. Procedure V screenshots match Base.
   - ≈40 lines.
-- [ ] 4. Render string-guarded blocks with ternaries
+- [x] 4. Render string-guarded blocks with ternaries
   - Files: `app/expense.tsx`, `app/login.tsx`, `components/CollapsingSummary.tsx`
   - Change: `{error && (…)}`, `{added && (…)}`, `{error && (…)}`, `{label && (…)}` → `{x ? (…) : null}`.
   - Verify: in the browser, Add with an empty name shows "Add a name and an amount first."; a wrong login code shows

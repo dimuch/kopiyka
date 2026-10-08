@@ -183,11 +183,12 @@ function ExpenseForm({ draft, ledgerId }: { draft: ExpenseDraftData; ledgerId: n
   }
 
   async function remove() {
-    if (!expense || !(await confirmDelete(name || 'this expense'))) return;
+    // The saved name, not one being edited: that's what the list shows and Undo brings back.
+    if (!expense || !(await confirmDelete(expense.name || 'this expense'))) return;
     setBusy(true);
     try {
       await deleteExpense(ledgerId, expense.expenseId);
-      setPendingUndo({ ledgerId, expenseId: expense.expenseId, label: name || 'Expense' });
+      setPendingUndo({ ledgerId, expenseId: expense.expenseId, label: expense.name || 'Expense' });
       router.back();
     } catch (err) {
       setError(errorText(err, 'save'));

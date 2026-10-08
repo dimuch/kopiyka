@@ -140,7 +140,7 @@ droplet)`. Its `pull_request`/`push` triggers stay as they are.
 Each slice passes `yarn format:check && yarn lint && yarn typecheck && yarn test` on its own (only YAML/Markdown are
 seen by Prettier; there's no TS change).
 
-- [ ] 1. Run CI against MySQL 8.4, the version production runs (~6 lines)
+- [x] 1. Run CI against MySQL 8.4, the version production runs (~6 lines)
   - Files: `.github/workflows/ci.yml` (`mysql:8.0` → `mysql:8.4`, comment), `README.md` (stack table "MySQL 8.0" →
     "MySQL 8.4"; Local setup "MySQL 8.0 or newer (production runs 8.0)" → "MySQL 8.0 or newer (production runs 8.4)")
   - Verify: gates locally. The PR's CI job shows the `mysql:8.4` service healthy and the API integration tests running

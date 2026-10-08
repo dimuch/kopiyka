@@ -4,7 +4,7 @@ import type { Category, Expense } from '@/api/types';
 import { withQuick } from '@/data/quick';
 
 export interface ExpenseDraftData {
-  /** Active categories, as the API lists them. */
+  /** The ledger's categories, as the API lists them. */
   categories: Category[];
   /** The quick row, already holding `categoryId`. */
   quickIds: number[];
@@ -12,8 +12,6 @@ export interface ExpenseDraftData {
   categoryId: number | null;
   /** The saved expense when editing. */
   expense: Expense | null;
-  /** `categories` plus a stand-in for the edited expense's since-hidden category. */
-  categoryById: Map<number, Category>;
 }
 
 export type ExpenseDraft = { reload: () => void } & (
@@ -28,23 +26,12 @@ function toDraft(
   expense: Expense | null,
   requestedId: number | null,
 ): ExpenseDraftData {
-  const categoryById = new Map(categories.map((c) => [c.categoryId, c]));
-  if (expense && !categoryById.has(expense.categoryId)) {
-    // An expense can sit in a since-hidden category: it stays selectable on its tile, but isn't offered in "more".
-    categoryById.set(expense.categoryId, {
-      categoryId: expense.categoryId,
-      techName: '',
-      displayName: 'hidden category',
-      sortOrder: 0,
-    });
-  }
   const categoryId = expense?.categoryId ?? requestedId ?? quickIds[0] ?? null;
   return {
     categories,
     quickIds: categoryId === null ? quickIds : withQuick(quickIds, categoryId),
     categoryId,
     expense,
-    categoryById,
   };
 }
 

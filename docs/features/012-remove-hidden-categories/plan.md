@@ -105,7 +105,7 @@ Alternatives considered:
     1. `yarn api migrate` prints `Applied: 003_category_soft_delete.sql`.
     2. Running it again prints `Database is up to date.`
     3. With `yarn api dev` (launch config `api`), Home on web lists the ledger's categories.
-- [ ] 2. Drop the hidden-category stand-in from the expense form
+- [x] 2. Drop the hidden-category stand-in from the expense form
   - Files: `apps/mobile/src/data/quick.ts`, `apps/mobile/src/data/useExpenseDraft.ts`, `apps/mobile/src/app/expense.tsx`,
     `apps/mobile/test/quick.test.ts`
   - Change:

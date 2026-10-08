@@ -149,7 +149,7 @@ function ExpenseForm({ draft, ledgerId }: { draft: ExpenseDraftData; ledgerId: n
   const rate = useRate(date);
   const otherText = storedOther ?? otherAmountText(amountText, entered, rate.status === 'ok' ? rate.eurUah : null);
 
-  const { quick: quickCats, more: moreCats } = splitQuick(quick, draft.categories, draft.categoryById);
+  const { quick: quickCats, more: moreCats } = splitQuick(quick, draft.categories);
 
   function edit(setter: (v: string) => void, value: string) {
     setter(value);
@@ -195,7 +195,7 @@ function ExpenseForm({ draft, ledgerId }: { draft: ExpenseDraftData; ledgerId: n
         leave();
         return;
       }
-      const cat = draft.categoryById.get(saved.categoryId)?.displayName ?? '';
+      const cat = draft.categories.find((c) => c.categoryId === saved.categoryId)?.displayName ?? '';
       const note = `Added “${saved.name}” to ${cat} · ${eur(toCents(saved.amountEur))} · ${shortDate(saved.expenseDate)}`;
       setAdded(note);
       AccessibilityInfo.announceForAccessibility(note);

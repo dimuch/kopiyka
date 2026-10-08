@@ -183,7 +183,7 @@ decided at Gate A.
     - Add and Edit still load and save.
   - 341 lines raw, 225 ignoring whitespace. Splitting further would need a throwaway intermediate load effect (see
     Risks).
-- [ ] 4. Offer Retry and say when the edited expense was deleted
+- [x] 4. Offer Retry and say when the edited expense was deleted
   - Files: `app/expense.tsx`
   - Change: the `errorText(err, doing)` signature and the `not_found` text; the error view as in Contracts (message,
     Retry unless `not_found`, Back with a role and `canGoBack`).

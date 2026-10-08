@@ -27,14 +27,14 @@ import { type Rate, useRate } from '@/data/useRate';
 import { eur, kyivToday, normalizeAmount, otherAmountText, shortDate, toCents } from '@/format';
 import { colors, fonts } from '@/theme';
 
-function errorText(err: unknown): string {
+function errorText(err: unknown, doing: 'load' | 'save'): string {
   if (err instanceof ApiError) {
+    if (err.code === 'not_found') return 'This expense was deleted.';
     if (err.code === 'rate_unavailable') return 'The NBU rate for that day isn’t available. Try again later.';
     if (err.code === 'date_in_future') return 'That date is in the future.';
     if (err.code === 'unknown_category') return 'That category is no longer available.';
-    if (err.code === 'not_found') return 'This expense was deleted meanwhile.';
   }
-  return 'Couldn’t save. Check your connection and try again.';
+  return `Couldn’t ${doing}. Check your connection and try again.`;
 }
 
 function confirmDelete(name: string): Promise<boolean> {
@@ -64,10 +64,21 @@ export default function ExpenseScreen() {
   const draft = useExpenseDraft(ledger.ledgerId, editingId, params.categoryId ? Number(params.categoryId) : null);
 
   if (draft.status === 'error') {
+    // Retrying can't bring a deleted expense back.
+    const gone = draft.error instanceof ApiError && draft.error.code === 'not_found';
     return (
       <SafeAreaView style={styles.screen}>
-        <Text style={styles.label}>Couldn’t load. Check your connection.</Text>
-        <Pressable onPress={() => router.back()} style={styles.cancel}>
+        <Text style={styles.label}>{errorText(draft.error, 'load')}</Text>
+        {!gone && (
+          <Pressable accessibilityRole="button" onPress={draft.reload} style={styles.cancel}>
+            <Text style={styles.retryText}>Retry</Text>
+          </Pressable>
+        )}
+        <Pressable
+          accessibilityRole="button"
+          onPress={() => (router.canGoBack() ? router.back() : router.replace('/'))}
+          style={styles.cancel}
+        >
           <Text style={styles.cancelText}>Back</Text>
         </Pressable>
       </SafeAreaView>
@@ -165,7 +176,7 @@ function ExpenseForm({ draft, ledgerId }: { draft: ExpenseDraftData; ledgerId: n
       setName('');
       setAmountText('');
     } catch (err) {
-      setError(errorText(err));
+      setError(errorText(err, 'save'));
     } finally {
       setBusy(false);
     }
@@ -179,7 +190,7 @@ function ExpenseForm({ draft, ledgerId }: { draft: ExpenseDraftData; ledgerId: n
       setPendingUndo({ ledgerId, expenseId: expense.expenseId, label: name || 'Expense' });
       router.back();
     } catch (err) {
-      setError(errorText(err));
+      setError(errorText(err, 'save'));
       setBusy(false);
     }
   }
@@ -269,6 +280,7 @@ const styles = StyleSheet.create({
   header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 },
   cancel: { height: 44, justifyContent: 'center' },
   cancelText: { fontFamily: fonts.bodyMedium, fontSize: 15, color: colors.muted },
+  retryText: { fontFamily: fonts.bodySemi, fontSize: 15, color: colors.accent },
   title: { fontFamily: fonts.display, fontSize: 18, color: colors.text },
   form: { gap: 22, paddingBottom: 40 },
   group: { gap: 8 },

@@ -77,7 +77,7 @@ the hooks alone.
 Each slice must pass `yarn format:check && yarn lint && yarn typecheck && yarn test` (not piped). For UI checks, use
 launch configs `api` + `web` in the in-app browser at 390×844 (and 1440×900 for slice 6).
 
-- [ ] 1. Return to Home after saving or deleting an expense opened from a link (~15 lines)
+- [x] 1. Return to Home after saving or deleting an expense opened from a link (~15 lines)
   - Files: `apps/mobile/src/app/expense.tsx`
   - Change:
     - Turn `leave` into a module-level `function leave()`, with a one-line comment saying why it falls back to Home.

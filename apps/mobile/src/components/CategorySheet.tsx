@@ -16,8 +16,8 @@ interface Props {
 export function CategorySheet({ visible, categories, onPick, onClose }: Props) {
   return (
     <Modal visible={visible} transparent animationType="slide" onRequestClose={onClose}>
-      {/* On web the modal covers the whole window; keep the sheet in the app's column. */}
-      <PhoneColumn>
+      {/* On web the modal covers the whole window; keep the sheet in the app's column, and close on clicks beside it. */}
+      <PhoneColumn onPressOutside={onClose}>
         <View style={styles.backdrop}>
           <Pressable
             accessibilityRole="button"

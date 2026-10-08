@@ -28,7 +28,8 @@
     "eslint": "^9",
     "eslint-config-expo": "~57.0.2",
     "eslint-config-prettier": "^10.1.8",
-    "typescript": "~6.0.3"
+    "typescript": "~6.0.3",
+    "vitest": "^4.0.0"
   },
   "scripts": {
     "start": "expo start",
@@ -36,7 +37,8 @@
     "ios": "expo start --ios",
     "web": "expo start --web",
     "typecheck": "tsc --noEmit",
-    "lint": "expo lint"
+    "lint": "expo lint src test",
+    "test": "vitest run"
   },
   "private": true
 }

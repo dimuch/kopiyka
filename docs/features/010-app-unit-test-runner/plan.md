@@ -72,7 +72,7 @@ Vite 8.
 All test expectations below were computed by running the current modules (see Facts). Arithmetic goes in comments,
 as in `money.test.ts`.
 
-- [ ] 1. Run the app's unit tests with Vitest, starting with amount helpers (~75 lines + yarn.lock)
+- [x] 1. Run the app's unit tests with Vitest, starting with amount helpers (~75 lines + yarn.lock)
   - Files: `apps/mobile/package.json`, `yarn.lock`, `apps/mobile/vitest.config.mts`, `package.json` (root `test`),
     `apps/mobile/test/format.test.ts` (new, `describe('format: amounts')`)
   - Change: add the dev dependency, the `test` script, the config and the root `foreach` script, and change the `lint`

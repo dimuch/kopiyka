@@ -125,7 +125,7 @@ slices 1, 2 and 5 were drafted in the system temp dir. **PR total ≈ 205 change
     `rg -n "\{(error|added|label) && \(" apps/mobile/src` is empty (4 hits on Base; Home's and Category's
     `{error && <LoadError…}` test a boolean and stay).
   - ≈16 lines.
-- [ ] 5. Keep one native scroll handler for the collapsing summary
+- [x] 5. Keep one native scroll handler for the collapsing summary
   - Files: `components/CollapsingSummary.tsx`
   - Change: the memoisation in Contracts.
   - Verify: on Home and Category, scroll down: the card fades, the compact total and divider fade in, as on Base. Leave

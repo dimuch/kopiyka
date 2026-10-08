@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { Animated, StyleSheet, Text, type LayoutChangeEvent } from 'react-native';
 import { eur } from '@/format';
 import { colors, fonts } from '@/theme';
@@ -13,23 +13,30 @@ export function useCollapsingSummary() {
   // Where the card sits in the scroll content; refined by onLayout.
   const [card, setCard] = useState({ y: 0, height: 110 });
 
-  const fadeFrom = card.y + card.height * 0.25;
-  const fadeTo = card.y + card.height * 0.85;
-  const range = (out: [number, number]) =>
-    scrollY.interpolate({ inputRange: [fadeFrom, fadeTo], outputRange: out, extrapolate: 'clamp' });
+  // A new Animated.event is re-attached to the native scroll view, so keep one per screen.
+  const onScroll = useMemo(
+    () => Animated.event([{ nativeEvent: { contentOffset: { y: scrollY } } }], { useNativeDriver: true }),
+    [scrollY],
+  );
+  const animated = useMemo(() => {
+    const fadeFrom = card.y + card.height * 0.25;
+    const fadeTo = card.y + card.height * 0.85;
+    const range = (out: [number, number]) =>
+      scrollY.interpolate({ inputRange: [fadeFrom, fadeTo], outputRange: out, extrapolate: 'clamp' });
+    return {
+      cardStyle: { opacity: range([1, 0]), transform: [{ scale: range([1, 0.97]) }] },
+      compactStyle: { opacity: range([0, 1]), transform: [{ translateY: range([10, 0]) }] },
+      dividerStyle: { opacity: range([0, 1]) },
+    };
+  }, [scrollY, card]);
 
   return {
-    scrollProps: {
-      onScroll: Animated.event([{ nativeEvent: { contentOffset: { y: scrollY } } }], { useNativeDriver: true }),
-      scrollEventThrottle: 16,
-    },
+    scrollProps: { onScroll, scrollEventThrottle: 16 },
     onCardLayout: (e: LayoutChangeEvent) => {
       const { y, height } = e.nativeEvent.layout;
       setCard({ y, height });
     },
-    cardStyle: { opacity: range([1, 0]), transform: [{ scale: range([1, 0.97]) }] },
-    compactStyle: { opacity: range([0, 1]), transform: [{ translateY: range([10, 0]) }] },
-    dividerStyle: { opacity: range([0, 1]) },
+    ...animated,
   };
 }
 

@@ -1,0 +1,44 @@
+name: Deploy
+
+# Manual only: Actions → Deploy → Run workflow on main. Runs the CI gates, then
+# asks the droplet to build and switch to this commit (deploy/deploy.sh). The
+# one-time droplet setup and the secrets are in deploy/README.md.
+on:
+  workflow_dispatch:
+
+concurrency:
+  group: deploy-production
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  gates:
+    if: github.ref == 'refs/heads/main'
+    uses: ./.github/workflows/ci.yml
+
+  deploy:
+    needs: gates
+    runs-on: ubuntu-24.04
+    # Restricted to main in the repo settings, so its secrets reach no other ref.
+    environment: production
+    timeout-minutes: 30
+    steps:
+      - name: Build and switch on the droplet
+        env:
+          DEPLOY_SSH_KEY: ${{ secrets.DEPLOY_SSH_KEY }}
+          DEPLOY_KNOWN_HOSTS: ${{ secrets.DEPLOY_KNOWN_HOSTS }}
+        run: |
+          install -m 700 -d ~/.ssh
+          printf '%s\n' "$DEPLOY_SSH_KEY" > ~/.ssh/deploy_key
+          printf '%s\n' "$DEPLOY_KNOWN_HOSTS" > ~/.ssh/known_hosts
+          chmod 600 ~/.ssh/deploy_key ~/.ssh/known_hosts
+          # The key's forced command takes the commit SHA as its only input.
+          ssh -i ~/.ssh/deploy_key -o StrictHostKeyChecking=yes -o ServerAliveInterval=30 \
+            kopiyka@kopiyka.englishplus.com.ua "$GITHUB_SHA"
+
+      - name: Check the public site
+        run: |
+          curl -fsS https://kopiyka.englishplus.com.ua/api/health
+          curl -fsS -o /dev/null https://kopiyka.englishplus.com.ua/

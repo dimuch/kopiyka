@@ -29,6 +29,8 @@ There is no signup: users are created only with the admin script above.
 
 ```bash
 yarn api test        # unit tests; integration tests also run when DATABASE_URL_TEST is reachable
+yarn mobile test     # app unit tests (pure helpers in format.ts and data/)
+yarn test            # both
 yarn typecheck
 ```
 

@@ -141,7 +141,7 @@ as in `money.test.ts`.
         `categories` minus the quick ids, in `categories` order.
   - Verify: `yarn mobile test` passes. The gates pass.
 
-- [ ] 4. Document the app test runner in conventions and README (~10 lines)
+- [x] 4. Document the app test runner in conventions and README (~10 lines)
   - Files: `.claude/skills/kopiyka-conventions/SKILL.md`, `README.md`, `.claude/skills/kopiyka-develop/SKILL.md`
   - Change:
     - Conventions §6 "App" bullet: Vitest (`yarn mobile test`, tests in `apps/mobile/test/`, Node environment, `@/`

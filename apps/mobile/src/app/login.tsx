@@ -87,7 +87,7 @@ export default function Login() {
               onSubmitEditing={submit}
               style={[styles.input, styles.codeInput]}
               placeholder="000000"
-              placeholderTextColor="#4A505A"
+              placeholderTextColor={colors.fainter}
             />
           </View>
           {error && (

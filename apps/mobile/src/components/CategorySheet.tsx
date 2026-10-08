@@ -52,7 +52,7 @@ export function CategorySheet({ visible, categories, onPick, onClose }: Props) {
 }
 
 const styles = StyleSheet.create({
-  backdrop: { flex: 1, backgroundColor: 'rgba(5,6,8,0.62)' },
+  backdrop: { flex: 1, backgroundColor: colors.backdrop },
   sheet: {
     backgroundColor: colors.surface,
     borderTopWidth: 1,
@@ -64,7 +64,7 @@ const styles = StyleSheet.create({
     paddingBottom: 32,
     gap: 14,
   },
-  handle: { alignSelf: 'center', width: 40, height: 4, borderRadius: 2, backgroundColor: '#3A404A' },
+  handle: { alignSelf: 'center', width: 40, height: 4, borderRadius: 2, backgroundColor: colors.borderStrongest },
   head: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   title: { fontFamily: fonts.display, fontSize: 18, color: colors.text },
   close: { width: 44, height: 44, marginRight: -10, alignItems: 'center', justifyContent: 'center' },
@@ -80,7 +80,7 @@ const styles = StyleSheet.create({
     borderRadius: 14,
     borderWidth: 1,
     borderColor: colors.borderStrong,
-    backgroundColor: '#22262D',
+    backgroundColor: colors.surfaceRaised,
   },
   itemText: { flex: 1, fontFamily: fonts.bodyMedium, fontSize: 14, color: colors.text },
 });

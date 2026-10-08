@@ -46,6 +46,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: 14,
     justifyContent: 'center',
   },
-  chipOn: { borderColor: colors.accent, backgroundColor: '#16233A' },
+  chipOn: { borderColor: colors.accent, backgroundColor: colors.accentTint },
   chipText: { fontFamily: fonts.bodyMedium, fontSize: 14, color: colors.text },
 });

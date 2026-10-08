@@ -21,7 +21,7 @@ export function AmountFields({ entered, amountText, otherText, onChange }: Props
         onChangeText={(t) => onChange('UAH', t)}
       />
       <View style={styles.swap}>
-        <Icon name="swap" size={18} color="#6E757E" />
+        <Icon name="swap" size={18} color={colors.faint} />
       </View>
       <AmountField
         currency="EUR"
@@ -54,7 +54,7 @@ function AmountField({
           onChangeText={onChangeText}
           keyboardType="decimal-pad"
           placeholder="0.00"
-          placeholderTextColor="#6E757E"
+          placeholderTextColor={colors.faint}
           style={styles.input}
         />
       </View>

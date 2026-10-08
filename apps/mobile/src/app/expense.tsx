@@ -221,7 +221,7 @@ function ExpenseForm({ draft, ledgerId }: { draft: ExpenseDraftData; ledgerId: n
             value={name}
             onChangeText={(t) => edit(setName, t)}
             placeholder="e.g. Delhaize"
-            placeholderTextColor="#6E757E"
+            placeholderTextColor={colors.faint}
             maxLength={200}
             style={styles.input}
           />
@@ -312,9 +312,9 @@ const styles = StyleSheet.create({
     gap: 10,
     padding: 14,
     borderRadius: 14,
-    backgroundColor: '#16233A',
+    backgroundColor: colors.accentTint,
     borderWidth: 1,
-    borderColor: '#2B4470',
+    borderColor: colors.accentLine,
   },
   addedText: { flex: 1, fontFamily: fonts.body, fontSize: 14, color: colors.text },
 });

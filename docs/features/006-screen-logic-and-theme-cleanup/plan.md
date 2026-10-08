@@ -110,7 +110,7 @@ slices 1, 2 and 5 were drafted in the system temp dir. **PR total ≈ 205 change
   - Verify: Procedure C passes in full. In the browser, on Add expense: picking a "More" category puts it in the last
     quick spot and removes it from the sheet, as on Base; editing an expense still preselects its category.
   - ≈35 lines.
-- [ ] 3. Move the remaining raw colours into theme tokens
+- [x] 3. Move the remaining raw colours into theme tokens
   - Files: `theme.ts`, `components/{DateChips,CategoryPicker,CategorySheet,AmountFields,AddExpenseButton}.tsx`,
     `app/{expense,login}.tsx`, `app/category/[categoryId].tsx`
   - Change: the token table above; each literal becomes `colors.<token>`.

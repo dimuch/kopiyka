@@ -75,11 +75,11 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: 8,
   },
-  catOn: { borderColor: colors.accent, backgroundColor: '#16233A' },
+  catOn: { borderColor: colors.accent, backgroundColor: colors.accentTint },
   catText: { flex: 1, fontFamily: fonts.bodyMedium, fontSize: 13, color: colors.text },
   more: {
     borderStyle: 'dashed',
-    borderColor: '#3A404A',
+    borderColor: colors.borderStrongest,
     backgroundColor: 'transparent',
     justifyContent: 'center',
     gap: 6,

@@ -12,14 +12,16 @@ import { Icon } from '@/components/Icon';
 import { LoadError } from '@/components/LoadError';
 import { useMonth } from '@/data/useMonth';
 import { takePendingUndo, type PendingUndo } from '@/data/undo';
-import { dayLabel, eur, monthLabel, monthName, toCents, uah } from '@/format';
+import { dayLabel, eur, kyivMonth, monthLabel, monthName, toCents, uah } from '@/format';
 import { colors, fonts } from '@/theme';
 
 export default function CategoryBreakdown() {
   const { ledger } = useSession();
-  const params = useLocalSearchParams<{ categoryId: string; month: string }>();
+  const params = useLocalSearchParams<{ categoryId: string; month?: string }>();
   const categoryId = Number(params.categoryId);
-  const month = params.month;
+  // A web link without a month opens on the current one.
+  const [thisMonth] = useState(() => kyivMonth(new Date()));
+  const month = params.month ?? thisMonth;
   const { data, error, reload } = useMonth(ledger.ledgerId, month, categoryId);
   const [undo, setUndo] = useState<PendingUndo | null>(null);
 
@@ -82,8 +84,10 @@ export default function CategoryBreakdown() {
 
       {!data && error ? (
         <LoadError message="Couldn’t load this category. Check your connection and try again." onRetry={reload} />
-      ) : !data || !category ? (
+      ) : !data ? (
         <ActivityIndicator color={colors.accent} style={{ marginTop: 24 }} />
+      ) : !category ? (
+        <LoadError message="Category not found." />
       ) : (
         <Animated.ScrollView {...collapse.scrollProps} contentContainerStyle={styles.content}>
           {error && <LoadError message="Couldn’t refresh. Check your connection and try again." onRetry={reload} />}
@@ -144,9 +148,10 @@ export default function CategoryBreakdown() {
             <Text style={styles.undoText}>Undo</Text>
           </Pressable>
         </View>
-      ) : (
+      ) : // Not on a missing category: it would preselect one that doesn't exist.
+      !data || category ? (
         <AddExpenseButton categoryId={categoryId} />
-      )}
+      ) : null}
     </SafeAreaView>
   );
 }

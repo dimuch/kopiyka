@@ -133,7 +133,7 @@ Sizes are estimates (insertions + deletions), not measured on a scratch build. O
   - Change: the no-data and inline `LoadError`, as in Contracts.
   - Verify: procedures A and C, Category parts.
   - ≈20 lines.
-- [ ] 4. Show "Category not found" and default Category to the current month
+- [x] 4. Show "Category not found" and default Category to the current month
   - Files: `app/category/[categoryId].tsx`
   - Change: the params type becomes `month?: string`, with `useState(() => kyivMonth(new Date()))` as the fallback.
     Data without the category shows the not-found `LoadError`, and `AddExpenseButton` is hidden then (`data !== null

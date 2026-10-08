@@ -16,9 +16,8 @@ import { colors, fonts } from '@/theme';
 
 function errorText(err: unknown): string {
   if (err instanceof ApiError) {
-    if (err.code === 'invalid_credentials') return 'Wrong username or code.';
-    if (err.code === 'blocked') return 'Too many wrong codes. Sign-in is blocked for 24 hours.';
-    if (err.code === 'invalid_request') return 'Enter your username and the 6-digit code.';
+    if (err.code === 'invalid_credentials' || err.code === 'invalid_request') return 'Wrong username or password.';
+    if (err.code === 'blocked') return 'Too many wrong passwords. Sign-in is blocked for 24 hours.';
   }
   return 'Can’t reach the server. Check your connection and try again.';
 }
@@ -26,21 +25,21 @@ function errorText(err: unknown): string {
 export default function Login() {
   const { login } = useAuth();
   const [username, setUsername] = useState('');
-  const [code, setCode] = useState('');
+  const [password, setPassword] = useState('');
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const ready = username.trim().length > 0 && /^\d{6}$/.test(code) && !busy;
+  const ready = username.trim().length > 0 && password.length > 0 && !busy;
 
   async function submit() {
     if (!ready) return;
     setBusy(true);
     setError(null);
     try {
-      await login(username.trim(), code);
+      await login(username.trim(), password);
     } catch (err) {
       setError(errorText(err));
-      setCode('');
+      setPassword('');
     } finally {
       setBusy(false);
     }
@@ -49,10 +48,7 @@ export default function Login() {
   return (
     <SafeAreaView style={styles.screen}>
       <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={styles.body}>
-        <View style={{ gap: 6 }}>
-          <Text style={styles.title}>Kopiyka</Text>
-          <Text style={styles.subtitle}>Sign in with your username and the code from Google Authenticator.</Text>
-        </View>
+        <Text style={styles.title}>Kopiyka</Text>
 
         <View style={{ gap: 14 }}>
           <View style={styles.field}>
@@ -71,18 +67,19 @@ export default function Login() {
             />
           </View>
           <View style={styles.field}>
-            <Text style={styles.label}>6-digit code</Text>
+            <Text style={styles.label}>Password</Text>
             <TextInput
-              accessibilityLabel="6-digit code"
-              value={code}
-              onChangeText={(t) => setCode(t.replace(/\D/g, '').slice(0, 6))}
-              keyboardType="number-pad"
-              autoComplete="one-time-code"
-              textContentType="oneTimeCode"
-              maxLength={6}
+              accessibilityLabel="Password"
+              value={password}
+              onChangeText={setPassword}
+              secureTextEntry
+              autoCapitalize="none"
+              autoCorrect={false}
+              autoComplete="current-password"
+              textContentType="password"
               onSubmitEditing={submit}
-              style={[styles.input, styles.codeInput]}
-              placeholder="000000"
+              style={[styles.input, styles.passwordInput]}
+              placeholder="••••••"
               placeholderTextColor={colors.fainter}
             />
           </View>
@@ -110,7 +107,6 @@ const styles = StyleSheet.create({
   screen: { flex: 1, backgroundColor: colors.bg },
   body: { flex: 1, padding: 24, justifyContent: 'center', gap: 32, width: '100%', maxWidth: 420, alignSelf: 'center' },
   title: { fontFamily: fonts.display, fontSize: 40, color: colors.text, letterSpacing: -0.8 },
-  subtitle: { fontFamily: fonts.body, fontSize: 15, color: colors.muted, lineHeight: 22 },
   field: { gap: 6 },
   label: { fontFamily: fonts.bodyMedium, fontSize: 13, color: colors.muted },
   input: {
@@ -124,7 +120,7 @@ const styles = StyleSheet.create({
     fontFamily: fonts.bodyMedium,
     fontSize: 17,
   },
-  codeInput: { fontFamily: fonts.display, fontSize: 26, letterSpacing: 8, fontVariant: ['tabular-nums'] },
+  passwordInput: { fontFamily: fonts.display, fontSize: 26, letterSpacing: 8, fontVariant: ['tabular-nums'] },
   error: { fontFamily: fonts.bodyMedium, fontSize: 14, color: colors.over },
   button: {
     height: 56,

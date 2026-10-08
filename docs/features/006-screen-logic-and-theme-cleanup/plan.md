@@ -96,7 +96,7 @@ client can't be loaded by `tsx` for a pure-helper check.
 Each slice runs `yarn format:check && yarn lint && yarn typecheck && yarn test`. Estimates are insertions + deletions;
 slices 1, 2 and 5 were drafted in the system temp dir. **PR total ≈ 205 changed lines.**
 
-- [ ] 1. Move month totals and day grouping into data/monthSummary.ts
+- [x] 1. Move month totals and day grouping into data/monthSummary.ts
   - Files: `data/monthSummary.ts` (new), `app/index.tsx`, `app/category/[categoryId].tsx`
   - Change: the module from Contracts. Home's `rows` memo uses `spentByCategory`; `total` stays the sum of rows. Category
     uses `useMemo(() => groupByDay(data?.expenses ?? []), [data])`, `sumCents` for `totalEur`/`totalUah` (0 without

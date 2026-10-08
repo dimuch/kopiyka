@@ -8,8 +8,9 @@ import { CategoryTile } from '@/components/CategoryTile';
 import { CompactTotal, HeaderDivider, useCollapsingSummary } from '@/components/CollapsingSummary';
 import { Icon } from '@/components/Icon';
 import { LoadError } from '@/components/LoadError';
+import { spentByCategory } from '@/data/monthSummary';
 import { useMonth } from '@/data/useMonth';
-import { eur, kyivMonth, monthName, shiftMonth, toCents } from '@/format';
+import { eur, kyivMonth, monthName, shiftMonth } from '@/format';
 import { colors, fonts } from '@/theme';
 
 export default function Home() {
@@ -19,8 +20,7 @@ export default function Home() {
 
   const rows = useMemo(() => {
     if (!data) return null;
-    const spent = new Map<number, number>();
-    for (const e of data.expenses) spent.set(e.categoryId, (spent.get(e.categoryId) ?? 0) + toCents(e.amountEur));
+    const spent = spentByCategory(data.expenses);
     return data.categories.map((c) => ({ ...c, spent: spent.get(c.categoryId) ?? 0 }));
   }, [data]);
   const total = rows?.reduce((s, r) => s + r.spent, 0) ?? 0;

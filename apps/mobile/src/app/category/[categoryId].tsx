@@ -2,7 +2,6 @@ import { router, useFocusEffect, useLocalSearchParams } from 'expo-router';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { AccessibilityInfo, ActivityIndicator, Animated, Pressable, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import type { Expense } from '@/api/types';
 import { useSession } from '@/auth/AuthContext';
 import { AddExpenseButton } from '@/components/AddExpenseButton';
 import { CategoryTile } from '@/components/CategoryTile';
@@ -10,6 +9,7 @@ import { CompactTotal, HeaderDivider, useCollapsingSummary } from '@/components/
 import { Icon } from '@/components/Icon';
 import { LoadError } from '@/components/LoadError';
 import { restoreExpense } from '@/data/expenses';
+import { groupByDay, sumCents } from '@/data/monthSummary';
 import { useMonth } from '@/data/useMonth';
 import { takePendingUndo, type PendingUndo } from '@/data/undo';
 import { dayLabel, eur, kyivMonth, monthLabel, monthName, toCents, uah } from '@/format';
@@ -58,17 +58,9 @@ export default function CategoryBreakdown() {
   }
 
   const category = data?.categories.find((c) => c.categoryId === categoryId);
-  const days = useMemo(() => {
-    const byDay = new Map<string, Expense[]>();
-    for (const e of data?.expenses ?? []) byDay.set(e.expenseDate, [...(byDay.get(e.expenseDate) ?? []), e]);
-    return [...byDay.entries()].map(([date, items]) => ({
-      date,
-      items,
-      total: items.reduce((s, e) => s + toCents(e.amountEur), 0),
-    }));
-  }, [data]);
-  const totalEur = data?.expenses.reduce((s, e) => s + toCents(e.amountEur), 0) ?? 0;
-  const totalUah = data?.expenses.reduce((s, e) => s + toCents(e.amountUah), 0) ?? 0;
+  const days = useMemo(() => groupByDay(data?.expenses ?? []), [data]);
+  const totalEur = data ? sumCents(data.expenses, 'amountEur') : 0;
+  const totalUah = data ? sumCents(data.expenses, 'amountUah') : 0;
   const count = data?.expenses.length ?? 0;
   const collapse = useCollapsingSummary();
   // Not on a missing category: Add would preselect one that doesn't exist.
@@ -129,7 +121,7 @@ export default function CategoryBreakdown() {
               <View key={d.date} style={{ gap: 8 }}>
                 <View style={styles.dayHead}>
                   <Text style={styles.dayLabel}>{dayLabel(d.date)}</Text>
-                  <Text style={styles.caption}>{eur(d.total)}</Text>
+                  <Text style={styles.caption}>{eur(d.totalCents)}</Text>
                 </View>
                 <View style={styles.dayCard}>
                   {d.items.map((e, i) => (

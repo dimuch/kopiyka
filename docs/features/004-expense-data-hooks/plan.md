@@ -387,11 +387,15 @@ window.__stub = {
   app-wide.
 - Audit M12 (`{editingId && …}` on a number) disappears from `expense.tsx` as a side effect: the form branches on
   `expense`, and the title on `editingId !== null`. Brief 006 can drop that part.
+- The load-error view (brief 005's `LoadError`): announce the message (`accessibilityRole="alert"`), give the view the
+  header and safe-area edges the form has, and tell "ledger gone" (`requireLedger`'s `not_found`) apart from "expense
+  gone" if that can ever happen. Found in review.
 - `useMonth` could use the same request-key tagging instead of its `exhaustive-deps` suppression (audit M7, brief 005).
 
 ## Deviations
 
-None.
+- slice 7: `expense.tsx` ends at 321 lines, not the measured 317: why-comments on the error view and the busy
+  button. Still within the brief's "≤ ~320".
 
 ## Revision 1
 

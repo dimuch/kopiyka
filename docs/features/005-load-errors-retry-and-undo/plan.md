@@ -122,7 +122,7 @@ Sizes are estimates (insertions + deletions), not measured on a scratch build. O
     - `rg -n "eslint-disable" apps/mobile/src` is empty.
     - Home and Category still load, and an edit still shows after you return to the screen.
   - ≈35 lines.
-- [ ] 2. Offer Retry on Home and keep its data when a refresh fails
+- [x] 2. Offer Retry on Home and keep its data when a refresh fails
   - Files: `components/LoadError.tsx` (new), `app/index.tsx`
   - Change: add `LoadError`. Home takes `reload` and uses `LoadError` for the no-data and inline cases. The "pull back
     later" text goes.

@@ -7,6 +7,7 @@ import { AddExpenseButton } from '@/components/AddExpenseButton';
 import { CategoryTile } from '@/components/CategoryTile';
 import { CompactTotal, HeaderDivider, useCollapsingSummary } from '@/components/CollapsingSummary';
 import { Icon } from '@/components/Icon';
+import { LoadError } from '@/components/LoadError';
 import { useMonth } from '@/data/useMonth';
 import { eur, kyivMonth, monthName, shiftMonth, toCents } from '@/format';
 import { colors, fonts } from '@/theme';
@@ -14,7 +15,7 @@ import { colors, fonts } from '@/theme';
 export default function Home() {
   const { ledger, user, logout } = useSession();
   const [month, setMonth] = useState(() => kyivMonth(new Date()));
-  const { data, error } = useMonth(ledger.ledgerId, month);
+  const { data, error, reload } = useMonth(ledger.ledgerId, month);
 
   const rows = useMemo(() => {
     if (!data) return null;
@@ -75,14 +76,15 @@ export default function Home() {
           <Text style={styles.small}>spent</Text>
         </View>
 
-        {error ? (
-          <Text style={[styles.caption, { padding: 20 }]}>
-            Couldn’t load this month. Pull back later or check the API is running.
-          </Text>
-        ) : !rows ? (
-          <ActivityIndicator color={colors.accent} style={{ marginTop: 24 }} />
+        {!rows ? (
+          error ? (
+            <LoadError message="Couldn’t load this month. Check your connection and try again." onRetry={reload} />
+          ) : (
+            <ActivityIndicator color={colors.accent} style={{ marginTop: 24 }} />
+          )
         ) : (
           <>
+            {error && <LoadError message="Couldn’t refresh. Check your connection and try again." onRetry={reload} />}
             <View style={styles.listCard}>
               {rows.map((r, i) => (
                 <Pressable

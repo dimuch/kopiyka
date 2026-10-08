@@ -48,7 +48,10 @@ function toDraft(
   };
 }
 
-/** What the expense form starts from: categories, the quick row and, when `expenseId` is given, the saved expense. */
+/**
+ * What the expense form starts from: categories, the quick row and, when `expenseId` is given, the saved expense.
+ * Both ids are already-validated link params, or null.
+ */
 export function useExpenseDraft(ledgerId: number, expenseId: number | null, categoryId: number | null): ExpenseDraft {
   const [version, setVersion] = useState(0);
   // Tagged with its request, so a new one (or a reload) reads as loading without resetting state in the effect.
@@ -60,7 +63,6 @@ export function useExpenseDraft(ledgerId: number, expenseId: number | null, cate
     const base = `/api/ledgers/${ledgerId}`;
     Promise.all([
       api<{ categories: Category[]; quickCategoryIds: number[] }>(`${base}/categories`),
-      // Not on truthiness: a malformed id (NaN) should reach the API and come back as invalid_request.
       expenseId !== null ? api<Expense>(`${base}/expenses/${expenseId}`) : Promise.resolve(null),
     ])
       .then(([c, expense]) => {

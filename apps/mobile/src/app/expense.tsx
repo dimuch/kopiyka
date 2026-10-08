@@ -28,6 +28,7 @@ import { splitQuick, withQuick } from '@/data/quick';
 import { type ExpenseDraftData, useExpenseDraft } from '@/data/useExpenseDraft';
 import { type Rate, useRate } from '@/data/useRate';
 import { eur, kyivToday, normalizeAmount, otherAmountText, shortDate, toCents } from '@/format';
+import { parseIdParam } from '@/linkParams';
 import { colors, fonts } from '@/theme';
 
 function errorText(err: unknown, doing: 'load' | 'save'): string {
@@ -70,13 +71,10 @@ function leave() {
 }
 
 export default function ExpenseScreen() {
-  const { ledger } = useSession();
-  const params = useLocalSearchParams<{ expenseId?: string; categoryId?: string }>();
-  const editingId = params.expenseId ? Number(params.expenseId) : null;
-  const draft = useExpenseDraft(ledger.ledgerId, editingId, params.categoryId ? Number(params.categoryId) : null);
-
-  // Retrying can't bring a deleted expense back.
-  const gone = draft.status === 'error' && draft.error instanceof ApiError && draft.error.code === 'not_found';
+  const params = useLocalSearchParams<{ expenseId?: string | string[]; categoryId?: string | string[] }>();
+  // The link asked for an edit even when its id is malformed, so the title still says so.
+  const editing = !!params.expenseId;
+  const expenseId = parseIdParam(params.expenseId);
 
   return (
     <SafeAreaView style={styles.screen} edges={['top', 'bottom']}>
@@ -84,23 +82,44 @@ export default function ExpenseScreen() {
         <Pressable accessibilityRole="button" onPress={leave} style={styles.cancel}>
           <Text style={styles.cancelText}>Cancel</Text>
         </Pressable>
-        <Text style={styles.title}>{editingId !== null ? 'Edit expense' : 'New expense'}</Text>
+        <Text style={styles.title}>{editing ? 'Edit expense' : 'New expense'}</Text>
         <View style={{ width: 52 }} />
       </View>
 
-      {draft.status === 'loading' ? (
-        <ActivityIndicator color={colors.accent} style={{ marginTop: 32 }} />
-      ) : draft.status === 'error' ? (
-        <View>
-          <LoadError message={errorText(draft.error, 'load')} onRetry={gone ? undefined : draft.reload} />
-          <Pressable accessibilityRole="button" onPress={leave} style={styles.cancel}>
-            <Text style={styles.cancelText}>Back</Text>
-          </Pressable>
-        </View>
+      {editing && expenseId === null ? (
+        <LoadFailed message="That link isn’t valid." />
       ) : (
-        <ExpenseForm draft={draft} ledgerId={ledger.ledgerId} />
+        // A malformed category id is ignored: the form starts on the first quick category.
+        <ExpenseLoader expenseId={expenseId} categoryId={parseIdParam(params.categoryId)} />
       )}
     </SafeAreaView>
+  );
+}
+
+/** Loads what the form starts from; mounted only for a well-formed link, so a bad one fetches nothing. */
+function ExpenseLoader({ expenseId, categoryId }: { expenseId: number | null; categoryId: number | null }) {
+  const { ledger } = useSession();
+  const draft = useExpenseDraft(ledger.ledgerId, expenseId, categoryId);
+  // Retrying can't bring a deleted expense back.
+  const gone = draft.status === 'error' && draft.error instanceof ApiError && draft.error.code === 'not_found';
+
+  return draft.status === 'loading' ? (
+    <ActivityIndicator color={colors.accent} style={{ marginTop: 32 }} />
+  ) : draft.status === 'error' ? (
+    <LoadFailed message={errorText(draft.error, 'load')} onRetry={gone ? undefined : draft.reload} />
+  ) : (
+    <ExpenseForm draft={draft} ledgerId={ledger.ledgerId} />
+  );
+}
+
+function LoadFailed({ message, onRetry }: { message: string; onRetry?: () => void }) {
+  return (
+    <View>
+      <LoadError message={message} onRetry={onRetry} />
+      <Pressable accessibilityRole="button" onPress={leave} style={styles.cancel}>
+        <Text style={styles.cancelText}>Back</Text>
+      </Pressable>
+    </View>
   );
 }
 

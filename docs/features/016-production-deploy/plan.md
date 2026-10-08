@@ -151,7 +151,7 @@ seen by Prettier; there's no TS change).
     `DATABASE_URL`, `TOTP_ENC_KEY`); `WorkingDirectory` + `dist/...` paths match the scratch build layout; the
     `/api/` location has no URI part; the `X-Forwarded-For` header matches README. `nginx -t` and `systemd-analyze
 verify` can't run locally. They run on the droplet in the runbook (post-merge).
-- [ ] 3. Add the droplet deploy script with build caps, health check and rollback (~110 lines)
+- [x] 3. Add the droplet deploy script with build caps, health check and rollback (~110 lines)
   - Files: `deploy/deploy.sh` (mode 755; interface as in Contracts)
   - Verify: `bash -n deploy/deploy.sh` and `npx --yes shellcheck deploy/deploy.sh` clean. A local dry run of the
     validation path: `SSH_ORIGINAL_COMMAND=nope bash deploy/deploy.sh` exits 2 before touching any path. The
@@ -285,7 +285,10 @@ corepack@0.36` (the same version as Node 24's bundled one).
 
 ## Deviations
 
-<filled by the developer during build>
+- slice 3: the `EXIT` trap removes the new release only if `current` doesn't point to it (`readlink`), instead of a
+  `switched` flag. Same guarantee (never delete the live release), one less variable, and it also covers a dropped
+  session between the switch and the health check. Build/switch/rollback paths couldn't be sandboxed locally (macOS
+  bash 3.2 has no `mapfile`, no `flock`); they're proven on the droplet as planned.
 
 ## Revision 1
 

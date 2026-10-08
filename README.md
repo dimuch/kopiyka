@@ -6,12 +6,12 @@ a Fastify API sits in front of MySQL.
 
 | Path          | What                                            |
 | ------------- | ----------------------------------------------- |
-| `apps/api`    | Node 24 + TypeScript + Fastify + Zod, MySQL 8.0 |
+| `apps/api`    | Node 24 + TypeScript + Fastify + Zod, MySQL 8.4 |
 | `apps/mobile` | Expo (React Native) app, iOS + web              |
 
 ## Local setup
 
-Needs Node 24, Yarn 4 (`corepack enable`), MySQL 8.0 or newer (production runs 8.0), and Xcode for the iPhone app.
+Needs Node 24, Yarn 4 (`corepack enable`), MySQL 8.0 or newer (production runs 8.4), and Xcode for the iPhone app.
 
 ```bash
 yarn install

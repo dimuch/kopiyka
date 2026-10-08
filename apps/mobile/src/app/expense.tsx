@@ -63,14 +63,18 @@ function rateLabel(rate: Rate, date: string): string {
   return `1 € = ₴${rate.eurUah.toFixed(4)} · NBU official rate for ${shortDate(rate.rateDate)}${fallback}`;
 }
 
+// Opened straight from a web link there's nothing to go back to, so fall back to Home.
+function leave() {
+  if (router.canGoBack()) router.back();
+  else router.replace('/');
+}
+
 export default function ExpenseScreen() {
   const { ledger } = useSession();
   const params = useLocalSearchParams<{ expenseId?: string; categoryId?: string }>();
   const editingId = params.expenseId ? Number(params.expenseId) : null;
   const draft = useExpenseDraft(ledger.ledgerId, editingId, params.categoryId ? Number(params.categoryId) : null);
 
-  // Directly loaded on web there's nothing to go back to.
-  const leave = () => (router.canGoBack() ? router.back() : router.replace('/'));
   // Retrying can't bring a deleted expense back.
   const gone = draft.status === 'error' && draft.error instanceof ApiError && draft.error.code === 'not_found';
 
@@ -169,7 +173,7 @@ function ExpenseForm({ draft, ledgerId }: { draft: ExpenseDraftData; ledgerId: n
     try {
       const saved = await saveExpense(ledgerId, expense?.expenseId ?? null, body);
       if (expense) {
-        router.back();
+        leave();
         return;
       }
       const cat = draft.categoryById.get(saved.categoryId)?.displayName ?? '';
@@ -191,8 +195,11 @@ function ExpenseForm({ draft, ledgerId }: { draft: ExpenseDraftData; ledgerId: n
     setBusy(true);
     try {
       await deleteExpense(ledgerId, expense.expenseId);
-      setPendingUndo({ ledgerId, expenseId: expense.expenseId, label: expense.name || 'Expense' });
-      router.back();
+      // Only the Category screen takes the offer; landing on Home it would wait for an unrelated later visit.
+      if (router.canGoBack()) {
+        setPendingUndo({ ledgerId, expenseId: expense.expenseId, label: expense.name || 'Expense' });
+      }
+      leave();
     } catch (err) {
       showError(errorText(err, 'save'));
       setBusy(false);

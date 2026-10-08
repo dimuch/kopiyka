@@ -162,7 +162,7 @@ verify` can't run locally. They run on the droplet in the runbook (post-merge).
     trigger, and GitHub shows no "invalid workflow file" error for `deploy.yml`. actionlint isn't available locally
     (see Facts). A `workflow_dispatch` workflow can only be dispatched once it's on the default branch, so the first
     real run is post-merge.
-- [ ] 5. Document the one-time droplet bootstrap and how deploys work (~150 lines)
+- [x] 5. Document the one-time droplet bootstrap and how deploys work (~150 lines)
   - Files: `deploy/README.md` (runbook, new), `README.md` (Deployment section rewritten to describe the real setup and
     link the runbook; it keeps the existing X-Forwarded-For/Secure-cookie facts)
   - Runbook steps, each with exact commands:

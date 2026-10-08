@@ -36,6 +36,11 @@ yarn typecheck
 
 ## Deployment
 
+Production is `https://kopiyka.englishplus.com.ua` on a small DigitalOcean droplet. Deploys are manual: Actions →
+**Deploy** → Run workflow on `main` runs the CI gates, then the droplet builds that commit, switches to it, restarts the
+API and rolls back if the health check fails. The one-time setup, how deploys work and the post-deploy checks are in
+[`deploy/README.md`](deploy/README.md).
+
 The API listens on `127.0.0.1` behind nginx on the same host, and trusts `X-Forwarded-For` only from
 loopback. nginx must append the client address (`proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;`
 or `$remote_addr`); the login throttle counts the last entry. With `NODE_ENV=production` the session cookie

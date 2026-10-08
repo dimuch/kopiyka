@@ -232,11 +232,11 @@ function ExpenseForm({ draft, ledgerId }: { draft: ExpenseDraftData; ledgerId: n
           <Text style={styles.small}>{rateLabel(rate, date)}</Text>
         </View>
 
-        {error && (
+        {error ? (
           <Text accessibilityRole="alert" style={styles.error}>
             {error}
           </Text>
-        )}
+        ) : null}
 
         <Pressable
           accessibilityRole="button"
@@ -263,12 +263,12 @@ function ExpenseForm({ draft, ledgerId }: { draft: ExpenseDraftData; ledgerId: n
           </Pressable>
         )}
 
-        {added && (
+        {added ? (
           <View accessibilityRole="summary" style={styles.added}>
             <Icon name="check" size={18} color={colors.accent} strokeWidth={2.4} />
             <Text style={styles.addedText}>{added}</Text>
           </View>
-        )}
+        ) : null}
       </ScrollView>
     </KeyboardAvoidingView>
   );

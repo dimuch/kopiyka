@@ -54,11 +54,11 @@ export function CompactTotal({
       accessibilityLabel={label ? `${label}, ${amounts}` : amounts}
       style={[styles.compact, style]}
     >
-      {label && (
+      {label ? (
         <Text numberOfLines={1} style={styles.label}>
           {label}
         </Text>
-      )}
+      ) : null}
       <Text style={[styles.spent, over && { color: colors.over }]}>{eur(spentCents)}</Text>
       {budgetCents != null && <Text style={styles.budget}> / {eur(budgetCents)}</Text>}
     </Animated.View>

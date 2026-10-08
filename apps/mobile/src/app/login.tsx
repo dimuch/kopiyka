@@ -56,9 +56,7 @@ export default function Login() {
 
         <View style={{ gap: 14 }}>
           <View style={styles.field}>
-            <Text nativeID="username-label" style={styles.label}>
-              Username
-            </Text>
+            <Text style={styles.label}>Username</Text>
             <TextInput
               accessibilityLabel="Username"
               value={username}
@@ -73,9 +71,7 @@ export default function Login() {
             />
           </View>
           <View style={styles.field}>
-            <Text nativeID="code-label" style={styles.label}>
-              6-digit code
-            </Text>
+            <Text style={styles.label}>6-digit code</Text>
             <TextInput
               accessibilityLabel="6-digit code"
               value={code}

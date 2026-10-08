@@ -2,10 +2,7 @@ import { createContext, useCallback, useContext, useEffect, useMemo, useState, t
 import { api, clientKind, deviceId, loadToken, saveToken, setUnauthorizedHandler } from '@/api/client';
 import type { Ledger, User } from '@/api/types';
 
-type AuthState =
-  | { status: 'loading' }
-  | { status: 'signedOut' }
-  | { status: 'signedIn'; user: User; ledger: Ledger; ledgers: Ledger[] };
+type AuthState = { status: 'loading' } | { status: 'signedOut' } | { status: 'signedIn'; user: User; ledger: Ledger };
 
 interface AuthApi {
   state: AuthState;
@@ -19,7 +16,7 @@ async function fetchMe(): Promise<AuthState> {
   const me = await api<{ user: User; ledgers: Ledger[] }>('/api/ledgers');
   const ledger = me.ledgers[0];
   if (!ledger) throw new Error('This user has no ledger');
-  return { status: 'signedIn', user: me.user, ledger, ledgers: me.ledgers };
+  return { status: 'signedIn', user: me.user, ledger };
 }
 
 export function AuthProvider({ children }: { children: ReactNode }) {

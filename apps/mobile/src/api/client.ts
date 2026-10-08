@@ -15,7 +15,7 @@ function apiUrl(): string {
   return process.env.EXPO_PUBLIC_API_URL ?? 'http://localhost:3000';
 }
 
-export const API_URL = apiUrl();
+const API_URL = apiUrl();
 const TOKEN_KEY = 'kopiyka.session';
 const DEVICE_KEY = 'kopiyka.device';
 

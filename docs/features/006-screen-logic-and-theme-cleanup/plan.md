@@ -132,7 +132,7 @@ slices 1, 2 and 5 were drafted in the system temp dir. **PR total ≈ 205 change
     and refocus Home (a refetch re-renders it), then scroll again: same. iPhone (Expo Go): same check, recorded in the
     PR test plan.
   - ≈32 lines.
-- [ ] 6. Remove unused exports, the sliders icon, ledgers state and label ids
+- [x] 6. Remove unused exports, the sliders icon, ledgers state and label ids
   - Files: `api/client.ts`, `components/Icon.tsx`, `auth/AuthContext.tsx`, `app/login.tsx`, `app/expense.tsx`,
     `components/AmountFields.tsx`
   - Change: the removals in Contracts. Prettier will likely fold each `<Text style>Label</Text>` onto one line.

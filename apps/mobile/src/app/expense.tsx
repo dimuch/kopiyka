@@ -213,9 +213,7 @@ function ExpenseForm({ draft, ledgerId }: { draft: ExpenseDraftData; ledgerId: n
         </View>
 
         <View style={styles.group}>
-          <Text nativeID="name-label" style={styles.label}>
-            What was it?
-          </Text>
+          <Text style={styles.label}>What was it?</Text>
           <TextInput
             accessibilityLabel="What was it?"
             value={name}

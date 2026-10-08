@@ -43,9 +43,7 @@ function AmountField({
 }) {
   return (
     <View style={{ flex: 1, gap: 8 }}>
-      <Text nativeID={`amount-${currency}`} style={styles.label}>
-        Amount in {currency}
-      </Text>
+      <Text style={styles.label}>Amount in {currency}</Text>
       <View>
         <Text style={styles.symbol}>{currency === 'UAH' ? '₴' : '€'}</Text>
         <TextInput

@@ -306,7 +306,11 @@ AC wording as proposed under Open questions; the originals' evidence is the same
 
 ## Deviations
 
-<filled by the developer during build>
+- slice 5: the memoised styles are held in a local `animated` (not `styles`, which would shadow the module's
+  `StyleSheet`).
+- Procedure T used Home October/September and category 31 (rent) October; one test expense dated 2026-10-07 was added
+  before the baseline so the category spans two days. A temporary expense added during slice 4's check was deleted
+  again before the final snapshot.
 
 ## Revision 1
 

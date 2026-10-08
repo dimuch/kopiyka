@@ -19,9 +19,9 @@ export default function CategoryBreakdown() {
   const { ledger } = useSession();
   const params = useLocalSearchParams<{ categoryId: string; month?: string }>();
   const categoryId = Number(params.categoryId);
-  // A web link without a month opens on the current one.
+  // A web link without a month (or an empty one) opens on the current one.
   const [thisMonth] = useState(() => kyivMonth(new Date()));
-  const month = params.month ?? thisMonth;
+  const month = params.month || thisMonth;
   const { data, error, reload } = useMonth(ledger.ledgerId, month, categoryId);
   // The Undo offer after a delete; it stays until the restore succeeds or it times out.
   const [toast, setToast] = useState<{ undo: PendingUndo; status: 'offer' | 'restoring' | 'failed' } | null>(null);

@@ -44,7 +44,7 @@ portal is a sibling of `#root`, so the sheet would still span the window. It wou
 
 ## Slices
 
-- [ ] 1. Show the web app in a centered phone-width column
+- [x] 1. Show the web app in a centered phone-width column
   - Files: `apps/mobile/src/theme.ts`, `apps/mobile/src/components/PhoneColumn.tsx` (new),
     `apps/mobile/src/app/_layout.tsx`
   - Change: add `phoneWidth` and `PhoneColumn`. In `RootLayout`, wrap `<AuthProvider>…</AuthProvider>` in `PhoneColumn`

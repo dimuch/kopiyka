@@ -128,7 +128,7 @@ Sizes are estimates (insertions + deletions), not measured on a scratch build. O
     later" text goes.
   - Verify: procedures A and C, Home parts. `document.querySelector('[role="alert"]').textContent` is the message.
   - ≈60 lines.
-- [ ] 3. Offer Retry on Category and keep its expenses when a refresh fails
+- [x] 3. Offer Retry on Category and keep its expenses when a refresh fails
   - Files: `app/category/[categoryId].tsx`
   - Change: the no-data and inline `LoadError`, as in Contracts.
   - Verify: procedures A and C, Category parts.

@@ -9,6 +9,7 @@ import { AddExpenseButton } from '@/components/AddExpenseButton';
 import { CategoryTile } from '@/components/CategoryTile';
 import { CompactTotal, HeaderDivider, useCollapsingSummary } from '@/components/CollapsingSummary';
 import { Icon } from '@/components/Icon';
+import { LoadError } from '@/components/LoadError';
 import { useMonth } from '@/data/useMonth';
 import { takePendingUndo, type PendingUndo } from '@/data/undo';
 import { dayLabel, eur, monthLabel, monthName, toCents, uah } from '@/format';
@@ -79,12 +80,13 @@ export default function CategoryBreakdown() {
         <HeaderDivider style={collapse.dividerStyle} />
       </View>
 
-      {error ? (
-        <Text style={styles.caption}>Couldn’t load this category. Check the API is running.</Text>
+      {!data && error ? (
+        <LoadError message="Couldn’t load this category. Check your connection and try again." onRetry={reload} />
       ) : !data || !category ? (
         <ActivityIndicator color={colors.accent} style={{ marginTop: 24 }} />
       ) : (
         <Animated.ScrollView {...collapse.scrollProps} contentContainerStyle={styles.content}>
+          {error && <LoadError message="Couldn’t refresh. Check your connection and try again." onRetry={reload} />}
           <View style={styles.titleRow}>
             <CategoryTile techName={category.techName} label={category.displayName} size={52} />
             <View>

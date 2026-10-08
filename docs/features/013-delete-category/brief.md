@@ -11,7 +11,7 @@ deleting it deletes its expenses, after a clear warning, with a short Undo.
 
 Part 2 of 4 of the original "Manage categories" brief, split at Gate A on 2026-10-08 (see
 `../012-remove-hidden-categories/brief.md` for the full split). Depends on 012, which removes `is_active` and adds the
-category soft-delete state, and makes every read leave deleted categories out.
+category soft-delete state, and makes every list read leave deleted categories out.
 
 ## What
 

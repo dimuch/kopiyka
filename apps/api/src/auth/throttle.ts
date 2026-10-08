@@ -63,6 +63,9 @@ export async function throttledAttempt<T>(
     const states: ThrottleState[] = [];
     // Fixed key order (username, ip, device) so two attempts can't lock each other's rows crosswise.
     for (const key of keys) {
+      // TODO(dimuch): rows are never deleted; every login attempt (accepted or rejected) keeps one per username, IP and
+      // device. Pruning would periodically delete rows with no active lock (locked_until NULL or past) and no failure
+      // for at least WINDOW_MS (24 h), so live counts aren't reset.
       // ODKU takes an exclusive lock on an existing row; INSERT IGNORE's shared one deadlocks under a burst.
       await conn.query(
         'INSERT INTO login_throttle (key_type, key_value) VALUES (?, ?) ON DUPLICATE KEY UPDATE key_value = key_value',

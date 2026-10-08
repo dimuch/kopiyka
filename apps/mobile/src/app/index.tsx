@@ -23,7 +23,8 @@ export default function Home() {
     const spent = spentByCategory(data.expenses);
     return data.categories.map((c) => ({ ...c, spent: spent.get(c.categoryId) ?? 0 }));
   }, [data]);
-  const total = rows?.reduce((s, r) => s + r.spent, 0) ?? 0;
+  // Null until the month has loaded: €0 would read as "spent nothing".
+  const total = rows ? rows.reduce((s, r) => s + r.spent, 0) : null;
   const maxSpent = Math.max(1, ...(rows ?? []).map((r) => r.spent));
   const collapse = useCollapsingSummary();
 
@@ -52,7 +53,7 @@ export default function Home() {
             <Icon name="forward" color={colors.muted} />
           </Pressable>
         </View>
-        <CompactTotal spentCents={total} budgetCents={null} style={collapse.compactStyle} />
+        {total !== null ? <CompactTotal spentCents={total} budgetCents={null} style={collapse.compactStyle} /> : null}
         <HeaderDivider style={collapse.dividerStyle} />
       </View>
 
@@ -61,7 +62,10 @@ export default function Home() {
           <View style={styles.totalRow}>
             <View style={{ gap: 2 }}>
               <Text style={styles.caption}>Spent this month</Text>
-              <Text style={styles.total}>{eur(total)}</Text>
+              {/* The total's own size, so the card doesn't change height when the amount arrives. */}
+              <Text style={[styles.total, total === null && { color: colors.muted }]}>
+                {total === null ? '—' : eur(total)}
+              </Text>
             </View>
             <View style={{ alignItems: 'flex-end', gap: 2, paddingBottom: 6 }}>
               <Text style={styles.caption}>Budget</Text>

@@ -186,9 +186,11 @@ Things that look wrong but are intentional or correct:
 | --- | ------------------------------------------------------------------ | --------------------------- | ---------- | ------------ |
 | 001 | `docs/features/001-login-throttle-hardening/brief.md`              | A1, A2, A3                  | —          | merged (#10) |
 | 002 | `docs/features/002-api-error-shape-and-expense-scoping/brief.md`   | A4–A9                       | —          | merged (#11) |
-| 003 | `docs/features/003-expense-kyiv-dates-and-derived-amount/brief.md` | M1, M2, M3, M19, M20        | —          | open         |
-| 004 | `docs/features/004-expense-data-hooks/brief.md`                    | M4, M11, M14, M16, M17, M24 | 003        | open         |
-| 005 | `docs/features/005-load-errors-retry-and-undo/brief.md`            | M5–M8, M15                  | 003, 004   | open         |
-| 006 | `docs/features/006-screen-logic-and-theme-cleanup/brief.md`        | M9, M10, M12, M13, M21, M22 | 005        | open         |
+| 003 | `docs/features/003-expense-kyiv-dates-and-derived-amount/brief.md` | M1, M2, M3, M19, M20        | —          | merged (#13) |
+| 004 | `docs/features/004-expense-data-hooks/brief.md`                    | M4, M11, M14, M16, M17, M24 | 003        | merged (#15) |
+| 005 | `docs/features/005-load-errors-retry-and-undo/brief.md`            | M5–M8, M15                  | 003, 004   | merged (#17) |
+| 006 | `docs/features/006-screen-logic-and-theme-cleanup/brief.md`        | M9, M10, M12, M13, M21, M22 | 005        | merged (#18) |
+| 007 | `docs/features/007-expense-form-components/brief.md`               | 004 split (pure moves)      | 003        | merged (#14) |
+| 008 | `docs/features/008-web-phone-width/brief.md`                       | — (not an audit finding)    | —          | merged (#16) |
 
 Not briefed (pick up opportunistically): A10–A13, M18, M23.

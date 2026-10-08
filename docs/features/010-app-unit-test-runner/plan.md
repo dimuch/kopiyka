@@ -98,7 +98,7 @@ as in `money.test.ts`.
     run. Add a temporary lint error in `test/format.test.ts` and check that `yarn mobile lint; echo $?` is non-zero.
     Revert. Run the full gates without pipes (no `tail`/`grep`), checking `$?` directly.
 
-- [ ] 2. Test the app's Kyiv date and month helpers (~70 lines)
+- [x] 2. Test the app's Kyiv date and month helpers (~70 lines)
   - Files: `apps/mobile/test/format.test.ts` (adds `describe('format: dates')`)
   - Tests:
     - `parseDate('2026-03-29')`: local year 2026, month index 2, date 29, hour 12 (noon on a DST-switch day).

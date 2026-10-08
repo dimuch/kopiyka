@@ -1,5 +1,22 @@
 import { describe, expect, it } from 'vitest';
-import { centsToInput, convertPreview, eur, normalizeAmount, otherAmountText, toCents, uah } from '@/format';
+import {
+  addDays,
+  centsToInput,
+  convertPreview,
+  dayLabel,
+  eur,
+  kyivMonth,
+  kyivToday,
+  monthLabel,
+  monthName,
+  normalizeAmount,
+  otherAmountText,
+  parseDate,
+  shiftMonth,
+  shortDate,
+  toCents,
+  uah,
+} from '@/format';
 
 describe('format: amounts', () => {
   it('turns decimal strings into cents', () => {
@@ -72,5 +89,65 @@ describe('format: amounts', () => {
     expect(otherAmountText('abc', 'EUR', 50.483)).toBe('');
     expect(otherAmountText('12.50', 'EUR', null)).toBe('');
     expect(otherAmountText('0', 'EUR', 50.483)).toBe('');
+  });
+});
+
+describe('format: dates', () => {
+  const at = (iso: string) => new Date(iso);
+
+  it('parses a date as local noon, also on a DST-switch day', () => {
+    const d = parseDate('2026-03-29');
+    expect([d.getFullYear(), d.getMonth(), d.getDate(), d.getHours()]).toEqual([2026, 2, 29, 12]);
+  });
+
+  it('adds days across month, year and leap-day ends', () => {
+    expect(addDays('2026-10-01', -1)).toBe('2026-09-30');
+    expect(addDays('2026-12-31', 1)).toBe('2027-01-01');
+    expect(addDays('2028-02-28', 1)).toBe('2028-02-29');
+    expect(addDays('2026-03-01', -1)).toBe('2026-02-28');
+    expect(addDays('2026-03-28', 1)).toBe('2026-03-29');
+  });
+
+  it('reads today in Kyiv in winter (UTC+2)', () => {
+    expect(kyivToday(at('2026-01-15T21:59:59Z'))).toBe('2026-01-15'); // 23:59:59 Kyiv
+    expect(kyivToday(at('2026-01-15T22:00:00Z'))).toBe('2026-01-16'); // 00:00 Kyiv
+  });
+
+  it('reads today in Kyiv around the spring switch (29 Mar 2026, 03:00 → 04:00)', () => {
+    expect(kyivToday(at('2026-03-28T21:59:59Z'))).toBe('2026-03-28'); // 23:59:59 (UTC+2)
+    expect(kyivToday(at('2026-03-28T22:00:00Z'))).toBe('2026-03-29'); // 00:00
+    expect(kyivToday(at('2026-03-29T00:59:59Z'))).toBe('2026-03-29'); // 02:59:59, just before the switch
+    expect(kyivToday(at('2026-03-29T01:00:00Z'))).toBe('2026-03-29'); // 04:00 (UTC+3)
+    expect(kyivToday(at('2026-03-29T20:59:59Z'))).toBe('2026-03-29'); // 23:59:59
+    expect(kyivToday(at('2026-03-29T21:00:00Z'))).toBe('2026-03-30'); // 00:00
+  });
+
+  it('reads today in Kyiv around the autumn switch (26 Oct 2025, 04:00 → 03:00)', () => {
+    expect(kyivToday(at('2025-10-25T20:59:59Z'))).toBe('2025-10-25'); // 23:59:59 (UTC+3)
+    expect(kyivToday(at('2025-10-25T21:00:00Z'))).toBe('2025-10-26'); // 00:00
+    expect(kyivToday(at('2025-10-26T21:59:59Z'))).toBe('2025-10-26'); // 23:59:59 (UTC+2)
+    expect(kyivToday(at('2025-10-26T22:00:00Z'))).toBe('2025-10-27'); // 00:00
+  });
+
+  it('reads the month in Kyiv across New Year', () => {
+    expect(kyivMonth(at('2026-12-31T21:59:59Z'))).toBe('2026-12');
+    expect(kyivMonth(at('2026-12-31T22:00:00Z'))).toBe('2027-01');
+  });
+
+  it('shifts months across year ends', () => {
+    expect(shiftMonth('2026-01', -1)).toBe('2025-12');
+    expect(shiftMonth('2026-12', 1)).toBe('2027-01');
+    expect(shiftMonth('2026-10', 0)).toBe('2026-10');
+    expect(shiftMonth('2026-03', -15)).toBe('2024-12');
+    expect(shiftMonth('2026-10', 14)).toBe('2027-12');
+  });
+
+  it('labels months and days', () => {
+    expect(monthName('2026-02')).toBe('February');
+    expect(monthLabel('2026-10')).toBe('October 2026');
+    expect(dayLabel('2026-09-29')).toBe('TUE 29 SEP');
+    expect(dayLabel('2027-01-01')).toBe('FRI 1 JAN');
+    expect(shortDate('2026-10-06')).toBe('6 Oct 2026');
+    expect(shortDate('2026-03-29')).toBe('29 Mar 2026');
   });
 });

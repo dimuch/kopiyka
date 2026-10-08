@@ -107,7 +107,7 @@ launch configs `api` + `web` in the in-app browser at 390×844 (and 1440×900 fo
       - `null` for: `'2026-13'`, `'2026-00'`, `'2026-1'`, `'26-10'`, `'2026-10-01'`, `' 2026-10'`, `'abc'`, `''`,
         `undefined`, `['2026-10', '2026-11']`.
     - (Expected values computed on Base with a scratch script.)
-- [ ] 3. Reject malformed expense links before fetching (~45 lines)
+- [x] 3. Reject malformed expense links before fetching (~45 lines)
   - Files: `apps/mobile/src/app/expense.tsx`, `apps/mobile/src/data/useExpenseDraft.ts`
   - Change:
     - `ExpenseScreen` reads params, sets `editing = !!params.expenseId` and

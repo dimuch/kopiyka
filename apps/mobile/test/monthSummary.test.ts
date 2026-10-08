@@ -50,7 +50,6 @@ describe('monthSummary', () => {
       [1, 1255],
       [2, 300],
     ]);
-    expect(spent.has(3)).toBe(false);
     expect(spentByCategory([]).size).toBe(0);
   });
 

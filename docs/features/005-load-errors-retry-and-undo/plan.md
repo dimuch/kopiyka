@@ -140,7 +140,7 @@ Sizes are estimates (insertions + deletions), not measured on a scratch build. O
 && !category`).
   - Verify: procedure E; on `/category/999` there is no "Add expense" button.
   - ≈15 lines (+3 for hiding the button).
-- [ ] 5. Use the shared load error on the expense screen, with its header
+- [x] 5. Use the shared load error on the expense screen, with its header
   - Files: `app/expense.tsx`
   - Change: a single return as in Contracts. Cancel uses the `canGoBack` fallback. The error body is `LoadError` plus
     Back, and the now-unused `retryText` style is dropped.

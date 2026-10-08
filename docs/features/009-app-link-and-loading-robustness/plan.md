@@ -92,7 +92,7 @@ launch configs `api` + `web` in the in-app browser at 390×844 (and 1440×900 fo
     - Home → Category → expense → Update returns to Category. Same path, Delete returns to Category with the Undo
       toast, and Undo restores the expense.
     - Repeat the last two on iPhone (Expo Go).
-- [ ] 2. Add link param parsers for ids and months (~70 lines)
+- [x] 2. Add link param parsers for ids and months (~70 lines)
   - Files: `apps/mobile/src/linkParams.ts` (new), `apps/mobile/test/linkParams.test.ts` (new)
   - Change: the two functions in Contracts, each with one-line JSDoc. The month regex carries a comment that it
     mirrors the API's `MonthQuery`.

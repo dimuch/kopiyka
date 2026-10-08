@@ -151,7 +151,7 @@ Sizes are estimates (insertions + deletions), not measured on a scratch build. O
       Home too.
     - The header shows on the error view.
   - ≈40 lines.
-- [ ] 6. Keep the Undo toast until the restore succeeds, with Retry on failure
+- [x] 6. Keep the Undo toast until the restore succeeds, with Retry on failure
   - Files: `data/expenses.ts`, `app/category/[categoryId].tsx`
   - Change:
     - Add `restoreExpense`, so the screen no longer imports `api`.

@@ -22,3 +22,8 @@ export function saveExpense(ledgerId: number, expenseId: number | null, input: E
 export async function deleteExpense(ledgerId: number, expenseId: number): Promise<void> {
   await api(`/api/ledgers/${ledgerId}/expenses/${expenseId}`, { method: 'DELETE' });
 }
+
+/** Brings back a soft-deleted expense (Undo). */
+export async function restoreExpense(ledgerId: number, expenseId: number): Promise<void> {
+  await api(`/api/ledgers/${ledgerId}/expenses/${expenseId}/restore`, { method: 'POST' });
+}

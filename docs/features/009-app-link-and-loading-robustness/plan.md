@@ -160,7 +160,7 @@ launch configs `api` + `web` in the in-app browser at 390×844 (and 1440×900 fo
     - Load Home and switch months: card shows "—", and no "€0" on the card or in the header, even when scrolled.
     - A month with no expenses shows "€0" once loaded.
     - Normal month totals unchanged, and the compact total still fades in on scroll.
-- [ ] 6. Close the category sheet on clicks beside the web column (~15 lines)
+- [x] 6. Close the category sheet on clicks beside the web column (~15 lines)
   - Files: `apps/mobile/src/components/PhoneColumn.tsx`, `apps/mobile/src/components/CategorySheet.tsx`
   - Change:
     - `PhoneColumn` on web returns `<>{onPressOutside && <Pressable aria-hidden tabIndex={-1} onPress={onPressOutside} style={StyleSheet.absoluteFill} />}<View style={styles.column}>…</View></>`,

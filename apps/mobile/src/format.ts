@@ -19,7 +19,7 @@ function money(symbol: string, cents: number, decimals: 'auto' | 'never'): strin
 
 /** €1,515 or €12.50 */
 export const eur = (cents: number) => money('€', cents, 'auto');
-/** ₴631 (whole hryvnias, as on the canvas) */
+/** ₴631 (whole hryvnias, as on the canvas; halves round away from zero) */
 export const uah = (cents: number) => money('₴', cents, 'never');
 
 /** Local noon of a 'YYYY-MM-DD' date, only to display it or seed the picker; noon stays on that day across DST. */

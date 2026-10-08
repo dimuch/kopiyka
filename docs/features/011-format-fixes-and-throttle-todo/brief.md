@@ -42,5 +42,4 @@ be visible in the code:
 
 ## Notes
 
-- Conventions §5 flags TODOs without an owner; write it as `TODO(dimuch): …` or follow whatever owner form the
-  planner finds in the repo.
+- The repo has no TODO convention yet; write it as `TODO(dimuch): …`.

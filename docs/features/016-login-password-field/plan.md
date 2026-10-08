@@ -44,7 +44,7 @@ dependency that no AC needs. Evidence is a web check at phone width plus an iPho
 
 ## Slices
 
-- [ ] 1. Show a masked Password field on the sign-in screen
+- [x] 1. Show a masked Password field on the sign-in screen
   - Files: `apps/mobile/src/app/login.tsx`
   - Change: everything in Approach. Remove the subtitle `<Text>` and the `subtitle` style. The title `View` wrapper can
     go once it has a single child. Keep `setPassword('')` after a failed sign-in and `onSubmitEditing={submit}`.

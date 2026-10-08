@@ -17,13 +17,9 @@ describe('quick', () => {
 
   it('splits categories into the quick row, in its order, and the rest', () => {
     const categories = [category(1, 1), category(2, 2), category(3, 3), category(4, 4)];
-    // 7 is a since-hidden category: in `byId` but not offered in `categories`.
-    const hidden = category(7, 7);
-    const byId = new Map([...categories, hidden].map((c) => [c.categoryId, c]));
-
-    const { quick, more } = splitQuick([3, 7, 99, 1], categories, byId);
-    // 99 isn't known at all, so it's dropped.
-    expect(quick.map((c) => c.categoryId)).toEqual([3, 7, 1]);
+    const { quick, more } = splitQuick([3, 99, 1], categories);
+    // 99 isn't a listed category (e.g. a deleted one), so it's dropped.
+    expect(quick.map((c) => c.categoryId)).toEqual([3, 1]);
     expect(more.map((c) => c.categoryId)).toEqual([2, 4]);
   });
 });

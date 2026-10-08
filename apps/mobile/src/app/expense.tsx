@@ -24,7 +24,8 @@ import { Icon } from '@/components/Icon';
 import { LoadError } from '@/components/LoadError';
 import { deleteExpense, saveExpense } from '@/data/expenses';
 import { setPendingUndo } from '@/data/undo';
-import { type ExpenseDraftData, useExpenseDraft, withQuick } from '@/data/useExpenseDraft';
+import { splitQuick, withQuick } from '@/data/quick';
+import { type ExpenseDraftData, useExpenseDraft } from '@/data/useExpenseDraft';
 import { type Rate, useRate } from '@/data/useRate';
 import { eur, kyivToday, normalizeAmount, otherAmountText, shortDate, toCents } from '@/format';
 import { colors, fonts } from '@/theme';
@@ -125,8 +126,7 @@ function ExpenseForm({ draft, ledgerId }: { draft: ExpenseDraftData; ledgerId: n
   const rate = useRate(date);
   const otherText = storedOther ?? otherAmountText(amountText, entered, rate.status === 'ok' ? rate.eurUah : null);
 
-  const quickCats = quick.map((id) => draft.categoryById.get(id)).filter((c): c is Category => !!c);
-  const moreCats = draft.categories.filter((c) => !quick.includes(c.categoryId));
+  const { quick: quickCats, more: moreCats } = splitQuick(quick, draft.categories, draft.categoryById);
 
   function edit(setter: (v: string) => void, value: string) {
     setter(value);

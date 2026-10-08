@@ -1,13 +1,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import { api } from '@/api/client';
 import type { Category, Expense } from '@/api/types';
-
-const QUICK_COUNT = 5;
-
-/** Puts `id` in the quick row, taking the last spot when it isn't there yet. */
-export function withQuick(quick: number[], id: number): number[] {
-  return quick.includes(id) ? quick : [...quick.slice(0, QUICK_COUNT - 1), id];
-}
+import { withQuick } from '@/data/quick';
 
 export interface ExpenseDraftData {
   /** Active categories, as the API lists them. */

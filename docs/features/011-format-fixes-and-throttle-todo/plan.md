@@ -50,7 +50,7 @@ Checked in Node 24.21.0 (scratch script, outside the repo):
   - Tests: in the existing `uah` test, add `uah(-63150)` → `'−₴632'`, `uah(-63149)` → `'−₴631'`, `uah(-50)` → `'−₴1'`
     (the first and third fail before the fix), and `uah(-49)` → `'₴0'` as a guard against "−₴0". Write the test first
     and see it fail. (~8 lines)
-- [ ] 2. Show "Sep", not "Sept", in short dates on every platform
+- [x] 2. Show "Sep", not "Sept", in short dates on every platform
   - Files: `apps/mobile/src/format.ts`, `apps/mobile/test/format.test.ts`
   - Change: build `shortDate` from `getDate()`, the `en-US` short month and `getFullYear()`. Add a one-line comment
     on why: `en-GB` says "Sept" on newer ICU.

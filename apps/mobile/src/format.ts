@@ -108,7 +108,8 @@ export function otherAmountText(text: string, entered: 'EUR' | 'UAH', rate: numb
   return amount && rate ? centsToInput(convertPreview(toCents(amount), entered, rate)) : '';
 }
 
-/** '6 Oct 2026' */
+/** '6 Oct 2026'. Built from parts, like dayLabel: en-GB's short month is 'Sept' on some platforms. */
 export function shortDate(date: string): string {
-  return parseDate(date).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
+  const day = parseDate(date);
+  return `${day.getDate()} ${day.toLocaleString('en-US', { month: 'short' })} ${day.getFullYear()}`;
 }

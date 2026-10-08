@@ -332,7 +332,8 @@ the same error as a stopped API.
 
 ## Deviations
 
-<filled by the developer during build>
+- slice 6: the "hide Add on a missing category" condition from slice 4 moved into a `showAdd` variable, because
+  Prettier folded its comment into the toast ternary. Same behaviour.
 
 ## Revision 1
 

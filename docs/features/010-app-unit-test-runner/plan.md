@@ -210,7 +210,7 @@ Total: about 235 changed lines without yarn.lock. Each slice is under 150.
 
 ## Deviations
 
-<filled by the developer during build>
+None.
 
 ## Revision 1
 

@@ -156,7 +156,7 @@ verify` can't run locally. They run on the droplet in the runbook (post-merge).
   - Verify: `bash -n deploy/deploy.sh` and `npx --yes shellcheck deploy/deploy.sh` clean. A local dry run of the
     validation path: `SSH_ORIGINAL_COMMAND=nope bash deploy/deploy.sh` exits 2 before touching any path. The
     build/switch/rollback paths need the droplet (post-merge checklist).
-- [ ] 4. Add a manual Deploy workflow that runs the CI gates, then deploys over SSH (~50 lines)
+- [x] 4. Add a manual Deploy workflow that runs the CI gates, then deploys over SSH (~50 lines)
   - Files: `.github/workflows/deploy.yml` (new), `.github/workflows/ci.yml` (`workflow_call:`)
   - Verify: gates locally (Prettier on YAML). On the PR, CI still triggers and passes with the extra `workflow_call`
     trigger, and GitHub shows no "invalid workflow file" error for `deploy.yml`. actionlint isn't available locally

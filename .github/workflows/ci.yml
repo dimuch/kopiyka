@@ -4,6 +4,8 @@ on:
   pull_request:
   push:
     branches: [main]
+  # Deploy (deploy.yml) runs these same gates before it ships a commit.
+  workflow_call:
 
 jobs:
   check:

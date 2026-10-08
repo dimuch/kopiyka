@@ -21,6 +21,7 @@ import { CategoryPicker } from '@/components/CategoryPicker';
 import { DateChips } from '@/components/DateChips';
 import { Icon } from '@/components/Icon';
 import { setPendingUndo } from '@/data/undo';
+import { type Rate, useRate } from '@/data/useRate';
 import { eur, kyivToday, normalizeAmount, otherAmountText, shortDate, toCents } from '@/format';
 import { colors, fonts } from '@/theme';
 
@@ -47,6 +48,15 @@ function confirmDelete(name: string): Promise<boolean> {
   );
 }
 
+function rateLabel(rate: Rate, date: string): string {
+  if (rate.status === 'loading') return 'Fetching the NBU rate…';
+  if (rate.status === 'unavailable') {
+    return `NBU rate for ${shortDate(date)} isn’t available yet; it’s fetched again when you save`;
+  }
+  const fallback = rate.rateDate !== date ? ` (the latest before ${shortDate(date)})` : '';
+  return `1 € = ₴${rate.eurUah.toFixed(4)} · NBU official rate for ${shortDate(rate.rateDate)}${fallback}`;
+}
+
 /** Puts `id` in the quick row, taking the last spot when it isn't there yet. */
 function withQuick(quick: number[], id: number): number[] {
   return quick.includes(id) ? quick : [...quick.slice(0, QUICK_COUNT - 1), id];
@@ -71,7 +81,6 @@ export default function ExpenseScreen() {
   const [entered, setEntered] = useState<Currency>('UAH');
   // While editing, the stored other-side amount, shown until the amount or the date changes.
   const [storedOther, setStoredOther] = useState<string | null>(null);
-  const [rate, setRate] = useState<{ date: string; value: number | null } | null>(null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [added, setAdded] = useState<string | null>(null);
@@ -110,18 +119,8 @@ export default function ExpenseScreen() {
     })();
   }, [base, editingId, params.categoryId]);
 
-  // The NBU rate for the chosen date, for the live conversion.
-  useEffect(() => {
-    let live = true;
-    api<{ eurUah: number }>(`/api/rates/eur-uah?date=${date}`)
-      .then((r) => live && setRate({ date, value: r.eurUah }))
-      .catch(() => live && setRate({ date, value: null }));
-    return () => {
-      live = false;
-    };
-  }, [date]);
-
-  const otherText = storedOther ?? otherAmountText(amountText, entered, rate?.date === date ? rate.value : null);
+  const rate = useRate(date);
+  const otherText = storedOther ?? otherAmountText(amountText, entered, rate.status === 'ok' ? rate.eurUah : null);
 
   const byId = useMemo(() => new Map((categories ?? []).map((c) => [c.categoryId, c])), [categories]);
   const quickCats = quick.map((id) => byId.get(id)).filter((c): c is Category => !!c);
@@ -190,13 +189,6 @@ export default function ExpenseScreen() {
     }
   }
 
-  const rateLabel =
-    rate?.date !== date
-      ? 'Fetching the NBU rate…'
-      : rate.value
-        ? `1 € = ₴${rate.value} · NBU official rate for ${shortDate(date)}`
-        : `NBU rate for ${shortDate(date)} isn’t available yet; it’s fetched again when you save`;
-
   if (loadFailed) {
     return (
       <SafeAreaView style={styles.screen}>
@@ -250,7 +242,7 @@ export default function ExpenseScreen() {
 
             <View style={styles.group}>
               <AmountFields entered={entered} amountText={amountText} otherText={otherText} onChange={typeAmount} />
-              <Text style={styles.small}>{rateLabel}</Text>
+              <Text style={styles.small}>{rateLabel(rate, date)}</Text>
             </View>
 
             {error && (

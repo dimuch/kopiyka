@@ -1,8 +1,7 @@
 import { router, useFocusEffect, useLocalSearchParams } from 'expo-router';
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { ActivityIndicator, Animated, Pressable, StyleSheet, Text, View } from 'react-native';
+import { AccessibilityInfo, ActivityIndicator, Animated, Pressable, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { api } from '@/api/client';
 import type { Expense } from '@/api/types';
 import { useSession } from '@/auth/AuthContext';
 import { AddExpenseButton } from '@/components/AddExpenseButton';
@@ -10,6 +9,7 @@ import { CategoryTile } from '@/components/CategoryTile';
 import { CompactTotal, HeaderDivider, useCollapsingSummary } from '@/components/CollapsingSummary';
 import { Icon } from '@/components/Icon';
 import { LoadError } from '@/components/LoadError';
+import { restoreExpense } from '@/data/expenses';
 import { useMonth } from '@/data/useMonth';
 import { takePendingUndo, type PendingUndo } from '@/data/undo';
 import { dayLabel, eur, kyivMonth, monthLabel, monthName, toCents, uah } from '@/format';
@@ -23,26 +23,38 @@ export default function CategoryBreakdown() {
   const [thisMonth] = useState(() => kyivMonth(new Date()));
   const month = params.month ?? thisMonth;
   const { data, error, reload } = useMonth(ledger.ledgerId, month, categoryId);
-  const [undo, setUndo] = useState<PendingUndo | null>(null);
+  // The Undo offer after a delete; it stays until the restore succeeds or it times out.
+  const [toast, setToast] = useState<{ undo: PendingUndo; status: 'offer' | 'restoring' | 'failed' } | null>(null);
 
   // Coming back from a delete: offer Undo for a few seconds.
   useFocusEffect(
     useCallback(() => {
       const pending = takePendingUndo();
-      if (pending) setUndo(pending);
+      if (!pending) return;
+      setToast({ undo: pending, status: 'offer' });
+      AccessibilityInfo.announceForAccessibility(`Deleted “${pending.label}”`);
     }, []),
   );
+  // Restarts on each change; never times out while a restore is in flight.
   useEffect(() => {
-    if (!undo) return;
-    const timer = setTimeout(() => setUndo(null), 10_000);
+    if (!toast || toast.status === 'restoring') return;
+    const timer = setTimeout(() => setToast(null), 10_000);
     return () => clearTimeout(timer);
-  }, [undo]);
+  }, [toast]);
 
   async function restore() {
-    if (!undo) return;
-    setUndo(null);
-    await api(`/api/ledgers/${undo.ledgerId}/expenses/${undo.expenseId}/restore`, { method: 'POST' }).catch(() => {});
-    reload();
+    if (!toast || toast.status === 'restoring') return;
+    const { undo } = toast;
+    setToast({ undo, status: 'restoring' });
+    // Only touch the toast this restore started from: another delete may have replaced it meanwhile.
+    try {
+      await restoreExpense(undo.ledgerId, undo.expenseId);
+      setToast((t) => (t?.undo === undo ? null : t));
+      reload();
+    } catch {
+      setToast((t) => (t?.undo === undo ? { undo, status: 'failed' } : t));
+      AccessibilityInfo.announceForAccessibility('Couldn’t undo');
+    }
   }
 
   const category = data?.categories.find((c) => c.categoryId === categoryId);
@@ -59,6 +71,8 @@ export default function CategoryBreakdown() {
   const totalUah = data?.expenses.reduce((s, e) => s + toCents(e.amountUah), 0) ?? 0;
   const count = data?.expenses.length ?? 0;
   const collapse = useCollapsingSummary();
+  // Not on a missing category: Add would preselect one that doesn't exist.
+  const showAdd = !data || !!category;
 
   return (
     <SafeAreaView style={styles.screen} edges={['top']}>
@@ -139,17 +153,21 @@ export default function CategoryBreakdown() {
           </View>
         </Animated.ScrollView>
       )}
-      {undo ? (
+      {toast ? (
         <View accessibilityLiveRegion="polite" style={styles.toast}>
           <Text numberOfLines={1} style={styles.toastText}>
-            Deleted “{undo.label}”
+            {toast.status === 'failed' ? 'Couldn’t undo' : `Deleted “${toast.undo.label}”`}
           </Text>
-          <Pressable accessibilityRole="button" onPress={restore} style={styles.undo}>
-            <Text style={styles.undoText}>Undo</Text>
+          <Pressable
+            accessibilityRole="button"
+            disabled={toast.status === 'restoring'}
+            onPress={restore}
+            style={[styles.undo, toast.status === 'restoring' && { opacity: 0.6 }]}
+          >
+            <Text style={styles.undoText}>{toast.status === 'failed' ? 'Retry' : 'Undo'}</Text>
           </Pressable>
         </View>
-      ) : // Not on a missing category: it would preselect one that doesn't exist.
-      !data || category ? (
+      ) : showAdd ? (
         <AddExpenseButton categoryId={categoryId} />
       ) : null}
     </SafeAreaView>

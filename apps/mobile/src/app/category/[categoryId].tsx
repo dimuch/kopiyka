@@ -13,15 +13,46 @@ import { groupByDay, sumCents } from '@/data/monthSummary';
 import { useMonth } from '@/data/useMonth';
 import { takePendingUndo, type PendingUndo } from '@/data/undo';
 import { dayLabel, eur, kyivMonth, monthLabel, monthName, toCents, uah } from '@/format';
+import { parseIdParam, parseMonthParam } from '@/linkParams';
 import { colors, fonts } from '@/theme';
 
-export default function CategoryBreakdown() {
-  const { ledger } = useSession();
-  const params = useLocalSearchParams<{ categoryId: string; month?: string }>();
-  const categoryId = Number(params.categoryId);
+// Opened straight from a web link there's nothing to go back to, so fall back to Home.
+function goBack() {
+  if (router.canGoBack()) router.back();
+  else router.replace('/');
+}
+
+export default function CategoryScreen() {
+  const params = useLocalSearchParams<{ categoryId: string | string[]; month?: string | string[] }>();
   // A web link without a month (or an empty one) opens on the current one.
   const [thisMonth] = useState(() => kyivMonth(new Date()));
-  const month = params.month || thisMonth;
+  const categoryId = parseIdParam(params.categoryId);
+  const month = parseMonthParam(params.month || thisMonth);
+  // Checked before anything loads, so a bad link fetches nothing.
+  return categoryId !== null && month !== null ? (
+    <CategoryBreakdown categoryId={categoryId} month={month} />
+  ) : (
+    <InvalidLink />
+  );
+}
+
+/** No Add button here: there's no valid category to preselect. */
+function InvalidLink() {
+  return (
+    <SafeAreaView style={styles.screen} edges={['top']}>
+      <View style={styles.header}>
+        <Pressable accessibilityRole="button" onPress={goBack} style={styles.back}>
+          <Icon name="back" color={colors.muted} />
+          <Text style={styles.backText}>Back</Text>
+        </Pressable>
+      </View>
+      <LoadError message="That link isn’t valid." />
+    </SafeAreaView>
+  );
+}
+
+function CategoryBreakdown({ categoryId, month }: { categoryId: number; month: string }) {
+  const { ledger } = useSession();
   const { data, error, reload } = useMonth(ledger.ledgerId, month, categoryId);
   // The Undo offer after a delete; it stays until the restore succeeds or it times out.
   const [toast, setToast] = useState<{ undo: PendingUndo; status: 'offer' | 'restoring' | 'failed' } | null>(null);
@@ -69,11 +100,7 @@ export default function CategoryBreakdown() {
   return (
     <SafeAreaView style={styles.screen} edges={['top']}>
       <View style={styles.header}>
-        <Pressable
-          accessibilityRole="button"
-          onPress={() => (router.canGoBack() ? router.back() : router.replace('/'))}
-          style={styles.back}
-        >
+        <Pressable accessibilityRole="button" onPress={goBack} style={styles.back}>
           <Icon name="back" color={colors.muted} />
           <Text style={styles.backText}>{monthName(month)}</Text>
         </Pressable>

@@ -128,7 +128,7 @@ launch configs `api` + `web` in the in-app browser at 390×844 (and 1440×900 fo
     - Home → Category → Add preselects that category.
     - iPhone (Expo Go): Category → tap an expense opens Edit with its data, and Update returns to Category; Category →
       Add preselects the category.
-- [ ] 4. Show an invalid-link message for malformed category links (~40 lines)
+- [x] 4. Show an invalid-link message for malformed category links (~40 lines)
   - Files: `apps/mobile/src/app/category/[categoryId].tsx`
   - Change:
     - The default export becomes a small route component. It reads params, keeps `thisMonth` and the "no/empty month

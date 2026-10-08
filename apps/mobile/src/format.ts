@@ -8,7 +8,8 @@ export function toCents(amount: string): number {
 
 function money(symbol: string, cents: number, decimals: 'auto' | 'never'): string {
   const showCents = decimals === 'auto' && cents % 100 !== 0;
-  const value = decimals === 'never' ? Math.round(cents / 100) : cents / 100;
+  // Whole amounts round halves away from zero, so negative ones mirror positive ones.
+  const value = decimals === 'never' ? Math.sign(cents) * Math.round(Math.abs(cents) / 100) : cents / 100;
   const text = Math.abs(value).toLocaleString('en-US', {
     minimumFractionDigits: showCents ? 2 : 0,
     maximumFractionDigits: showCents ? 2 : 0,

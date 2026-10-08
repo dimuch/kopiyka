@@ -208,7 +208,7 @@ decided at Gate A.
     - The same rule with `invalid_request` shows "Check the amount and date."
     - Opening `/expense?expenseId=abc` shows "That link isn’t valid." (a real 400 from the API).
   - 3 lines.
-- [ ] 7. Give the busy Add/Update button an accessible name and busy state
+- [x] 7. Give the busy Add/Update button an accessible name and busy state
   - Files: `app/expense.tsx`
   - Change: `accessibilityLabel` and `accessibilityState={{ busy }}` on the primary `Pressable`.
   - Verify:

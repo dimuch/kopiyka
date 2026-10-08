@@ -240,6 +240,9 @@ function ExpenseForm({ draft, ledgerId }: { draft: ExpenseDraftData; ledgerId: n
 
         <Pressable
           accessibilityRole="button"
+          // While saving the only child is a spinner, so the name has to be given here.
+          accessibilityLabel={expense ? 'Update' : 'Add'}
+          accessibilityState={{ busy }}
           disabled={busy}
           onPress={save}
           style={[styles.primary, busy && { opacity: 0.6 }]}

@@ -147,7 +147,7 @@ launch configs `api` + `web` in the in-app browser at 390×844 (and 1440×900 fo
     - Home → Category → Undo flow unchanged (with slice 1's check).
     - iPhone (Expo Go): Home → Category opens the category with its month name in the header (not 'That link isn't
       valid.'), and Delete → Undo still works.
-- [ ] 5. Show a placeholder instead of €0 while Home's month loads (~10 lines)
+- [x] 5. Show a placeholder instead of €0 while Home's month loads (~10 lines)
   - Files: `apps/mobile/src/app/index.tsx`
   - Change:
     - `const total = rows ? rows.reduce(...) : null`.

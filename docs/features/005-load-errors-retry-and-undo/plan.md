@@ -159,7 +159,7 @@ Sizes are estimates (insertions + deletions), not measured on a scratch build. O
     - `announceForAccessibility` when the toast is offered (`Deleted “label”`) and on each failure (`Couldn’t undo`).
   - Verify: procedure D. iPhone checks 1–2.
   - ≈55 lines.
-- [ ] 7. Announce save errors and the "Added" note to VoiceOver
+- [x] 7. Announce save errors and the "Added" note to VoiceOver
   - Files: `app/expense.tsx`
   - Change: a local `showError(text)` that sets the error and announces it replaces the three `setError(<text>)`
     calls (validation, save, delete). `announceForAccessibility(added)` runs after `setAdded`.

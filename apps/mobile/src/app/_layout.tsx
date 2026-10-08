@@ -7,9 +7,10 @@ import {
 import { useFonts } from 'expo-font';
 import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
-import { ActivityIndicator, View } from 'react-native';
+import { ActivityIndicator, StyleSheet, View } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { AuthProvider, useAuth } from '@/auth/AuthContext';
+import { PhoneColumn } from '@/components/PhoneColumn';
 import { colors } from '@/theme';
 
 function Screens() {
@@ -47,11 +48,18 @@ export default function RootLayout() {
   if (!fontsLoaded) return <View style={{ flex: 1, backgroundColor: colors.bg }} />;
 
   return (
-    <SafeAreaProvider>
-      <AuthProvider>
-        <StatusBar style="light" />
-        <Screens />
-      </AuthProvider>
+    // The background shows on web around the phone-width column.
+    <SafeAreaProvider style={styles.root}>
+      <PhoneColumn>
+        <AuthProvider>
+          <StatusBar style="light" />
+          <Screens />
+        </AuthProvider>
+      </PhoneColumn>
     </SafeAreaProvider>
   );
 }
+
+const styles = StyleSheet.create({
+  root: { backgroundColor: colors.bg },
+});

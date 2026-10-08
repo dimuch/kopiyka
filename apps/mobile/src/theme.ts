@@ -44,3 +44,6 @@ export function categoryTile(techName: string): { bg: string; fg: string } {
   const hue = HUES[techName] ?? [...techName].reduce((h, ch) => (h * 31 + ch.charCodeAt(0)) % 360, 7);
   return { bg: `hsla(${hue}, 70%, 60%, 0.16)`, fg: `hsl(${hue}, 80%, 74%)` };
 }
+
+/** Web column width: an iPhone 18 Pro, in CSS px / pt. */
+export const phoneWidth = 402;

@@ -145,7 +145,7 @@ seen by Prettier; there's no TS change).
     "MySQL 8.4"; Local setup "MySQL 8.0 or newer (production runs 8.0)" → "MySQL 8.0 or newer (production runs 8.4)")
   - Verify: gates locally. The PR's CI job shows the `mysql:8.4` service healthy and the API integration tests running
     (not skipped) and passing. That also proves `mysql2` auth against 8.4's defaults.
-- [ ] 2. Add the kopiyka systemd unit and nginx vhost for kopiyka.englishplus.com.ua (~65 lines)
+- [x] 2. Add the kopiyka systemd unit and nginx vhost for kopiyka.englishplus.com.ua (~65 lines)
   - Files: `deploy/kopiyka.service`, `deploy/kopiyka.englishplus.com.ua.conf` (contents as in Contracts)
   - Verify (pre-merge, by reading): the port, paths and env names match `config.ts` (`HOST`, `PORT`, `NODE_ENV`,
     `DATABASE_URL`, `TOTP_ENC_KEY`); `WorkingDirectory` + `dist/...` paths match the scratch build layout; the

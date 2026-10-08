@@ -36,6 +36,7 @@ For each unticked slice, in order:
 4. **Run the gates** (conventions §7), narrow first, then all:
    ```bash
    yarn api test <file>      # while iterating
+   yarn mobile test <file>   # app pure logic
    yarn format && yarn lint && yarn typecheck && yarn test
    ```
 5. **UI slices — see it run.** Start launch configs `api` and `web`

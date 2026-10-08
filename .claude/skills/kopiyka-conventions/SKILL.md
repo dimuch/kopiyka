@@ -144,13 +144,15 @@ the second consumer appears or `routes.ts` passes ~200 lines.
   clock, stubbed `fetchRate`. Never hit the network in tests.
 - Every new route: happy path, validation 400, auth 401, non-member 404,
   and each domain error code it can return.
-- **App**: there is no test runner yet. Pure logic goes in `format.ts`/
-  `data/` so it _can_ be tested once one exists; UI is verified by running
-  the web build in the in-app browser (launch config `web`, API `api`) at
-  phone width, plus typecheck + lint. Record what was checked in the PR's
+- **App**: Vitest for pure modules in `format.ts`/`data/`
+  (`yarn mobile test`, tests in `apps/mobile/test/`, Node environment, `@/`
+  alias), in the same table style as the API; pass a fixed `Date` in where
+  time matters. UI is verified by running the web build in the in-app
+  browser (launch config `web`, API `api`) at phone width, on iPhone where
+  it matters, plus typecheck + lint. Record what was checked in the PR's
   test plan.
-- Bug fix → a test that fails before the fix (Prove-It), where a runner
-  exists.
+- Bug fix → a test that fails before the fix (Prove-It), for API code and
+  app pure logic alike.
 - No snapshot tests; assert behaviour, not implementation.
 
 ## 7. Quality gates (run before every commit)
@@ -159,7 +161,7 @@ the second consumer appears or `routes.ts` passes ~200 lines.
 yarn format:check   # Prettier (printWidth 120, single quotes)
 yarn lint           # ESLint: typescript-eslint (api), eslint-config-expo (mobile)
 yarn typecheck
-yarn test           # API unit + MySQL integration when DATABASE_URL_TEST is reachable
+yarn test           # API unit + MySQL integration when DATABASE_URL_TEST is reachable, and app unit tests
 ```
 
 Fix with `yarn format` / by hand. Never `--no-verify`, never weaken a lint
@@ -193,7 +195,7 @@ State it in the plan and the PR.
 | When touching                          | Load                          | Mind the conflict                                                                                                                    |
 | -------------------------------------- | ----------------------------- | ------------------------------------------------------------------------------------------------------------------------------------ |
 | Fastify routes, hooks, plugins, errors | `fastify-best-practices`      | keep Zod `.parse` (not TypeBox/JSON Schema), Vitest (not `node:test`), `mysql2` pool (not `@fastify/mysql`), `tsx` (not strip-types) |
-| Vitest tests (API)                     | `vitest`                      | written for Vitest 5; the repo runs 4.x — check config defaults (e.g. `clearMocks`)                                                  |
+| Vitest tests (API, app)                | `vitest`                      | written for Vitest 5; the repo runs 4.x — check config defaults (e.g. `clearMocks`)                                                  |
 | Screens, layouts, navigation, params   | `expo-router`                 | iOS-only features (NativeTabs, Link.Preview, glass) need a web fallback; colors from `theme.ts`                                      |
 | Data loading in the app                | `expo-data-fetching`          | keep `api<T>()` + hooks; no TanStack Query/SWR/NetInfo unless a brief asks; its four-states rule applies                             |
 | RN performance, lists, re-renders      | `vercel-react-native-skills`  | skip Reanimated/gesture-handler/FlashList/expo-image rules unless planned; `rendering-no-falsy-and` is a must                        |

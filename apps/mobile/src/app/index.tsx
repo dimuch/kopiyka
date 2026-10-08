@@ -63,7 +63,10 @@ export default function Home() {
             <View style={{ gap: 2 }}>
               <Text style={styles.caption}>Spent this month</Text>
               {/* The total's own size, so the card doesn't change height when the amount arrives. */}
-              <Text style={[styles.total, total === null && { color: colors.muted }]}>
+              <Text
+                accessibilityLabel={total === null ? 'Loading' : undefined}
+                style={[styles.total, total === null && { color: colors.muted }]}
+              >
                 {total === null ? '—' : eur(total)}
               </Text>
             </View>

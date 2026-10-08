@@ -169,7 +169,7 @@ decided at Gate A.
   - Verify: Add, Update and Delete still work. The browser's network log shows the same method, path and body keys as
     on Base.
   - 29 lines.
-- [ ] 3. Load the expense form through useExpenseDraft
+- [x] 3. Load the expense form through useExpenseDraft
   - Files: `data/useExpenseDraft.ts` (new), `app/expense.tsx`
   - Change, and nothing beyond these Contracts items:
     - The load effect, `categories`, `loadFailed`, the `byId` memo and `withQuick` leave the screen.

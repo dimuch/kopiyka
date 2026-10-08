@@ -1,5 +1,5 @@
 import { router, useLocalSearchParams } from 'expo-router';
-import { useEffect, useMemo, useState } from 'react';
+import { useState } from 'react';
 import {
   ActivityIndicator,
   Alert,
@@ -13,8 +13,8 @@ import {
   View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { api, ApiError } from '@/api/client';
-import type { Category, Currency, Expense } from '@/api/types';
+import { ApiError } from '@/api/client';
+import type { Category, Currency } from '@/api/types';
 import { useSession } from '@/auth/AuthContext';
 import { AmountFields } from '@/components/AmountFields';
 import { CategoryPicker } from '@/components/CategoryPicker';
@@ -22,11 +22,10 @@ import { DateChips } from '@/components/DateChips';
 import { Icon } from '@/components/Icon';
 import { deleteExpense, saveExpense } from '@/data/expenses';
 import { setPendingUndo } from '@/data/undo';
+import { type ExpenseDraftData, useExpenseDraft, withQuick } from '@/data/useExpenseDraft';
 import { type Rate, useRate } from '@/data/useRate';
 import { eur, kyivToday, normalizeAmount, otherAmountText, shortDate, toCents } from '@/format';
 import { colors, fonts } from '@/theme';
-
-const QUICK_COUNT = 5;
 
 function errorText(err: unknown): string {
   if (err instanceof ApiError) {
@@ -58,74 +57,70 @@ function rateLabel(rate: Rate, date: string): string {
   return `1 € = ₴${rate.eurUah.toFixed(4)} · NBU official rate for ${shortDate(rate.rateDate)}${fallback}`;
 }
 
-/** Puts `id` in the quick row, taking the last spot when it isn't there yet. */
-function withQuick(quick: number[], id: number): number[] {
-  return quick.includes(id) ? quick : [...quick.slice(0, QUICK_COUNT - 1), id];
-}
-
 export default function ExpenseScreen() {
   const { ledger } = useSession();
   const params = useLocalSearchParams<{ expenseId?: string; categoryId?: string }>();
   const editingId = params.expenseId ? Number(params.expenseId) : null;
-  const base = `/api/ledgers/${ledger.ledgerId}`;
+  const draft = useExpenseDraft(ledger.ledgerId, editingId, params.categoryId ? Number(params.categoryId) : null);
 
-  // Kyiv dates, like the NBU rates they're priced at; read the clock once, when the screen opens.
+  if (draft.status === 'error') {
+    return (
+      <SafeAreaView style={styles.screen}>
+        <Text style={styles.label}>Couldn’t load. Check your connection.</Text>
+        <Pressable onPress={() => router.back()} style={styles.cancel}>
+          <Text style={styles.cancelText}>Back</Text>
+        </Pressable>
+      </SafeAreaView>
+    );
+  }
+
+  return (
+    <SafeAreaView style={styles.screen} edges={['top', 'bottom']}>
+      <View style={styles.header}>
+        <Pressable accessibilityRole="button" onPress={() => router.back()} style={styles.cancel}>
+          <Text style={styles.cancelText}>Cancel</Text>
+        </Pressable>
+        <Text style={styles.title}>{editingId !== null ? 'Edit expense' : 'New expense'}</Text>
+        <View style={{ width: 52 }} />
+      </View>
+
+      {draft.status === 'loading' ? (
+        <ActivityIndicator color={colors.accent} style={{ marginTop: 32 }} />
+      ) : (
+        <ExpenseForm draft={draft} ledgerId={ledger.ledgerId} />
+      )}
+    </SafeAreaView>
+  );
+}
+
+/** The form, mounted once the draft has loaded so its state can start from it. */
+function ExpenseForm({ draft, ledgerId }: { draft: ExpenseDraftData; ledgerId: number }) {
+  const { expense } = draft;
+  // Kyiv dates, like the NBU rates they're priced at; read the clock once, when the form opens.
   const [today] = useState(() => kyivToday(new Date()));
 
-  const [categories, setCategories] = useState<Category[] | null>(null);
-  const [quick, setQuick] = useState<number[]>([]);
-  const [categoryId, setCategoryId] = useState<number | null>(null);
-  const [date, setDate] = useState(today);
-  const [name, setName] = useState('');
+  const [quick, setQuick] = useState(draft.quickIds);
+  const [categoryId, setCategoryId] = useState(draft.categoryId);
+  const [date, setDate] = useState(expense?.expenseDate ?? today);
+  const [name, setName] = useState(expense?.name ?? '');
   // Only the typed side is state; the other side is derived from it at the date's rate.
-  const [amountText, setAmountText] = useState('');
-  const [entered, setEntered] = useState<Currency>('UAH');
+  const [entered, setEntered] = useState<Currency>(expense?.enteredCurrency ?? 'UAH');
+  const [amountText, setAmountText] = useState(
+    expense ? (expense.enteredCurrency === 'UAH' ? expense.amountUah : expense.amountEur) : '',
+  );
   // While editing, the stored other-side amount, shown until the amount or the date changes.
-  const [storedOther, setStoredOther] = useState<string | null>(null);
+  const [storedOther, setStoredOther] = useState<string | null>(
+    expense ? (expense.enteredCurrency === 'UAH' ? expense.amountEur : expense.amountUah) : null,
+  );
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [added, setAdded] = useState<string | null>(null);
-  const [loadFailed, setLoadFailed] = useState(false);
-
-  // Categories (and the expense, when editing) once.
-  useEffect(() => {
-    (async () => {
-      try {
-        const { categories: cats, quickCategoryIds } = await api<{
-          categories: Category[];
-          quickCategoryIds: number[];
-        }>(`${base}/categories`);
-        let q = quickCategoryIds;
-        let pick = params.categoryId ? Number(params.categoryId) : (q[0] ?? null);
-        if (editingId) {
-          const e = await api<Expense>(`${base}/expenses/${editingId}`);
-          pick = e.categoryId;
-          setDate(e.expenseDate);
-          setName(e.name);
-          setEntered(e.enteredCurrency);
-          setAmountText(e.enteredCurrency === 'UAH' ? e.amountUah : e.amountEur);
-          setStoredOther(e.enteredCurrency === 'UAH' ? e.amountEur : e.amountUah);
-          // An expense can sit in a since-hidden category; keep it pickable.
-          if (!cats.some((c) => c.categoryId === e.categoryId)) {
-            cats.push({ categoryId: e.categoryId, techName: 'hidden', displayName: 'hidden category', sortOrder: 0 });
-          }
-        }
-        if (pick !== null) q = withQuick(q, pick);
-        setCategories(cats);
-        setQuick(q);
-        setCategoryId(pick);
-      } catch {
-        setLoadFailed(true);
-      }
-    })();
-  }, [base, editingId, params.categoryId]);
 
   const rate = useRate(date);
   const otherText = storedOther ?? otherAmountText(amountText, entered, rate.status === 'ok' ? rate.eurUah : null);
 
-  const byId = useMemo(() => new Map((categories ?? []).map((c) => [c.categoryId, c])), [categories]);
-  const quickCats = quick.map((id) => byId.get(id)).filter((c): c is Category => !!c);
-  const moreCats = (categories ?? []).filter((c) => !quick.includes(c.categoryId) && c.techName !== 'hidden');
+  const quickCats = quick.map((id) => draft.categoryById.get(id)).filter((c): c is Category => !!c);
+  const moreCats = draft.categories.filter((c) => !quick.includes(c.categoryId));
 
   function edit(setter: (v: string) => void, value: string) {
     setter(value);
@@ -160,12 +155,12 @@ export default function ExpenseScreen() {
     setError(null);
     const body = { categoryId, expenseDate: date, name: name.trim(), amount, currency: entered };
     try {
-      const saved = await saveExpense(ledger.ledgerId, editingId, body);
-      if (editingId) {
+      const saved = await saveExpense(ledgerId, expense?.expenseId ?? null, body);
+      if (expense) {
         router.back();
         return;
       }
-      const cat = byId.get(saved.categoryId)?.displayName ?? '';
+      const cat = draft.categoryById.get(saved.categoryId)?.displayName ?? '';
       setAdded(`Added “${saved.name}” to ${cat} · ${eur(toCents(saved.amountEur))} · ${shortDate(saved.expenseDate)}`);
       setName('');
       setAmountText('');
@@ -177,11 +172,11 @@ export default function ExpenseScreen() {
   }
 
   async function remove() {
-    if (!editingId || !(await confirmDelete(name || 'this expense'))) return;
+    if (!expense || !(await confirmDelete(name || 'this expense'))) return;
     setBusy(true);
     try {
-      await deleteExpense(ledger.ledgerId, editingId);
-      setPendingUndo({ ledgerId: ledger.ledgerId, expenseId: editingId, label: name || 'Expense' });
+      await deleteExpense(ledgerId, expense.expenseId);
+      setPendingUndo({ ledgerId, expenseId: expense.expenseId, label: name || 'Expense' });
       router.back();
     } catch (err) {
       setError(errorText(err));
@@ -189,100 +184,75 @@ export default function ExpenseScreen() {
     }
   }
 
-  if (loadFailed) {
-    return (
-      <SafeAreaView style={styles.screen}>
-        <Text style={styles.label}>Couldn’t load. Check your connection.</Text>
-        <Pressable onPress={() => router.back()} style={styles.cancel}>
-          <Text style={styles.cancelText}>Back</Text>
-        </Pressable>
-      </SafeAreaView>
-    );
-  }
-
   return (
-    <SafeAreaView style={styles.screen} edges={['top', 'bottom']}>
-      <View style={styles.header}>
-        <Pressable accessibilityRole="button" onPress={() => router.back()} style={styles.cancel}>
-          <Text style={styles.cancelText}>Cancel</Text>
+    <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={{ flex: 1 }}>
+      <ScrollView contentContainerStyle={styles.form} keyboardShouldPersistTaps="handled">
+        <View style={styles.group}>
+          <Text style={styles.label}>Date</Text>
+          <DateChips value={date} today={today} onChange={pickDate} />
+        </View>
+
+        <View style={styles.group}>
+          <Text style={styles.label}>Category</Text>
+          <CategoryPicker quick={quickCats} more={moreCats} selectedId={categoryId} onPick={pickCategory} />
+        </View>
+
+        <View style={styles.group}>
+          <Text nativeID="name-label" style={styles.label}>
+            What was it?
+          </Text>
+          <TextInput
+            accessibilityLabel="What was it?"
+            value={name}
+            onChangeText={(t) => edit(setName, t)}
+            placeholder="e.g. Delhaize"
+            placeholderTextColor="#6E757E"
+            maxLength={200}
+            style={styles.input}
+          />
+        </View>
+
+        <View style={styles.group}>
+          <AmountFields entered={entered} amountText={amountText} otherText={otherText} onChange={typeAmount} />
+          <Text style={styles.small}>{rateLabel(rate, date)}</Text>
+        </View>
+
+        {error && (
+          <Text accessibilityRole="alert" style={styles.error}>
+            {error}
+          </Text>
+        )}
+
+        <Pressable
+          accessibilityRole="button"
+          disabled={busy}
+          onPress={save}
+          style={[styles.primary, busy && { opacity: 0.6 }]}
+        >
+          {busy ? (
+            <ActivityIndicator color={colors.onAccent} />
+          ) : (
+            <>
+              {!expense && <Icon name="plus" color={colors.onAccent} strokeWidth={2.4} />}
+              <Text style={styles.primaryText}>{expense ? 'Update' : 'Add'}</Text>
+            </>
+          )}
         </Pressable>
-        <Text style={styles.title}>{editingId ? 'Edit expense' : 'New expense'}</Text>
-        <View style={{ width: 52 }} />
-      </View>
 
-      {!categories ? (
-        <ActivityIndicator color={colors.accent} style={{ marginTop: 32 }} />
-      ) : (
-        <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={{ flex: 1 }}>
-          <ScrollView contentContainerStyle={styles.form} keyboardShouldPersistTaps="handled">
-            <View style={styles.group}>
-              <Text style={styles.label}>Date</Text>
-              <DateChips value={date} today={today} onChange={pickDate} />
-            </View>
+        {expense && (
+          <Pressable accessibilityRole="button" disabled={busy} onPress={remove} style={styles.delete}>
+            <Text style={styles.deleteText}>Delete expense</Text>
+          </Pressable>
+        )}
 
-            <View style={styles.group}>
-              <Text style={styles.label}>Category</Text>
-              <CategoryPicker quick={quickCats} more={moreCats} selectedId={categoryId} onPick={pickCategory} />
-            </View>
-
-            <View style={styles.group}>
-              <Text nativeID="name-label" style={styles.label}>
-                What was it?
-              </Text>
-              <TextInput
-                accessibilityLabel="What was it?"
-                value={name}
-                onChangeText={(t) => edit(setName, t)}
-                placeholder="e.g. Delhaize"
-                placeholderTextColor="#6E757E"
-                maxLength={200}
-                style={styles.input}
-              />
-            </View>
-
-            <View style={styles.group}>
-              <AmountFields entered={entered} amountText={amountText} otherText={otherText} onChange={typeAmount} />
-              <Text style={styles.small}>{rateLabel(rate, date)}</Text>
-            </View>
-
-            {error && (
-              <Text accessibilityRole="alert" style={styles.error}>
-                {error}
-              </Text>
-            )}
-
-            <Pressable
-              accessibilityRole="button"
-              disabled={busy}
-              onPress={save}
-              style={[styles.primary, busy && { opacity: 0.6 }]}
-            >
-              {busy ? (
-                <ActivityIndicator color={colors.onAccent} />
-              ) : (
-                <>
-                  {!editingId && <Icon name="plus" color={colors.onAccent} strokeWidth={2.4} />}
-                  <Text style={styles.primaryText}>{editingId ? 'Update' : 'Add'}</Text>
-                </>
-              )}
-            </Pressable>
-
-            {editingId && (
-              <Pressable accessibilityRole="button" disabled={busy} onPress={remove} style={styles.delete}>
-                <Text style={styles.deleteText}>Delete expense</Text>
-              </Pressable>
-            )}
-
-            {added && (
-              <View accessibilityRole="summary" style={styles.added}>
-                <Icon name="check" size={18} color={colors.accent} strokeWidth={2.4} />
-                <Text style={styles.addedText}>{added}</Text>
-              </View>
-            )}
-          </ScrollView>
-        </KeyboardAvoidingView>
-      )}
-    </SafeAreaView>
+        {added && (
+          <View accessibilityRole="summary" style={styles.added}>
+            <Icon name="check" size={18} color={colors.accent} strokeWidth={2.4} />
+            <Text style={styles.addedText}>{added}</Text>
+          </View>
+        )}
+      </ScrollView>
+    </KeyboardAvoidingView>
   );
 }
 

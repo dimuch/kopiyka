@@ -11,6 +11,17 @@ export const colors = {
   onAccent: '#0E1013',
   over: '#FFA65C',
   danger: '#FF8A80',
+  /** Selected chips and the "Added" note. */
+  accentTint: '#16233A',
+  accentLine: '#2B4470',
+  /** Toast and sheet items, a step above `surface`. */
+  surfaceRaised: '#22262D',
+  borderStrongest: '#3A404A',
+  /** Placeholders and minor icons. */
+  faint: '#6E757E',
+  fainter: '#4A505A',
+  backdrop: 'rgba(5,6,8,0.62)',
+  shadow: '#000',
 };
 
 export const fonts = {

@@ -219,7 +219,7 @@ const styles = StyleSheet.create({
     bottom: 32,
     minHeight: 56,
     borderRadius: 18,
-    backgroundColor: '#22262D',
+    backgroundColor: colors.surfaceRaised,
     borderWidth: 1,
     borderColor: colors.borderStrong,
     flexDirection: 'row',

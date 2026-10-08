@@ -33,6 +33,9 @@ function errorText(err: unknown, doing: 'load' | 'save'): string {
     if (err.code === 'rate_unavailable') return 'The NBU rate for that day isn’t available. Try again later.';
     if (err.code === 'date_in_future') return 'That date is in the future.';
     if (err.code === 'unknown_category') return 'That category is no longer available.';
+    if (err.code === 'invalid_request')
+      return doing === 'load' ? 'That link isn’t valid.' : 'Check the amount and date.';
+    if (err.code === 'internal') return 'Something went wrong on the server. Try again.';
   }
   return `Couldn’t ${doing}. Check your connection and try again.`;
 }

@@ -199,7 +199,7 @@ decided at Gate A.
   - Verify: edit an expense saved as "Coffee", type "Tea" in the name and delete. With procedure S,
     `window.__asked` is `Delete “Coffee”?`, and the Category screen's Undo bar says `Deleted “Coffee”`.
   - About 4 lines.
-- [ ] 6. Map internal and invalid_request errors on the expense screen
+- [x] 6. Map internal and invalid_request errors on the expense screen
   - Files: `app/expense.tsx`
   - Change: the two `errorText` rows in Contracts.
   - Verify:

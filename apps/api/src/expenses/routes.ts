@@ -64,10 +64,10 @@ export async function expenseRoutes(app: FastifyInstance, deps: AppDeps): Promis
   const { db, fetchRate, now } = deps;
   const guards = { preHandler: [app.requireAuth, app.requireLedger] };
 
-  /** Replies 400 and returns false unless the category is an active one in this ledger. */
+  /** Replies 400 and returns false unless the category is a live (not deleted) one in this ledger. */
   async function checkCategory(req: FastifyRequest, reply: FastifyReply, categoryId: number): Promise<boolean> {
     const [rows] = await db.query<RowDataPacket[]>(
-      'SELECT 1 FROM categories WHERE category_id = ? AND ledger_id = ? AND is_active = 1',
+      'SELECT 1 FROM categories WHERE category_id = ? AND ledger_id = ? AND deleted_at IS NULL',
       [categoryId, req.ledger!.ledgerId],
     );
     if (rows.length) return true;
@@ -109,7 +109,7 @@ export async function expenseRoutes(app: FastifyInstance, deps: AppDeps): Promis
     const next = nextMonthStart(month);
     const [rows] = await db.query<RowDataPacket[]>(
       `SELECT ${EXPENSE_COLUMNS} FROM expenses e JOIN categories c ON c.category_id = e.category_id
-        WHERE c.ledger_id = ? AND e.deleted_at IS NULL
+        WHERE c.ledger_id = ? AND c.deleted_at IS NULL AND e.deleted_at IS NULL
           AND e.expense_date >= ? AND e.expense_date < ?
           ${categoryId ? 'AND e.category_id = ?' : ''}
         ORDER BY e.expense_date DESC, e.created_at DESC, e.expense_id DESC`,
@@ -157,8 +157,7 @@ export async function expenseRoutes(app: FastifyInstance, deps: AppDeps): Promis
     const input = ExpenseBody.parse(req.body);
     const current = await loadExpense(req.ledger!.ledgerId, expenseId);
     if (!current) return reply.code(404).send({ error: 'not_found' });
-    // Moving to another category needs an active one; staying in a since-hidden one is fine.
-    if (input.categoryId !== current.categoryId && !(await checkCategory(req, reply, input.categoryId))) return reply;
+    if (!(await checkCategory(req, reply, input.categoryId))) return reply;
     const priced = await price(req, reply, input);
     if (!priced) return reply;
 

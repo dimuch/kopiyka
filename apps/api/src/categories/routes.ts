@@ -38,7 +38,7 @@ export async function categoryRoutes(app: FastifyInstance, { db }: AppDeps): Pro
               WHERE deleted_at IS NULL
               GROUP BY category_id
            ) u ON u.category_id = c.category_id
-          WHERE c.ledger_id = ? AND c.is_active = 1
+          WHERE c.ledger_id = ? AND c.deleted_at IS NULL
           ORDER BY c.sort_order, c.category_id`,
       [req.ledger!.ledgerId],
     );

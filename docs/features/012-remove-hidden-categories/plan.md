@@ -61,7 +61,7 @@ Alternatives considered:
 
 ## Slices
 
-- [ ] 1. Replace hidden categories with soft-deleted ones in the API
+- [x] 1. Replace hidden categories with soft-deleted ones in the API
   - Files: `apps/api/migrations/003_category_soft_delete.sql` (new), `apps/api/src/categories/routes.ts`,
     `apps/api/src/expenses/routes.ts`, `apps/api/test/helpers.ts`, `apps/api/test/migrations.int.test.ts` (new),
     `apps/api/test/categories.int.test.ts`, `apps/api/test/expenses.int.test.ts`

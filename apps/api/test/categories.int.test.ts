@@ -70,11 +70,17 @@ describe.skipIf(!(await testDbReachable()))('GET /api/ledgers/:id/categories (My
     expect(quickCategoryIds).toEqual([idOf('car'), idOf('gym'), idOf('rent'), idOf('groceries'), idOf('education')]);
   });
 
-  it('hides inactive categories', async () => {
-    await db.query("UPDATE categories SET is_active = 0 WHERE ledger_id = ? AND tech_name = 'gym'", [owner.ledgerId]);
-    const { categories } = (await get(owner.ledgerId)).json();
+  it('leaves deleted categories out of the list and the quick row', async () => {
+    // Without the filter, gym (the only one used) would lead the quick row.
+    await addExpense('gym', '2026-10-02T09:00:00Z');
+    await db.query("UPDATE categories SET deleted_at = ? WHERE ledger_id = ? AND tech_name = 'gym'", [
+      clock,
+      owner.ledgerId,
+    ]);
+    const { categories, quickCategoryIds } = (await get(owner.ledgerId)).json();
     expect(categories).toHaveLength(14);
     expect(categories.map((c: { techName: string }) => c.techName)).not.toContain('gym');
+    expect(quickCategoryIds).toEqual(categories.slice(0, 5).map((c: { categoryId: number }) => c.categoryId));
   });
 
   it('needs a session', async () => {

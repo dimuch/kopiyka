@@ -20,6 +20,7 @@ import { AmountFields } from '@/components/AmountFields';
 import { CategoryPicker } from '@/components/CategoryPicker';
 import { DateChips } from '@/components/DateChips';
 import { Icon } from '@/components/Icon';
+import { deleteExpense, saveExpense } from '@/data/expenses';
 import { setPendingUndo } from '@/data/undo';
 import { type Rate, useRate } from '@/data/useRate';
 import { eur, kyivToday, normalizeAmount, otherAmountText, shortDate, toCents } from '@/format';
@@ -159,12 +160,11 @@ export default function ExpenseScreen() {
     setError(null);
     const body = { categoryId, expenseDate: date, name: name.trim(), amount, currency: entered };
     try {
+      const saved = await saveExpense(ledger.ledgerId, editingId, body);
       if (editingId) {
-        await api(`${base}/expenses/${editingId}`, { method: 'PUT', body });
         router.back();
         return;
       }
-      const saved = await api<Expense>(`${base}/expenses`, { method: 'POST', body });
       const cat = byId.get(saved.categoryId)?.displayName ?? '';
       setAdded(`Added “${saved.name}” to ${cat} · ${eur(toCents(saved.amountEur))} · ${shortDate(saved.expenseDate)}`);
       setName('');
@@ -180,7 +180,7 @@ export default function ExpenseScreen() {
     if (!editingId || !(await confirmDelete(name || 'this expense'))) return;
     setBusy(true);
     try {
-      await api(`${base}/expenses/${editingId}`, { method: 'DELETE' });
+      await deleteExpense(ledger.ledgerId, editingId);
       setPendingUndo({ ledgerId: ledger.ledgerId, expenseId: editingId, label: name || 'Expense' });
       router.back();
     } catch (err) {

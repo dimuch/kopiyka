@@ -163,7 +163,7 @@ decided at Gate A.
       the tap, the label reads "Fetching the NBU rate…" and EUR is empty, not converted at today's rate. Then tap Today
       within 3 s. The label and EUR end on today's rate and stay there after the delayed Yesterday response lands.
   - 70 lines.
-- [ ] 2. Save and delete expenses through data/expenses.ts
+- [x] 2. Save and delete expenses through data/expenses.ts
   - Files: `data/expenses.ts` (new), `app/expense.tsx`
   - Change: the three `api(` writes become `saveExpense` / `deleteExpense`. Same requests, same bodies.
   - Verify: Add, Update and Delete still work. The browser's network log shows the same method, path and body keys as

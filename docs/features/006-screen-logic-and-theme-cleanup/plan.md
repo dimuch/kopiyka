@@ -104,7 +104,7 @@ slices 1, 2 and 5 were drafted in the system temp dir. **PR total ≈ 205 change
   - Verify: Procedure C (module part) passes; on Base it fails to resolve `@/data/monthSummary`. Procedure T diff is
     empty. `rg -n "\+ toCents\(" apps/mobile/src/app` is empty (4 hits on Base).
   - ≈55 lines.
-- [ ] 2. Move the quick-row rules into data/quick.ts
+- [x] 2. Move the quick-row rules into data/quick.ts
   - Files: `data/quick.ts` (new), `data/useExpenseDraft.ts`, `app/expense.tsx`
   - Change: move `QUICK_COUNT` and `withQuick`; add `splitQuick`; the form gets `quickCats`/`moreCats` from it.
   - Verify: Procedure C passes in full. In the browser, on Add expense: picking a "More" category puts it in the last

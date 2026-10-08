@@ -1,6 +1,7 @@
 import { router, useLocalSearchParams } from 'expo-router';
 import { useState } from 'react';
 import {
+  AccessibilityInfo,
   ActivityIndicator,
   Alert,
   KeyboardAvoidingView,
@@ -133,6 +134,12 @@ function ExpenseForm({ draft, ledgerId }: { draft: ExpenseDraftData; ledgerId: n
     setAdded(null);
   }
 
+  // The alert role covers web; VoiceOver needs an explicit announcement.
+  function showError(text: string) {
+    setError(text);
+    AccessibilityInfo.announceForAccessibility(text);
+  }
+
   function typeAmount(currency: Currency, text: string) {
     setEntered(currency);
     setStoredOther(null);
@@ -153,7 +160,7 @@ function ExpenseForm({ draft, ledgerId }: { draft: ExpenseDraftData; ledgerId: n
   async function save() {
     const amount = normalizeAmount(amountText);
     if (!name.trim() || !amount || !categoryId) {
-      setError('Add a name and an amount first.');
+      showError('Add a name and an amount first.');
       return;
     }
     setBusy(true);
@@ -166,11 +173,13 @@ function ExpenseForm({ draft, ledgerId }: { draft: ExpenseDraftData; ledgerId: n
         return;
       }
       const cat = draft.categoryById.get(saved.categoryId)?.displayName ?? '';
-      setAdded(`Added “${saved.name}” to ${cat} · ${eur(toCents(saved.amountEur))} · ${shortDate(saved.expenseDate)}`);
+      const note = `Added “${saved.name}” to ${cat} · ${eur(toCents(saved.amountEur))} · ${shortDate(saved.expenseDate)}`;
+      setAdded(note);
+      AccessibilityInfo.announceForAccessibility(note);
       setName('');
       setAmountText('');
     } catch (err) {
-      setError(errorText(err, 'save'));
+      showError(errorText(err, 'save'));
     } finally {
       setBusy(false);
     }
@@ -185,7 +194,7 @@ function ExpenseForm({ draft, ledgerId }: { draft: ExpenseDraftData; ledgerId: n
       setPendingUndo({ ledgerId, expenseId: expense.expenseId, label: expense.name || 'Expense' });
       router.back();
     } catch (err) {
-      setError(errorText(err, 'save'));
+      showError(errorText(err, 'save'));
       setBusy(false);
     }
   }

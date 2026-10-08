@@ -50,7 +50,7 @@ portal is a sibling of `#root`, so the sheet would still span the window. It wou
   - Change: add `phoneWidth` and `PhoneColumn`. In `RootLayout`, wrap `<AuthProvider>…</AuthProvider>` in `PhoneColumn`
     and give `SafeAreaProvider` `style={{ backgroundColor: colors.bg }}` (a `StyleSheet` entry). About 30 lines.
   - Verify: checks V1–V3 and V5 below, run on login, Home, Category and Add/Edit.
-- [ ] 2. Keep the category sheet inside the web column
+- [x] 2. Keep the category sheet inside the web column
   - Files: `apps/mobile/src/components/CategorySheet.tsx`
   - Change: inside `<Modal>`, wrap the `backdrop` View in `PhoneColumn`, so the dimmed area and the sheet are both 402
     wide on web. About 3 lines.
@@ -109,6 +109,9 @@ match on `390` instead.
 
 ## Follow-ups
 
+- On wide web windows, clicking outside the column while the category sheet is open does nothing (the RNW modal's
+  transparent wrapper takes the click); before, the full-window backdrop closed the sheet. Close and backdrop taps inside
+  the column still work.
 - Conventions §2 lists `theme.ts` as "colors, fonts, category hues". Proposal: add "layout constants (`phoneWidth`)".
   That is not a plan slice.
 

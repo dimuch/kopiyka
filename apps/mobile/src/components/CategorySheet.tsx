@@ -2,6 +2,7 @@ import { Modal, Pressable, StyleSheet, Text, View } from 'react-native';
 import type { Category } from '@/api/types';
 import { CategoryTile } from '@/components/CategoryTile';
 import { Icon } from '@/components/Icon';
+import { PhoneColumn } from '@/components/PhoneColumn';
 import { colors, fonts } from '@/theme';
 
 interface Props {
@@ -15,34 +16,37 @@ interface Props {
 export function CategorySheet({ visible, categories, onPick, onClose }: Props) {
   return (
     <Modal visible={visible} transparent animationType="slide" onRequestClose={onClose}>
-      <View style={styles.backdrop}>
-        <Pressable
-          accessibilityRole="button"
-          accessibilityLabel="Close category list"
-          style={{ flex: 1 }}
-          onPress={onClose}
-        />
-        <View accessibilityViewIsModal style={styles.sheet}>
-          <View style={styles.handle} />
-          <View style={styles.head}>
-            <Text style={styles.title}>All categories</Text>
-            <Pressable accessibilityRole="button" accessibilityLabel="Close" onPress={onClose} style={styles.close}>
-              <Icon name="close" color={colors.muted} />
-            </Pressable>
-          </View>
-          <Text style={styles.hint}>Your pick takes the last spot in the quick row.</Text>
-          <View style={styles.grid}>
-            {categories.map((c) => (
-              <Pressable key={c.categoryId} accessibilityRole="button" onPress={() => onPick(c)} style={styles.item}>
-                <CategoryTile techName={c.techName} label={c.displayName} size={28} />
-                <Text numberOfLines={1} style={styles.itemText}>
-                  {c.displayName}
-                </Text>
+      {/* On web the modal covers the whole window; keep the sheet in the app's column. */}
+      <PhoneColumn>
+        <View style={styles.backdrop}>
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel="Close category list"
+            style={{ flex: 1 }}
+            onPress={onClose}
+          />
+          <View accessibilityViewIsModal style={styles.sheet}>
+            <View style={styles.handle} />
+            <View style={styles.head}>
+              <Text style={styles.title}>All categories</Text>
+              <Pressable accessibilityRole="button" accessibilityLabel="Close" onPress={onClose} style={styles.close}>
+                <Icon name="close" color={colors.muted} />
               </Pressable>
-            ))}
+            </View>
+            <Text style={styles.hint}>Your pick takes the last spot in the quick row.</Text>
+            <View style={styles.grid}>
+              {categories.map((c) => (
+                <Pressable key={c.categoryId} accessibilityRole="button" onPress={() => onPick(c)} style={styles.item}>
+                  <CategoryTile techName={c.techName} label={c.displayName} size={28} />
+                  <Text numberOfLines={1} style={styles.itemText}>
+                    {c.displayName}
+                  </Text>
+                </Pressable>
+              ))}
+            </View>
           </View>
         </View>
-      </View>
+      </PhoneColumn>
     </Modal>
   );
 }

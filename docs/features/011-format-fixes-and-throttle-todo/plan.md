@@ -43,7 +43,7 @@ Checked in Node 24.21.0 (scratch script, outside the repo):
 
 ## Slices
 
-- [ ] 1. Round negative hryvnia amounts away from zero like positive ones
+- [x] 1. Round negative hryvnia amounts away from zero like positive ones
   - Files: `apps/mobile/src/format.ts`, `apps/mobile/test/format.test.ts`
   - Change: the `'never'` branch of `money()` rounds the absolute value, then restores the sign. Update the `uah` JSDoc
     to say whole hryvnias, halves away from zero. Rename the test from "rounding half up" to "halves away from zero".

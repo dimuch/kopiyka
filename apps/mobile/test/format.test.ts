@@ -54,13 +54,18 @@ describe('format: amounts', () => {
     expect(eur(-305)).toBe('−€3.05');
   });
 
-  it('formats hryvnias as whole amounts, rounding half up', () => {
+  it('formats hryvnias as whole amounts, rounding halves away from zero', () => {
     expect(uah(63104)).toBe('₴631');
     expect(uah(63149)).toBe('₴631');
     expect(uah(63150)).toBe('₴632');
     expect(uah(49)).toBe('₴0');
     expect(uah(50)).toBe('₴1');
     expect(uah(12345678)).toBe('₴123,457');
+    // Negative halves round away from zero too, mirroring the positive ones.
+    expect(uah(-63150)).toBe('−₴632');
+    expect(uah(-63149)).toBe('−₴631');
+    expect(uah(-50)).toBe('−₴1');
+    expect(uah(-49)).toBe('₴0');
   });
 
   it('previews conversions rounding half up, like the server', () => {

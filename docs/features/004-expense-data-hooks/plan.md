@@ -192,7 +192,7 @@ decided at Gate A.
     - With `'GET categories': { status: 500, body: { error: 'internal' } }`, the view offers Retry. After
       `window.__stub = {}`, Retry loads the form.
   - About 24 lines (28 measured together with slice 5).
-- [ ] 5. Use the expense's saved name for the delete prompt and Undo
+- [x] 5. Use the expense's saved name for the delete prompt and Undo
   - Files: `app/expense.tsx`
   - Change: `confirmDelete(expense.name || 'this expense')` and `label: expense.name || 'Expense'` replace the edited
     `name || …`.

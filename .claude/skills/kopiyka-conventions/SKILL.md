@@ -65,15 +65,15 @@ the second consumer appears or `routes.ts` passes ~200 lines.
 
 ### App — `apps/mobile/src`
 
-| Place                           | Owns                                                                         | Must not                                                                             |
-| ------------------------------- | ---------------------------------------------------------------------------- | ------------------------------------------------------------------------------------ |
-| `app/**` (Expo Router)          | screens: compose components, read params, call data hooks, handle navigation | grow pure logic inline — move it to `format.ts`/`data/` once it's testable or reused |
-| `components/`                   | presentational, reusable UI; props in, callbacks out                         | call `api()` or read auth                                                            |
-| `data/`                         | client data hooks (`useMonth`) and tiny in-memory handoffs (`undo.ts`)       | render UI                                                                            |
-| `api/client.ts`, `api/types.ts` | transport (auth header/cookie, errors → `ApiError`), DTO mirrors             | contain screen logic                                                                 |
-| `auth/`                         | session state (`AuthContext`)                                                | —                                                                                    |
-| `format.ts`                     | pure money/date formatting and parsing                                       | do I/O                                                                               |
-| `theme.ts`                      | colors, fonts, category hues — the only place for raw hex/font names         | —                                                                                    |
+| Place                           | Owns                                                                                                  | Must not                                                                             |
+| ------------------------------- | ----------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------ |
+| `app/**` (Expo Router)          | screens: compose components, read params, call data hooks, handle navigation                          | grow pure logic inline — move it to `format.ts`/`data/` once it's testable or reused |
+| `components/`                   | presentational, reusable UI; props in, callbacks out                                                  | call `api()` or read auth                                                            |
+| `data/`                         | client data hooks (`useMonth`) and tiny in-memory handoffs (`undo.ts`)                                | render UI                                                                            |
+| `api/client.ts`, `api/types.ts` | transport (auth header/cookie, errors → `ApiError`), DTO mirrors                                      | contain screen logic                                                                 |
+| `auth/`                         | session state (`AuthContext`)                                                                         | —                                                                                    |
+| `format.ts`                     | pure money/date formatting and parsing                                                                | do I/O                                                                               |
+| `theme.ts`                      | colors, fonts, category hues, layout constants (`phoneWidth`) — the only place for raw hex/font names | —                                                                                    |
 
 ## 3. Domain invariants (never break these)
 

@@ -8,31 +8,39 @@ interface MonthData {
   expenses: Expense[];
 }
 
-/** Categories plus a month's expenses (optionally one category's), reloaded whenever the screen comes into focus. */
+/**
+ * Categories plus a month's expenses (optionally one category's), reloaded whenever the screen comes into focus.
+ * `data` is null until this month and category have loaded; a failed refetch keeps it and sets `error`.
+ */
 export function useMonth(ledgerId: number, month: string, categoryId?: number) {
-  const [data, setData] = useState<MonthData | null>(null);
-  const [error, setError] = useState(false);
+  // Tagged with what they're for, so switching month reads as loading and Retry clears the error at once,
+  // without resetting state inside the effect.
+  const key = `${ledgerId}/${month}/${categoryId ?? ''}`;
   const [version, setVersion] = useState(0);
+  const attempt = `${key}#${version}`;
+  const [loaded, setLoaded] = useState<{ key: string; data: MonthData } | null>(null);
+  const [failed, setFailed] = useState<string | null>(null);
 
   useFocusEffect(
     useCallback(() => {
       let live = true;
-      setError(false);
       const filter = categoryId ? `&categoryId=${categoryId}` : '';
       Promise.all([
         api<{ categories: Category[] }>(`/api/ledgers/${ledgerId}/categories`),
         api<{ expenses: Expense[] }>(`/api/ledgers/${ledgerId}/expenses?month=${month}${filter}`),
       ])
-        .then(([c, e]) => live && setData({ categories: c.categories, expenses: e.expenses }))
-        .catch(() => live && setError(true));
+        .then(([c, e]) => {
+          if (!live) return;
+          setLoaded({ key, data: { categories: c.categories, expenses: e.expenses } });
+          setFailed(null);
+        })
+        .catch(() => live && setFailed(attempt));
       return () => {
         live = false;
       };
-      // `version` is the reload trigger: bumping it re-runs the load.
-      // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [ledgerId, month, categoryId, version]),
+    }, [key, attempt, ledgerId, month, categoryId]),
   );
 
   const reload = useCallback(() => setVersion((v) => v + 1), []);
-  return { data, error, reload };
+  return { data: loaded?.key === key ? loaded.data : null, error: failed === attempt, reload };
 }

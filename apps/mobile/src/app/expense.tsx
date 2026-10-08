@@ -20,6 +20,7 @@ import { AmountFields } from '@/components/AmountFields';
 import { CategoryPicker } from '@/components/CategoryPicker';
 import { DateChips } from '@/components/DateChips';
 import { Icon } from '@/components/Icon';
+import { LoadError } from '@/components/LoadError';
 import { deleteExpense, saveExpense } from '@/data/expenses';
 import { setPendingUndo } from '@/data/undo';
 import { type ExpenseDraftData, useExpenseDraft, withQuick } from '@/data/useExpenseDraft';
@@ -66,32 +67,15 @@ export default function ExpenseScreen() {
   const editingId = params.expenseId ? Number(params.expenseId) : null;
   const draft = useExpenseDraft(ledger.ledgerId, editingId, params.categoryId ? Number(params.categoryId) : null);
 
-  if (draft.status === 'error') {
-    // Retrying can't bring a deleted expense back.
-    const gone = draft.error instanceof ApiError && draft.error.code === 'not_found';
-    return (
-      <SafeAreaView style={styles.screen}>
-        <Text style={styles.label}>{errorText(draft.error, 'load')}</Text>
-        {!gone && (
-          <Pressable accessibilityRole="button" onPress={draft.reload} style={styles.cancel}>
-            <Text style={styles.retryText}>Retry</Text>
-          </Pressable>
-        )}
-        <Pressable
-          accessibilityRole="button"
-          onPress={() => (router.canGoBack() ? router.back() : router.replace('/'))}
-          style={styles.cancel}
-        >
-          <Text style={styles.cancelText}>Back</Text>
-        </Pressable>
-      </SafeAreaView>
-    );
-  }
+  // Directly loaded on web there's nothing to go back to.
+  const leave = () => (router.canGoBack() ? router.back() : router.replace('/'));
+  // Retrying can't bring a deleted expense back.
+  const gone = draft.status === 'error' && draft.error instanceof ApiError && draft.error.code === 'not_found';
 
   return (
     <SafeAreaView style={styles.screen} edges={['top', 'bottom']}>
       <View style={styles.header}>
-        <Pressable accessibilityRole="button" onPress={() => router.back()} style={styles.cancel}>
+        <Pressable accessibilityRole="button" onPress={leave} style={styles.cancel}>
           <Text style={styles.cancelText}>Cancel</Text>
         </Pressable>
         <Text style={styles.title}>{editingId !== null ? 'Edit expense' : 'New expense'}</Text>
@@ -100,6 +84,13 @@ export default function ExpenseScreen() {
 
       {draft.status === 'loading' ? (
         <ActivityIndicator color={colors.accent} style={{ marginTop: 32 }} />
+      ) : draft.status === 'error' ? (
+        <View>
+          <LoadError message={errorText(draft.error, 'load')} onRetry={gone ? undefined : draft.reload} />
+          <Pressable accessibilityRole="button" onPress={leave} style={styles.cancel}>
+            <Text style={styles.cancelText}>Back</Text>
+          </Pressable>
+        </View>
       ) : (
         <ExpenseForm draft={draft} ledgerId={ledger.ledgerId} />
       )}
@@ -287,7 +278,6 @@ const styles = StyleSheet.create({
   header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 },
   cancel: { height: 44, justifyContent: 'center' },
   cancelText: { fontFamily: fonts.bodyMedium, fontSize: 15, color: colors.muted },
-  retryText: { fontFamily: fonts.bodySemi, fontSize: 15, color: colors.accent },
   title: { fontFamily: fonts.display, fontSize: 18, color: colors.text },
   form: { gap: 22, paddingBottom: 40 },
   group: { gap: 8 },

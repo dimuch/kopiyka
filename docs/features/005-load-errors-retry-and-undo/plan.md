@@ -113,7 +113,7 @@ Alternatives considered:
 Sizes are estimates (insertions + deletions), not measured on a scratch build. Only `useMonth` was linted, through
 `eslint --stdin`. **PR total ≈ 240 changed lines.**
 
-- [ ] 1. Show the spinner, not last month's totals, while a month loads
+- [x] 1. Show the spinner, not last month's totals, while a month loads
   - Files: `data/useMonth.ts`
   - Change: request and attempt tagging as in Contracts, and the suppression is removed. Screens are untouched. On a
     failed refetch they still show their old error text instead of the data, until slices 2–3.

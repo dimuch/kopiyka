@@ -121,7 +121,7 @@ as in `money.test.ts`.
   - Verify: `yarn mobile test` passes, and also with `TZ=Pacific/Kiritimati` and `TZ=Pacific/Pago_Pago`
     (`TZ=… yarn mobile test`). This shows the results don't depend on the machine zone.
 
-- [ ] 3. Test month summaries and the quick category row (~80 lines)
+- [x] 3. Test month summaries and the quick category row (~80 lines)
   - Files: `apps/mobile/test/monthSummary.test.ts`, `apps/mobile/test/quick.test.ts` (new)
   - Tests:
     - `monthSummary.test.ts` uses a local `expense(id, categoryId, expenseDate, amountEur, amountUah)` fixture that

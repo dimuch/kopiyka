@@ -22,26 +22,27 @@ Audit: `docs/audits/2026-10-architecture.md` M9, M10, M12, M13, M21, M22.
 
 - `data/monthSummary.ts`: `sumCents(expenses, field)`, `spentByCategory(expenses)`,
   `groupByDay(expenses)` (date-desc order kept, with per-day totals). Screens use them.
-- `data/quick.ts`: `withQuick` and the quick/more split; the expense screen uses them.
+- `data/quick.ts`: `withQuick` (moved from `data/useExpenseDraft.ts`) and the quick/more split (`splitQuick`).
 - `theme.ts` gains named tokens for every raw colour now in screens and components, and no
   `#rrggbb` remains outside `theme.ts`.
-- Conditional renders use explicit booleans or ternaries. `expenseId` params are parsed with
-  `Number.isInteger`, and an invalid one is treated as "add".
+- Conditional renders use explicit booleans or ternaries: `error` and `added` in `expense.tsx`, `error` in
+  `login.tsx`, `label` in `CollapsingSummary`.
 - `useCollapsingSummary` memoises its `Animated.event` and interpolations.
 - Removed: the unused `API_URL` export, the `sliders` icon, the `IconName` export, `ledgers` in
-  auth state, and the unreferenced `nativeID`s. Alternatively the `nativeID`s get wired to
-  `aria-labelledby`; the plan picks one.
+  auth state, and the unreferenced `nativeID`s (inputs keep their `accessibilityLabel`).
 
 ## Acceptance criteria
 
-- [ ] `grep -rnE "#[0-9A-Fa-f]{6}" apps/mobile/src --include=*.tsx` returns nothing outside `theme.ts`;
-      screens look the same (before/after screenshots of Home, Category and Expense at phone width).
-- [ ] `grep -rn "toCents(e\.amount" apps/mobile/src/app` returns nothing; totals on Home and
-      Category match before/after for the same month.
-- [ ] `/expense?expenseId=abc` on web renders the Add form with no stray `NaN` text.
-- [ ] No `{<number or string> && <JSX>}` patterns remain in `apps/mobile/src` (code review).
+- [ ] `rg -n "#[0-9A-Fa-f]{3,8}\b|rgba?\(" apps/mobile/src -g '!theme.ts'` returns nothing; screens look the same
+      (before/after screenshots at 390×844 of Home, Category with the Undo toast, Add/Edit with the "Added" note, the
+      category sheet and Login).
+- [ ] `rg -n "\+ toCents\(" apps/mobile/src/app` returns nothing; totals on Home and Category match before/after for
+      the same month.
+- [ ] `/expense?expenseId=abc` on web shows "That link isn’t valid." with Back and no stray `NaN` text (004's
+      behaviour, unchanged).
+- [ ] No `{<number or string> && <JSX>}` patterns remain in `apps/mobile/src` (`rg` + code review).
 - [ ] Every symbol removed in this brief has no importer left; `yarn lint typecheck` green.
-- [ ] Behaviour is unchanged otherwise. The PR is refactor-only, apart from the `NaN` fix.
+- [ ] Behaviour is unchanged. The PR is refactor-only.
 
 ## Out of scope
 
@@ -54,3 +55,6 @@ Audit: `docs/audits/2026-10-architecture.md` M9, M10, M12, M13, M21, M22.
 ## Notes
 
 - Builds on 005 (the screens' data and error paths are settled, so this is a pure move).
+- Amended at Gate A (2026-10-08): the brief predates briefs 003–008. The "invalid id → add" item is dropped (004
+  made `?expenseId=abc` show "That link isn’t valid."), the totals grep is narrowed to sums, and the What/ACs name
+  today's locations.

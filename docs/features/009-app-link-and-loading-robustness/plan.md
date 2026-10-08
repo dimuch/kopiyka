@@ -233,7 +233,7 @@ Estimated total: ~195 changed lines, tests included.
 
 ## Deviations
 
-<filled by the developer during build>
+- slice 6: `onPressOutside ? <Pressable … /> : null` instead of the sketched `&&`, per the no-falsy-and rule.
 
 ## Revision 1
 

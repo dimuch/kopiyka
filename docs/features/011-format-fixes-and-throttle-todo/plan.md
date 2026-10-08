@@ -59,7 +59,7 @@ Checked in Node 24.21.0 (scratch script, outside the repo):
   - Verify: web build (launch configs `web` + `api`) at 390×844, signed in as the QA user. Open an expense dated in
     September (or pick a September date on the add-expense screen) and check that the rate line says "NBU official
     rate for … Sep 2026". If an expense was added, also check the "Added … · … Sep 2026" note.
-- [ ] 3. Note that login throttle rows are never pruned
+- [x] 3. Note that login throttle rows are never pruned
   - Files: `apps/api/src/auth/throttle.ts`
   - Change: a `// TODO(dimuch):` comment, ~3 lines, above the `INSERT INTO login_throttle … ON DUPLICATE KEY UPDATE`
     in `throttledAttempt`. It should say:

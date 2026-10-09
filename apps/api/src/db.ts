@@ -25,7 +25,8 @@ export async function withTransaction<T>(db: Db, fn: (conn: mysql.PoolConnection
     await conn.commit();
     return result;
   } catch (err) {
-    await conn.rollback();
+    // A failed rollback (lost connection) mustn't hide the error that caused it.
+    await conn.rollback().catch(() => {});
     throw err;
   } finally {
     conn.release();

@@ -121,7 +121,10 @@ export async function categoryRoutes(app: FastifyInstance, { db, now }: AppDeps)
           WHERE e.category_id = ? AND c.ledger_id = ? AND e.deleted_at = ?`,
         [categoryId, req.ledger!.ledgerId, rows[0].deleted_at],
       );
-      await conn.query('UPDATE categories SET deleted_at = NULL WHERE category_id = ?', [categoryId]);
+      await conn.query('UPDATE categories SET deleted_at = NULL WHERE category_id = ? AND ledger_id = ?', [
+        categoryId,
+        req.ledger!.ledgerId,
+      ]);
       return true;
     });
     return restored ? reply.code(204).send() : reply.code(404).send({ error: 'not_found' });

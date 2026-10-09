@@ -200,7 +200,7 @@ restore into a deleted category → 404; GET one, PUT and DELETE of a single exp
 
 ## Deviations
 
-<filled by the developer during build>
+None.
 
 ## Revision 1
 

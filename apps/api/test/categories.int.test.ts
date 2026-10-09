@@ -35,6 +35,7 @@ describe.skipIf(!(await testDbReachable()))('categories API (MySQL)', () => {
 
   const restore = (categoryId: number | string, headers: Record<string, string> = auth, ledgerId = owner.ledgerId) =>
     app.inject({ method: 'POST', url: `/api/ledgers/${ledgerId}/categories/${categoryId}/restore`, headers });
+
   const expense = (method: 'GET' | 'DELETE' | 'POST', expenseId: number, path = '') =>
     app.inject({ method, url: `/api/ledgers/${owner.ledgerId}/expenses/${expenseId}${path}`, headers: auth });
 

@@ -20,6 +20,9 @@ KEEP=3
 
 export PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
 export COREPACK_ENABLE_DOWNLOAD_PROMPT=0 CI=1
+# Dependency install scripts would run as kopiyka, the user that owns the
+# releases; the build doesn't need any (only esbuild's and unrs-resolver's exist).
+export YARN_ENABLE_SCRIPTS=false
 
 sha=${SSH_ORIGINAL_COMMAND:-}
 if [[ ! $sha =~ ^[0-9a-f]{40}$ ]]; then
@@ -79,7 +82,7 @@ restart_healthy() {
   sudo -n /usr/bin/systemctl restart kopiyka.service || return 1
   local _
   for _ in $(seq 15); do
-    if curl -fsS -o /dev/null "$HEALTH_URL" 2>/dev/null; then
+    if curl -fsS -m 5 -o /dev/null "$HEALTH_URL" 2>/dev/null; then
       return 0
     fi
     sleep 2

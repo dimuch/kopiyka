@@ -129,7 +129,7 @@ harmless: the expense comes back on Undo and can be deleted again. The brief rec
       month list is still empty.
     - Clear `deleted_at`. Restore → 200.
   - About 95 lines.
-- [ ] 4. Note category soft delete in the conventions
+- [x] 4. Note category soft delete in the conventions
   - Files: `.claude/skills/kopiyka-conventions/SKILL.md` (§3)
   - Change: the line becomes "Soft delete for expenses and categories (`deleted_at`) so Undo works; reads filter
     `deleted_at IS NULL` (expense lists also skip deleted categories; a single expense's GET, PUT and DELETE don't).

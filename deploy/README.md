@@ -28,12 +28,13 @@ Actions → **Deploy** → Run workflow on `main`. Merging never deploys by itse
 Migrations are forward-only and a rollback runs the previous code on the new schema, so every migration must stay
 compatible with the release before it.
 
-The files in this folder, other than `deploy.sh`'s copy, are not updated by a deploy. After changing one, re-run its
-install line below (step 6 or 8), always with `nginx -t` before a reload.
+A deploy never updates the files in this folder on the droplet, `deploy.sh` included: they're root-owned on purpose.
+After changing one, re-run its install line below (step 6 or 8), always with `nginx -t` before a reload.
 
 ## One-time setup
 
-Run on the droplet as `uppr` (sudo) unless a step says otherwise, after this folder is on `main`.
+Run on the droplet as `uppr` (sudo) unless a step says otherwise, after this folder is on `main`. Run `sudo -v` first,
+so piped `sudo` commands don't prompt twice at once.
 
 1. **Checks.** Each must hold, or stop and decide:
 
@@ -54,15 +55,22 @@ Run on the droplet as `uppr` (sudo) unless a step says otherwise, after this fol
 2. **DNS.** In DigitalOcean → Networking → Domains → `englishplus.com.ua`, add `A kopiyka → 165.22.31.51` (TTL 3600),
    then `dig +short kopiyka.englishplus.com.ua` must print `165.22.31.51`.
 
-3. **Database.** No new MySQL user: the API uses the existing `uppr` account.
+3. **Database.** kopiyka gets its own MySQL user with rights on its own database only, so a leaked `DATABASE_URL`
+   can't reach the other sites' data. A hex password needs no URL encoding:
 
    ```bash
-   sudo mysql -e "CREATE DATABASE IF NOT EXISTS kopiyka CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci;
-                  SHOW GRANTS FOR 'uppr'@'localhost';"
-   # only if uppr has no privileges on kopiyka.*:
-   sudo mysql -e "GRANT ALL ON kopiyka.* TO 'uppr'@'localhost';"
-   mysql -h 127.0.0.1 -u uppr -p kopiyka -e 'SELECT 1'   # the API connects over 127.0.0.1
+   openssl rand -hex 24                        # → the kopiyka DB password; keep it for step 5
+   sudo mysql                                  # then, at the mysql> prompt:
    ```
+
+   ```sql
+   CREATE DATABASE IF NOT EXISTS kopiyka CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci;
+   CREATE USER 'kopiyka'@'localhost' IDENTIFIED BY '<password>';
+   CREATE USER 'kopiyka'@'127.0.0.1' IDENTIFIED BY '<password>';
+   GRANT ALL PRIVILEGES ON kopiyka.* TO 'kopiyka'@'localhost', 'kopiyka'@'127.0.0.1';
+   ```
+
+   Then `mysql -h 127.0.0.1 -u kopiyka -p kopiyka -e 'SELECT 1'` must work (the API connects over 127.0.0.1).
 
 4. **User and repo.**
 
@@ -83,12 +91,11 @@ Run on the droplet as `uppr` (sudo) unless a step says otherwise, after this fol
    ```
 
    ```ini
-   DATABASE_URL=mysql://uppr:<uppr's password>@127.0.0.1:3306/kopiyka
+   DATABASE_URL=mysql://kopiyka:<the hex password>@127.0.0.1:3306/kopiyka
    TOTP_ENC_KEY=<the base64 key>
    ```
 
-   Percent-encode URL-special characters in the password (`@` → `%40`, `:` → `%3A`, `/` → `%2F`, `#` → `%23`, …).
-   Keep a copy of `TOTP_ENC_KEY` in your password manager: without it, existing users' authenticator codes stop
+   Don't quote the values. Keep a copy of `TOTP_ENC_KEY` in your password manager: without it, existing users' authenticator codes stop
    working.
 
 6. **Service, deploy script, sudo rule.**
@@ -126,8 +133,18 @@ Run on the droplet as `uppr` (sudo) unless a step says otherwise, after this fol
    ```bash
    gh secret set DEPLOY_SSH_KEY --env production < ./kopiyka_deploy
    gh secret set DEPLOY_KNOWN_HOSTS --env production < ./kopiyka_known_hosts
-   ssh -o IdentitiesOnly=yes -i ./kopiyka_deploy kopiyka@kopiyka.englishplus.com.ua whoami   # → usage: <40-hex commit sha>
-   rm ./kopiyka_deploy                          # GitHub has the only copy now
+   ```
+
+   Check the key can do nothing but deploy, then delete it (GitHub keeps the only copy):
+
+   ```bash
+   k='ssh -o IdentitiesOnly=yes -i ./kopiyka_deploy kopiyka@kopiyka.englishplus.com.ua'
+   $k whoami                                    # → usage: <40-hex commit sha>, exit 2
+   $k 0000000000000000000000000000000000000000  # → not on main
+   ssh -o IdentitiesOnly=yes -i ./kopiyka_deploy -W 127.0.0.1:3306 kopiyka@kopiyka.englishplus.com.ua
+                                                # → administratively prohibited (no forwarding)
+   ssh do sudo -l -U kopiyka                    # → only the kopiyka.service restart
+   rm ./kopiyka_deploy
    ```
 
 8. **Certificate and vhost.** Certificate first, so the vhost's TLS paths exist:
@@ -163,9 +180,7 @@ Run on the droplet as `uppr` (sudo) unless a step says otherwise, after this fol
 - [ ] `curl -sI http://kopiyka.englishplus.com.ua` → `301`, `Location: https://…`; the browser shows a valid cert.
 - [ ] `sudo ss -ltnp | grep :3100` shows `127.0.0.1:3100` only; from the laptop `curl -m 5 http://165.22.31.51:3100/api/health` fails.
 - [ ] `readlink /opt/kopiyka/current` ends in the deployed commit's first 7 characters.
-- [ ] Key limits: `ssh -i key kopiyka@… whoami` → usage, exit 2; `ssh -i key kopiyka@… <sha not on main>` →
-      `not on main`; with `ssh -i key -N -L 9999:127.0.0.1:3306 kopiyka@…` running, `nc -z 127.0.0.1 9999` is refused;
-      `sudo -l -U kopiyka` lists only the restart.
+- [ ] The key-limit checks in step 7 gave the expected answers.
 - [ ] The other sites return 200 before, during and after a deploy.
 - [ ] Rollback drill: put a wrong password in `api.env` and run Deploy. The workflow fails, the log shows the rollback
       (and that the previous release is unhealthy too, since `api.env` is shared). Restore the password; within ~5 s

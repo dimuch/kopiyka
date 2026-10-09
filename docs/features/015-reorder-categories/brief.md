@@ -8,7 +8,7 @@ Categories are fixed: every ledger is seeded with 15 in the Notion "Budget ’26
 
 Part 4 of 4 of the original "Manage categories" brief, split at Gate A on 2026-10-08 (see
 `../012-remove-hidden-categories/brief.md` for the full split). Depends on 012 (deleted categories are left out of the
-list being ordered); merged after 013 and 014.
+list being ordered); merged after 013, 017, 018 (013 split on 2026-10-09) and 014.
 
 ## What
 

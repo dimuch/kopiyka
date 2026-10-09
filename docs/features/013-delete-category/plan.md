@@ -103,7 +103,7 @@ harmless: the expense comes back on Undo and can be deleted again. The brief rec
     - "answers 404 for an unknown or foreign category" (DELETE).
     - Add DELETE to the guards `describe.each`.
     - About 95 lines.
-- [ ] 3. Restore a deleted category with exactly the expenses deleted with it
+- [x] 3. Restore a deleted category with exactly the expenses deleted with it
   - Files: `apps/api/src/categories/routes.ts`, `apps/api/src/expenses/routes.ts`,
     `apps/api/test/categories.int.test.ts`, `apps/api/test/expenses.int.test.ts`
   - Change:

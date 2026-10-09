@@ -184,12 +184,16 @@ export async function expenseRoutes(app: FastifyInstance, deps: AppDeps): Promis
     return updated ?? reply.code(404).send({ error: 'not_found' });
   });
 
-  /** Sets or clears deleted_at on an expense of this ledger; false when no expense was in the other state. */
+  /**
+   * Sets or clears deleted_at on an expense of this ledger; false when no expense was in the other state.
+   * A restore also needs a live category: a deleted one's expenses come back with it.
+   */
   async function setDeleted(ledgerId: number, expenseId: number, deleted: boolean): Promise<boolean> {
     const [res] = await db.query<ResultSetHeader>(
       `UPDATE expenses e JOIN categories c ON c.category_id = e.category_id
           SET e.deleted_at = ?, e.updated_at = e.updated_at -- not an edit; keep ON UPDATE from firing
-        WHERE e.expense_id = ? AND c.ledger_id = ? AND e.deleted_at IS ${deleted ? '' : 'NOT '}NULL`,
+        WHERE e.expense_id = ? AND c.ledger_id = ? AND e.deleted_at IS ${deleted ? '' : 'NOT '}NULL
+          ${deleted ? '' : 'AND c.deleted_at IS NULL'}`,
       [deleted ? now() : null, expenseId, ledgerId],
     );
     return res.affectedRows === 1;

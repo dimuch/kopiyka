@@ -1,4 +1,5 @@
 import type { FastifyInstance } from 'fastify';
+import type { ResultSetHeader, RowDataPacket } from 'mysql2/promise';
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest';
 import { buildApp } from '../src/app.js';
 import { createDb, type Db } from '../src/db.js';
@@ -14,7 +15,7 @@ import {
   type TestUser,
 } from './helpers.js';
 
-describe.skipIf(!(await testDbReachable()))('GET /api/ledgers/:id/categories (MySQL)', () => {
+describe.skipIf(!(await testDbReachable()))('categories API (MySQL)', () => {
   const config = testConfig();
   const clock = new Date('2026-10-06T10:00:00Z');
   let db: Db;
@@ -24,6 +25,27 @@ describe.skipIf(!(await testDbReachable()))('GET /api/ledgers/:id/categories (My
 
   const get = (ledgerId: number, headers: Record<string, string> = auth) =>
     app.inject({ method: 'GET', url: `/api/ledgers/${ledgerId}/categories`, headers });
+
+  const one = (categoryId: number | string, headers: Record<string, string> = auth, ledgerId = owner.ledgerId) =>
+    app.inject({ method: 'GET', url: `/api/ledgers/${ledgerId}/categories/${categoryId}`, headers });
+
+  async function idOf(techName: string, ledgerId = owner.ledgerId): Promise<number> {
+    const [rows] = await db.query<RowDataPacket[]>(
+      'SELECT category_id FROM categories WHERE ledger_id = ? AND tech_name = ?',
+      [ledgerId, techName],
+    );
+    return rows[0]!.category_id;
+  }
+
+  /** An expense with fixed created_at/updated_at, so a write that bumps updated_at shows up. Returns its id. */
+  async function addSpend(techName: string, expenseDate: string, amountEur: string, deletedAt: Date | null = null) {
+    const [res] = await db.query<ResultSetHeader>(
+      `INSERT INTO expenses (category_id, expense_date, name, amount_eur, created_by, created_at, updated_at, deleted_at)
+       VALUES (?, ?, 'spend', ?, ?, ?, ?, ?)`,
+      [await idOf(techName), expenseDate, amountEur, owner.userId, clock, clock, deletedAt],
+    );
+    return res.insertId;
+  }
 
   async function addExpense(techName: string, createdAt: string, deleted = false): Promise<void> {
     await db.query(
@@ -95,5 +117,45 @@ describe.skipIf(!(await testDbReachable()))('GET /api/ledgers/:id/categories (My
 
   it('rejects a non-numeric ledger id', async () => {
     expect((await get('abc' as unknown as number)).statusCode).toBe(400);
+  });
+
+  describe('one category', () => {
+    it("gives a category's expense count and EUR total across all months", async () => {
+      await addSpend('groceries', '2026-09-15', '12.50');
+      await addSpend('groceries', '2026-10-01', '1222.00');
+      await addSpend('groceries', '2026-10-02', '5.00', clock);
+      await addSpend('car', '2026-10-01', '99.00');
+
+      const res = await one(await idOf('groceries'));
+      expect(res.statusCode).toBe(200);
+      // 12.50 + 1222.00; the deleted 5.00 and car's 99.00 are left out.
+      expect(res.json()).toEqual({
+        categoryId: await idOf('groceries'),
+        techName: 'groceries',
+        displayName: 'groceries',
+        sortOrder: 20,
+        expenseCount: 2,
+        totalEur: '1234.50',
+      });
+      expect((await one(await idOf('gym'))).json()).toMatchObject({ expenseCount: 0, totalEur: '0.00' });
+    });
+
+    it('answers 404 for an unknown, foreign or deleted category', async () => {
+      const stranger = await makeUser(db, config, 'stranger');
+      await db.query('UPDATE categories SET deleted_at = ? WHERE category_id = ?', [clock, await idOf('groceries')]);
+      for (const id of [999_999, await idOf('rent', stranger.ledgerId), await idOf('groceries')]) {
+        expect((await one(id)).json(), String(id)).toEqual({ error: 'not_found' });
+      }
+    });
+  });
+
+  describe.each([['GET one', one]])('%s guards', (_name, call) => {
+    it('needs a session, a ledger of mine and a numeric id', async () => {
+      const id = await idOf('rent');
+      expect((await call(id, {})).statusCode).toBe(401);
+      const stranger = await makeUser(db, config, 'stranger');
+      expect((await call(await idOf('rent', stranger.ledgerId), auth, stranger.ledgerId)).statusCode).toBe(404);
+      expect((await call('abc')).json()).toMatchObject({ error: 'invalid_request' });
+    });
   });
 });

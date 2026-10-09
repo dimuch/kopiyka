@@ -165,7 +165,8 @@ verify` can't run locally. They run on the droplet in the runbook (post-merge).
 - [x] 5. Document the one-time droplet bootstrap and how deploys work (~150 lines)
   - Files: `deploy/README.md` (runbook, new), `README.md` (Deployment section rewritten to describe the real setup and
     link the runbook; it keeps the existing X-Forwarded-For/Secure-cookie facts)
-  - Runbook steps, each with exact commands:
+  - Runbook steps, each with exact commands (steps 3 and 5 superseded in review: own MySQL user `kopiyka`, see
+    Deviations and `deploy/README.md`):
     1. Checks: port free via `ss -ltn` (no `:3100`), `corepack --version`, GNU time present (else
        `sudo apt-get install -y time`), sshd allow lists via `sudo sshd -T`. Node: `/usr/bin/node --version` is 24.x,
        and `env -i PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin sh -c 'command -v node corepack'`

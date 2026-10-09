@@ -143,7 +143,7 @@ so piped `sudo` commands don't prompt twice at once.
    $k 0000000000000000000000000000000000000000  # → not on main
    ssh -o IdentitiesOnly=yes -i ./kopiyka_deploy -W 127.0.0.1:3306 kopiyka@kopiyka.englishplus.com.ua
                                                 # → administratively prohibited (no forwarding)
-   ssh do sudo -l -U kopiyka                    # → only the kopiyka.service restart
+   ssh -t do sudo -l -U kopiyka                 # → only the kopiyka.service restart
    rm ./kopiyka_deploy
    ```
 

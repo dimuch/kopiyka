@@ -1,7 +1,8 @@
 import type { FastifyInstance } from 'fastify';
-import type { RowDataPacket } from 'mysql2/promise';
+import type { ResultSetHeader, RowDataPacket } from 'mysql2/promise';
 import { z } from 'zod';
 import type { AppDeps } from '../app.js';
+import { withTransaction } from '../db.js';
 
 export const QUICK_CATEGORY_COUNT = 5;
 
@@ -41,7 +42,7 @@ export function pickQuick(rows: Array<{ categoryId: number; sortOrder: number; l
     .map((r) => r.categoryId);
 }
 
-export async function categoryRoutes(app: FastifyInstance, { db }: AppDeps): Promise<void> {
+export async function categoryRoutes(app: FastifyInstance, { db, now }: AppDeps): Promise<void> {
   const guards = { preHandler: [app.requireAuth, app.requireLedger] };
 
   app.get('/api/ledgers/:id/categories', guards, async (req) => {
@@ -81,5 +82,26 @@ export async function categoryRoutes(app: FastifyInstance, { db }: AppDeps): Pro
     if (!r) return reply.code(404).send({ error: 'not_found' });
     const dto: CategoryWithTotalsDto = { ...toDto(r), expenseCount: r.expense_count, totalEur: r.total_eur };
     return dto;
+  });
+
+  // The category and its live expenses share one stamp: restore matches it, so it brings back only these expenses.
+  app.delete('/api/ledgers/:id/categories/:categoryId', guards, async (req, reply) => {
+    const { categoryId } = CategoryParams.parse(req.params);
+    const at = now();
+    const deleted = await withTransaction(db, async (conn) => {
+      const [res] = await conn.query<ResultSetHeader>(
+        'UPDATE categories SET deleted_at = ? WHERE category_id = ? AND ledger_id = ? AND deleted_at IS NULL',
+        [at, categoryId, req.ledger!.ledgerId],
+      );
+      if (!res.affectedRows) return false;
+      await conn.query(
+        `UPDATE expenses e JOIN categories c ON c.category_id = e.category_id
+            SET e.deleted_at = ?, e.updated_at = e.updated_at -- not an edit; keep ON UPDATE from firing
+          WHERE e.category_id = ? AND c.ledger_id = ? AND e.deleted_at IS NULL`,
+        [at, categoryId, req.ledger!.ledgerId],
+      );
+      return true;
+    });
+    return deleted ? reply.code(204).send() : reply.code(404).send({ error: 'not_found' });
   });
 }

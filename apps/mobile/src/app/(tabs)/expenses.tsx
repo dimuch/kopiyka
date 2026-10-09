@@ -13,7 +13,7 @@ import { useMonth } from '@/data/useMonth';
 import { eur, kyivMonth, monthName, shiftMonth } from '@/format';
 import { colors, fonts } from '@/theme';
 
-export default function Home() {
+export default function Expenses() {
   const { ledger, user, logout } = useSession();
   const [month, setMonth] = useState(() => kyivMonth(new Date()));
   const { data, error, reload } = useMonth(ledger.ledgerId, month);

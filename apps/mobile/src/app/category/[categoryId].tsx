@@ -16,10 +16,10 @@ import { dayLabel, eur, kyivMonth, monthLabel, monthName, toCents, uah } from '@
 import { parseIdParam, parseMonthParam } from '@/linkParams';
 import { colors, fonts } from '@/theme';
 
-// Opened straight from a web link there's nothing to go back to, so fall back to Home.
+// Opened straight from a web link there's nothing to go back to, so fall back to Expenses (current month).
 function goBack() {
   if (router.canGoBack()) router.back();
-  else router.replace('/');
+  else router.replace('/expenses');
 }
 
 export default function CategoryScreen() {

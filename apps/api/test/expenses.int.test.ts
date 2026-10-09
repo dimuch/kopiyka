@@ -296,6 +296,17 @@ describe.skipIf(!(await testDbReachable()))('expenses API (MySQL)', () => {
       expect((await del(created.expenseId)).statusCode).toBe(404);
     });
 
+    it('will not restore an expense into a deleted category', async () => {
+      await del(created.expenseId);
+      await db.query('UPDATE categories SET deleted_at = ? WHERE category_id = ?', [clock, cat.groceries]);
+      const res = await restore(created.expenseId);
+      expect([res.statusCode, res.json()]).toEqual([404, { error: 'not_found' }]);
+      expect((await list('?month=2026-10')).json().expenses).toEqual([]);
+
+      await db.query('UPDATE categories SET deleted_at = NULL WHERE category_id = ?', [cat.groceries]);
+      expect((await restore(created.expenseId)).statusCode).toBe(200);
+    });
+
     it("cannot delete or restore another ledger's expense", async () => {
       const stranger = await makeUser(db, config, 'stranger');
       const strangerAuth = await authHeader(app, stranger, clock);

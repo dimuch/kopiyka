@@ -18,6 +18,7 @@ import {
 describe.skipIf(!(await testDbReachable()))('categories API (MySQL)', () => {
   const config = testConfig();
   const clock = new Date('2026-10-06T10:00:00Z');
+  let now = clock;
   let db: Db;
   let app: FastifyInstance;
   let owner: TestUser;
@@ -31,6 +32,11 @@ describe.skipIf(!(await testDbReachable()))('categories API (MySQL)', () => {
 
   const del = (categoryId: number | string, headers: Record<string, string> = auth, ledgerId = owner.ledgerId) =>
     app.inject({ method: 'DELETE', url: `/api/ledgers/${ledgerId}/categories/${categoryId}`, headers });
+
+  const restore = (categoryId: number | string, headers: Record<string, string> = auth, ledgerId = owner.ledgerId) =>
+    app.inject({ method: 'POST', url: `/api/ledgers/${ledgerId}/categories/${categoryId}/restore`, headers });
+  const expense = (method: 'GET' | 'DELETE' | 'POST', expenseId: number, path = '') =>
+    app.inject({ method, url: `/api/ledgers/${owner.ledgerId}/expenses/${expenseId}${path}`, headers: auth });
 
   async function idOf(techName: string, ledgerId = owner.ledgerId): Promise<number> {
     const [rows] = await db.query<RowDataPacket[]>(
@@ -61,7 +67,7 @@ describe.skipIf(!(await testDbReachable()))('categories API (MySQL)', () => {
   beforeAll(async () => {
     await resetSchema();
     db = createDb(TEST_DB_URL!);
-    app = await buildApp({ config, db, now: () => clock, fetchRate: offlineRates });
+    app = await buildApp({ config, db, now: () => now, fetchRate: offlineRates });
   });
 
   afterAll(async () => {
@@ -70,6 +76,7 @@ describe.skipIf(!(await testDbReachable()))('categories API (MySQL)', () => {
   });
 
   beforeEach(async () => {
+    now = clock;
     await clearData(db);
     owner = await makeUser(db, config, 'ivanka');
     auth = await authHeader(app, owner, clock);
@@ -199,9 +206,54 @@ describe.skipIf(!(await testDbReachable()))('categories API (MySQL)', () => {
     });
   });
 
+  describe('restore', () => {
+    it('restores the category and its expenses unchanged', async () => {
+      const groceries = await idOf('groceries');
+      const ids = [
+        await addSpend('groceries', '2026-09-15', '12.50'),
+        await addSpend('groceries', '2026-10-01', '1222.00'),
+      ];
+      const before = await Promise.all(ids.map(async (id) => (await expense('GET', id)).json()));
+
+      await del(groceries);
+      expect((await restore(groceries)).statusCode).toBe(204);
+
+      // Equal DTOs, updated_at included: delete and restore aren't edits.
+      expect(await Promise.all(ids.map(async (id) => (await expense('GET', id)).json()))).toEqual(before);
+      expect((await one(groceries)).json()).toMatchObject({ expenseCount: 2, totalEur: '1234.50' });
+      expect((await get(owner.ledgerId)).json().categories).toHaveLength(15);
+    });
+
+    it('keeps an expense deleted earlier on its own deleted', async () => {
+      const groceries = await idOf('groceries');
+      const a = await addSpend('groceries', '2026-10-01', '10.00');
+      const b = await addSpend('groceries', '2026-10-02', '20.00');
+      expect((await expense('DELETE', a)).statusCode).toBe(204);
+
+      now = new Date('2026-10-06T10:05:00Z');
+      await del(groceries);
+      await restore(groceries);
+
+      expect((await expense('GET', b)).statusCode).toBe(200);
+      expect((await expense('GET', a)).statusCode).toBe(404);
+      expect((await one(groceries)).json()).toMatchObject({ expenseCount: 1 });
+      expect((await expense('POST', a, '/restore')).statusCode).toBe(200);
+    });
+
+    it('answers 404 for restoring a live, unknown or foreign category', async () => {
+      const stranger = await makeUser(db, config, 'stranger');
+      const foreign = await idOf('rent', stranger.ledgerId);
+      await db.query('UPDATE categories SET deleted_at = ? WHERE category_id = ?', [clock, foreign]);
+      for (const id of [await idOf('rent'), 999_999, foreign]) {
+        expect((await restore(id)).json(), String(id)).toEqual({ error: 'not_found' });
+      }
+    });
+  });
+
   describe.each([
     ['GET one', one],
     ['DELETE', del],
+    ['restore', restore],
   ])('%s guards', (_name, call) => {
     it('needs a session, a ledger of mine and a numeric id', async () => {
       const id = await idOf('rent');

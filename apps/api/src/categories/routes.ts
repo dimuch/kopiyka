@@ -104,4 +104,26 @@ export async function categoryRoutes(app: FastifyInstance, { db, now }: AppDeps)
     });
     return deleted ? reply.code(204).send() : reply.code(404).send({ error: 'not_found' });
   });
+
+  app.post('/api/ledgers/:id/categories/:categoryId/restore', guards, async (req, reply) => {
+    const { categoryId } = CategoryParams.parse(req.params);
+    const restored = await withTransaction(db, async (conn) => {
+      const [rows] = await conn.query<RowDataPacket[]>(
+        `SELECT deleted_at FROM categories
+          WHERE category_id = ? AND ledger_id = ? AND deleted_at IS NOT NULL FOR UPDATE`,
+        [categoryId, req.ledger!.ledgerId],
+      );
+      if (!rows[0]) return false;
+      // Only the expenses deleted with the category carry its stamp; ones deleted earlier on their own stay deleted.
+      await conn.query(
+        `UPDATE expenses e JOIN categories c ON c.category_id = e.category_id
+            SET e.deleted_at = NULL, e.updated_at = e.updated_at
+          WHERE e.category_id = ? AND c.ledger_id = ? AND e.deleted_at = ?`,
+        [categoryId, req.ledger!.ledgerId, rows[0].deleted_at],
+      );
+      await conn.query('UPDATE categories SET deleted_at = NULL WHERE category_id = ?', [categoryId]);
+      return true;
+    });
+    return restored ? reply.code(204).send() : reply.code(404).send({ error: 'not_found' });
+  });
 }

@@ -8,7 +8,8 @@ Categories are fixed: every ledger is seeded with 15, and the app can't add or r
 
 Part 3 of 4 of the original "Manage categories" brief, split at Gate A on 2026-10-08 (see
 `../012-remove-hidden-categories/brief.md` for the full split). Depends on 012 (category soft-delete state, needed for
-the name rules below) and 013 (the Category screen's ⋯ menu, which gets "Rename category" here).
+the name rules below) and 018 (the Category screen's ⋯ menu, which gets "Rename category" here). 013 was split into 013
+(API), 017 and 018 (app) on 2026-10-09; all three are merged before this one.
 
 ## What
 
@@ -47,7 +48,7 @@ the name rules below) and 013 (the Category screen's ⋯ menu, which gets "Renam
 - Found while planning 012: the databases use `utf8mb4_0900_ai_ci` (`apps/api/scripts/setup-local-db.sql`), so a plain
   SQL `=` on `display_name` ignores accents as well as case ("café" equals "cafe"). The plan should say whether that is
   the intended "ignoring case".
-- Found while planning 012: once names can be reused, undoing a category delete (brief 013) could bring back a name
+- Found while planning 012: once names can be reused, undoing a category delete (restore endpoint in brief 013, Undo in 018) could bring back a name
   that a category created in the meantime already uses; the plan should say what restore does then.
 
 ## Open questions

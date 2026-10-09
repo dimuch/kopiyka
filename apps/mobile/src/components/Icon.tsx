@@ -1,3 +1,4 @@
+import type { ColorValue } from 'react-native';
 import Svg, { Path } from 'react-native-svg';
 
 // Stroke icons drawn exactly as on the design canvas (24×24, round caps).
@@ -10,9 +11,29 @@ const PATHS = {
   check: ['M20 6L9 17l-5-5'],
   // Three dots: zero-length strokes drawn round with a thick pen.
   more: ['M5 12h.01', 'M12 12h.01', 'M19 12h.01'],
+  // Tab bar. Circles are two arcs, since only <Path> is drawn.
+  home: ['M3 10.5L12 3l9 7.5', 'M5 9v11a1 1 0 0 0 1 1h4v-6h4v6h4a1 1 0 0 0 1-1V9'],
+  budget: [
+    'M3 7a2 2 0 0 1 2-2h12v4',
+    'M3 7v11a2 2 0 0 0 2 2h14a1 1 0 0 0 1-1v-9a1 1 0 0 0-1-1H5a2 2 0 0 1-2-2',
+    'M16 14h.01',
+  ],
+  expenses: ['M6 3h12v18l-3-2-3 2-3-2-3 2z', 'M9 8h6', 'M9 12h6', 'M9 16h3'],
+  stats: ['M4 20h16', 'M7 16v-5', 'M12 16V6', 'M17 16V9'],
+  settings: [
+    'M4 6h9',
+    'M17 6h3',
+    'M4 12h3',
+    'M11 12h9',
+    'M4 18h11',
+    'M19 18h1',
+    'M13 6a2 2 0 1 0 4 0a2 2 0 1 0-4 0',
+    'M7 12a2 2 0 1 0 4 0a2 2 0 1 0-4 0',
+    'M15 18a2 2 0 1 0 4 0a2 2 0 1 0-4 0',
+  ],
 } as const;
 
-type IconName = keyof typeof PATHS;
+export type IconName = keyof typeof PATHS;
 
 export function Icon({
   name,
@@ -22,7 +43,7 @@ export function Icon({
 }: {
   name: IconName;
   size?: number;
-  color: string;
+  color: ColorValue;
   strokeWidth?: number;
 }) {
   return (

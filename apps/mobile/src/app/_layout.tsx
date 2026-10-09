@@ -26,7 +26,7 @@ function Screens() {
   return (
     <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: colors.bg } }}>
       <Stack.Protected guard={signedIn}>
-        <Stack.Screen name="index" />
+        <Stack.Screen name="(tabs)" />
         <Stack.Screen name="category/[categoryId]" />
         <Stack.Screen name="expense" options={{ presentation: 'modal' }} />
       </Stack.Protected>

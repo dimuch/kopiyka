@@ -112,7 +112,7 @@ alignItems/justifyContent: 'center', borderRadius: 12`) and holds `<Icon name="p
 
 ## Slices
 
-- [ ] 1. Add a bottom tab bar and move the month screen to an Expenses tab
+- [x] 1. Add a bottom tab bar and move the month screen to an Expenses tab
   - Files: `apps/mobile/src/app/index.tsx` → `apps/mobile/src/app/(tabs)/expenses.tsx` (`git mv`; rename the component
     `Home` → `Expenses`, nothing else). New: `(tabs)/_layout.tsx`, `(tabs)/index.tsx`, `(tabs)/budget.tsx`,
     `(tabs)/statistics.tsx`, `(tabs)/settings.tsx`, `components/PlaceholderPage.tsx`. Edited: `components/Icon.tsx`,

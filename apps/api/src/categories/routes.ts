@@ -1,5 +1,6 @@
 import type { FastifyInstance } from 'fastify';
 import type { RowDataPacket } from 'mysql2/promise';
+import { z } from 'zod';
 import type { AppDeps } from '../app.js';
 
 export const QUICK_CATEGORY_COUNT = 5;
@@ -9,6 +10,19 @@ export interface CategoryDto {
   techName: string;
   displayName: string;
   sortOrder: number;
+}
+
+/** One category with its live expenses across all months, for the delete warning. */
+export interface CategoryWithTotalsDto extends CategoryDto {
+  expenseCount: number;
+  /** Decimal string, '0.00' without expenses. */
+  totalEur: string;
+}
+
+const CategoryParams = z.object({ categoryId: z.coerce.number().int().positive() });
+
+function toDto(r: RowDataPacket): CategoryDto {
+  return { categoryId: r.category_id, techName: r.tech_name, displayName: r.display_name, sortOrder: r.sort_order };
 }
 
 /**
@@ -28,7 +42,9 @@ export function pickQuick(rows: Array<{ categoryId: number; sortOrder: number; l
 }
 
 export async function categoryRoutes(app: FastifyInstance, { db }: AppDeps): Promise<void> {
-  app.get('/api/ledgers/:id/categories', { preHandler: [app.requireAuth, app.requireLedger] }, async (req) => {
+  const guards = { preHandler: [app.requireAuth, app.requireLedger] };
+
+  app.get('/api/ledgers/:id/categories', guards, async (req) => {
     const [rows] = await db.query<RowDataPacket[]>(
       `SELECT c.category_id, c.tech_name, c.display_name, c.sort_order, u.last_used_at
            FROM categories c
@@ -43,15 +59,27 @@ export async function categoryRoutes(app: FastifyInstance, { db }: AppDeps): Pro
       [req.ledger!.ledgerId],
     );
 
-    const categories: CategoryDto[] = rows.map((r) => ({
-      categoryId: r.category_id,
-      techName: r.tech_name,
-      displayName: r.display_name,
-      sortOrder: r.sort_order,
-    }));
+    const categories = rows.map(toDto);
     const quickCategoryIds = pickQuick(
       rows.map((r) => ({ categoryId: r.category_id, sortOrder: r.sort_order, lastUsedAt: r.last_used_at })),
     );
     return { categories, quickCategoryIds };
+  });
+
+  app.get('/api/ledgers/:id/categories/:categoryId', guards, async (req, reply) => {
+    const { categoryId } = CategoryParams.parse(req.params);
+    const [rows] = await db.query<RowDataPacket[]>(
+      `SELECT c.category_id, c.tech_name, c.display_name, c.sort_order,
+              COUNT(e.expense_id) AS expense_count, COALESCE(SUM(e.amount_eur), 0) AS total_eur
+         FROM categories c
+         LEFT JOIN expenses e ON e.category_id = c.category_id AND e.deleted_at IS NULL
+        WHERE c.category_id = ? AND c.ledger_id = ? AND c.deleted_at IS NULL
+        GROUP BY c.category_id`,
+      [categoryId, req.ledger!.ledgerId],
+    );
+    const r = rows[0];
+    if (!r) return reply.code(404).send({ error: 'not_found' });
+    const dto: CategoryWithTotalsDto = { ...toDto(r), expenseCount: r.expense_count, totalEur: r.total_eur };
+    return dto;
   });
 }

@@ -61,7 +61,7 @@ harmless: the expense comes back on Undo and can be deleted again. The brief rec
 
 ## Slices
 
-- [ ] 1. Show a category's expense count and total across all months
+- [x] 1. Show a category's expense count and total across all months
   - Files: `apps/api/src/categories/routes.ts`, `apps/api/test/categories.int.test.ts`
   - Change:
     - Add `CategoryParams`, a shared `guards` constant, and `toDto(r)`, which the list now uses too.

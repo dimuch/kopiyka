@@ -85,7 +85,7 @@ harmless: the expense comes back on Undo and can be deleted again. The brief rec
     - Guards `describe.each` for GET one: 401 without a session, 404 on a stranger's ledger, 400 `invalid_request` for
       id `abc`. DELETE and restore join it in slices 2 and 3.
     - About 75 lines.
-- [ ] 2. Delete a category together with its expenses
+- [x] 2. Delete a category together with its expenses
   - Files: `apps/api/src/db.ts`, `apps/api/src/categories/routes.ts`, `apps/api/test/categories.int.test.ts`
   - Change:
     - Add `withTransaction`.

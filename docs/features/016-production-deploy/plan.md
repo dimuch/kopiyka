@@ -57,26 +57,26 @@ creates a lazy pool.
 
 ## Contracts
 
-- DB: no schema change. Production uses the existing MySQL user `uppr` (user decision; no new MySQL user). The runbook
-  creates only the `kopiyka` database and checks that `uppr` has privileges on it.
+- DB: no schema change. Production uses its own MySQL user `kopiyka` with rights on `kopiyka.*` only (changed in
+  review from the shared `uppr` account, see Deviations). The runbook creates the database and the user.
 - API: none (uses the existing `GET /api/health` → `200 {"ok":true}`).
 - App: none.
 - New dependencies: none (no npm packages, no third-party GitHub Actions; plain `ssh`/`curl` on the runner).
 
 **Droplet layout** (created by the runbook):
 
-| Path                                                                                  | Owner / mode    | What                                                                                                                            |
-| ------------------------------------------------------------------------------------- | --------------- | ------------------------------------------------------------------------------------------------------------------------------- |
-| `/opt/kopiyka/` (home of `kopiyka`)                                                   | kopiyka, `0755` | must be traversable by nginx (`www-data`)                                                                                       |
-| `/opt/kopiyka/repo.git`                                                               | kopiyka         | bare clone of `https://github.com/dimuch/kopiyka.git`                                                                           |
-| `/opt/kopiyka/releases/<UTC yyyymmddHHMMSS>-<sha7>/`                                  | kopiyka         | one exported + built commit                                                                                                     |
-| `/opt/kopiyka/current` → `releases/…`                                                 | kopiyka         | live release, switched with `ln -sfn` + `mv -T`                                                                                 |
-| `/opt/kopiyka/.ssh/authorized_keys`                                                   | kopiyka, `0600` | one line: `restrict,command="/usr/local/bin/kopiyka-deploy" ssh-ed25519 … kopiyka-github-deploy`                                |
-| `/usr/local/bin/kopiyka-deploy`                                                       | root, `0755`    | copy of `deploy/deploy.sh` from `main`                                                                                          |
-| `/etc/kopiyka/api.env`                                                                | root, `0600`    | `DATABASE_URL=mysql://uppr:<uppr's password, percent-encoded>@127.0.0.1:3306/kopiyka`, `TOTP_ENC_KEY=<openssl rand -base64 32>` |
-| `/etc/sudoers.d/kopiyka`                                                              | root, `0440`    | `kopiyka ALL=(root) NOPASSWD: /usr/bin/systemctl restart kopiyka.service`                                                       |
-| `/etc/systemd/system/kopiyka.service`                                                 | root            | copy of `deploy/kopiyka.service`                                                                                                |
-| `/etc/nginx/sites-available/kopiyka.englishplus.com.ua.conf` (+ `sites-enabled` link) | root            | copy of `deploy/kopiyka.englishplus.com.ua.conf`                                                                                |
+| Path                                                                                  | Owner / mode    | What                                                                                                           |
+| ------------------------------------------------------------------------------------- | --------------- | -------------------------------------------------------------------------------------------------------------- |
+| `/opt/kopiyka/` (home of `kopiyka`)                                                   | kopiyka, `0755` | must be traversable by nginx (`www-data`)                                                                      |
+| `/opt/kopiyka/repo.git`                                                               | kopiyka         | bare clone of `https://github.com/dimuch/kopiyka.git`                                                          |
+| `/opt/kopiyka/releases/<UTC yyyymmddHHMMSS>-<sha7>/`                                  | kopiyka         | one exported + built commit                                                                                    |
+| `/opt/kopiyka/current` → `releases/…`                                                 | kopiyka         | live release, switched with `ln -sfn` + `mv -T`                                                                |
+| `/opt/kopiyka/.ssh/authorized_keys`                                                   | kopiyka, `0600` | one line: `restrict,command="/usr/local/bin/kopiyka-deploy" ssh-ed25519 … kopiyka-github-deploy`               |
+| `/usr/local/bin/kopiyka-deploy`                                                       | root, `0755`    | copy of `deploy/deploy.sh` from `main`                                                                         |
+| `/etc/kopiyka/api.env`                                                                | root, `0600`    | `DATABASE_URL=mysql://kopiyka:<hex password>@127.0.0.1:3306/kopiyka`, `TOTP_ENC_KEY=<openssl rand -base64 32>` |
+| `/etc/sudoers.d/kopiyka`                                                              | root, `0440`    | `kopiyka ALL=(root) NOPASSWD: /usr/bin/systemctl restart kopiyka.service`                                      |
+| `/etc/systemd/system/kopiyka.service`                                                 | root            | copy of `deploy/kopiyka.service`                                                                               |
+| `/etc/nginx/sites-available/kopiyka.englishplus.com.ua.conf` (+ `sites-enabled` link) | root            | copy of `deploy/kopiyka.englishplus.com.ua.conf`                                                               |
 
 **Port**: API on `127.0.0.1:3100` (not in the used list 3000/3001/3900/3950/8945/3306; the runbook checks with `ss`).
 
@@ -257,9 +257,13 @@ corepack@0.36` (the same version as Node 24's bundled one).
   restricted, the user decides: a self-hosted runner or a firewall change.
 - **Node isn't at `/usr/bin/node`** (e.g. nvm). Runbook step 1 checks it. If so, the unit's `ExecStartPre`/`ExecStart`
   and the deploy script's `PATH` must change.
-- **Install scripts run as `kopiyka`, which owns `~/.ssh/authorized_keys`.** A malicious dependency's install script
-  could add a key and get a shell as `kopiyka`. Accepted: that shell can't read the env file, and sudo only restarts
-  the unit. An optional hardening is in Follow-ups.
+- **Build-time dependency code runs as `kopiyka`** (corrected in review). The env file is root-only, but code running
+  as `kopiyka` can still reach the secrets: it can read the running API's `/proc/<pid>/environ` (same uid), and it owns
+  the releases and may restart the unit, so it can plant code that systemd starts with the env file loaded. It can
+  also add a key to `~/.ssh/authorized_keys`. Narrowed, accepted by the user (2026-10-09): dependency install scripts
+  are off during deploys (`YARN_ENABLE_SCRIPTS=false`; the build needs none), and kopiyka has its own MySQL user with
+  rights on the `kopiyka` database only, so a leak can't reach the other sites' data. Only building on the runner
+  closes it (Follow-ups).
 
 ## Open questions
 
@@ -280,11 +284,17 @@ corepack@0.36` (the same version as Node 24's bundled one).
 - Build on the GitHub runner and ship artifacts, if the first deploys show the droplet can't take it (brief fallback).
 - DB backups and uptime monitoring (brief: worth a follow-up).
 - Other droplet apps bind `*:3000`-style public ports (note only, per the brief).
+- Build on the GitHub runner to take build-time dependency code off the droplet entirely (see the corrected risk).
 - Optional hardening: move the deploy key to a root-owned `AuthorizedKeysFile /etc/ssh/kopiyka_authorized_keys`
   (sshd `Match User kopiyka`), so code running as `kopiyka` can't add keys.
 
 ## Deviations
 
+- review: production uses its own MySQL user `kopiyka` (rights on `kopiyka.*` only) instead of the shared `uppr`
+  account, and `deploy.sh` sets `YARN_ENABLE_SCRIPTS=false` — the user's choice after the reviewer showed that code
+  running as `kopiyka` can read the API's secrets. Tested: install + API build + web export from a `git archive` with
+  scripts off all succeed. The runbook's key-limit checks moved into step 7 (before the key is deleted) and use
+  `ssh -W` for the forwarding check.
 - slice 3: the `EXIT` trap removes the new release only if `current` doesn't point to it (`readlink`), instead of a
   `switched` flag. Same guarantee (never delete the live release), one less variable, and it also covers a dropped
   session between the switch and the health check. Build/switch/rollback paths couldn't be sandboxed locally (macOS

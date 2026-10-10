@@ -1,0 +1,29 @@
+# /etc/systemd/system/kopiyka.service
+# Runs the kopiyka API as the `kopiyka` user on 127.0.0.1:3100. nginx
+# (kopiyka.englishplus.com.ua.conf) terminates TLS, serves the web app and
+# proxies /api here. Secrets live only in /etc/kopiyka/api.env (root 0600),
+# which systemd reads for us; see deploy/README.md.
+[Unit]
+Description=Kopiyka API
+After=network.target mysql.service
+
+[Service]
+Type=simple
+User=kopiyka
+Group=kopiyka
+WorkingDirectory=/opt/kopiyka/current/apps/api
+Environment=NODE_ENV=production HOST=127.0.0.1 PORT=3100
+EnvironmentFile=/etc/kopiyka/api.env
+# Pending migrations run before every start. A failed migration fails the
+# restart, which makes deploy.sh roll back to the previous release.
+ExecStartPre=/usr/bin/node dist/scripts/migrate.js
+ExecStart=/usr/bin/node dist/src/server.js
+Restart=always
+RestartSec=5
+# Hardening. The API writes nothing to disk; logs go to journald.
+NoNewPrivileges=true
+ProtectSystem=strict
+PrivateTmp=true
+
+[Install]
+WantedBy=multi-user.target

@@ -9,6 +9,12 @@ const PATHS = {
   swap: ['M7 7h13l-3-3', 'M17 17H4l3 3'],
   close: ['M6 6l12 12', 'M18 6L6 18'],
   check: ['M20 6L9 17l-5-5'],
+  calendar: [
+    'M5 5h14a1 1 0 0 1 1 1v14a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1z',
+    'M4 10h16',
+    'M8 3v4',
+    'M16 3v4',
+  ],
   // Three dots: zero-length strokes drawn round with a thick pen.
   more: ['M5 12h.01', 'M12 12h.01', 'M19 12h.01'],
   // Tab bar. Circles are two arcs, since only <Path> is drawn.

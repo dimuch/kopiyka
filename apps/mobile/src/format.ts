@@ -132,3 +132,9 @@ export function shortDate(date: string): string {
   const day = parseDate(date);
   return `${day.getDate()} ${day.toLocaleString('en-US', { month: 'short' })} ${day.getFullYear()}`;
 }
+
+/** '13/10/2026' for '2026-10-13': the field text a browser date input shows in a day-first locale. */
+export function numericDate(date: string): string {
+  const [y, m, d] = date.split('-');
+  return `${d}/${m}/${y}`;
+}

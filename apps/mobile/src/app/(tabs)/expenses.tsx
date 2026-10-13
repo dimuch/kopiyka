@@ -6,7 +6,7 @@ import { useColors, useThemedStyles } from '@/appearance/AppearanceContext';
 import { useSession } from '@/auth/AuthContext';
 import { AddExpenseButton } from '@/components/AddExpenseButton';
 import { CategoryTile } from '@/components/CategoryTile';
-import { CompactTotal, HeaderDivider, useCollapsingSummary } from '@/components/CollapsingSummary';
+import { HeaderDivider, useCollapsingSummary } from '@/components/CollapsingSummary';
 import { Icon } from '@/components/Icon';
 import { LoadError } from '@/components/LoadError';
 import { spentByCategory } from '@/data/monthSummary';
@@ -34,6 +34,17 @@ export default function Expenses() {
   return (
     <SafeAreaView style={styles.screen} edges={['top']}>
       <View style={styles.header}>
+        <View style={styles.side}>
+          {/* Same action as the Home tab icon: switches tabs, pushes nothing. */}
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel="Home"
+            onPress={() => router.navigate('/')}
+            style={styles.iconButton}
+          >
+            <Icon name="home" color={colors.muted} />
+          </Pressable>
+        </View>
         <View style={styles.monthSwitch}>
           <Pressable
             accessibilityRole="button"
@@ -43,7 +54,7 @@ export default function Expenses() {
           >
             <Icon name="back" color={colors.muted} />
           </Pressable>
-          <View>
+          <View style={styles.monthLabel}>
             <Text style={styles.eyebrow}>BUDGET ’{month.slice(2, 4)}</Text>
             <Text style={styles.month}>{monthName(month)}</Text>
           </View>
@@ -56,8 +67,7 @@ export default function Expenses() {
             <Icon name="forward" color={colors.muted} />
           </Pressable>
         </View>
-        <View style={styles.trailing}>
-          {total !== null ? <CompactTotal spentCents={total} budgetCents={null} style={collapse.compactStyle} /> : null}
+        <View style={[styles.side, styles.sideEnd]}>
           <AddExpenseButton />
         </View>
         <HeaderDivider style={collapse.dividerStyle} />
@@ -135,13 +145,15 @@ const makeStyles = (colors: Palette) =>
     header: {
       flexDirection: 'row',
       alignItems: 'center',
-      justifyContent: 'space-between',
       paddingBottom: 10,
       zIndex: 1,
     },
     content: { gap: 14, paddingTop: 4, paddingBottom: 24 },
     monthSwitch: { flexDirection: 'row', alignItems: 'center', gap: 4 },
-    trailing: { flexDirection: 'row', alignItems: 'center', gap: 4, flexShrink: 1 },
+    monthLabel: { alignItems: 'center' },
+    // Equal-width sides keep the month switcher on the header's true centre; flexBasis 0 matters on web.
+    side: { flex: 1, flexBasis: 0, flexDirection: 'row' },
+    sideEnd: { justifyContent: 'flex-end' },
     iconButton: { width: 44, height: 44, alignItems: 'center', justifyContent: 'center', borderRadius: 12 },
     eyebrow: { fontFamily: fonts.body, fontSize: 12, color: colors.muted, letterSpacing: 0.5 },
     month: { fontFamily: fonts.display, fontSize: 22, color: colors.text },

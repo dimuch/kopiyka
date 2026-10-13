@@ -300,7 +300,7 @@ Alternative considered: `@notionhq/client` (1.5 MB, no runtime deps). It loses b
       `{ status: 404, code: 'object_not_found' }`. A 502 with an HTML body throws `notion_error`. A rejecting fetch
       throws `notion_unreachable`. No message contains the token.
   - ~155 lines.
-- [ ] 6. Connect the sync to Notion from the API's environment
+- [x] 6. Connect the sync to Notion from the API's environment
   - Files: `apps/api/src/config.ts`, `apps/api/test/config.test.ts`, `apps/api/test/helpers.ts` (`notionApi: null`),
     `apps/api/src/server.ts`, `apps/api/.env.example`, `README.md` ("Notion sync")
   - Change:

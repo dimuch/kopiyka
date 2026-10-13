@@ -38,6 +38,7 @@ export function testConfig(totpKey = randomBytes(32)): Config {
     cookieSecure: false,
     corsOrigins: [],
     notion: null,
+    notionApi: null,
   };
 }
 

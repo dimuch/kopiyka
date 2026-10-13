@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import { parseKey } from './auth/secretBox.js';
+import type { NotionApiConfig } from './notion/client.js';
 
 const Env = z.object({
   NODE_ENV: z.enum(['development', 'test', 'production']).default('development'),
@@ -16,6 +17,13 @@ const Env = z.object({
   // Notion sync (brief 020): the ledger and year whose expenses go to the Budget tables; both or neither.
   NOTION_LEDGER_ID: z.coerce.number().int().positive().optional(),
   NOTION_YEAR: z.coerce.number().int().min(2000).max(2100).optional(),
+  // Notion API (brief 021): an internal integration's secret and the Groceries data source (the UUID in its
+  // collection:// URL); both or neither.
+  NOTION_TOKEN: z.string().min(1).optional(),
+  NOTION_GROCERIES_DATA_SOURCE_ID: z
+    .string()
+    .regex(/^[0-9a-f]{8}-?([0-9a-f]{4}-?){3}[0-9a-f]{12}$/i, 'expected the UUID of a collection:// URL')
+    .optional(),
 });
 
 /** Which ledger and year sync to the Notion Budget tables (brief 020). */
@@ -36,12 +44,17 @@ export interface Config {
   corsOrigins: string[];
   /** Null when Notion sync isn't set up. */
   notion: NotionScope | null;
+  /** Null when there's no Notion integration to sync through. */
+  notionApi: NotionApiConfig | null;
 }
 
 export function loadConfig(source: NodeJS.ProcessEnv = process.env): Config {
   const env = Env.parse(source);
   if ((env.NOTION_LEDGER_ID === undefined) !== (env.NOTION_YEAR === undefined)) {
     throw new Error('set NOTION_LEDGER_ID and NOTION_YEAR together');
+  }
+  if ((env.NOTION_TOKEN === undefined) !== (env.NOTION_GROCERIES_DATA_SOURCE_ID === undefined)) {
+    throw new Error('set NOTION_TOKEN and NOTION_GROCERIES_DATA_SOURCE_ID together');
   }
   return {
     env: env.NODE_ENV,
@@ -58,6 +71,10 @@ export function loadConfig(source: NodeJS.ProcessEnv = process.env): Config {
     notion:
       env.NOTION_LEDGER_ID !== undefined && env.NOTION_YEAR !== undefined
         ? { ledgerId: env.NOTION_LEDGER_ID, year: env.NOTION_YEAR }
+        : null,
+    notionApi:
+      env.NOTION_TOKEN !== undefined && env.NOTION_GROCERIES_DATA_SOURCE_ID !== undefined
+        ? { token: env.NOTION_TOKEN, groceriesDataSourceId: env.NOTION_GROCERIES_DATA_SOURCE_ID }
         : null,
   };
 }

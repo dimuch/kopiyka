@@ -205,7 +205,7 @@ the real date, because `ledgers.created_at` is the DB clock, while the tests pin
     `SELECT c.tech_name FROM categories c WHERE c.ledger_id = ? AND c.deleted_at IS NULL AND ${inMonthList('?')} ORDER BY c.sort_order`
     gives `['rent', 'groceries']`, the same as the pre-migration list.
   - ≈ 120 lines.
-- [ ] 3. Refuse an expense in a month whose list lacks its category
+- [x] 3. Refuse an expense in a month whose list lacks its category
   - Files: `apps/api/src/expenses/routes.ts` (`checkCategory` takes `expenseDate`; restore guard in `setDeleted`),
     `apps/api/test/expenses.int.test.ts`.
   - Tests in `expenses.int.test.ts`, `describe('month lists')`. The existing rate stub prices any date up to

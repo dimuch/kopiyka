@@ -3,6 +3,7 @@ import type { ResultSetHeader, RowDataPacket } from 'mysql2/promise';
 import { z } from 'zod';
 import type { AppDeps } from '../app.js';
 import { MONTH_RE, nextMonthStart } from '../dates.js';
+import { inMonthList } from '../categories/monthLists.js';
 import { AMOUNT_RE, centsToString, convert, e4ToString, rateToE4, toCents } from '../money.js';
 import { getEurUahRate, isAfterRateHorizon, RateDate, rateUnavailableReason } from '../rates/service.js';
 
@@ -64,14 +65,23 @@ export async function expenseRoutes(app: FastifyInstance, deps: AppDeps): Promis
   const { db, fetchRate, now } = deps;
   const guards = { preHandler: [app.requireAuth, app.requireLedger] };
 
-  /** Replies 400 and returns false unless the category is a live (not deleted) one in this ledger. */
-  async function checkCategory(req: FastifyRequest, reply: FastifyReply, categoryId: number): Promise<boolean> {
+  /**
+   * Replies 400 and returns false unless the category is a live (not deleted) one in this ledger and in the list of
+   * the expense date's month.
+   */
+  async function checkCategory(
+    req: FastifyRequest,
+    reply: FastifyReply,
+    categoryId: number,
+    expenseDate: string,
+  ): Promise<boolean> {
     const [rows] = await db.query<RowDataPacket[]>(
-      'SELECT 1 FROM categories WHERE category_id = ? AND ledger_id = ? AND deleted_at IS NULL',
-      [categoryId, req.ledger!.ledgerId],
+      `SELECT ${inMonthList('?')} AS in_month FROM categories c
+        WHERE c.category_id = ? AND c.ledger_id = ? AND c.deleted_at IS NULL`,
+      [expenseDate, categoryId, req.ledger!.ledgerId],
     );
-    if (rows.length) return true;
-    reply.code(400).send({ error: 'unknown_category' });
+    if (rows[0]?.in_month) return true;
+    reply.code(400).send({ error: rows.length ? 'category_not_in_month' : 'unknown_category' });
     return false;
   }
 
@@ -127,7 +137,7 @@ export async function expenseRoutes(app: FastifyInstance, deps: AppDeps): Promis
 
   app.post('/api/ledgers/:id/expenses', guards, async (req, reply) => {
     const input = ExpenseBody.parse(req.body);
-    if (!(await checkCategory(req, reply, input.categoryId))) return reply;
+    if (!(await checkCategory(req, reply, input.categoryId, input.expenseDate))) return reply;
     const priced = await price(req, reply, input);
     if (!priced) return reply;
 
@@ -157,7 +167,7 @@ export async function expenseRoutes(app: FastifyInstance, deps: AppDeps): Promis
     const input = ExpenseBody.parse(req.body);
     const current = await loadExpense(req.ledger!.ledgerId, expenseId);
     if (!current) return reply.code(404).send({ error: 'not_found' });
-    if (!(await checkCategory(req, reply, input.categoryId))) return reply;
+    if (!(await checkCategory(req, reply, input.categoryId, input.expenseDate))) return reply;
     const priced = await price(req, reply, input);
     if (!priced) return reply;
 
@@ -193,7 +203,7 @@ export async function expenseRoutes(app: FastifyInstance, deps: AppDeps): Promis
       `UPDATE expenses e JOIN categories c ON c.category_id = e.category_id
           SET e.deleted_at = ?, e.updated_at = e.updated_at -- not an edit; keep ON UPDATE from firing
         WHERE e.expense_id = ? AND c.ledger_id = ? AND e.deleted_at IS ${deleted ? '' : 'NOT '}NULL
-          ${deleted ? '' : 'AND c.deleted_at IS NULL'}`,
+          ${deleted ? '' : `AND c.deleted_at IS NULL AND ${inMonthList('e.expense_date')}`}`,
       [deleted ? now() : null, expenseId, ledgerId],
     );
     return res.affectedRows === 1;

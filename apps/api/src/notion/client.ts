@@ -26,10 +26,20 @@ export interface ExpensesRow {
   category: string;
 }
 
+/** One month's view of the Expenses table. */
+export interface MonthView {
+  /** The month's page in the Netto table; the view's rows relate to it. */
+  nettoPageId: string;
+  rows: ExpensesRow[];
+}
+
 /** The Notion Expenses table of the synced year, one row per category per month. Page ids are 32 lowercase hex. */
 export interface ExpensesTable {
-  /** The month's live rows: Month is its short name and they relate to the month's Netto page. month is 'YYYY-MM'. */
-  monthRows(month: string): Promise<ExpensesRow[]>;
+  /**
+   * The month's live rows: Month is its short name and they relate to the month's Netto page. month is 'YYYY-MM'.
+   * null when the Netto table has no page for the month.
+   */
+  monthRows(month: string): Promise<MonthView | null>;
   /** A row's Actual Amount in cents; null when empty. */
   actualCents(pageId: string): Promise<bigint | null>;
   /** Writes Actual Amount only; other columns are untouched. */
@@ -185,7 +195,7 @@ export function notionClient(
         page_size: 10,
       });
       const page = ((netto.results ?? []) as Array<{ id: string; in_trash?: boolean }>).find((r) => !r.in_trash);
-      if (!page) return [];
+      if (!page) return null;
       const nettoId = pageId(page.id);
       const rows = await request('POST', `/data_sources/${totals.expensesDataSourceId}/query`, {
         filter: {
@@ -202,12 +212,15 @@ export function notionClient(
         page_size: 100,
       });
       type Row = { id: string; in_trash?: boolean; properties: { Category: { title: Array<{ plain_text: string }> } } };
-      return ((rows.results ?? []) as Row[])
-        .filter((r) => !r.in_trash)
-        .map((r) => ({
-          pageId: pageId(r.id),
-          category: r.properties.Category.title.map((t) => t.plain_text).join(''),
-        }));
+      return {
+        nettoPageId: nettoId,
+        rows: ((rows.results ?? []) as Row[])
+          .filter((r) => !r.in_trash)
+          .map((r) => ({
+            pageId: pageId(r.id),
+            category: r.properties.Category.title.map((t) => t.plain_text).join(''),
+          })),
+      };
     },
     async actualCents(id) {
       const page = (await request('GET', `/pages/${id}`)) as {

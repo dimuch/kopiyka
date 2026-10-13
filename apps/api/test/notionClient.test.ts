@@ -174,9 +174,10 @@ describe('notionClient', () => {
           ],
         }),
       );
-      expect(await expenses.monthRows('2026-10')).toEqual([
-        { pageId: '2d2203e3e5e5811eaf85e0821e42c511', category: 'clothes' },
-      ]);
+      expect(await expenses.monthRows('2026-10')).toEqual({
+        nettoPageId: OCTOBER,
+        rows: [{ pageId: '2d2203e3e5e5811eaf85e0821e42c511', category: 'clothes' }],
+      });
       expect(requests.map((r) => [r.url, r.method, r.body])).toEqual([
         [
           `https://api.notion.com/v1/data_sources/${nettoDs}/query`,
@@ -204,7 +205,7 @@ describe('notionClient', () => {
       ]);
     });
 
-    it("uses Notion's month names, and answers [] without a Netto page", async () => {
+    it("uses Notion's month names, and answers null without a Netto page", async () => {
       const sept = setup(json({ results: [{ id: OCTOBER }] }), json({ results: [] }));
       await sept.expenses.monthRows('2026-09');
       expect((sept.requests[0]!.body as { filter: { title: { equals: string } } }).filter.title.equals).toBe(
@@ -213,7 +214,7 @@ describe('notionClient', () => {
       expect(JSON.stringify(sept.requests[1]!.body)).toContain('"equals":"Sept"');
 
       const missing = setup(json({ results: [] }));
-      expect(await missing.expenses.monthRows('2026-11')).toEqual([]);
+      expect(await missing.expenses.monthRows('2026-11')).toBeNull();
       expect(missing.requests.length).toBe(1);
     });
 

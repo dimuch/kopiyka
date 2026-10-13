@@ -10,7 +10,7 @@ import { CompactTotal, HeaderDivider, useCollapsingSummary } from '@/components/
 import { Icon } from '@/components/Icon';
 import { LoadError } from '@/components/LoadError';
 import { restoreExpense } from '@/data/expenses';
-import { groupByDay, sumCents } from '@/data/monthSummary';
+import { expenseCount, groupByDay, sumCents } from '@/data/monthSummary';
 import { useMonth } from '@/data/useMonth';
 import { takePendingUndo, type PendingUndo } from '@/data/undo';
 import { dayLabel, eur, kyivMonth, monthLabel, monthName, toCents, uah } from '@/format';
@@ -137,7 +137,7 @@ function CategoryBreakdown({ categoryId, month }: { categoryId: number; month: s
             <View>
               <Text style={styles.title}>{category.displayName}</Text>
               <Text style={styles.caption}>
-                {count} {count === 1 ? 'expense' : 'expenses'} · {monthLabel(month)}
+                {expenseCount(count)} · {monthLabel(month)}
               </Text>
             </View>
           </View>

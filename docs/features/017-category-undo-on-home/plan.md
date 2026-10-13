@@ -78,7 +78,7 @@ brief picks the extraction with two callers on purpose, as a departure from the 
 
 ## Slices
 
-- [ ] 1. Show expense counts with one shared label
+- [x] 1. Show expense counts with one shared label
   - Files: `apps/mobile/src/data/monthSummary.ts`, `apps/mobile/test/monthSummary.test.ts`,
     `apps/mobile/src/app/category/[categoryId].tsx`, `apps/mobile/src/app/(tabs)/index.tsx`
   - Change: add `expenseCount`. The Category caption becomes `{expenseCount(count)} · {monthLabel(month)}`. Home's

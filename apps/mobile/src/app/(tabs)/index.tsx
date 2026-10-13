@@ -7,7 +7,7 @@ import { useSession } from '@/auth/AuthContext';
 import { Icon, type IconName } from '@/components/Icon';
 import { LoadError } from '@/components/LoadError';
 import { NotionSyncPanel } from '@/components/NotionSyncPanel';
-import { sumCents } from '@/data/monthSummary';
+import { expenseCount, sumCents } from '@/data/monthSummary';
 import { useMonth } from '@/data/useMonth';
 import { useNotionSync } from '@/data/useNotionSync';
 import { eur, kyivMonth, monthLabel } from '@/format';
@@ -35,7 +35,7 @@ export default function Home() {
       title: 'Statistics',
       href: '/statistics',
       icon: 'stats',
-      figure: count === undefined ? null : `${count} ${count === 1 ? 'expense' : 'expenses'}`,
+      figure: count === undefined ? null : expenseCount(count),
     },
     { title: 'Settings', href: '/settings', icon: 'settings', figure: user.username },
   ];

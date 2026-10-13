@@ -33,6 +33,31 @@ export interface MonthView {
   rows: ExpensesRow[];
 }
 
+/** A live row of the Expenses table, any month: what a new row of its category copies. */
+export interface ExpensesTemplate {
+  /** Category title as Notion shows it. */
+  category: string;
+  /** 1–12 from the Month select; null when empty or not one of Notion's short names. */
+  month: number | null;
+  /** Budget in cents; null when empty. */
+  budgetCents: bigint | null;
+  /** Type select option name; null when empty. */
+  type: string | null;
+}
+
+/** What kopiyka writes to a new Expenses row. Actual Amount and Note stay empty. */
+export interface NewExpensesRow {
+  category: string;
+  /** 'YYYY-MM'. */
+  month: string;
+  /** B to Netto and E to Netto both relate to it. */
+  nettoPageId: string;
+  /** null leaves Budget empty. */
+  budgetCents: bigint | null;
+  /** null leaves Type empty. */
+  type: string | null;
+}
+
 /** The Notion Expenses table of the synced year, one row per category per month. Page ids are 32 lowercase hex. */
 export interface ExpensesTable {
   /**
@@ -44,6 +69,10 @@ export interface ExpensesTable {
   actualCents(pageId: string): Promise<bigint | null>;
   /** Writes Actual Amount only; other columns are untouched. */
   setActualCents(pageId: string, cents: bigint): Promise<void>;
+  /** Every live row of the table, all months. */
+  allRows(): Promise<ExpensesTemplate[]>;
+  /** Creates the row and returns its page id. */
+  createRow(row: NewExpensesRow): Promise<string>;
 }
 
 /** A failed Notion call: Notion's error code ('object_not_found', 'rate_limited', …) or 'notion_unreachable'. */
@@ -78,6 +107,11 @@ const MONTHS = [
 ];
 
 const SHORT_MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'June', 'July', 'Aug', 'Sept', 'Oct', 'Nov', 'Dec'];
+
+/** Notion's numbers are floats: round to cents once, here at the boundary. */
+function notionCents(value: number | null | undefined): bigint | null {
+  return value === null || value === undefined ? null : BigInt(Math.round(value * 100));
+}
 
 export interface NotionApiConfig {
   token: string;
@@ -226,14 +260,59 @@ export function notionClient(
       const page = (await request('GET', `/pages/${id}`)) as {
         properties?: { 'Actual Amount'?: { number: number | null } };
       };
-      const value = page.properties?.['Actual Amount']?.number;
-      // Notion's numbers are floats: round to cents once, here at the boundary.
-      return value === null || value === undefined ? null : BigInt(Math.round(value * 100));
+      return notionCents(page.properties?.['Actual Amount']?.number);
     },
     async setActualCents(id, cents) {
       await request('PATCH', `/pages/${id}`, {
         properties: { 'Actual Amount': { number: Number(centsToString(cents)) } },
       });
+    },
+    async allRows() {
+      type Row = {
+        in_trash?: boolean;
+        properties: {
+          Category: { title: Array<{ plain_text: string }> };
+          Month?: { select: { name: string } | null };
+          Budget?: { number: number | null };
+          Type?: { select: { name: string } | null };
+        };
+      };
+      const templates: ExpensesTemplate[] = [];
+      let cursor: string | undefined;
+      do {
+        const answer = await request('POST', `/data_sources/${totals.expensesDataSourceId}/query`, {
+          page_size: 100,
+          ...(cursor ? { start_cursor: cursor } : {}),
+        });
+        for (const r of (answer.results ?? []) as Row[]) {
+          if (r.in_trash) continue;
+          const month = SHORT_MONTHS.indexOf(r.properties.Month?.select?.name ?? '') + 1;
+          templates.push({
+            category: r.properties.Category.title.map((t) => t.plain_text).join(''),
+            month: month || null,
+            budgetCents: notionCents(r.properties.Budget?.number),
+            type: r.properties.Type?.select?.name ?? null,
+          });
+        }
+        cursor = answer.has_more && typeof answer.next_cursor === 'string' ? answer.next_cursor : undefined;
+      } while (cursor);
+      return templates;
+    },
+    async createRow(row) {
+      const properties: Record<string, unknown> = {
+        Category: { title: [{ text: { content: row.category } }] },
+        Month: { select: { name: SHORT_MONTHS[Number(row.month.slice(5, 7)) - 1] } },
+        // Both relations, as on the rows made by hand, so the row shows in the month's view either way.
+        'B to Netto': { relation: [{ id: row.nettoPageId }] },
+        'E to Netto': { relation: [{ id: row.nettoPageId }] },
+      };
+      if (row.budgetCents !== null) properties.Budget = { number: Number(centsToString(row.budgetCents)) };
+      if (row.type !== null) properties.Type = { select: { name: row.type } };
+      const answer = await request('POST', '/pages', {
+        parent: { type: 'data_source_id', data_source_id: totals.expensesDataSourceId },
+        properties,
+      });
+      return pageId(answer.id);
     },
   };
 

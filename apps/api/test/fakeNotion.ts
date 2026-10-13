@@ -1,4 +1,4 @@
-import { type GroceriesTable, type GroceryRow, NotionError } from '../src/notion/client.js';
+import { type ExpensesTable, type GroceriesTable, type GroceryRow, NotionError } from '../src/notion/client.js';
 
 type FakePage = { props: GroceryRow | { foreign: string }; inTrash: boolean };
 
@@ -78,5 +78,59 @@ export function fakeNotion(): FakeNotion {
     return page;
   }
 
+  return fake;
+}
+
+type FakeExpensesRow = { category: string; month: string; inView: boolean; actualCents: bigint | null };
+
+/** An in-memory Notion Expenses table: one row per category per month, with Actual Amount in cents. */
+export interface FakeExpenses extends ExpensesTable {
+  rows: Map<string, FakeExpensesRow>;
+  calls: string[];
+  /** Store the next written value, then throw as if the answer was lost. */
+  failAfterSet: boolean;
+  /** Fail actualCents / setActualCents on these page ids. */
+  failOn: Map<string, NotionError>;
+  /** Fail monthRows for these 'YYYY-MM' months. */
+  failMonth: Map<string, NotionError>;
+}
+
+export function fakeExpenses(): FakeExpenses {
+  const fake: FakeExpenses = {
+    rows: new Map(),
+    calls: [],
+    failAfterSet: false,
+    failOn: new Map(),
+    failMonth: new Map(),
+    async monthRows(month) {
+      fake.calls.push(`monthRows ${month}`);
+      const err = fake.failMonth.get(month);
+      if (err) throw err;
+      // inView models the month view's relation filter and trash.
+      return [...fake.rows]
+        .filter(([, r]) => r.month === month && r.inView)
+        .map(([pageId, r]) => ({ pageId, category: r.category }));
+    },
+    async actualCents(id) {
+      fake.calls.push(`actualCents ${id}`);
+      const err = fake.failOn.get(id);
+      if (err) throw err;
+      const row = fake.rows.get(id);
+      if (!row) throw new NotionError(404, 'object_not_found');
+      return row.actualCents;
+    },
+    async setActualCents(id, cents) {
+      fake.calls.push(`setActualCents ${id} ${cents}`);
+      const err = fake.failOn.get(id);
+      if (err) throw err;
+      const row = fake.rows.get(id);
+      if (!row) throw new NotionError(404, 'object_not_found');
+      row.actualCents = cents;
+      if (fake.failAfterSet) {
+        fake.failAfterSet = false;
+        throw new NotionError(0, 'notion_unreachable');
+      }
+    },
+  };
   return fake;
 }

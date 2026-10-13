@@ -37,8 +37,9 @@ function yearBounds(year: number): [string, string] {
 }
 
 /**
- * The scoped ledger's expenses that are groceries of the year now, or already have a Notion row, oldest first.
- * Groceries are matched by tech_name, so renaming the category doesn't change what syncs.
+ * The scoped ledger's expenses that are groceries of the year now, or have a row in this year's Notion table, oldest
+ * first. Rows sent to another year's table are left out, so switching years never trashes them. Groceries are matched
+ * by tech_name, so renaming the category doesn't change what syncs.
  */
 export async function loadGroceries(db: Db, scope: NotionScope): Promise<GroceryState[]> {
   const [from, to] = yearBounds(scope.year);
@@ -49,10 +50,11 @@ export async function loadGroceries(db: Db, scope: NotionScope): Promise<Grocery
             r.notion_page_id, r.sent_name, r.sent_amount_eur, r.sent_date
        FROM expenses e
        JOIN categories c ON c.category_id = e.category_id
-       LEFT JOIN notion_grocery_rows r ON r.expense_id = e.expense_id
+       LEFT JOIN notion_grocery_rows r
+              ON r.expense_id = e.expense_id AND r.sent_date >= ? AND r.sent_date < ?
       WHERE c.ledger_id = ? AND (r.expense_id IS NOT NULL OR ${wanted})
       ORDER BY e.expense_date, e.expense_id`,
-    [from, to, scope.ledgerId, from, to],
+    [from, to, from, to, scope.ledgerId, from, to],
   );
   return rows.map((r) => ({
     expenseId: r.expense_id,

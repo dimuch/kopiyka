@@ -283,7 +283,7 @@ Alternative considered: `@notionhq/client` (1.5 MB, no runtime deps). It loses b
     - **Guards**: 401 without a session, 404 `not_found` for a non-member, 400 for `/api/ledgers/abc/notion/sync`.
   - ~125 lines.
 
-- [ ] 5. Talk to Notion with a small fetch client that respects its rate limit
+- [x] 5. Talk to Notion with a small fetch client that respects its rate limit
   - Files: `apps/api/src/notion/client.ts` (`notionClient`), `apps/api/test/notionClient.test.ts`
   - Change: the client from Contracts.
   - Tests (unit; fake `fetchImpl` returning queued `Response`s, recorded `sleep`, fixed `now`):

@@ -9,13 +9,13 @@ import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { ActivityIndicator, View } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
-import { AuthProvider, useAuth } from '@/auth/AuthContext';
 import { AppearanceProvider, useAppearance, useColors } from '@/appearance/AppearanceContext';
+import { AuthProvider, useAuth } from '@/auth/AuthContext';
 import { PhoneColumn } from '@/components/PhoneColumn';
-import { colors } from '@/theme';
 
 function Screens() {
   const { state } = useAuth();
+  const colors = useColors();
   if (state.status === 'loading') {
     return (
       <View style={{ flex: 1, backgroundColor: colors.bg, alignItems: 'center', justifyContent: 'center' }}>

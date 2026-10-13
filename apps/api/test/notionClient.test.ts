@@ -106,6 +106,13 @@ describe('notionClient', () => {
     });
   });
 
+  it('tells whether a page is in trash', async () => {
+    const { client, requests } = setup(json({ id: 'p', in_trash: true }), json({ id: 'p', in_trash: false }));
+    expect(await client.isInTrash('p1')).toBe(true);
+    expect(await client.isInTrash('p1')).toBe(false);
+    expect(requests[0]).toMatchObject({ url: 'https://api.notion.com/v1/pages/p1', method: 'GET', body: undefined });
+  });
+
   it('keeps requests at least 334 ms apart', async () => {
     const { client, sleeps } = setup(json({}), json({}));
     await client.setInTrash('p1', true);

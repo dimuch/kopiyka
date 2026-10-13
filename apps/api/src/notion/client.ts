@@ -13,7 +13,9 @@ export interface GroceriesTable {
   create(row: GroceryRow): Promise<string>;
   /** Sets Name, Amount, Date, Month and Kopiyka ID; other columns are untouched. */
   update(pageId: string, row: GroceryRow): Promise<void>;
+  /** Notion refuses to move a page to the state it's already in (validation_error). */
   setInTrash(pageId: string, inTrash: boolean): Promise<void>;
+  isInTrash(pageId: string): Promise<boolean>;
 }
 
 /** A failed Notion call: Notion's error code ('object_not_found', 'rate_limited', …) or 'notion_unreachable'. */
@@ -71,7 +73,11 @@ export function notionClient(
   const headers = { Authorization: `Bearer ${token}`, 'Notion-Version': VERSION, 'Content-Type': 'application/json' };
   let nextAt = 0;
 
-  async function request(method: 'POST' | 'PATCH', path: string, body: unknown): Promise<Record<string, unknown>> {
+  async function request(
+    method: 'GET' | 'POST' | 'PATCH',
+    path: string,
+    body?: unknown,
+  ): Promise<Record<string, unknown>> {
     for (let attempt = 1; ; attempt++) {
       const t = now();
       if (t < nextAt) await sleep(nextAt - t);
@@ -82,7 +88,7 @@ export function notionClient(
         res = await fetchImpl(`${API}${path}`, {
           method,
           headers,
-          body: JSON.stringify(body),
+          body: body === undefined ? undefined : JSON.stringify(body),
           signal: AbortSignal.timeout(10_000),
         });
       } catch {
@@ -141,6 +147,10 @@ export function notionClient(
     },
     async setInTrash(id, inTrash) {
       await request('PATCH', `/pages/${id}`, { in_trash: inTrash });
+    },
+    async isInTrash(id) {
+      const page = await request('GET', `/pages/${id}`);
+      return page.in_trash === true;
     },
   };
 }

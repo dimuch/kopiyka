@@ -416,6 +416,9 @@ Record the results in the PR test plan.
 
 ## Deviations
 
+- Gate B real-Notion check: Notion refuses (`validation_error`) to trash a page that's already in trash; the fake
+  had accepted it. `GroceriesTable` gains `isInTrash` (`GET /v1/pages/{id}`), and a refused move into or out of trash
+  counts as done when the page is already there. The fake now refuses a same-state move like Notion.
 - review: a create first checks for a live record of the same expense in another year and fails with
   `sent_in_other_year` before any Notion call (the plan had the INSERT fail with `internal` after creating the row).
 - review: the last-sync time is taken before the run starts, so it never claims a grocery added during the run.

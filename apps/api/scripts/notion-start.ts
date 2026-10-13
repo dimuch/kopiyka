@@ -29,7 +29,9 @@ if (!config.notion) {
 }
 if (!pairs.success) {
   console.error(usage);
-  for (const issue of pairs.error.issues) console.error(`  ${issue.path.join('.')}: ${issue.message}`);
+  for (const issue of pairs.error.issues) {
+    console.error(issue.path.length ? `  ${issue.path.join('.')}: ${issue.message}` : `  ${issue.message}`);
+  }
   process.exit(1);
 }
 

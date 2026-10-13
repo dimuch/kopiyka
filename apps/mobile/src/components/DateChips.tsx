@@ -1,7 +1,8 @@
 import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { useThemedStyles } from '@/appearance/AppearanceContext';
 import { DateField } from '@/components/DateField';
 import { addDays } from '@/format';
-import { colors, fonts } from '@/theme';
+import { fonts, type Palette } from '@/theme';
 
 interface Props {
   /** 'YYYY-MM-DD' */
@@ -13,6 +14,7 @@ interface Props {
 
 /** The date field with Today and Yesterday shortcuts. */
 export function DateChips({ value, today, onChange }: Props) {
+  const styles = useThemedStyles(makeStyles);
   const chips = [
     { label: 'Today', value: today },
     { label: 'Yesterday', value: addDays(today, -1) },
@@ -35,17 +37,18 @@ export function DateChips({ value, today, onChange }: Props) {
   );
 }
 
-const styles = StyleSheet.create({
-  row: { flexDirection: 'row', gap: 8 },
-  chip: {
-    height: 48,
-    borderRadius: 14,
-    borderWidth: 1,
-    borderColor: colors.borderStrong,
-    backgroundColor: colors.surface,
-    paddingHorizontal: 14,
-    justifyContent: 'center',
-  },
-  chipOn: { borderColor: colors.accent, backgroundColor: colors.accentTint },
-  chipText: { fontFamily: fonts.bodyMedium, fontSize: 14, color: colors.text },
-});
+const makeStyles = (colors: Palette) =>
+  StyleSheet.create({
+    row: { flexDirection: 'row', gap: 8 },
+    chip: {
+      height: 48,
+      borderRadius: 14,
+      borderWidth: 1,
+      borderColor: colors.borderStrong,
+      backgroundColor: colors.surface,
+      paddingHorizontal: 14,
+      justifyContent: 'center',
+    },
+    chipOn: { borderColor: colors.accent, backgroundColor: colors.accentTint },
+    chipText: { fontFamily: fonts.bodyMedium, fontSize: 14, color: colors.text },
+  });

@@ -1,9 +1,10 @@
 import { Modal, Pressable, StyleSheet, Text, View } from 'react-native';
 import type { Category } from '@/api/types';
+import { useColors, useThemedStyles } from '@/appearance/AppearanceContext';
 import { CategoryTile } from '@/components/CategoryTile';
 import { Icon } from '@/components/Icon';
 import { PhoneColumn } from '@/components/PhoneColumn';
-import { colors, fonts } from '@/theme';
+import { fonts, type Palette } from '@/theme';
 
 interface Props {
   visible: boolean;
@@ -14,6 +15,8 @@ interface Props {
 
 /** "All categories" bottom sheet from the Add expense design. */
 export function CategorySheet({ visible, categories, onPick, onClose }: Props) {
+  const colors = useColors();
+  const styles = useThemedStyles(makeStyles);
   return (
     <Modal visible={visible} transparent animationType="slide" onRequestClose={onClose}>
       {/* On web the modal covers the whole window; keep the sheet in the app's column, and close on clicks beside it. */}
@@ -51,36 +54,37 @@ export function CategorySheet({ visible, categories, onPick, onClose }: Props) {
   );
 }
 
-const styles = StyleSheet.create({
-  backdrop: { flex: 1, backgroundColor: colors.backdrop },
-  sheet: {
-    backgroundColor: colors.surface,
-    borderTopWidth: 1,
-    borderColor: colors.borderStrong,
-    borderTopLeftRadius: 26,
-    borderTopRightRadius: 26,
-    paddingTop: 10,
-    paddingHorizontal: 20,
-    paddingBottom: 32,
-    gap: 14,
-  },
-  handle: { alignSelf: 'center', width: 40, height: 4, borderRadius: 2, backgroundColor: colors.borderStrongest },
-  head: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
-  title: { fontFamily: fonts.display, fontSize: 18, color: colors.text },
-  close: { width: 44, height: 44, marginRight: -10, alignItems: 'center', justifyContent: 'center' },
-  hint: { fontFamily: fonts.body, fontSize: 12, color: colors.muted },
-  grid: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
-  item: {
-    width: '48.5%',
-    height: 48,
-    paddingHorizontal: 10,
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 10,
-    borderRadius: 14,
-    borderWidth: 1,
-    borderColor: colors.borderStrong,
-    backgroundColor: colors.surfaceRaised,
-  },
-  itemText: { flex: 1, fontFamily: fonts.bodyMedium, fontSize: 14, color: colors.text },
-});
+const makeStyles = (colors: Palette) =>
+  StyleSheet.create({
+    backdrop: { flex: 1, backgroundColor: colors.backdrop },
+    sheet: {
+      backgroundColor: colors.surface,
+      borderTopWidth: 1,
+      borderColor: colors.borderStrong,
+      borderTopLeftRadius: 26,
+      borderTopRightRadius: 26,
+      paddingTop: 10,
+      paddingHorizontal: 20,
+      paddingBottom: 32,
+      gap: 14,
+    },
+    handle: { alignSelf: 'center', width: 40, height: 4, borderRadius: 2, backgroundColor: colors.borderStrongest },
+    head: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
+    title: { fontFamily: fonts.display, fontSize: 18, color: colors.text },
+    close: { width: 44, height: 44, marginRight: -10, alignItems: 'center', justifyContent: 'center' },
+    hint: { fontFamily: fonts.body, fontSize: 12, color: colors.muted },
+    grid: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
+    item: {
+      width: '48.5%',
+      height: 48,
+      paddingHorizontal: 10,
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 10,
+      borderRadius: 14,
+      borderWidth: 1,
+      borderColor: colors.borderStrong,
+      backgroundColor: colors.surfaceRaised,
+    },
+    itemText: { flex: 1, fontFamily: fonts.bodyMedium, fontSize: 14, color: colors.text },
+  });

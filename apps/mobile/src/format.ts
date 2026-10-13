@@ -48,6 +48,19 @@ function kyivFormat(options: Intl.DateTimeFormatOptions): Intl.DateTimeFormat {
 const kyivYear = kyivFormat({ year: 'numeric' });
 const kyivMonthNumber = kyivFormat({ month: '2-digit' });
 const kyivDay = kyivFormat({ day: '2-digit' });
+const kyivDayNumber = kyivFormat({ day: 'numeric' });
+const kyivMonthShort = kyivFormat({ month: 'short' });
+const kyivHour = kyivFormat({ hour: '2-digit', hourCycle: 'h23' });
+const kyivMinute = kyivFormat({ minute: '2-digit' });
+
+/** '10 Oct, 14:02': an ISO instant on the Kyiv clock, 24-hour. */
+export function kyivDayTime(iso: string): string {
+  const at = new Date(iso);
+  // Some engines answer '24' at midnight even with h23; minutes come back unpadded.
+  const hour = String(Number(kyivHour.format(at)) % 24).padStart(2, '0');
+  const minute = kyivMinute.format(at).padStart(2, '0');
+  return `${kyivDayNumber.format(at)} ${kyivMonthShort.format(at)}, ${hour}:${minute}`;
+}
 
 /** The 'YYYY-MM-DD' date in Kyiv at `now`, whatever the device's time zone: expenses are dated like NBU rates. */
 export function kyivToday(now: Date): string {
@@ -73,6 +86,12 @@ export function monthName(month: string): string {
 
 export function monthLabel(month: string): string {
   return `${monthName(month)} ${month.slice(0, 4)}`;
+}
+
+/** 'Jan 2027' for '2027-01'. */
+export function shortMonthLabel(month: string): string {
+  const [y, m] = month.split('-').map(Number) as [number, number];
+  return `${new Date(y, m - 1, 1).toLocaleString('en-US', { month: 'short' })} ${y}`;
 }
 
 /** 'TUE 29 SEP' for '2026-09-29'. */

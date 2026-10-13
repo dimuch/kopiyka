@@ -351,7 +351,14 @@ data):
 
 ## Deviations
 
-<filled by the developer during build>
+- None in behaviour or contracts.
+- Size: about 480 changed lines of code and tests against the ~385 estimate, mostly slice 2's client tests (~220
+  lines against ~140).
+- Review (one round, APPROVE WITH NITS): two sync tests added — a new row takes Notion's spelling of the category
+  (`Sviat`), and a failed `allRows` lists every create of the run without creating anything; `latestTemplate` tracks
+  the latest month directly.
+- Local runs set `DATABASE_URL_TEST` from the main checkout's `apps/api/.env`, so the integration tests ran on every
+  slice.
 
 ## Revision 1
 

@@ -11,6 +11,7 @@ import {
   monthLabel,
   monthName,
   normalizeAmount,
+  numericDate,
   otherAmountText,
   parseDate,
   shiftMonth,
@@ -172,5 +173,7 @@ describe('format: dates', () => {
     expect(shortDate('2026-03-29')).toBe('29 Mar 2026');
     // Three letters on every platform; ICU's en-GB says 'Sept'.
     expect(shortDate('2026-09-06')).toBe('6 Sep 2026');
+    expect(numericDate('2026-10-13')).toBe('13/10/2026');
+    expect(numericDate('2027-01-01')).toBe('01/01/2027');
   });
 });

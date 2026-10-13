@@ -6,6 +6,11 @@ export function sumCents(expenses: Expense[], field: 'amountEur' | 'amountUah'):
   return expenses.reduce((sum, e) => sum + toCents(e[field]), 0);
 }
 
+/** '0 expenses', '1 expense', '23 expenses'. */
+export function expenseCount(n: number): string {
+  return `${n} ${n === 1 ? 'expense' : 'expenses'}`;
+}
+
 /** EUR cents spent per category id; categories without expenses are absent. */
 export function spentByCategory(expenses: Expense[]): Map<number, number> {
   const spent = new Map<number, number>();

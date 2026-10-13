@@ -1,6 +1,14 @@
 import { describe, expect, it } from 'vitest';
 import type { Expense } from '@/api/types';
-import { groupByDay, spentByCategory, sumCents } from '@/data/monthSummary';
+import { expenseCount, groupByDay, spentByCategory, sumCents } from '@/data/monthSummary';
+
+describe('expenseCount', () => {
+  it('says how many expenses, singular for one', () => {
+    expect(expenseCount(0)).toBe('0 expenses');
+    expect(expenseCount(1)).toBe('1 expense');
+    expect(expenseCount(23)).toBe('23 expenses');
+  });
+});
 
 function expense(
   expenseId: number,

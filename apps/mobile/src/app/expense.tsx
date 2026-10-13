@@ -220,14 +220,12 @@ function ExpenseForm({ draft, ledgerId }: { draft: ExpenseDraftData; ledgerId: n
     setBusy(true);
     try {
       await deleteExpense(ledgerId, expense.expenseId);
-      // Only the Category screen takes the offer; landing on Home it would wait for an unrelated later visit.
-      if (router.canGoBack()) {
-        const { expenseId } = expense;
-        setPendingUndo({
-          message: `Deleted “${expense.name || 'Expense'}”`,
-          restore: () => restoreExpense(ledgerId, expenseId),
-        });
-      }
+      // The screen this returns to takes the offer: Category, or Home when opened from a link.
+      const { expenseId } = expense;
+      setPendingUndo({
+        message: `Deleted “${expense.name || 'Expense'}”`,
+        restore: () => restoreExpense(ledgerId, expenseId),
+      });
       leave();
     } catch (err) {
       showError(errorText(err, 'save'));

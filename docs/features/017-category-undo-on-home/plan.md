@@ -110,7 +110,7 @@ brief picks the extraction with two callers on purpose, as a departure from the 
       and Retry → the expense is back.
     - Check this in both Light and Dark (Settings), so the moved styles follow the theme.
   - About 150 lines (about 95 added, 55 removed).
-- [ ] 3. Show the Undo bar on Home, after deleting an expense opened from a link
+- [x] 3. Show the Undo bar on Home, after deleting an expense opened from a link
   - Files: `apps/mobile/src/app/(tabs)/index.tsx`, `apps/mobile/src/app/expense.tsx`
   - Change:
     - Home reads `reload` from `useMonth`, calls
@@ -200,6 +200,11 @@ unchanged code.
   instead of stopping the `api` launch config; to the app it's the same failed request, and it made Retry repeatable.
   Checked at 390×844 as a fresh `claude-qa-017` user with two expenses: bar text, gone after ~10 s, Undo restores the
   list, caption and total, failure → "Couldn’t undo · Retry" → Retry restores; Dark and Light.
+- slice 3: same way of failing the restore. Checked at 390×844: `/expense?expenseId=…` opened straight, Delete lands
+  on Home with the bar and Expenses/Statistics drop to €0 / "0 expenses"; Undo brings back €12 / "1 expense"; failure
+  → Retry works; switching tabs and back shows no second bar; a delete from Category still lands on Category with its
+  bar and Home shows none. **Not verified:** the Notion panel's "N new" refresh after Undo — the QA user's ledger
+  isn't the synced one, so the panel is hidden.
 
 ## Revision 1
 

@@ -7,7 +7,9 @@ import { useSession } from '@/auth/AuthContext';
 import { Icon, type IconName } from '@/components/Icon';
 import { LoadError } from '@/components/LoadError';
 import { NotionSyncPanel } from '@/components/NotionSyncPanel';
+import { UndoToast } from '@/components/UndoToast';
 import { expenseCount, sumCents } from '@/data/monthSummary';
+import { useUndoOffer } from '@/data/undo';
 import { useMonth } from '@/data/useMonth';
 import { useNotionSync } from '@/data/useNotionSync';
 import { eur, kyivMonth, monthLabel } from '@/format';
@@ -19,9 +21,14 @@ export default function Home() {
   const { ledger, user } = useSession();
   const [month] = useState(() => kyivMonth(new Date()));
   // No error block: the cards still navigate, and the figures stay "—" until a load succeeds.
-  const { data, error } = useMonth(ledger.ledgerId, month);
+  const { data, error, reload } = useMonth(ledger.ledgerId, month);
   const count = data?.expenses.length;
   const notion = useNotionSync(ledger.ledgerId);
+  // A restore changes the month's figures and what Notion still needs to hear about.
+  const toast = useUndoOffer(() => {
+    reload();
+    notion.reload();
+  });
 
   const cards: { title: string; href: Href; icon: IconName; figure: string | null }[] = [
     { title: 'Budget', href: '/budget', icon: 'budget', figure: 'Not set' },
@@ -74,6 +81,7 @@ export default function Home() {
       ) : notion.state.status === 'failed' ? (
         <LoadError message="Couldn’t check Notion sync." onRetry={notion.reload} />
       ) : null}
+      {toast.offer ? <UndoToast offer={toast.offer} onUndo={toast.restore} /> : null}
     </SafeAreaView>
   );
 }

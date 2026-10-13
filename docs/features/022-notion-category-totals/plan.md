@@ -410,7 +410,7 @@ Alternatives considered:
       - all 4 set give all the fields;
       - the existing cases are updated.
   - ~160 lines.
-- [ ] 6. Add category totals to the Notion sync
+- [x] 6. Add category totals to the Notion sync
   - Files: `apps/api/src/app.ts` (`notionExpenses?`), `apps/api/src/server.ts`, `apps/api/src/notion/routes.ts`,
     `apps/api/test/notion.int.test.ts`, `README.md`
   - Change:

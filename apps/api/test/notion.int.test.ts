@@ -15,7 +15,7 @@ import {
   testDbReachable,
   type TestUser,
 } from './helpers.js';
-import { fakeNotion } from './fakeNotion.js';
+import { fakeExpenses, fakeNotion, pageId } from './fakeNotion.js';
 
 describe.skipIf(!(await testDbReachable()))('Notion sync status (MySQL)', () => {
   const config: Config = testConfig();
@@ -26,6 +26,8 @@ describe.skipIf(!(await testDbReachable()))('Notion sync status (MySQL)', () => 
   let auth: { authorization: string };
 
   const notion = fakeNotion();
+  const expenses = fakeExpenses();
+  const FUN = pageId(1);
   const sync = (ledgerId: number | string = owner.ledgerId, headers: Record<string, string> = auth) =>
     app.inject({ method: 'POST', url: `/api/ledgers/${ledgerId}/notion/sync`, headers });
   const status = (ledgerId: number | string = owner.ledgerId, headers: Record<string, string> = auth) =>
@@ -53,10 +55,25 @@ describe.skipIf(!(await testDbReachable()))('Notion sync status (MySQL)', () => 
     );
   }
 
+  async function addSpend(techName: string, amountEur: string): Promise<void> {
+    await db.query(
+      `INSERT INTO expenses (category_id, expense_date, name, amount_eur, created_by)
+       SELECT category_id, '2026-10-05', ?, ?, ? FROM categories WHERE ledger_id = ? AND tech_name = ?`,
+      [techName, amountEur, owner.userId, owner.ledgerId, techName],
+    );
+  }
+
   beforeAll(async () => {
     await resetSchema();
     db = createDb(TEST_DB_URL!);
-    app = await buildApp({ config, db, now: () => clock, fetchRate: offlineRates, notionGroceries: notion });
+    app = await buildApp({
+      config,
+      db,
+      now: () => clock,
+      fetchRate: offlineRates,
+      notionGroceries: notion,
+      notionExpenses: expenses,
+    });
   });
 
   afterAll(async () => {
@@ -74,6 +91,11 @@ describe.skipIf(!(await testDbReachable()))('Notion sync status (MySQL)', () => 
     notion.failAfterCreate = false;
     notion.failOn.clear();
     notion.gate = null;
+    expenses.rows.clear();
+    expenses.rows.set(FUN, { category: 'fun', month: '2026-10', inView: true, actualCents: 6500n });
+    expenses.calls.length = 0;
+    // The totals starting point (notion-start --totals) on an empty ledger.
+    await db.query('INSERT INTO notion_syncs (ledger_id, totals_started_at) VALUES (?, ?)', [owner.ledgerId, clock]);
   });
 
   it('counts the groceries Notion still needs to hear about', async () => {
@@ -121,7 +143,10 @@ describe.skipIf(!(await testDbReachable()))('Notion sync status (MySQL)', () => 
     it('sends what is new and records the time of a clean run', async () => {
       await addGrocery('Delhaize', false);
       const res = await sync();
-      expect([res.statusCode, res.json()]).toEqual([200, { created: 1, updated: 0, trashed: 0, failed: [] }]);
+      expect([res.statusCode, res.json()]).toEqual([
+        200,
+        { groceries: { created: 1, updated: 0, trashed: 0, failed: [] }, totals: { added: 0, failed: [] } },
+      ]);
       expect((await status()).json()).toEqual({ unsent: 0, lastSyncedAt: '2026-10-13T10:00:00.000Z' });
     });
 
@@ -132,7 +157,7 @@ describe.skipIf(!(await testDbReachable()))('Notion sync status (MySQL)', () => 
         await addGrocery('BioPlanet', false);
         notion.failAfterCreate = true;
         const res = await sync();
-        expect([res.statusCode, res.json().failed]).toEqual([
+        expect([res.statusCode, res.json().groceries.failed]).toEqual([
           200,
           [expect.objectContaining({ name: 'BioPlanet', error: 'notion_unreachable' })],
         ]);
@@ -140,6 +165,35 @@ describe.skipIf(!(await testDbReachable()))('Notion sync status (MySQL)', () => 
       } finally {
         clock.setTime(Date.parse('2026-10-13T10:00:00Z'));
       }
+    });
+
+    it('adds category totals after the groceries', async () => {
+      await addGrocery('Delhaize', false);
+      await addSpend('fun', '19.47');
+      expect((await status()).json()).toMatchObject({ unsent: 2 });
+
+      const res = await sync();
+      expect(res.json()).toEqual({
+        groceries: { created: 1, updated: 0, trashed: 0, failed: [] },
+        totals: { added: 1, failed: [] },
+      });
+      expect(expenses.rows.get(FUN)!.actualCents).toBe(8400n);
+      expect((await status()).json()).toEqual({ unsent: 0, lastSyncedAt: '2026-10-13T10:00:00.000Z' });
+    });
+
+    it('keeps the last sync time when a total failed', async () => {
+      await addSpend('car', '10.00'); // no car row in Notion
+      const res = await sync();
+      expect(res.json().totals).toEqual({ added: 0, failed: [{ category: 'car', month: '2026-10', error: 'no_row' }] });
+      expect((await status()).json()).toEqual({ unsent: 1, lastSyncedAt: null });
+    });
+
+    it('refuses to sync totals before their starting point is set', async () => {
+      await db.query('DELETE FROM notion_syncs WHERE ledger_id = ?', [owner.ledgerId]);
+      await addGrocery('Delhaize', false);
+      const res = await sync();
+      expect([res.statusCode, res.json()]).toEqual([409, { error: 'totals_not_started' }]);
+      expect([notion.calls, expenses.calls]).toEqual([[], []]);
     });
 
     it('runs one sync per ledger at a time', async () => {
@@ -154,6 +208,31 @@ describe.skipIf(!(await testDbReachable()))('Notion sync status (MySQL)', () => 
       release();
       expect((await first).statusCode).toBe(200);
       expect((await sync()).statusCode).toBe(200);
+    });
+
+    it('syncs groceries alone when the Expenses table is not configured', async () => {
+      await db.query('DELETE FROM notion_syncs WHERE ledger_id = ?', [owner.ledgerId]); // no starting point needed
+      await addGrocery('Delhaize', false);
+      await addSpend('fun', '19.47');
+      const groceriesOnly = await buildApp({
+        config,
+        db,
+        now: () => clock,
+        fetchRate: offlineRates,
+        notionGroceries: notion,
+      });
+      try {
+        const call = (method: 'GET' | 'POST', path: string) =>
+          groceriesOnly.inject({ method, url: `/api/ledgers/${owner.ledgerId}/notion/${path}`, headers: auth });
+        expect((await call('GET', 'status')).json()).toMatchObject({ unsent: 1 });
+        expect((await call('POST', 'sync')).json()).toEqual({
+          groceries: { created: 1, updated: 0, trashed: 0, failed: [] },
+          totals: null,
+        });
+        expect(expenses.calls).toEqual([]);
+      } finally {
+        await groceriesOnly.close();
+      }
     });
 
     it('answers notion_not_configured without a scope, for another ledger, or without a Notion client', async () => {

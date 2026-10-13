@@ -9,7 +9,7 @@ import type { Config } from './config.js';
 import type { Db } from './db.js';
 import { ledgerAccess } from './ledgers/access.js';
 import { ledgerRoutes } from './ledgers/routes.js';
-import type { GroceriesTable } from './notion/client.js';
+import type { ExpensesTable, GroceriesTable } from './notion/client.js';
 import { notionRoutes } from './notion/routes.js';
 import type { RateFetcher } from './rates/nbu.js';
 import { rateRoutes } from './rates/routes.js';
@@ -23,6 +23,8 @@ export interface AppDeps {
   fetchRate: RateFetcher;
   /** The Notion Groceries table; absent when Notion isn't configured, tests pass a fake. */
   notionGroceries?: GroceriesTable;
+  /** The Notion Expenses table, for category totals; absent when it isn't configured, tests pass a fake. */
+  notionExpenses?: ExpensesTable;
 }
 
 export async function buildApp(deps: AppDeps): Promise<FastifyInstance> {

@@ -315,7 +315,7 @@ Alternatives considered:
     - `resetSchema()` applying 006 proves the migration runs.
     - The existing status test still gives `lastSyncedAt: null` (the column is now nullable).
   - ~145 lines.
-- [ ] 2. Plan what each category-month adds to Notion's Actual Amount
+- [x] 2. Plan what each category-month adds to Notion's Actual Amount
   - Files: `apps/api/src/notion/totals.ts` (`TotalAdd`, `planTotals`, `notionNames`),
     `apps/api/test/notionTotals.test.ts` (new)
   - Change: the pure planner and name matching from Contracts.

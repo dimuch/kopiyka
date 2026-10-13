@@ -1,6 +1,7 @@
 import type { ResultSetHeader, RowDataPacket } from 'mysql2/promise';
 import type { NotionScope } from '../config.js';
 import { type Db, withTransaction } from '../db.js';
+import { toCents } from '../money.js';
 import { yearBounds } from './groceries.js';
 
 /** A live non-grocery expense of the synced ledger and year that Notion's totals don't include yet. */
@@ -67,4 +68,40 @@ export async function startTotals(db: Db, scope: NotionScope, now: Date): Promis
     );
     return res.affectedRows;
   });
+}
+
+/** One category-month's add: its new expenses' sum, rounded half up to whole euros. */
+export interface TotalAdd {
+  categoryId: number;
+  techName: string;
+  /** 'YYYY-MM'. */
+  month: string;
+  euros: bigint;
+  expenseIds: number[];
+}
+
+/** Groups new expenses by category and month, ordered by month then tech_name; each sum rounds half up. */
+export function planTotals(expenses: UncountedExpense[]): TotalAdd[] {
+  const groups = new Map<string, { add: Omit<TotalAdd, 'euros'>; cents: bigint }>();
+  for (const e of expenses) {
+    const key = `${e.month} ${e.techName}`;
+    const group = groups.get(key) ?? {
+      add: { categoryId: e.categoryId, techName: e.techName, month: e.month, expenseIds: [] },
+      cents: 0n,
+    };
+    group.add.expenseIds.push(e.expenseId);
+    group.cents += toCents(e.amountEur);
+    groups.set(key, group);
+  }
+  return [...groups.entries()]
+    .sort(([a], [b]) => (a < b ? -1 : a > b ? 1 : 0))
+    .map(([, { add, cents }]) => ({ ...add, euros: (cents + 50n) / 100n }));
+}
+
+/** Notion's other spellings of a category, besides its tech_name read with spaces. */
+const ALIASES: Record<string, string[]> = { utilities: ['utilites'] }; // October's row in Budget ’26
+
+/** The lower-case Notion Category titles a tech_name matches. */
+export function notionNames(techName: string): string[] {
+  return [techName.replaceAll('_', ' '), ...(ALIASES[techName] ?? [])];
 }

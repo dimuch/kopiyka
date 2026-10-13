@@ -13,6 +13,7 @@ const app = await buildApp({
   now: () => new Date(),
   fetchRate: nbuFetcher(),
   notionGroceries: notion?.groceries,
+  notionExpenses: notion?.expenses ?? undefined,
 });
 
 for (const signal of ['SIGINT', 'SIGTERM'] as const) {

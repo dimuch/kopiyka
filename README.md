@@ -27,34 +27,38 @@ There is no signup: users are created only with the admin script above.
 
 ### Notion sync
 
-Groceries of one ledger and year sync to the Notion Groceries table (briefs 020–021; category totals and the app
-button follow in 022–024). In Notion, create an internal integration with Read, Update and Insert content at
-notion.so/profile/integrations and share the Budget page with it (⋯ → Connections). Then set, in `apps/api/.env`:
+Expenses of one ledger and year sync to the Notion Budget tables: each grocery as its own row in the Groceries table
+(briefs 020–021), and every other category's new spending added to its Actual Amount in the Expenses table (022).
+In Notion, create an internal integration with Read, Update and Insert content at notion.so/profile/integrations and
+share the Budget page with it (⋯ → Connections). Then set, in `apps/api/.env`:
 
 ```bash
 NOTION_LEDGER_ID=1
 NOTION_YEAR=2026
-NOTION_TOKEN=ntn_...                                              # the integration's secret; never commit it
-NOTION_GROCERIES_DATA_SOURCE_ID=2d2203e3-e5e5-819d-8823-000be6f1bad0  # the UUID in the table's collection:// URL
+NOTION_TOKEN=ntn_...                                                 # the integration's secret; never commit it
+NOTION_GROCERIES_DATA_SOURCE_ID=2d2203e3-e5e5-819d-8823-000be6f1bad0  # the UUID in each table's collection:// URL
+NOTION_EXPENSES_DATA_SOURCE_ID=2d2203e3-e5e5-8154-8e58-000b356e2d71   # category totals; leave both out to sync
+NOTION_NETTO_DATA_SOURCE_ID=2d2203e3-e5e5-8153-8e48-000b2762daa5      # groceries only
 ```
 
-`POST /api/ledgers/:id/notion/sync` sends new, edited and deleted groceries (signed in, for the configured ledger);
-`GET /api/ledgers/:id/notion/status` shows how many are unsent and when the last clean sync finished. Sync once more
-before changing `NOTION_YEAR`, and change it together with the data source id of that year's table.
+Set up once per database, in this order: `yarn api migrate`, then the two starting points below, then sync.
 
-Groceries already copied into the Notion Groceries table by hand are recorded once, so the first sync doesn't send
-them again:
+- Groceries already copied into the Groceries table by hand are recorded, so the first sync doesn't send them again:
 
-```bash
-yarn api notion-start --adopt 57=<notionPageId>,60=<notionPageId>   # expense id = Notion row (page) id
-```
+  ```bash
+  yarn api notion-start --adopt 57=<notionPageId>,60=<notionPageId>   # expense id = Notion row (page) id
+  ```
 
-Category totals (brief 022) start from the Actual Amounts already typed into the Expenses table: run this once,
-before the first sync that includes totals, to count every expense already in kopiyka as already there:
+- Category totals start from the Actual Amounts already typed into the Expenses table: this counts every expense
+  already in kopiyka as already there. Until it has run, a sync with totals answers `409 totals_not_started`.
 
-```bash
-yarn api notion-start --totals
-```
+  ```bash
+  yarn api notion-start --totals
+  ```
+
+`POST /api/ledgers/:id/notion/sync` sends what's new (signed in, for the configured ledger); `GET
+/api/ledgers/:id/notion/status` shows how many expenses are unsent and when the last clean sync finished. Sync once
+more before changing `NOTION_YEAR`, and change it together with all three data source ids of that year's page.
 
 The pairs and the Notion "Kopiyka ID" column hold this database's expense ids. A fresh production database has
 different ids, so refill Kopiyka ID with production's ids before its first sync. Only one environment may sync to

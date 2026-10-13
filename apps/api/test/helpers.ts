@@ -37,6 +37,7 @@ export function testConfig(totpKey = randomBytes(32)): Config {
     sessionTtlMinutes: 30,
     cookieSecure: false,
     corsOrigins: [],
+    notion: null,
   };
 }
 

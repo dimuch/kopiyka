@@ -237,7 +237,7 @@ Delhaize 12.00: the first sync will create its row`), then `Unsent: N`.
     - **absent**: a grocery dated 2025-12-31, one dated 2027-01-01, a deleted unrecorded one, a 2026 fun expense, and
       a 2026 grocery of another ledger.
   - ~135 lines.
-- [ ] 3. Add the Notion sync status endpoint
+- [x] 3. Add the Notion sync status endpoint
   - Files: `apps/api/src/config.ts`, `apps/api/test/config.test.ts`, `apps/api/test/helpers.ts` (`notion: null`),
     `apps/api/src/notion/routes.ts`, `apps/api/src/app.ts` (register), `apps/api/.env.example`,
     `apps/api/test/notion.int.test.ts`

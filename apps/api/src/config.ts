@@ -13,6 +13,9 @@ const Env = z.object({
   COOKIE_SECURE: z.stringbool().optional(),
   // Comma-separated browser origins allowed to call the API, e.g. the Expo web dev server.
   CORS_ORIGINS: z.string().default(''),
+  // Notion sync (brief 020): the ledger and year whose expenses go to the Budget tables; both or neither.
+  NOTION_LEDGER_ID: z.coerce.number().int().positive().optional(),
+  NOTION_YEAR: z.coerce.number().int().min(2000).max(2100).optional(),
 });
 
 /** Which ledger and year sync to the Notion Budget tables (brief 020). */
@@ -31,10 +34,15 @@ export interface Config {
   sessionTtlMinutes: number;
   cookieSecure: boolean;
   corsOrigins: string[];
+  /** Null when Notion sync isn't set up. */
+  notion: NotionScope | null;
 }
 
 export function loadConfig(source: NodeJS.ProcessEnv = process.env): Config {
   const env = Env.parse(source);
+  if ((env.NOTION_LEDGER_ID === undefined) !== (env.NOTION_YEAR === undefined)) {
+    throw new Error('set NOTION_LEDGER_ID and NOTION_YEAR together');
+  }
   return {
     env: env.NODE_ENV,
     host: env.HOST,
@@ -47,5 +55,9 @@ export function loadConfig(source: NodeJS.ProcessEnv = process.env): Config {
     corsOrigins: env.CORS_ORIGINS.split(',')
       .map((o) => o.trim())
       .filter(Boolean),
+    notion:
+      env.NOTION_LEDGER_ID !== undefined && env.NOTION_YEAR !== undefined
+        ? { ledgerId: env.NOTION_LEDGER_ID, year: env.NOTION_YEAR }
+        : null,
   };
 }

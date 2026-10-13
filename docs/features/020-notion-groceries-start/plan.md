@@ -214,7 +214,7 @@ Delhaize 12.00: the first sync will create its row`), then `Unsent: N`.
 
 ## Slices
 
-- [ ] 1. Decide which groceries Notion still needs to hear about
+- [x] 1. Decide which groceries Notion still needs to hear about
   - Files: `apps/api/src/notion/groceries.ts` (types, `planGroceries`), `apps/api/test/notionGroceries.test.ts`
   - Change: the pure planner from Contracts.
   - Tests: one table of states and expected changes:

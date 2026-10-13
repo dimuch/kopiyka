@@ -300,7 +300,12 @@ the web build would show no result. An inline result also stays visible next to 
 
 ## Deviations
 
-<filled by the developer during build>
+- None in behaviour or contracts.
+- Review (one round, APPROVE WITH NITS): Retry gets a 44pt-wide target, `role="alert"` moved from the result container
+  to its text lines (so web doesn't read "Retry" as part of the message), and a comment on why `unconfigured` and
+  `outcome` aren't tagged with `ledgerId`.
+- `accessibilityState.busy` isn't exposed as `aria-busy` by react-native-web; the button's text ("Syncing…") and
+  `aria-disabled` still say it.
 
 ## Revision 1
 

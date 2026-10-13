@@ -8,6 +8,7 @@ import {
   clearData,
   makeUser,
   resetSchema,
+  storeMonthList,
   TEST_DB_URL,
   testConfig,
   testDbReachable,
@@ -404,6 +405,66 @@ describe.skipIf(!(await testDbReachable()))('expenses API (MySQL)', () => {
     it.skipIf(!byId)('answers 400 for a non-numeric expense id', async () => {
       const res = await call(owner.ledgerId, 'abc', auth);
       expect([res.statusCode, res.json().error]).toEqual([400, 'invalid_request']);
+    });
+  });
+
+  describe('month lists', () => {
+    const put = (expenseId: number, payload: Record<string, unknown>) =>
+      app.inject({ method: 'PUT', url: url(`/${expenseId}`), payload, headers: auth });
+    const gym = (expenseDate: string, extra: Record<string, unknown> = {}) =>
+      groceries({ categoryId: cat.gym, expenseDate, name: 'yoga', ...extra });
+    const withoutGymInOctober = () => storeMonthList(db, owner.ledgerId, '2026-10', ['gym']);
+
+    it('refuses a new expense in a month whose list lacks its category', async () => {
+      await withoutGymInOctober();
+      expect((await post(gym('2026-10-06'))).json()).toEqual({ error: 'category_not_in_month' });
+      expect((await list('?month=2026-10')).json().expenses).toEqual([]);
+      expect((await post(gym('2026-09-30'))).statusCode).toBe(201);
+    });
+
+    it('refuses moving an expense, or switching its category, into such a month', async () => {
+      const september = (await post(gym('2026-09-30'))).json();
+      const october = (await post(groceries())).json();
+      await withoutGymInOctober();
+
+      const moved = await put(september.expenseId, gym('2026-10-01'));
+      expect([moved.statusCode, moved.json()]).toEqual([400, { error: 'category_not_in_month' }]);
+      expect((await app.inject({ method: 'GET', url: url(`/${september.expenseId}`), headers: auth })).json()).toEqual(
+        september,
+      );
+      expect((await put(october.expenseId, groceries({ categoryId: cat.gym }))).json()).toEqual({
+        error: 'category_not_in_month',
+      });
+      expect((await put(september.expenseId, gym('2026-09-30', { name: 'pilates' }))).statusCode).toBe(200);
+    });
+
+    it('still says unknown_category for a foreign category', async () => {
+      await withoutGymInOctober();
+      const other = await makeUser(db, config, 'stranger');
+      const [rows] = await db.query<import('mysql2/promise').RowDataPacket[]>(
+        'SELECT category_id FROM categories WHERE ledger_id = ? LIMIT 1',
+        [other.ledgerId],
+      );
+      expect((await post(groceries({ categoryId: rows[0]!.category_id }))).json()).toEqual({
+        error: 'unknown_category',
+      });
+    });
+
+    it("won't restore an expense into a month whose list lacks its category", async () => {
+      const october = (await post(gym('2026-10-02'))).json();
+      const september = (await post(gym('2026-09-30'))).json();
+      for (const e of [october, september]) {
+        await app.inject({ method: 'DELETE', url: url(`/${e.expenseId}`), headers: auth });
+      }
+      await withoutGymInOctober();
+
+      const restore = (expenseId: number) =>
+        app.inject({ method: 'POST', url: url(`/${expenseId}/restore`), headers: auth });
+      expect([(await restore(october.expenseId)).statusCode, (await list('?month=2026-10')).json().expenses]).toEqual([
+        404,
+        [],
+      ]);
+      expect((await restore(september.expenseId)).statusCode).toBe(200);
     });
   });
 });

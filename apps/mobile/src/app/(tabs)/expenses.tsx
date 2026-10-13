@@ -14,7 +14,7 @@ import { eur, kyivMonth, monthName, shiftMonth } from '@/format';
 import { colors, fonts } from '@/theme';
 
 export default function Expenses() {
-  const { ledger, user, logout } = useSession();
+  const { ledger } = useSession();
   const [month, setMonth] = useState(() => kyivMonth(new Date()));
   const { data, error, reload } = useMonth(ledger.ledgerId, month);
 
@@ -116,9 +116,6 @@ export default function Expenses() {
                 </Pressable>
               ))}
             </View>
-            <Pressable accessibilityRole="button" onPress={logout} style={styles.signOut}>
-              <Text style={styles.small}>Signed in as {user.username} · Sign out</Text>
-            </Pressable>
           </>
         )}
       </Animated.ScrollView>
@@ -171,5 +168,4 @@ const styles = StyleSheet.create({
   rowAmount: { fontFamily: fonts.bodySemi, fontSize: 15, color: colors.text, fontVariant: ['tabular-nums'] },
   track: { height: 5, backgroundColor: colors.track, borderRadius: 3, overflow: 'hidden' },
   bar: { height: 5, borderRadius: 3, backgroundColor: colors.accent },
-  signOut: { alignSelf: 'center', padding: 16, marginTop: 8 },
 });

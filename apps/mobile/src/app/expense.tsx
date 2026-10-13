@@ -23,7 +23,7 @@ import { CategoryPicker } from '@/components/CategoryPicker';
 import { DateChips } from '@/components/DateChips';
 import { Icon } from '@/components/Icon';
 import { LoadError } from '@/components/LoadError';
-import { deleteExpense, saveExpense } from '@/data/expenses';
+import { deleteExpense, restoreExpense, saveExpense } from '@/data/expenses';
 import { setPendingUndo } from '@/data/undo';
 import { splitQuick, withQuick } from '@/data/quick';
 import { type ExpenseDraftData, useExpenseDraft } from '@/data/useExpenseDraft';
@@ -222,7 +222,11 @@ function ExpenseForm({ draft, ledgerId }: { draft: ExpenseDraftData; ledgerId: n
       await deleteExpense(ledgerId, expense.expenseId);
       // Only the Category screen takes the offer; landing on Home it would wait for an unrelated later visit.
       if (router.canGoBack()) {
-        setPendingUndo({ ledgerId, expenseId: expense.expenseId, label: expense.name || 'Expense' });
+        const { expenseId } = expense;
+        setPendingUndo({
+          message: `Deleted “${expense.name || 'Expense'}”`,
+          restore: () => restoreExpense(ledgerId, expenseId),
+        });
       }
       leave();
     } catch (err) {

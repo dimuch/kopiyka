@@ -88,7 +88,7 @@ brief picks the extraction with two callers on purpose, as a departure from the 
   - Verify: web 390×844. The Category caption still reads "N expenses · October 2026", with one expense giving
     "1 expense · …". Home's Statistics card is unchanged.
   - About 20 lines.
-- [ ] 2. Move the expense Undo bar into a shared hook and component
+- [x] 2. Move the expense Undo bar into a shared hook and component
   - Files: `apps/mobile/src/data/undo.ts`, `apps/mobile/src/components/UndoToast.tsx` (new),
     `apps/mobile/src/app/category/[categoryId].tsx`, `apps/mobile/src/app/expense.tsx`
   - Change:
@@ -196,7 +196,10 @@ unchanged code.
 
 ## Deviations
 
-<filled by the developer during build>
+- slice 2: the "API stopped" Undo check made the browser's request to `…/restore` fail (a console `fetch` wrapper)
+  instead of stopping the `api` launch config; to the app it's the same failed request, and it made Retry repeatable.
+  Checked at 390×844 as a fresh `claude-qa-017` user with two expenses: bar text, gone after ~10 s, Undo restores the
+  list, caption and total, failure → "Couldn’t undo · Retry" → Retry restores; Dark and Light.
 
 ## Revision 1
 

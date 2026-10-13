@@ -1,6 +1,6 @@
-import { router, useFocusEffect, useLocalSearchParams } from 'expo-router';
-import { useCallback, useEffect, useMemo, useState } from 'react';
-import { AccessibilityInfo, ActivityIndicator, Animated, Pressable, StyleSheet, Text, View } from 'react-native';
+import { router, useLocalSearchParams } from 'expo-router';
+import { useMemo, useState } from 'react';
+import { ActivityIndicator, Animated, Pressable, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useColors, useThemedStyles } from '@/appearance/AppearanceContext';
 import { useSession } from '@/auth/AuthContext';
@@ -9,10 +9,10 @@ import { CategoryTile } from '@/components/CategoryTile';
 import { CompactTotal, HeaderDivider, useCollapsingSummary } from '@/components/CollapsingSummary';
 import { Icon } from '@/components/Icon';
 import { LoadError } from '@/components/LoadError';
-import { restoreExpense } from '@/data/expenses';
+import { UndoToast } from '@/components/UndoToast';
 import { expenseCount, groupByDay, sumCents } from '@/data/monthSummary';
+import { useUndoOffer } from '@/data/undo';
 import { useMonth } from '@/data/useMonth';
-import { takePendingUndo, type PendingUndo } from '@/data/undo';
 import { dayLabel, eur, kyivMonth, monthLabel, monthName, toCents, uah } from '@/format';
 import { parseIdParam, parseMonthParam } from '@/linkParams';
 import { fonts, type Palette } from '@/theme';
@@ -59,39 +59,7 @@ function CategoryBreakdown({ categoryId, month }: { categoryId: number; month: s
   const styles = useThemedStyles(makeStyles);
   const { ledger } = useSession();
   const { data, error, reload } = useMonth(ledger.ledgerId, month, categoryId);
-  // The Undo offer after a delete; it stays until the restore succeeds or it times out.
-  const [toast, setToast] = useState<{ undo: PendingUndo; status: 'offer' | 'restoring' | 'failed' } | null>(null);
-
-  // Coming back from a delete: offer Undo for a few seconds.
-  useFocusEffect(
-    useCallback(() => {
-      const pending = takePendingUndo();
-      if (!pending) return;
-      setToast({ undo: pending, status: 'offer' });
-      AccessibilityInfo.announceForAccessibility(`Deleted “${pending.label}”`);
-    }, []),
-  );
-  // Restarts on each change; never times out while a restore is in flight.
-  useEffect(() => {
-    if (!toast || toast.status === 'restoring') return;
-    const timer = setTimeout(() => setToast(null), 10_000);
-    return () => clearTimeout(timer);
-  }, [toast]);
-
-  async function restore() {
-    if (!toast || toast.status === 'restoring') return;
-    const { undo } = toast;
-    setToast({ undo, status: 'restoring' });
-    // Only touch the toast this restore started from: another delete may have replaced it meanwhile.
-    try {
-      await restoreExpense(undo.ledgerId, undo.expenseId);
-      setToast((t) => (t?.undo === undo ? null : t));
-      reload();
-    } catch {
-      setToast((t) => (t?.undo === undo ? { undo, status: 'failed' } : t));
-      AccessibilityInfo.announceForAccessibility('Couldn’t undo');
-    }
-  }
+  const toast = useUndoOffer(reload);
 
   const category = data?.categories.find((c) => c.categoryId === categoryId);
   const days = useMemo(() => groupByDay(data?.expenses ?? []), [data]);
@@ -180,21 +148,7 @@ function CategoryBreakdown({ categoryId, month }: { categoryId: number; month: s
           </View>
         </Animated.ScrollView>
       )}
-      {toast ? (
-        <View accessibilityLiveRegion="polite" style={styles.toast}>
-          <Text numberOfLines={1} style={styles.toastText}>
-            {toast.status === 'failed' ? 'Couldn’t undo' : `Deleted “${toast.undo.label}”`}
-          </Text>
-          <Pressable
-            accessibilityRole="button"
-            disabled={toast.status === 'restoring'}
-            onPress={restore}
-            style={[styles.undo, toast.status === 'restoring' && { opacity: 0.6 }]}
-          >
-            <Text style={styles.undoText}>{toast.status === 'failed' ? 'Retry' : 'Undo'}</Text>
-          </Pressable>
-        </View>
-      ) : null}
+      {toast.offer ? <UndoToast offer={toast.offer} onUndo={toast.restore} /> : null}
     </SafeAreaView>
   );
 }
@@ -247,23 +201,5 @@ const makeStyles = (colors: Palette) =>
     },
     divider: { borderBottomWidth: 1, borderBottomColor: colors.border },
     itemName: { fontFamily: fonts.bodyMedium, fontSize: 15, color: colors.text },
-    toast: {
-      position: 'absolute',
-      left: 20,
-      right: 20,
-      bottom: 32,
-      minHeight: 56,
-      borderRadius: 18,
-      backgroundColor: colors.surfaceRaised,
-      borderWidth: 1,
-      borderColor: colors.borderStrong,
-      flexDirection: 'row',
-      alignItems: 'center',
-      paddingLeft: 18,
-      gap: 12,
-    },
-    toastText: { flex: 1, fontFamily: fonts.bodyMedium, fontSize: 15, color: colors.text },
-    undo: { height: 56, paddingHorizontal: 18, justifyContent: 'center' },
-    undoText: { fontFamily: fonts.bodySemi, fontSize: 15, color: colors.accent },
     itemAmount: { fontFamily: fonts.bodySemi, fontSize: 15, color: colors.text, fontVariant: ['tabular-nums'] },
   });

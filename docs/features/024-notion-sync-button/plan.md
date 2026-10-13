@@ -205,7 +205,7 @@ the web build would show no result. An inline result also stays visible next to 
        - status 500 → "Couldn’t check Notion sync." + Retry.
     3. Check it in both Light and Dark, with VoiceOver-style labels by DOM inspection (role button, label "Sync to
        Notion").
-- [ ] 4. List what couldn’t sync on Home, including missing Netto pages (~120 lines)
+- [x] 4. List what couldn’t sync on Home, including missing Netto pages (~120 lines)
   - Files: `apps/mobile/src/data/notionSync.ts`, `apps/mobile/test/notionSync.test.ts`,
     `apps/mobile/src/components/NotionSyncPanel.tsx`
   - Change: `syncReport().reasons` (reason map, grouping `no_netto_page` by month, at most 5 lines plus 'and N more'),

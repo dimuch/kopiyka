@@ -54,6 +54,72 @@ describe('syncReport', () => {
   });
 });
 
+describe('syncReport reasons', () => {
+  it('lists failures in the API order, one line per month without a Netto page', () => {
+    const report = syncReport(
+      result(
+        [0, 0, 0],
+        {
+          added: 0,
+          failed: [
+            total('fun', '2027-01', 'no_netto_page'),
+            total('car_parking', '2027-01', 'no_netto_page'),
+            total('fun', '2026-11', 'duplicate_rows'),
+          ],
+        },
+        [grocery('Milk', 'notion_unreachable')],
+      ),
+    );
+    expect(report.failed).toBe('4 couldn’t sync');
+    expect(report.reasons).toEqual([
+      'Milk, 6 Oct 2026: Notion couldn’t be reached',
+      'No Netto page for Jan 2027',
+      'Fun, Nov 2026: two rows for it in Notion',
+    ]);
+  });
+
+  it.each([
+    ['page_taken', 'Milk, 6 Oct 2026: its Notion row belongs to another expense'],
+    ['sent_in_other_year', 'Milk, 6 Oct 2026: still in another year’s Notion table'],
+    ['rate_limited', 'Milk, 6 Oct 2026: Notion is busy, try again later'],
+    ['internal', 'Milk, 6 Oct 2026: something went wrong'],
+    ['validation_error', 'Milk, 6 Oct 2026: Notion refused it (validation_error)'],
+  ])('words %s', (code, line) => {
+    expect(syncReport(result([0, 0, 0], null, [grocery('Milk', code)])).reasons).toEqual([line]);
+  });
+
+  it('words a hand-edited Actual Amount on a category with spaces', () => {
+    const report = syncReport(
+      result([0, 0, 0], { added: 0, failed: [total('eating_out', '2026-10', 'actual_amount_changed')] }),
+    );
+    expect(report.reasons).toEqual(['Eating out, Oct 2026: Actual Amount was changed in Notion, check it']);
+  });
+
+  it('shows 5 reasons and counts the rest, after grouping missing Netto pages', () => {
+    const groceries = (n: number) => Array.from({ length: n }, (_, i) => grocery(`Item ${i + 1}`));
+    expect(syncReport(result([0, 0, 0], null, groceries(5))).reasons.length).toBe(5);
+    const eight = syncReport(result([0, 0, 0], null, groceries(8))).reasons;
+    expect(eight.slice(5)).toEqual(['and 3 more']);
+    expect(eight.length).toBe(6);
+
+    // 4 groceries + 3 categories in each of 2 Netto-less months: 10 entries, 6 reason lines.
+    const missing = ['fun', 'car', 'gym'].flatMap((c) => [
+      total(c, '2027-01', 'no_netto_page'),
+      total(c, '2027-02', 'no_netto_page'),
+    ]);
+    const report = syncReport(result([0, 0, 0], { added: 0, failed: missing }, groceries(4)));
+    expect(report.failed).toBe('10 couldn’t sync');
+    expect(report.reasons).toEqual([
+      'Item 1, 6 Oct 2026: Notion couldn’t be reached',
+      'Item 2, 6 Oct 2026: Notion couldn’t be reached',
+      'Item 3, 6 Oct 2026: Notion couldn’t be reached',
+      'Item 4, 6 Oct 2026: Notion couldn’t be reached',
+      'No Netto page for Jan 2027',
+      'and 1 more',
+    ]);
+  });
+});
+
 describe('syncErrorText', () => {
   it.each([
     ['sync_in_progress', 'A sync is already running. Try again in a moment.'],

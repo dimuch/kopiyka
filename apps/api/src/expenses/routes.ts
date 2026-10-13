@@ -2,7 +2,7 @@ import type { FastifyInstance, FastifyReply, FastifyRequest } from 'fastify';
 import type { ResultSetHeader, RowDataPacket } from 'mysql2/promise';
 import { z } from 'zod';
 import type { AppDeps } from '../app.js';
-import { nextMonthStart } from '../dates.js';
+import { MONTH_RE, nextMonthStart } from '../dates.js';
 import { AMOUNT_RE, centsToString, convert, e4ToString, rateToE4, toCents } from '../money.js';
 import { getEurUahRate, isAfterRateHorizon, RateDate, rateUnavailableReason } from '../rates/service.js';
 
@@ -56,7 +56,7 @@ type ExpenseInput = z.infer<typeof ExpenseBody>;
 const ExpenseParams = z.object({ expenseId: z.coerce.number().int().positive() });
 
 const MonthQuery = z.object({
-  month: z.string().regex(/^\d{4}-(0[1-9]|1[0-2])$/, 'expected YYYY-MM'),
+  month: z.string().regex(MONTH_RE, 'expected YYYY-MM'),
   categoryId: z.coerce.number().int().positive().optional(),
 });
 

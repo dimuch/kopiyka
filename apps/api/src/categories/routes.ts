@@ -2,7 +2,9 @@ import type { FastifyInstance } from 'fastify';
 import type { ResultSetHeader, RowDataPacket } from 'mysql2/promise';
 import { z } from 'zod';
 import type { AppDeps } from '../app.js';
+import { kyivToday, MONTH_RE } from '../dates.js';
 import { withTransaction } from '../db.js';
+import { inMonthList } from './monthLists.js';
 
 export const QUICK_CATEGORY_COUNT = 5;
 
@@ -21,6 +23,8 @@ export interface CategoryWithTotalsDto extends CategoryDto {
 }
 
 const CategoryParams = z.object({ categoryId: z.coerce.number().int().positive() });
+// Optional until the app sends it (brief 030); without it, the current Kyiv month.
+const ListQuery = z.object({ month: z.string().regex(MONTH_RE, 'expected YYYY-MM').optional() });
 
 function toDto(r: RowDataPacket): CategoryDto {
   return { categoryId: r.category_id, techName: r.tech_name, displayName: r.display_name, sortOrder: r.sort_order };
@@ -46,6 +50,7 @@ export async function categoryRoutes(app: FastifyInstance, { db, now }: AppDeps)
   const guards = { preHandler: [app.requireAuth, app.requireLedger] };
 
   app.get('/api/ledgers/:id/categories', guards, async (req) => {
+    const month = ListQuery.parse(req.query).month ?? kyivToday(now()).slice(0, 7);
     const [rows] = await db.query<RowDataPacket[]>(
       `SELECT c.category_id, c.tech_name, c.display_name, c.sort_order, u.last_used_at
            FROM categories c
@@ -55,9 +60,9 @@ export async function categoryRoutes(app: FastifyInstance, { db, now }: AppDeps)
               WHERE deleted_at IS NULL
               GROUP BY category_id
            ) u ON u.category_id = c.category_id
-          WHERE c.ledger_id = ? AND c.deleted_at IS NULL
+          WHERE c.ledger_id = ? AND c.deleted_at IS NULL AND ${inMonthList('?')}
           ORDER BY c.sort_order, c.category_id`,
-      [req.ledger!.ledgerId],
+      [req.ledger!.ledgerId, `${month}-01`],
     );
 
     const categories = rows.map(toDto);

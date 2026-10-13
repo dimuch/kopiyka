@@ -102,6 +102,19 @@ export async function makeUser(db: Db, config: Config, username: string): Promis
   return { userId: created.userId, ledgerId: created.ledgerId, username, secret };
 }
 
+/**
+ * Stores a month's own category list ('YYYY-MM'): every category of the ledger except the `without` tech_names.
+ * Later months without their own rows inherit it.
+ */
+export async function storeMonthList(db: Db, ledgerId: number, month: string, without: string[]): Promise<void> {
+  // mysql2 turns an empty NOT IN () into a syntax error, so the condition is only added when there's something to skip.
+  await db.query(
+    `INSERT INTO category_months (category_id, list_month)
+     SELECT category_id, ? FROM categories WHERE ledger_id = ?${without.length ? ' AND tech_name NOT IN (?)' : ''}`,
+    [`${month}-01`, ledgerId, ...(without.length ? [without] : [])],
+  );
+}
+
 /** Logs in as a native client and returns the bearer header for later requests. */
 export async function authHeader(app: FastifyInstance, user: TestUser, now: Date): Promise<{ authorization: string }> {
   const res = await app.inject({

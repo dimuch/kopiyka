@@ -7,14 +7,15 @@ import {
 import { useFonts } from 'expo-font';
 import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
-import { ActivityIndicator, StyleSheet, View } from 'react-native';
+import { ActivityIndicator, View } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
+import { AppearanceProvider, useAppearance, useColors } from '@/appearance/AppearanceContext';
 import { AuthProvider, useAuth } from '@/auth/AuthContext';
 import { PhoneColumn } from '@/components/PhoneColumn';
-import { colors } from '@/theme';
 
 function Screens() {
   const { state } = useAuth();
+  const colors = useColors();
   if (state.status === 'loading') {
     return (
       <View style={{ flex: 1, backgroundColor: colors.bg, alignItems: 'center', justifyContent: 'center' }}>
@@ -37,7 +38,9 @@ function Screens() {
   );
 }
 
-export default function RootLayout() {
+function Root() {
+  const { scheme } = useAppearance();
+  const palette = useColors();
   const [fontsLoaded] = useFonts({
     BricolageGrotesque_500Medium,
     BricolageGrotesque_700Bold,
@@ -45,14 +48,14 @@ export default function RootLayout() {
     IBMPlexSans_500Medium,
     IBMPlexSans_600SemiBold,
   });
-  if (!fontsLoaded) return <View style={{ flex: 1, backgroundColor: colors.bg }} />;
+  if (!fontsLoaded) return <View style={{ flex: 1, backgroundColor: palette.bg }} />;
 
   return (
     // The background shows on web around the phone-width column.
-    <SafeAreaProvider style={styles.root}>
+    <SafeAreaProvider style={{ backgroundColor: palette.bg }}>
       <PhoneColumn>
         <AuthProvider>
-          <StatusBar style="light" />
+          <StatusBar style={scheme === 'dark' ? 'light' : 'dark'} />
           <Screens />
         </AuthProvider>
       </PhoneColumn>
@@ -60,6 +63,10 @@ export default function RootLayout() {
   );
 }
 
-const styles = StyleSheet.create({
-  root: { backgroundColor: colors.bg },
-});
+export default function RootLayout() {
+  return (
+    <AppearanceProvider>
+      <Root />
+    </AppearanceProvider>
+  );
+}

@@ -1,8 +1,10 @@
 import { Text, View } from 'react-native';
+import { useAppearance } from '@/appearance/AppearanceContext';
 import { categoryTile, fonts } from '@/theme';
 
 export function CategoryTile({ techName, label, size = 40 }: { techName: string; label: string; size?: number }) {
-  const tile = categoryTile(techName);
+  const { scheme } = useAppearance();
+  const tile = categoryTile(techName, scheme);
   return (
     <View
       style={{

@@ -1,9 +1,11 @@
 import { useEffect } from 'react';
 import { AccessibilityInfo, Pressable, StyleSheet, Text, View } from 'react-native';
-import { colors, fonts } from '@/theme';
+import { useThemedStyles } from '@/appearance/AppearanceContext';
+import { fonts, type Palette } from '@/theme';
 
 /** A failed load: the message (announced to screen readers) and Retry, when trying again can help. */
 export function LoadError({ message, onRetry }: { message: string; onRetry?: () => void }) {
+  const styles = useThemedStyles(makeStyles);
   // role="alert" covers web; VoiceOver needs an explicit announcement.
   useEffect(() => {
     AccessibilityInfo.announceForAccessibility(message);
@@ -22,9 +24,10 @@ export function LoadError({ message, onRetry }: { message: string; onRetry?: () 
   );
 }
 
-const styles = StyleSheet.create({
-  box: { gap: 4, paddingVertical: 12 },
-  message: { fontFamily: fonts.body, fontSize: 14, color: colors.muted },
-  retry: { minHeight: 44, justifyContent: 'center', alignSelf: 'flex-start' },
-  retryText: { fontFamily: fonts.bodySemi, fontSize: 15, color: colors.accent },
-});
+const makeStyles = (colors: Palette) =>
+  StyleSheet.create({
+    box: { gap: 4, paddingVertical: 12 },
+    message: { fontFamily: fonts.body, fontSize: 14, color: colors.muted },
+    retry: { minHeight: 44, justifyContent: 'center', alignSelf: 'flex-start' },
+    retryText: { fontFamily: fonts.bodySemi, fontSize: 15, color: colors.accent },
+  });

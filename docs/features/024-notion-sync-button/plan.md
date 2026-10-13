@@ -179,7 +179,7 @@ the web build would show no result. An inline result also stays visible next to 
     - `{1,0,0}` with 1 grocery and 2 totals failures → `'Added 1 grocery'` and `'3 couldn’t sync'`.
     - `syncErrorText`: `sync_in_progress`, `totals_not_started`, `network` and an unknown `'internal'` each give the
       exact texts above.
-- [ ] 3. Show the Notion sync status and a Sync to Notion button on Home (~160 lines)
+- [x] 3. Show the Notion sync status and a Sync to Notion button on Home (~160 lines)
   - Files: `apps/mobile/src/data/useNotionSync.ts`, `apps/mobile/src/components/NotionSyncPanel.tsx`,
     `apps/mobile/src/app/(tabs)/index.tsx`
   - Change: the hook, the panel (status line, button, Syncing… state, the `done`/`failed` + Retry line, and refusal

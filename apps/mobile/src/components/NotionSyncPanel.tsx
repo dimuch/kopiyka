@@ -62,6 +62,12 @@ export function NotionSyncPanel({ status, syncing, outcome, onSync }: Props) {
               </Pressable>
             </View>
           ) : null}
+          {report?.reasons.map((line, i) => (
+            // Two failures can read the same, so the position keeps keys unique.
+            <Text key={`${i} ${line}`} style={styles.reason}>
+              {line}
+            </Text>
+          ))}
           {refusal ? <Text style={styles.failed}>{refusal}</Text> : null}
         </View>
       ) : null}
@@ -96,6 +102,7 @@ const makeStyles = (colors: Palette) =>
     done: { fontFamily: fonts.body, fontSize: 14, color: colors.text },
     failedRow: { flexDirection: 'row', alignItems: 'center', gap: 12 },
     failed: { fontFamily: fonts.bodyMedium, fontSize: 14, color: colors.danger },
+    reason: { fontFamily: fonts.body, fontSize: 13, color: colors.muted },
     retry: { minHeight: 44, justifyContent: 'center' },
     retryText: { fontFamily: fonts.bodySemi, fontSize: 14, color: colors.accent },
   });

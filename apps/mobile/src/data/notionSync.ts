@@ -1,5 +1,5 @@
 import type { NotionStatus, NotionSyncResult } from '@/api/types';
-import { kyivDayTime } from '@/format';
+import { kyivDayTime, shortDate, shortMonthLabel } from '@/format';
 
 /** The line beside the Sync button: '5 new · last synced 10 Oct, 14:02', or 'Up to date'. */
 export function statusText({ unsent, lastSyncedAt }: NotionStatus): string {
@@ -18,6 +18,37 @@ export interface SyncReport {
 }
 
 const plural = (n: number, one: string, many: string) => `${n} ${n === 1 ? one : many}`;
+const capitalise = (text: string) => text.charAt(0).toUpperCase() + text.slice(1);
+
+const REASONS: Record<string, string> = {
+  page_taken: 'its Notion row belongs to another expense',
+  sent_in_other_year: 'still in another year’s Notion table',
+  duplicate_rows: 'two rows for it in Notion',
+  actual_amount_changed: 'Actual Amount was changed in Notion, check it',
+  notion_unreachable: 'Notion couldn’t be reached',
+  rate_limited: 'Notion is busy, try again later',
+  internal: 'something went wrong',
+};
+const reason = (code: string) => REASONS[code] ?? `Notion refused it (${code})`;
+
+/** Home has no room for a long list, so it shows this many reasons and counts the rest. */
+const MAX_REASONS = 5;
+
+/** One line per failure in the API's order; a month without a Netto page is one line however many categories hit it. */
+function reasonLines({ groceries, totals }: NotionSyncResult): string[] {
+  const lines = groceries.failed.map((f) => `${f.name}, ${shortDate(f.date)}: ${reason(f.error)}`);
+  const missingMonths = new Set<string>();
+  for (const f of totals?.failed ?? []) {
+    if (f.error !== 'no_netto_page') {
+      lines.push(`${capitalise(f.category.replaceAll('_', ' '))}, ${shortMonthLabel(f.month)}: ${reason(f.error)}`);
+    } else if (!missingMonths.has(f.month)) {
+      missingMonths.add(f.month);
+      lines.push(`No Netto page for ${shortMonthLabel(f.month)}`);
+    }
+  }
+  if (lines.length <= MAX_REASONS) return lines;
+  return [...lines.slice(0, MAX_REASONS), `and ${lines.length - MAX_REASONS} more`];
+}
 
 /** What a finished sync did, in words. */
 export function syncReport(result: NotionSyncResult): SyncReport {
@@ -37,9 +68,9 @@ export function syncReport(result: NotionSyncResult): SyncReport {
   const failures = groceries.failed.length + (totals?.failed.length ?? 0);
   const text = parts.join(' · ');
   return {
-    done: text ? text.charAt(0).toUpperCase() + text.slice(1) : failures ? null : 'Nothing new to sync',
+    done: text ? capitalise(text) : failures ? null : 'Nothing new to sync',
     failed: failures ? `${failures} couldn’t sync` : null,
-    reasons: [],
+    reasons: reasonLines(result),
   };
 }
 

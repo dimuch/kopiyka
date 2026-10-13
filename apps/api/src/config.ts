@@ -2,6 +2,8 @@ import { z } from 'zod';
 import { parseKey } from './auth/secretBox.js';
 import type { NotionApiConfig } from './notion/client.js';
 
+const UUID = /^[0-9a-f]{8}-?([0-9a-f]{4}-?){3}[0-9a-f]{12}$/i;
+
 const Env = z.object({
   NODE_ENV: z.enum(['development', 'test', 'production']).default('development'),
   HOST: z.string().default('127.0.0.1'),
@@ -20,10 +22,10 @@ const Env = z.object({
   // Notion API (brief 021): an internal integration's secret and the Groceries data source (the UUID in its
   // collection:// URL); both or neither.
   NOTION_TOKEN: z.string().min(1).optional(),
-  NOTION_GROCERIES_DATA_SOURCE_ID: z
-    .string()
-    .regex(/^[0-9a-f]{8}-?([0-9a-f]{4}-?){3}[0-9a-f]{12}$/i, 'expected the UUID of a collection:// URL')
-    .optional(),
+  NOTION_GROCERIES_DATA_SOURCE_ID: z.string().regex(UUID, 'expected the UUID of a collection:// URL').optional(),
+  // Category totals (brief 022): the Expenses and Netto data sources; both or neither, and they need the pair above.
+  NOTION_EXPENSES_DATA_SOURCE_ID: z.string().regex(UUID, 'expected the UUID of a collection:// URL').optional(),
+  NOTION_NETTO_DATA_SOURCE_ID: z.string().regex(UUID, 'expected the UUID of a collection:// URL').optional(),
 });
 
 /** Which ledger and year sync to the Notion Budget tables (brief 020). */
@@ -56,6 +58,13 @@ export function loadConfig(source: NodeJS.ProcessEnv = process.env): Config {
   if ((env.NOTION_TOKEN === undefined) !== (env.NOTION_GROCERIES_DATA_SOURCE_ID === undefined)) {
     throw new Error('set NOTION_TOKEN and NOTION_GROCERIES_DATA_SOURCE_ID together');
   }
+  const totals = env.NOTION_EXPENSES_DATA_SOURCE_ID !== undefined || env.NOTION_NETTO_DATA_SOURCE_ID !== undefined;
+  if (totals && (env.NOTION_EXPENSES_DATA_SOURCE_ID === undefined || env.NOTION_NETTO_DATA_SOURCE_ID === undefined)) {
+    throw new Error('set NOTION_EXPENSES_DATA_SOURCE_ID and NOTION_NETTO_DATA_SOURCE_ID together');
+  }
+  if (totals && env.NOTION_TOKEN === undefined) {
+    throw new Error('set NOTION_EXPENSES_DATA_SOURCE_ID and NOTION_NETTO_DATA_SOURCE_ID together with NOTION_TOKEN');
+  }
   return {
     env: env.NODE_ENV,
     host: env.HOST,
@@ -74,7 +83,17 @@ export function loadConfig(source: NodeJS.ProcessEnv = process.env): Config {
         : null,
     notionApi:
       env.NOTION_TOKEN !== undefined && env.NOTION_GROCERIES_DATA_SOURCE_ID !== undefined
-        ? { token: env.NOTION_TOKEN, groceriesDataSourceId: env.NOTION_GROCERIES_DATA_SOURCE_ID }
+        ? {
+            token: env.NOTION_TOKEN,
+            groceriesDataSourceId: env.NOTION_GROCERIES_DATA_SOURCE_ID,
+            totals:
+              env.NOTION_EXPENSES_DATA_SOURCE_ID !== undefined && env.NOTION_NETTO_DATA_SOURCE_ID !== undefined
+                ? {
+                    expensesDataSourceId: env.NOTION_EXPENSES_DATA_SOURCE_ID,
+                    nettoDataSourceId: env.NOTION_NETTO_DATA_SOURCE_ID,
+                  }
+                : null,
+          }
         : null,
   };
 }

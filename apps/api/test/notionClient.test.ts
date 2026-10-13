@@ -3,14 +3,16 @@ import { NotionError, notionClient } from '../src/notion/client.js';
 
 const token = 'ntn_secret_test_token';
 const ds = '2d2203e3-e5e5-819d-8823-000be6f1bad0';
+const expensesDs = '2d2203e3-e5e5-8154-8e58-000b356e2d71';
+const nettoDs = '2d2203e3-e5e5-8153-8e48-000b2762daa5';
 const row = { expenseId: 57, name: 'Delhaize', amountEur: '29.10', date: '2026-10-01' };
 
 /** A client whose fetch answers from a queue and records every request and every sleep. */
 function setup(...answers: Array<Response | Error>) {
   const requests: Array<{ url: string; method: string; headers: Record<string, string>; body: unknown }> = [];
   const sleeps: number[] = [];
-  const client = notionClient(
-    { token, groceriesDataSourceId: ds },
+  const notion = notionClient(
+    { token, groceriesDataSourceId: ds, totals: { expensesDataSourceId: expensesDs, nettoDataSourceId: nettoDs } },
     {
       fetchImpl: async (url, init) => {
         requests.push({
@@ -29,7 +31,7 @@ function setup(...answers: Array<Response | Error>) {
       now: () => 1_000_000,
     },
   );
-  return { client, requests, sleeps };
+  return { client: notion.groceries, expenses: notion.expenses!, requests, sleeps };
 }
 
 const json = (body: unknown, status = 200, headers: Record<string, string> = {}) =>
@@ -152,5 +154,93 @@ describe('notionClient', () => {
     const down = await offline.client.find(57).catch((e: unknown) => e);
     expect(down).toMatchObject({ status: 0, code: 'notion_unreachable' });
     for (const e of [err, down]) expect(String((e as Error).message)).not.toContain(token);
+  });
+
+  describe('Expenses table', () => {
+    const OCTOBER = '2d2203e3e5e581c8ab4bf9cd93251846';
+    const expensesRow = (id: string, category: string, inTrash = false) => ({
+      id,
+      in_trash: inTrash,
+      properties: { Category: { title: [{ plain_text: category }] } },
+    });
+
+    it("lists a month's rows: those linked to the month's Netto page", async () => {
+      const { expenses, requests } = setup(
+        json({ results: [{ id: '2d2203e3-e5e5-81c8-ab4b-f9cd93251846', in_trash: false }] }),
+        json({
+          results: [
+            expensesRow('2D2203E3-E5E5-811E-AF85-E0821E42C511', 'clothes'),
+            expensesRow('2d2203e3e5e581deb784c6fa0f836c28', 'fun', true),
+          ],
+        }),
+      );
+      expect(await expenses.monthRows('2026-10')).toEqual([
+        { pageId: '2d2203e3e5e5811eaf85e0821e42c511', category: 'clothes' },
+      ]);
+      expect(requests.map((r) => [r.url, r.method, r.body])).toEqual([
+        [
+          `https://api.notion.com/v1/data_sources/${nettoDs}/query`,
+          'POST',
+          { filter: { property: 'Month', title: { equals: 'October' } }, page_size: 10 },
+        ],
+        [
+          `https://api.notion.com/v1/data_sources/${expensesDs}/query`,
+          'POST',
+          {
+            filter: {
+              and: [
+                { property: 'Month', select: { equals: 'Oct' } },
+                {
+                  or: [
+                    { property: 'B to Netto', relation: { contains: OCTOBER } },
+                    { property: 'E to Netto', relation: { contains: OCTOBER } },
+                  ],
+                },
+              ],
+            },
+            page_size: 100,
+          },
+        ],
+      ]);
+    });
+
+    it("uses Notion's month names, and answers [] without a Netto page", async () => {
+      const sept = setup(json({ results: [{ id: OCTOBER }] }), json({ results: [] }));
+      await sept.expenses.monthRows('2026-09');
+      expect((sept.requests[0]!.body as { filter: { title: { equals: string } } }).filter.title.equals).toBe(
+        'September',
+      );
+      expect(JSON.stringify(sept.requests[1]!.body)).toContain('"equals":"Sept"');
+
+      const missing = setup(json({ results: [] }));
+      expect(await missing.expenses.monthRows('2026-11')).toEqual([]);
+      expect(missing.requests.length).toBe(1);
+    });
+
+    it('reads and writes Actual Amount in cents', async () => {
+      const { expenses, requests } = setup(
+        json({ properties: { 'Actual Amount': { number: 653 } } }),
+        json({ properties: { 'Actual Amount': { number: 23.5 } } }),
+        json({ properties: { 'Actual Amount': { number: null } } }),
+        json({}),
+        json({}),
+      );
+      expect(await expenses.actualCents('p1')).toBe(65300n);
+      expect(await expenses.actualCents('p1')).toBe(2350n);
+      expect(await expenses.actualCents('p1')).toBeNull();
+      await expenses.setActualCents('p1', 8400n);
+      await expenses.setActualCents('p1', 2350n);
+      expect(requests.map((r) => [r.url, r.method, r.body])).toEqual([
+        ['https://api.notion.com/v1/pages/p1', 'GET', undefined],
+        ['https://api.notion.com/v1/pages/p1', 'GET', undefined],
+        ['https://api.notion.com/v1/pages/p1', 'GET', undefined],
+        ['https://api.notion.com/v1/pages/p1', 'PATCH', { properties: { 'Actual Amount': { number: 84 } } }],
+        ['https://api.notion.com/v1/pages/p1', 'PATCH', { properties: { 'Actual Amount': { number: 23.5 } } }],
+      ]);
+    });
+
+    it('is absent without the Expenses settings', () => {
+      expect(notionClient({ token, groceriesDataSourceId: ds, totals: null }).expenses).toBeNull();
+    });
   });
 });

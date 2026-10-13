@@ -248,6 +248,17 @@ describe.skipIf(!(await testDbReachable()))('Notion groceries records (MySQL)', 
       expect(notion.calls).toEqual([]);
     });
 
+    it("records a row as trashed when it's already in Notion's trash", async () => {
+      const notion = fakeNotion();
+      const a = await addExpense('A', '2026-10-01');
+      await syncGroceries(db, notion, scope(), log);
+      notion.pages.get(pageId(0x1000))!.inTrash = true; // trashed in Notion by hand
+      await db.query('UPDATE expenses SET deleted_at = NOW() WHERE expense_id = ?', [a]);
+
+      expect(await syncGroceries(db, notion, scope(), log)).toEqual({ created: 0, updated: 0, trashed: 1, failed: [] });
+      expect((await records()).map((r) => r.in_trash)).toEqual([1]);
+    });
+
     it('trashes a grocery moved out of the year once', async () => {
       const notion = fakeNotion();
       const moved = await addExpense('moved', '2026-12-30');

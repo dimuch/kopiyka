@@ -155,7 +155,7 @@ export async function syncGroceries(
         if (refused) fail(refused);
         else result.created++;
       } else if (change.kind === 'trash') {
-        await table.setInTrash(change.sent.pageId, true);
+        await moveTo(table, change.sent.pageId, true);
         await db.query('UPDATE notion_grocery_rows SET in_trash = 1 WHERE expense_id = ?', [expense.expenseId]);
         result.trashed++;
       } else {
@@ -170,6 +170,19 @@ export async function syncGroceries(
   return result;
 }
 
+/**
+ * Moves a row into or out of trash. Notion refuses a move to the state the page is already in (someone trashed it by
+ * hand, or a run stopped before recording it), so that refusal counts as done when the page is already there.
+ */
+async function moveTo(table: GroceriesTable, pageId: string, inTrash: boolean): Promise<void> {
+  try {
+    await table.setInTrash(pageId, inTrash);
+  } catch (err) {
+    const refused = err instanceof NotionError && err.code === 'validation_error';
+    if (!refused || (await table.isInTrash(pageId)) !== inTrash) throw err;
+  }
+}
+
 function rowOf(expense: GroceryState): GroceryRow {
   return { expenseId: expense.expenseId, name: expense.name, amountEur: expense.amountEur, date: expense.date };
 }
@@ -177,7 +190,7 @@ function rowOf(expense: GroceryState): GroceryRow {
 /** Brings a trashed row back (Notion won't edit a page in trash), then writes the grocery's current values. */
 async function updateRow(db: Db, table: GroceriesTable, expense: GroceryState, sent: GrocerySent): Promise<void> {
   if (sent.inTrash) {
-    await table.setInTrash(sent.pageId, false);
+    await moveTo(table, sent.pageId, false);
     await db.query('UPDATE notion_grocery_rows SET in_trash = 0 WHERE expense_id = ?', [expense.expenseId]);
   }
   const row = rowOf(expense);

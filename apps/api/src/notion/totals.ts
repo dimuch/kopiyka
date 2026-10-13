@@ -120,9 +120,11 @@ function matches(title: string, techName: string): boolean {
 /** The category's row with the latest Month (rows without one are skipped; ties keep the first); null when none. */
 export function latestTemplate(rows: ExpensesTemplate[], techName: string): ExpensesTemplate | null {
   let latest: ExpensesTemplate | null = null;
+  let latestMonth = 0;
   for (const row of rows) {
-    if (row.month === null || !matches(row.category, techName)) continue;
-    if (!latest || row.month > (latest.month ?? 0)) latest = row;
+    if (row.month === null || row.month <= latestMonth || !matches(row.category, techName)) continue;
+    latest = row;
+    latestMonth = row.month;
   }
   return latest;
 }

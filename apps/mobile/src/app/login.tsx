@@ -11,8 +11,9 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { ApiError } from '@/api/client';
+import { useColors, useThemedStyles } from '@/appearance/AppearanceContext';
 import { useAuth } from '@/auth/AuthContext';
-import { colors, fonts } from '@/theme';
+import { fonts, type Palette } from '@/theme';
 
 function errorText(err: unknown): string {
   if (err instanceof ApiError) {
@@ -23,6 +24,8 @@ function errorText(err: unknown): string {
 }
 
 export default function Login() {
+  const colors = useColors();
+  const styles = useThemedStyles(makeStyles);
   const { login } = useAuth();
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
@@ -103,32 +106,41 @@ export default function Login() {
   );
 }
 
-const styles = StyleSheet.create({
-  screen: { flex: 1, backgroundColor: colors.bg },
-  body: { flex: 1, padding: 24, justifyContent: 'center', gap: 32, width: '100%', maxWidth: 420, alignSelf: 'center' },
-  title: { fontFamily: fonts.display, fontSize: 40, color: colors.text, letterSpacing: -0.8 },
-  field: { gap: 6 },
-  label: { fontFamily: fonts.bodyMedium, fontSize: 13, color: colors.muted },
-  input: {
-    height: 52,
-    borderRadius: 14,
-    borderWidth: 1,
-    borderColor: colors.borderStrong,
-    backgroundColor: colors.surface,
-    color: colors.text,
-    paddingHorizontal: 16,
-    fontFamily: fonts.bodyMedium,
-    fontSize: 17,
-  },
-  passwordInput: { fontFamily: fonts.display, fontSize: 26, letterSpacing: 8, fontVariant: ['tabular-nums'] },
-  error: { fontFamily: fonts.bodyMedium, fontSize: 14, color: colors.over },
-  button: {
-    height: 56,
-    borderRadius: 28,
-    backgroundColor: colors.accent,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  buttonDisabled: { opacity: 0.4 },
-  buttonText: { fontFamily: fonts.bodySemi, fontSize: 16, color: colors.onAccent },
-});
+const makeStyles = (colors: Palette) =>
+  StyleSheet.create({
+    screen: { flex: 1, backgroundColor: colors.bg },
+    body: {
+      flex: 1,
+      padding: 24,
+      justifyContent: 'center',
+      gap: 32,
+      width: '100%',
+      maxWidth: 420,
+      alignSelf: 'center',
+    },
+    title: { fontFamily: fonts.display, fontSize: 40, color: colors.text, letterSpacing: -0.8 },
+    field: { gap: 6 },
+    label: { fontFamily: fonts.bodyMedium, fontSize: 13, color: colors.muted },
+    input: {
+      height: 52,
+      borderRadius: 14,
+      borderWidth: 1,
+      borderColor: colors.borderStrong,
+      backgroundColor: colors.surface,
+      color: colors.text,
+      paddingHorizontal: 16,
+      fontFamily: fonts.bodyMedium,
+      fontSize: 17,
+    },
+    passwordInput: { fontFamily: fonts.display, fontSize: 26, letterSpacing: 8, fontVariant: ['tabular-nums'] },
+    error: { fontFamily: fonts.bodyMedium, fontSize: 14, color: colors.over },
+    button: {
+      height: 56,
+      borderRadius: 28,
+      backgroundColor: colors.accent,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    buttonDisabled: { opacity: 0.4 },
+    buttonText: { fontFamily: fonts.bodySemi, fontSize: 16, color: colors.onAccent },
+  });

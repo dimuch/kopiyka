@@ -2,14 +2,17 @@ import { type Href, router } from 'expo-router';
 import { useState } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useColors, useThemedStyles } from '@/appearance/AppearanceContext';
 import { useSession } from '@/auth/AuthContext';
 import { Icon, type IconName } from '@/components/Icon';
 import { sumCents } from '@/data/monthSummary';
 import { useMonth } from '@/data/useMonth';
 import { eur, kyivMonth, monthLabel } from '@/format';
-import { colors, fonts } from '@/theme';
+import { fonts, type Palette } from '@/theme';
 
 export default function Home() {
+  const colors = useColors();
+  const styles = useThemedStyles(makeStyles);
   const { ledger, user } = useSession();
   const [month] = useState(() => kyivMonth(new Date()));
   // No error block: the cards still navigate, and the figures stay "—" until a load succeeds.
@@ -60,24 +63,25 @@ export default function Home() {
   );
 }
 
-const styles = StyleSheet.create({
-  screen: { flex: 1, backgroundColor: colors.bg, paddingHorizontal: 20, paddingTop: 20, gap: 18 },
-  header: { gap: 2 },
-  title: { fontFamily: fonts.display, fontSize: 22, color: colors.text },
-  caption: { fontFamily: fonts.body, fontSize: 13, color: colors.muted },
-  grid: { flexDirection: 'row', flexWrap: 'wrap', gap: 12 },
-  card: {
-    // Two per row: each starts just under half the width and grows into the gap.
-    flexBasis: '45%',
-    flexGrow: 1,
-    backgroundColor: colors.surface,
-    borderColor: colors.border,
-    borderWidth: 1,
-    borderRadius: 22,
-    paddingVertical: 16,
-    paddingHorizontal: 18,
-    gap: 8,
-  },
-  cardTitle: { fontFamily: fonts.bodyMedium, fontSize: 15, color: colors.text },
-  figure: { fontFamily: fonts.display, fontSize: 20, color: colors.text, fontVariant: ['tabular-nums'] },
-});
+const makeStyles = (colors: Palette) =>
+  StyleSheet.create({
+    screen: { flex: 1, backgroundColor: colors.bg, paddingHorizontal: 20, paddingTop: 20, gap: 18 },
+    header: { gap: 2 },
+    title: { fontFamily: fonts.display, fontSize: 22, color: colors.text },
+    caption: { fontFamily: fonts.body, fontSize: 13, color: colors.muted },
+    grid: { flexDirection: 'row', flexWrap: 'wrap', gap: 12 },
+    card: {
+      // Two per row: each starts just under half the width and grows into the gap.
+      flexBasis: '45%',
+      flexGrow: 1,
+      backgroundColor: colors.surface,
+      borderColor: colors.border,
+      borderWidth: 1,
+      borderRadius: 22,
+      paddingVertical: 16,
+      paddingHorizontal: 18,
+      gap: 8,
+    },
+    cardTitle: { fontFamily: fonts.bodyMedium, fontSize: 15, color: colors.text },
+    figure: { fontFamily: fonts.display, fontSize: 20, color: colors.text, fontVariant: ['tabular-nums'] },
+  });

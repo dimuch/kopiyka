@@ -80,7 +80,7 @@ describe('notionClient', () => {
 
   it('finds the live row with a Kopiyka ID', async () => {
     const trashed = { id: 'aaaa', in_trash: true };
-    const live = { id: 'BBBB-cccc', in_trash: false };
+    const live = { id: '2D2203E3-E5E5-8173-A301-F4C19BC4FF8D', in_trash: false };
     const { client, requests } = setup(
       json({ results: [] }),
       json({ results: [trashed] }),
@@ -88,7 +88,7 @@ describe('notionClient', () => {
     );
     expect(await client.find(57)).toBeNull();
     expect(await client.find(57)).toBeNull();
-    expect(await client.find(57)).toBe('bbbbcccc');
+    expect(await client.find(57)).toBe('2d2203e3e5e58173a301f4c19bc4ff8d');
     expect(requests[0]).toMatchObject({
       url: `https://api.notion.com/v1/data_sources/${ds}/query`,
       method: 'POST',
@@ -117,7 +117,11 @@ describe('notionClient', () => {
     const limited = () => json({ object: 'error', status: 429, code: 'rate_limited' }, 429, { 'Retry-After': '2' });
     const ok = setup(limited(), json({}));
     await ok.client.setInTrash('p1', true);
-    expect(ok.sleeps).toContain(2000);
+    expect(ok.sleeps).toEqual([2000, 334]);
+
+    const overloaded = setup(json({ code: 'service_overload' }, 529), json({}));
+    await overloaded.client.setInTrash('p1', true);
+    expect(overloaded.sleeps).toEqual([1000, 334]); // no Retry-After: wait a second
 
     const busy = setup(limited(), limited(), limited());
     await expect(busy.client.setInTrash('p1', true)).rejects.toMatchObject({ status: 429, code: 'rate_limited' });
@@ -130,6 +134,9 @@ describe('notionClient', () => {
     const err = await notFound.client.update('p1', row).catch((e: unknown) => e);
     expect(err).toBeInstanceOf(NotionError);
     expect(err).toMatchObject({ status: 404, code: 'object_not_found' });
+
+    const noId = setup(json({ object: 'page' }));
+    await expect(noId.client.create(row)).rejects.toMatchObject({ status: 200, code: 'bad_response' });
 
     const proxy = setup(new Response('<html>Bad gateway</html>', { status: 502 }));
     await expect(proxy.client.update('p1', row)).rejects.toMatchObject({ status: 502, code: 'notion_error' });

@@ -151,8 +151,9 @@ export async function syncGroceries(
       result.failed.push({ expenseId: expense.expenseId, name: expense.name, date: expense.date, error });
     try {
       if (change.kind === 'create') {
-        if (await createRow(db, table, expense)) result.created++;
-        else fail('page_taken');
+        const refused = await createRow(db, table, expense);
+        if (refused) fail(refused);
+        else result.created++;
       } else if (change.kind === 'trash') {
         await table.setInTrash(change.sent.pageId, true);
         await db.query('UPDATE notion_grocery_rows SET in_trash = 1 WHERE expense_id = ?', [expense.expenseId]);
@@ -187,8 +188,18 @@ async function updateRow(db: Db, table: GroceriesTable, expense: GroceryState, s
   );
 }
 
-/** Creates the grocery's row, or adopts one an interrupted sync left behind. False when that row is someone else's. */
-async function createRow(db: Db, table: GroceriesTable, expense: GroceryState): Promise<boolean> {
+/** Creates the grocery's row, or adopts one an interrupted sync left behind; otherwise says why it couldn't. */
+async function createRow(
+  db: Db,
+  table: GroceriesTable,
+  expense: GroceryState,
+): Promise<'page_taken' | 'sent_in_other_year' | null> {
+  // Still live in another year's table: sync that year first (README), rather than leave a second, untracked row here.
+  const [elsewhere] = await db.query<RowDataPacket[]>(
+    'SELECT 1 FROM notion_grocery_rows WHERE expense_id = ? AND in_trash = 0',
+    [expense.expenseId],
+  );
+  if (elsewhere.length) return 'sent_in_other_year';
   const row = rowOf(expense);
   let pageId = await table.find(expense.expenseId);
   if (pageId) {
@@ -197,7 +208,7 @@ async function createRow(db: Db, table: GroceriesTable, expense: GroceryState): 
       'SELECT 1 FROM notion_grocery_rows WHERE notion_page_id = ? AND expense_id <> ?',
       [pageId, expense.expenseId],
     );
-    if (taken.length) return false;
+    if (taken.length) return 'page_taken';
     // What that row shows is unknown, so write kopiyka's values.
     await table.update(pageId, row);
   } else {
@@ -213,5 +224,5 @@ async function createRow(db: Db, table: GroceriesTable, expense: GroceryState): 
       [expense.expenseId, pageId, row.name, row.amountEur, row.date],
     );
   });
-  return true;
+  return null;
 }

@@ -1,3 +1,5 @@
+import { centsToString } from '../money.js';
+
 /** What kopiyka writes to a Groceries row. amountEur is a decimal string ('29.10'); date is 'YYYY-MM-DD'. */
 export interface GroceryRow {
   expenseId: number;
@@ -65,10 +67,14 @@ const MONTHS = [
   'December',
 ];
 
+const SHORT_MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'June', 'July', 'Aug', 'Sept', 'Oct', 'Nov', 'Dec'];
+
 export interface NotionApiConfig {
   token: string;
   /** The Groceries data source: the UUID in its `collection://…` URL. */
   groceriesDataSourceId: string;
+  /** The Expenses and Netto data sources, for category totals; null when they aren't set. */
+  totals: { expensesDataSourceId: string; nettoDataSourceId: string } | null;
 }
 
 interface ClientDeps {
@@ -77,15 +83,15 @@ interface ClientDeps {
   now?: () => number;
 }
 
-/** The Notion Groceries table over Notion's REST API, spacing requests out and waiting out rate limits. */
+/** The Notion tables over Notion's REST API, sharing one request spacing and waiting out rate limits. */
 export function notionClient(
-  { token, groceriesDataSourceId }: NotionApiConfig,
+  { token, groceriesDataSourceId, totals }: NotionApiConfig,
   {
     fetchImpl = fetch,
     sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms)),
     now = () => performance.now(), // monotonic, so a clock change can't stall requests
   }: ClientDeps = {},
-): GroceriesTable {
+): { groceries: GroceriesTable; expenses: ExpensesTable | null } {
   const headers = { Authorization: `Bearer ${token}`, 'Notion-Version': VERSION, 'Content-Type': 'application/json' };
   let nextAt = 0;
 
@@ -140,7 +146,7 @@ export function notionClient(
     };
   }
 
-  return {
+  const groceries: GroceriesTable = {
     async find(expenseId) {
       const answer = await request('POST', `/data_sources/${groceriesDataSourceId}/query`, {
         filter: { property: 'Kopiyka ID', number: { equals: expenseId } },
@@ -169,4 +175,54 @@ export function notionClient(
       return page.in_trash === true;
     },
   };
+
+  const expenses: ExpensesTable | null = totals && {
+    async monthRows(month) {
+      const index = Number(month.slice(5, 7)) - 1;
+      // Netto's Month is its title, with full month names.
+      const netto = await request('POST', `/data_sources/${totals.nettoDataSourceId}/query`, {
+        filter: { property: 'Month', title: { equals: MONTHS[index] } },
+        page_size: 10,
+      });
+      const page = ((netto.results ?? []) as Array<{ id: string; in_trash?: boolean }>).find((r) => !r.in_trash);
+      if (!page) return [];
+      const nettoId = pageId(page.id);
+      const rows = await request('POST', `/data_sources/${totals.expensesDataSourceId}/query`, {
+        filter: {
+          and: [
+            { property: 'Month', select: { equals: SHORT_MONTHS[index] } },
+            {
+              or: [
+                { property: 'B to Netto', relation: { contains: nettoId } },
+                { property: 'E to Netto', relation: { contains: nettoId } },
+              ],
+            },
+          ],
+        },
+        page_size: 100,
+      });
+      type Row = { id: string; in_trash?: boolean; properties: { Category: { title: Array<{ plain_text: string }> } } };
+      return ((rows.results ?? []) as Row[])
+        .filter((r) => !r.in_trash)
+        .map((r) => ({
+          pageId: pageId(r.id),
+          category: r.properties.Category.title.map((t) => t.plain_text).join(''),
+        }));
+    },
+    async actualCents(id) {
+      const page = (await request('GET', `/pages/${id}`)) as {
+        properties?: { 'Actual Amount'?: { number: number | null } };
+      };
+      const value = page.properties?.['Actual Amount']?.number;
+      // Notion's numbers are floats: round to cents once, here at the boundary.
+      return value === null || value === undefined ? null : BigInt(Math.round(value * 100));
+    },
+    async setActualCents(id, cents) {
+      await request('PATCH', `/pages/${id}`, {
+        properties: { 'Actual Amount': { number: Number(centsToString(cents)) } },
+      });
+    },
+  };
+
+  return { groceries, expenses };
 }

@@ -387,7 +387,7 @@ Alternatives considered:
       2. The run lists the read error and makes no `setActualCents` call, and the new expense stays unsent.
       3. The next run confirms the old add, then adds the new one.
   - ~125 lines.
-- [ ] 5. Read and write the Notion Expenses table from the API's environment
+- [x] 5. Read and write the Notion Expenses table from the API's environment
   - Files: `apps/api/src/notion/client.ts` (`expenses`, `NotionApiConfig.totals`), `apps/api/src/config.ts`,
     `apps/api/src/server.ts` (`client.groceries`), `apps/api/test/notionClient.test.ts`,
     `apps/api/test/config.test.ts`, `apps/api/test/helpers.ts` (if `testConfig` needs it), `apps/api/.env.example`

@@ -1,10 +1,12 @@
 import type { ReactNode } from 'react';
 import { StyleSheet, Text } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { colors, fonts } from '@/theme';
+import { useThemedStyles } from '@/appearance/AppearanceContext';
+import { fonts, type Palette } from '@/theme';
 
 /** A tab page whose content hasn't been built yet. */
 export function PlaceholderPage({ title, children }: { title: string; children?: ReactNode }) {
+  const styles = useThemedStyles(makeStyles);
   return (
     <SafeAreaView style={styles.screen} edges={['top']}>
       <Text style={styles.title}>{title}</Text>
@@ -14,8 +16,9 @@ export function PlaceholderPage({ title, children }: { title: string; children?:
   );
 }
 
-const styles = StyleSheet.create({
-  screen: { flex: 1, backgroundColor: colors.bg, paddingHorizontal: 20, paddingTop: 20, gap: 6 },
-  title: { fontFamily: fonts.display, fontSize: 22, color: colors.text },
-  caption: { fontFamily: fonts.body, fontSize: 13, color: colors.muted },
-});
+const makeStyles = (colors: Palette) =>
+  StyleSheet.create({
+    screen: { flex: 1, backgroundColor: colors.bg, paddingHorizontal: 20, paddingTop: 20, gap: 6 },
+    title: { fontFamily: fonts.display, fontSize: 22, color: colors.text },
+    caption: { fontFamily: fonts.body, fontSize: 13, color: colors.muted },
+  });

@@ -1,7 +1,8 @@
 import { StyleSheet, Text, TextInput, View } from 'react-native';
 import type { Currency } from '@/api/types';
+import { useColors, useThemedStyles } from '@/appearance/AppearanceContext';
 import { Icon } from '@/components/Icon';
-import { colors, fonts } from '@/theme';
+import { fonts, type Palette } from '@/theme';
 
 interface Props {
   /** The side the user typed; it shows `amountText`, the other side shows `otherText`. */
@@ -13,6 +14,8 @@ interface Props {
 
 /** The UAH and EUR amount inputs with the swap icon between them. */
 export function AmountFields({ entered, amountText, otherText, onChange }: Props) {
+  const colors = useColors();
+  const styles = useThemedStyles(makeStyles);
   return (
     <View style={styles.row}>
       <AmountField
@@ -41,6 +44,8 @@ function AmountField({
   value: string;
   onChangeText: (text: string) => void;
 }) {
+  const colors = useColors();
+  const styles = useThemedStyles(makeStyles);
   return (
     <View style={{ flex: 1, gap: 8 }}>
       <Text style={styles.label}>Amount in {currency}</Text>
@@ -60,30 +65,31 @@ function AmountField({
   );
 }
 
-const styles = StyleSheet.create({
-  row: { flexDirection: 'row', alignItems: 'flex-end', gap: 8 },
-  swap: { height: 48, width: 20, alignItems: 'center', justifyContent: 'center' },
-  label: { fontFamily: fonts.bodySemi, fontSize: 13, color: colors.muted },
-  symbol: {
-    position: 'absolute',
-    left: 14,
-    top: 13,
-    zIndex: 1,
-    fontFamily: fonts.body,
-    fontSize: 16,
-    color: colors.muted,
-  },
-  input: {
-    height: 48,
-    borderRadius: 14,
-    borderWidth: 1,
-    borderColor: colors.borderStrong,
-    backgroundColor: colors.surface,
-    paddingLeft: 32,
-    paddingRight: 14,
-    color: colors.text,
-    fontFamily: fonts.bodyMedium,
-    fontSize: 16,
-    fontVariant: ['tabular-nums'],
-  },
-});
+const makeStyles = (colors: Palette) =>
+  StyleSheet.create({
+    row: { flexDirection: 'row', alignItems: 'flex-end', gap: 8 },
+    swap: { height: 48, width: 20, alignItems: 'center', justifyContent: 'center' },
+    label: { fontFamily: fonts.bodySemi, fontSize: 13, color: colors.muted },
+    symbol: {
+      position: 'absolute',
+      left: 14,
+      top: 13,
+      zIndex: 1,
+      fontFamily: fonts.body,
+      fontSize: 16,
+      color: colors.muted,
+    },
+    input: {
+      height: 48,
+      borderRadius: 14,
+      borderWidth: 1,
+      borderColor: colors.borderStrong,
+      backgroundColor: colors.surface,
+      paddingLeft: 32,
+      paddingRight: 14,
+      color: colors.text,
+      fontFamily: fonts.bodyMedium,
+      fontSize: 16,
+      fontVariant: ['tabular-nums'],
+    },
+  });

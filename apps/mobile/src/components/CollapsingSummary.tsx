@@ -1,7 +1,8 @@
 import { useMemo, useState } from 'react';
 import { Animated, StyleSheet, Text, type LayoutChangeEvent } from 'react-native';
+import { useColors, useThemedStyles } from '@/appearance/AppearanceContext';
 import { eur } from '@/format';
-import { colors, fonts } from '@/theme';
+import { fonts, type Palette } from '@/theme';
 
 /**
  * Scroll-linked hand-off from the "Spent" card to a compact total in the top bar:
@@ -53,6 +54,8 @@ export function CompactTotal({
   label?: string;
   style: object;
 }) {
+  const colors = useColors();
+  const styles = useThemedStyles(makeStyles);
   const over = budgetCents != null && spentCents > budgetCents;
   const amounts = budgetCents != null ? `${eur(spentCents)} of ${eur(budgetCents)} spent` : `${eur(spentCents)} spent`;
   return (
@@ -74,13 +77,15 @@ export function CompactTotal({
 
 /** Hairline under the top bar, shown once content scrolls beneath it. */
 export function HeaderDivider({ style }: { style: object }) {
+  const styles = useThemedStyles(makeStyles);
   return <Animated.View pointerEvents="none" style={[styles.divider, style]} />;
 }
 
-const styles = StyleSheet.create({
-  compact: { flexDirection: 'row', alignItems: 'baseline', flexShrink: 1 },
-  label: { flexShrink: 1, marginRight: 6, fontFamily: fonts.bodyMedium, fontSize: 14, color: colors.muted },
-  spent: { fontFamily: fonts.display, fontSize: 18, color: colors.text, fontVariant: ['tabular-nums'] },
-  budget: { fontFamily: fonts.bodyMedium, fontSize: 14, color: colors.muted, fontVariant: ['tabular-nums'] },
-  divider: { position: 'absolute', left: -20, right: -20, bottom: 0, height: 1, backgroundColor: colors.border },
-});
+const makeStyles = (colors: Palette) =>
+  StyleSheet.create({
+    compact: { flexDirection: 'row', alignItems: 'baseline', flexShrink: 1 },
+    label: { flexShrink: 1, marginRight: 6, fontFamily: fonts.bodyMedium, fontSize: 14, color: colors.muted },
+    spent: { fontFamily: fonts.display, fontSize: 18, color: colors.text, fontVariant: ['tabular-nums'] },
+    budget: { fontFamily: fonts.bodyMedium, fontSize: 14, color: colors.muted, fontVariant: ['tabular-nums'] },
+    divider: { position: 'absolute', left: -20, right: -20, bottom: 0, height: 1, backgroundColor: colors.border },
+  });

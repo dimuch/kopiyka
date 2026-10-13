@@ -192,7 +192,7 @@ search param copies `expense.tsx` (`/expense?expenseId=…`).
     - Cancel in a fresh tab → Home.
     - Check both Light and Dark.
   - About 150 lines.
-- [ ] 3. Delete a category from its confirm screen, with Undo on Home
+- [x] 3. Delete a category from its confirm screen, with Undo on Home
   - Files: `apps/mobile/src/data/categories.ts` (new), `apps/mobile/src/app/delete-category.tsx`,
     `apps/mobile/src/components/UndoToast.tsx`
   - Change: add the delete and restore calls, and the destructive button with the delete flow as in Contracts. The

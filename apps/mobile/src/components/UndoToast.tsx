@@ -8,7 +8,7 @@ export function UndoToast({ offer, onUndo }: { offer: UndoOffer; onUndo: () => v
   const styles = useThemedStyles(makeStyles);
   return (
     <View accessibilityLiveRegion="polite" style={styles.toast}>
-      <Text numberOfLines={1} style={styles.toastText}>
+      <Text numberOfLines={2} style={styles.toastText}>
         {offer.status === 'failed' ? 'Couldn’t undo' : offer.undo.message}
       </Text>
       <Pressable

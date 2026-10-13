@@ -3,7 +3,7 @@ import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest';
 import { createDb, type Db } from '../src/db.js';
 import { NotionError } from '../src/notion/client.js';
 import { loadUncounted, startTotals, syncTotals } from '../src/notion/totals.js';
-import { type FakeExpenses, fakeExpenses, pageId } from './fakeNotion.js';
+import { type FakeExpenses, fakeExpenses, nettoPage, pageId } from './fakeNotion.js';
 import {
   clearData,
   makeUser,
@@ -125,6 +125,23 @@ describe.skipIf(!(await testDbReachable()))('Notion category totals (MySQL)', ()
       notion.rows.set(UTILITES, { category: 'utilites', month: '2026-10', inView: true, actualCents: 5800n });
       notion.rows.set(pageId(5), { category: 'gym', month: '2026-10', inView: true, actualCents: 28000n });
       notion.rows.set(STRAY, { category: 'fun', month: '2026-10', inView: false, actualCents: null });
+      // Clothes has rows in earlier months only; a new October row copies September's Budget and Type.
+      notion.rows.set(pageId(10), {
+        category: 'clothes',
+        month: '2026-03',
+        inView: true,
+        actualCents: 9000n,
+        budgetCents: 15000n,
+        type: 'Variable',
+      });
+      notion.rows.set(pageId(11), {
+        category: 'clothes',
+        month: '2026-09',
+        inView: true,
+        actualCents: 12000n,
+        budgetCents: 20000n,
+        type: 'Fixed',
+      });
       await addExpense('fun', '2026-10-01', '64.53'); // already typed into Notion by hand
       await startTotals(db, scope(), clock);
     });
@@ -163,14 +180,74 @@ describe.skipIf(!(await testDbReachable()))('Notion category totals (MySQL)', ()
       expect(notion.rows.get(UTILITES)!.actualCents).toBe(6200n);
     });
 
-    it('reports a category-month without a row and sends it once the row exists', async () => {
-      await addExpense('car', '2026-10-06', '10.00');
-      expect(await sync()).toEqual({ added: 0, failed: [{ category: 'car', month: '2026-10', error: 'no_row' }] });
-      expect(writes()).toEqual([]);
+    const monthRowsOf = (category: string, month: string) =>
+      [...notion.rows].filter(([, r]) => r.category === category && r.month === month);
 
-      notion.rows.set(pageId(6), { category: 'car', month: '2026-10', inView: true, actualCents: 1000n });
+    it('creates a missing row once, then adds to it', async () => {
+      await addExpense('clothes', '2026-10-07', '30.20');
+      await addExpense('clothes', '2026-10-07', '9.50');
+
       expect(await sync()).toEqual({ added: 1, failed: [] });
-      expect(notion.rows.get(pageId(6))!.actualCents).toBe(2000n);
+      const created = monthRowsOf('clothes', '2026-10');
+      expect(created.length).toBe(1);
+      const [id, row] = created[0]!;
+      expect(notion.calls).toEqual([
+        'monthRows 2026-10',
+        'allRows',
+        'createRow clothes 2026-10',
+        `actualCents ${id}`,
+        `setActualCents ${id} 4000`, // 39.70 rounds to 40
+      ]);
+      expect(row).toEqual({
+        category: 'clothes',
+        month: '2026-10',
+        inView: true,
+        actualCents: 4000n,
+        budgetCents: 20000n,
+        type: 'Fixed',
+        nettoPageId: nettoPage('2026-10'),
+      });
+      const [adds] = await db.query<RowDataPacket[]>(
+        'SELECT notion_page_id, base_amount, expected_amount, confirmed FROM notion_total_adds',
+      );
+      expect(adds).toEqual([{ notion_page_id: id, base_amount: '0.00', expected_amount: '40.00', confirmed: 1 }]);
+
+      notion.calls.length = 0;
+      await addExpense('clothes', '2026-10-08', '5.00');
+      expect(await sync()).toEqual({ added: 1, failed: [] });
+      expect(notion.calls.filter((c) => c === 'allRows' || c.startsWith('createRow'))).toEqual([]);
+      expect(monthRowsOf('clothes', '2026-10').map(([, r]) => r.actualCents)).toEqual([4500n]);
+    });
+
+    it('gives a category Notion has no row for a new one with no Budget or Type', async () => {
+      await addExpense('home_needs', '2026-10-07', '12.00');
+      expect(await sync()).toEqual({ added: 1, failed: [] });
+      expect(monthRowsOf('home needs', '2026-10').map(([, r]) => r)).toEqual([
+        expect.objectContaining({ budgetCents: null, type: null, actualCents: 1200n }),
+      ]);
+    });
+
+    it('never makes a second row after an interrupted create', async () => {
+      await addExpense('clothes', '2026-10-07', '40.00');
+      notion.failAfterCreate = true;
+      expect(await sync()).toEqual({
+        added: 0,
+        failed: [{ category: 'clothes', month: '2026-10', error: 'notion_unreachable' }],
+      });
+      const [adds] = await db.query<RowDataPacket[]>('SELECT add_id FROM notion_total_adds');
+      expect(adds).toEqual([]);
+
+      notion.calls.length = 0;
+      expect(await sync()).toEqual({ added: 1, failed: [] });
+      expect(notion.calls.filter((c) => c.startsWith('createRow'))).toEqual([]);
+      expect(monthRowsOf('clothes', '2026-10').map(([, r]) => r.actualCents)).toEqual([4000n]);
+    });
+
+    it('creates no row for a new sum that rounds to 0', async () => {
+      const small = await addExpense('clothes', '2026-10-07', '0.40');
+      expect(await sync()).toEqual({ added: 0, failed: [] });
+      expect(notion.calls.filter((c) => c === 'allRows' || c.startsWith('createRow'))).toEqual([]);
+      expect((await counted()).find((r) => r.expense_id === small)).toEqual({ expense_id: small, add_id: null });
     });
 
     it("adds backdated parking and gift expenses to Notion's car parking and gifts rows", async () => {
@@ -254,6 +331,13 @@ describe.skipIf(!(await testDbReachable()))('Notion category totals (MySQL)', ()
         return rows;
       };
 
+      /** One confirmed add, on a new fun row (not FUN) holding only the 19.47 that was sent again. */
+      async function expectReplacedFunRow() {
+        const [rows] = await db.query<RowDataPacket[]>('SELECT notion_page_id, confirmed FROM notion_total_adds');
+        expect(rows).toEqual([{ notion_page_id: expect.not.stringMatching(FUN), confirmed: 1 }]);
+        expect(notion.rows.get(rows[0]!.notion_page_id)).toMatchObject({ category: 'fun', actualCents: 1900n });
+      }
+
       it('confirms an add that landed, without writing it again', async () => {
         const a = await addExpense('fun', '2026-10-05', '12.30');
         const b = await addExpense('fun', '2026-10-05', '7.17');
@@ -317,8 +401,9 @@ describe.skipIf(!(await testDbReachable()))('Notion category totals (MySQL)', ()
         await sync();
         notion.rows.delete(FUN);
 
-        expect(await sync()).toEqual({ added: 0, failed: [{ category: 'fun', month: '2026-10', error: 'no_row' }] });
-        expect(await adds()).toEqual([]);
+        // Released, then sent again into a new row: the deleted row's add is gone with it.
+        expect(await sync()).toEqual({ added: 1, failed: [] });
+        await expectReplacedFunRow();
       });
 
       it('lets go of an add whose row went to trash showing its base', async () => {
@@ -327,8 +412,8 @@ describe.skipIf(!(await testDbReachable()))('Notion category totals (MySQL)', ()
         await sync();
         notion.rows.get(FUN)!.inView = false;
 
-        expect(await sync()).toEqual({ added: 0, failed: [{ category: 'fun', month: '2026-10', error: 'no_row' }] });
-        expect(await adds()).toEqual([]);
+        expect(await sync()).toEqual({ added: 1, failed: [] });
+        await expectReplacedFunRow();
       });
 
       it("doesn't add on top of an add it couldn't read back", async () => {

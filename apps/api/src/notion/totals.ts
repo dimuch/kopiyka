@@ -134,8 +134,9 @@ export interface TotalsResult {
 }
 
 /**
- * Adds each category-month's new expenses to its row's Actual Amount. Each add is recorded before the write and
- * confirmed after it, so it's never made twice; a failed step is listed and retried on the next sync.
+ * Adds each category-month's new expenses to its row's Actual Amount, creating the row when the month has a Netto page
+ * but no row for the category. Each add is recorded before the write and confirmed after it, so it's never made
+ * twice; a failed step is listed and retried on the next sync.
  */
 export async function syncTotals(
   db: Db,
@@ -147,6 +148,10 @@ export async function syncTotals(
   await recover(db, table, scope, log, result);
   const unconfirmed = await unconfirmedMonths(db, scope);
   const months = new Map<string, Promise<MonthView | null>>();
+  // One read of the whole table per run, and only when a row must be created; a failure repeats for the run's other
+  // creates and is retried on the next sync.
+  let templates: Promise<ExpensesTemplate[]> | undefined;
+  const allTemplates = () => (templates ??= table.allRows());
 
   for (const add of planTotals((await loadUncounted(db, scope)).filter((e) => !e.pending))) {
     const fail = (error: string) => result.failed.push({ category: add.techName, month: add.month, error });
@@ -161,15 +166,16 @@ export async function syncTotals(
         continue;
       }
       const rows = view.rows.filter((r) => matches(r.category, add.techName));
-      if (rows.length !== 1) {
-        fail(rows.length ? 'duplicate_rows' : 'no_row');
+      if (rows.length > 1) {
+        fail('duplicate_rows');
         continue;
       }
       if (add.euros === 0n) {
         await countExpenses(db, add.expenseIds, null);
         continue;
       }
-      await addToRow(db, table, add, rows[0]!.pageId);
+      const pageId = rows[0]?.pageId ?? (await createMissingRow(table, add, view.nettoPageId, allTemplates));
+      await addToRow(db, table, add, pageId);
       result.added++;
     } catch (err) {
       log.warn({ err, category: add.techName, month: add.month }, 'Notion totals step failed');
@@ -259,6 +265,27 @@ async function countExpenses(db: Db, expenseIds: number[], addId: number | null)
   await db.query('INSERT INTO notion_counted_expenses (expense_id, add_id) VALUES ?', [
     expenseIds.map((id) => [id, addId]),
   ]);
+}
+
+/**
+ * Makes the category's row for a month that has none, linked to the month's Netto page, with Budget and Type copied
+ * from the category's latest row. Actual Amount stays empty, so the add that follows is recorded from base 0: if this
+ * answer is lost, the next sync finds the empty row in the month's view and adds to it instead of making another.
+ */
+async function createMissingRow(
+  table: ExpensesTable,
+  add: TotalAdd,
+  nettoPageId: string,
+  templates: () => Promise<ExpensesTemplate[]>,
+): Promise<string> {
+  const template = latestTemplate(await templates(), add.techName);
+  return table.createRow({
+    category: template?.category ?? add.techName.replaceAll('_', ' '),
+    month: add.month,
+    nettoPageId,
+    budgetCents: template?.budgetCents ?? null,
+    type: template?.type ?? null,
+  });
 }
 
 /** Records the add with the row's fresh base, writes base + the add, then confirms it. */

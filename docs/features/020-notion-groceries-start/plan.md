@@ -343,6 +343,8 @@ Build-time steps (no commits). The user approves them at Gate A, because they wr
 
 ## Deviations
 
+- review: the loader only reads records whose `sent_date` is in the synced year (so another year's table is never
+  trashed); `notion-start` rejects an empty `--adopt`.
 - slice 2: `NotionScope` is added to `config.ts` here (type only), not in slice 3, because `loadGroceries` takes it.
 
 ## Revision 1

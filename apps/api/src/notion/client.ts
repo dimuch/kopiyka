@@ -65,7 +65,7 @@ export function notionClient(
   {
     fetchImpl = fetch,
     sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms)),
-    now = Date.now,
+    now = () => performance.now(), // monotonic, so a clock change can't stall requests
   }: ClientDeps = {},
 ): GroceriesTable {
   const headers = { Authorization: `Bearer ${token}`, 'Notion-Version': VERSION, 'Content-Type': 'application/json' };
@@ -90,6 +90,7 @@ export function notionClient(
       }
       if (res.ok) return (await res.json()) as Record<string, unknown>;
       if ((res.status === 429 || res.status === 529) && attempt < ATTEMPTS) {
+        await res.body?.cancel(); // free the connection before waiting
         await sleep((Number(res.headers.get('Retry-After')) || 1) * 1000);
         continue;
       }
@@ -100,7 +101,12 @@ export function notionClient(
     }
   }
 
-  const pageId = (id: unknown) => String(id).replaceAll('-', '').toLowerCase();
+  function pageId(id: unknown): string {
+    const normalised = String(id).replaceAll('-', '').toLowerCase();
+    if (!/^[0-9a-f]{32}$/.test(normalised))
+      throw new NotionError(200, 'bad_response', 'Notion answered without a page id');
+    return normalised;
+  }
 
   function properties(row: GroceryRow) {
     return {

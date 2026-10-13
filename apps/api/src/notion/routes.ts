@@ -39,10 +39,11 @@ export async function notionRoutes(app: FastifyInstance, deps: AppDeps): Promise
     if (running.has(scope.ledgerId)) return reply.code(409).send({ error: 'sync_in_progress' });
     running.add(scope.ledgerId);
     try {
+      // Taken before loading, so it never claims a grocery added during the run.
+      const at = now();
       const result = await syncGroceries(db, table, scope, req.log);
       // "Last synced" means everything up to then is in Notion, so a run with a failed step leaves it as it was.
       if (!result.failed.length) {
-        const at = now();
         await db.query(
           'INSERT INTO notion_syncs (ledger_id, last_synced_at) VALUES (?, ?) ON DUPLICATE KEY UPDATE last_synced_at = ?',
           [scope.ledgerId, at, at],

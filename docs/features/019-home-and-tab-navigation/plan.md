@@ -130,7 +130,7 @@ alignItems/justifyContent: 'center', borderRadius: 12`) and holds `<Icon name="p
     Settings passes the same `Pressable` (role button, `onPress={logout}`) as `PlaceholderPage` children. About 25
     lines.
   - Verify: W9, I5.
-- [ ] 3. Show Home cards with this month's spent, count and username
+- [x] 3. Show Home cards with this month's spent, count and username
   - Files: `apps/mobile/src/app/(tabs)/index.tsx`
   - Change: replace the placeholder with the header and 4 cards from Contracts. The header is the title "Kopiyka" with a
     caption of `monthLabel(month)`, since the figures are for that month. The cards sit in a 2×2 grid, styled like the

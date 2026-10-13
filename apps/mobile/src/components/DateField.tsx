@@ -17,81 +17,90 @@ function toValue(date: Date): string {
   return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
 }
 
+/** What the field calls on the hidden web date input; the picker has no web version. */
+interface WebInput {
+  showPicker?: () => void;
+  focus: () => void;
+  click: () => void;
+}
+
 /**
- * A browser date input on web (the picker has no web version). On iOS a field drawn like it, '13/10/2026' and a
- * calendar icon, that opens the native calendar in a sheet: the compact picker's own chip says '13 Oct 2026'.
+ * '13/10/2026' and a calendar icon on every platform; the format can't follow the device. Tapping it opens the
+ * native calendar in a sheet on iOS (the compact picker's own chip says '13 Oct 2026'), and the browser's calendar
+ * on web (a visible date input would follow the browser locale).
  */
 export function DateField({ value, onChange, max, label }: Props) {
   const colors = useColors();
   const styles = useThemedStyles(makeStyles);
   const { scheme } = useAppearance();
   const [open, setOpen] = useState(false);
-  if (Platform.OS === 'web') {
-    return createElement('input', {
-      type: 'date',
-      value,
-      max,
-      'aria-label': label,
-      onChange: (e: { target: { value: string } }) => e.target.value && onChange(e.target.value),
-      style: {
-        flex: 1,
-        minWidth: 0,
-        height: 48,
-        boxSizing: 'border-box',
-        padding: '0 14px',
-        background: colors.surface,
-        border: `1px solid ${colors.borderStrong}`,
-        borderRadius: 14,
-        color: colors.text,
-        font: `500 16px ${fonts.bodyMedium}, sans-serif`,
-        colorScheme: scheme,
-      },
-    });
-  }
+  const [input, setInput] = useState<WebInput | null>(null);
+  const openPicker = () => {
+    if (!input) return setOpen(true);
+    if (input.showPicker) input.showPicker();
+    else {
+      input.focus();
+      input.click();
+    }
+  };
   return (
-    <>
+    <View style={styles.wrap}>
+      {Platform.OS === 'web' &&
+        createElement('input', {
+          ref: setInput,
+          type: 'date',
+          value,
+          max,
+          tabIndex: -1,
+          'aria-hidden': true,
+          onChange: (e: { target: { value: string } }) => e.target.value && onChange(e.target.value),
+          // Under the field, so the browser anchors its calendar there.
+          style: { position: 'absolute', inset: 0, opacity: 0, pointerEvents: 'none', colorScheme: scheme },
+        })}
       <Pressable
         accessibilityRole="button"
         accessibilityLabel={`${label}, ${numericDate(value)}`}
-        onPress={() => setOpen(true)}
+        onPress={openPicker}
         style={styles.field}
       >
         <Text style={styles.text}>{numericDate(value)}</Text>
         <Icon name="calendar" size={18} color={colors.text} />
       </Pressable>
-      <Modal visible={open} transparent animationType="slide" onRequestClose={() => setOpen(false)}>
-        <View style={styles.backdrop}>
-          <Pressable
-            accessibilityRole="button"
-            accessibilityLabel="Close calendar"
-            style={{ flex: 1 }}
-            onPress={() => setOpen(false)}
-          />
-          <View accessibilityViewIsModal style={styles.sheet}>
-            <DateTimePicker
-              value={parseDate(value)}
-              mode="date"
-              display="inline"
-              maximumDate={parseDate(max)}
-              themeVariant={scheme}
-              accentColor={colors.accent}
-              accessibilityLabel={label}
-              onChange={(_event, date) => {
-                setOpen(false);
-                if (date) onChange(toValue(date));
-              }}
+      {Platform.OS !== 'web' && (
+        <Modal visible={open} transparent animationType="slide" onRequestClose={() => setOpen(false)}>
+          <View style={styles.backdrop}>
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel="Close calendar"
+              style={{ flex: 1 }}
+              onPress={() => setOpen(false)}
             />
+            <View accessibilityViewIsModal style={styles.sheet}>
+              <DateTimePicker
+                value={parseDate(value)}
+                mode="date"
+                display="inline"
+                maximumDate={parseDate(max)}
+                themeVariant={scheme}
+                accentColor={colors.accent}
+                accessibilityLabel={label}
+                onChange={(_event, date) => {
+                  setOpen(false);
+                  if (date) onChange(toValue(date));
+                }}
+              />
+            </View>
           </View>
-        </View>
-      </Modal>
-    </>
+        </Modal>
+      )}
+    </View>
   );
 }
 
 const makeStyles = (colors: Palette) =>
   StyleSheet.create({
+    wrap: { flex: 1, minWidth: 0 },
     field: {
-      flex: 1,
       height: 48,
       borderRadius: 14,
       borderWidth: 1,

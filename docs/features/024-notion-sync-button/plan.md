@@ -164,7 +164,7 @@ the web build would show no result. An inline result also stays visible next to 
     - `notionSync.test.ts` "status line": a table of `{5, '2026-10-10T11:02:00.000Z'}` →
       `'5 new · last synced 10 Oct, 14:02'`, `{1, null}` → `'1 new · not synced yet'`, `{0, null}` and
       `{0, <time>}` → `'Up to date'`.
-- [ ] 2. Add the Notion sync result and refusal texts (~90 lines)
+- [x] 2. Add the Notion sync result and refusal texts (~90 lines)
   - Files: `apps/mobile/src/data/notionSync.ts`, `apps/mobile/test/notionSync.test.ts`
   - Change: `syncReport` (`done`, `failed`; `reasons` is always `[]` until slice 4) and `syncErrorText`, as in
     Contracts.

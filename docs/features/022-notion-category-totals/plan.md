@@ -330,7 +330,7 @@ Alternatives considered:
       - `sviat` gives `['sviat']`, which matches `Sviat` after lower-casing;
       - `utilities` gives `['utilities', 'utilites']`.
   - ~70 lines.
-- [ ] 3. Add new expenses to their category's Actual Amount in Notion
+- [x] 3. Add new expenses to their category's Actual Amount in Notion
   - Files: `apps/api/src/notion/client.ts` (contract only: `ExpensesRow`, `ExpensesTable`),
     `apps/api/src/notion/totals.ts` (`TotalsResult`, `syncTotals` steps 2–4), `apps/api/test/fakeNotion.ts`
     (`fakeExpenses()`), `apps/api/test/notionTotals.int.test.ts`

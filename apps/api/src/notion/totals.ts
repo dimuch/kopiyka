@@ -1,7 +1,9 @@
+import type { FastifyBaseLogger } from 'fastify';
 import type { ResultSetHeader, RowDataPacket } from 'mysql2/promise';
 import type { NotionScope } from '../config.js';
 import { type Db, withTransaction } from '../db.js';
-import { toCents } from '../money.js';
+import { centsToString, toCents } from '../money.js';
+import { type ExpensesRow, type ExpensesTable, NotionError } from './client.js';
 import { yearBounds } from './groceries.js';
 
 /** A live non-grocery expense of the synced ledger and year that Notion's totals don't include yet. */
@@ -104,4 +106,89 @@ const ALIASES: Record<string, string[]> = { utilities: ['utilites'] }; // Octobe
 /** The lower-case Notion Category titles a tech_name matches. */
 export function notionNames(techName: string): string[] {
   return [techName.replaceAll('_', ' '), ...(ALIASES[techName] ?? [])];
+}
+
+export interface TotalsResult {
+  /** Category-months whose add Notion confirmed in this run. */
+  added: number;
+  failed: Array<{ category: string; month: string; error: string }>;
+}
+
+/**
+ * Adds each category-month's new expenses to its row's Actual Amount. Each add is recorded before the write and
+ * confirmed after it, so it's never made twice; a failed step is listed and retried on the next sync.
+ */
+export async function syncTotals(
+  db: Db,
+  table: ExpensesTable,
+  scope: NotionScope,
+  log: Pick<FastifyBaseLogger, 'warn'>,
+): Promise<TotalsResult> {
+  const result: TotalsResult = { added: 0, failed: [] };
+  const unconfirmed = await unconfirmedMonths(db, scope);
+  const months = new Map<string, Promise<ExpensesRow[]>>();
+
+  for (const add of planTotals((await loadUncounted(db, scope)).filter((e) => !e.pending))) {
+    const fail = (error: string) => result.failed.push({ category: add.techName, month: add.month, error });
+    // Never build on an add that might not have landed: its expenses would be under-counted.
+    if (unconfirmed.has(`${add.categoryId} ${add.month}`)) {
+      fail('unconfirmed_add');
+      continue;
+    }
+    try {
+      if (!months.has(add.month)) months.set(add.month, table.monthRows(add.month));
+      const names = notionNames(add.techName);
+      const rows = (await months.get(add.month)!).filter((r) => names.includes(r.category.trim().toLowerCase()));
+      if (rows.length !== 1) {
+        fail(rows.length ? 'duplicate_rows' : 'no_row');
+        continue;
+      }
+      if (add.euros === 0n) {
+        await countExpenses(db, add.expenseIds, null);
+        continue;
+      }
+      await addToRow(db, table, add, rows[0]!.pageId);
+      result.added++;
+    } catch (err) {
+      log.warn({ err, category: add.techName, month: add.month }, 'Notion totals step failed');
+      fail(err instanceof NotionError ? err.code : 'internal');
+    }
+  }
+  return result;
+}
+
+/** The scope's category-months ('<categoryId> YYYY-MM') with an add Notion hasn't confirmed. */
+async function unconfirmedMonths(db: Db, scope: NotionScope): Promise<Set<string>> {
+  const [rows] = await db.query<RowDataPacket[]>(
+    `SELECT a.category_id, DATE_FORMAT(a.add_month, '%Y-%m') AS month
+       FROM notion_total_adds a JOIN categories c ON c.category_id = a.category_id
+      WHERE c.ledger_id = ? AND a.confirmed = 0`,
+    [scope.ledgerId],
+  );
+  return new Set(rows.map((r) => `${r.category_id} ${r.month}`));
+}
+
+async function countExpenses(db: Db, expenseIds: number[], addId: number | null): Promise<void> {
+  await db.query('INSERT INTO notion_counted_expenses (expense_id, add_id) VALUES ?', [
+    expenseIds.map((id) => [id, addId]),
+  ]);
+}
+
+/** Records the add with the row's fresh base, writes base + the add, then confirms it. */
+async function addToRow(db: Db, table: ExpensesTable, add: TotalAdd, pageId: string): Promise<void> {
+  const base = (await table.actualCents(pageId)) ?? 0n;
+  const expected = base + add.euros * 100n;
+  const addId = await withTransaction(db, async (conn) => {
+    const [res] = await conn.query<ResultSetHeader>(
+      `INSERT INTO notion_total_adds (category_id, add_month, notion_page_id, base_amount, expected_amount)
+       VALUES (?, ?, ?, ?, ?)`,
+      [add.categoryId, `${add.month}-01`, pageId, centsToString(base), centsToString(expected)],
+    );
+    await conn.query('INSERT INTO notion_counted_expenses (expense_id, add_id) VALUES ?', [
+      add.expenseIds.map((id) => [id, res.insertId]),
+    ]);
+    return res.insertId;
+  });
+  await table.setActualCents(pageId, expected);
+  await db.query('UPDATE notion_total_adds SET confirmed = 1 WHERE add_id = ?', [addId]);
 }

@@ -1,11 +1,13 @@
 import { Pressable, StyleSheet, Text, View } from 'react-native';
-import { useThemedStyles } from '@/appearance/AppearanceContext';
+import { useAppearance, useThemedStyles } from '@/appearance/AppearanceContext';
 import { useSession } from '@/auth/AuthContext';
+import { AppearancePicker } from '@/components/AppearancePicker';
 import { PlaceholderPage } from '@/components/PlaceholderPage';
 import { fonts, type Palette } from '@/theme';
 
 export default function Settings() {
   const styles = useThemedStyles(makeStyles);
+  const { preference, setPreference } = useAppearance();
   const { user, logout } = useSession();
   return (
     <PlaceholderPage title="Settings">
@@ -19,6 +21,10 @@ export default function Settings() {
             {user.username}
           </Text>
         </View>
+      </View>
+      <View style={styles.appearance}>
+        <Text style={styles.caption}>Appearance</Text>
+        <AppearancePicker value={preference} onChange={setPreference} />
       </View>
       <Pressable accessibilityRole="button" onPress={logout} style={styles.signOut}>
         <Text style={styles.signOutText}>Sign out</Text>
@@ -50,6 +56,7 @@ const makeStyles = (colors: Palette) =>
       justifyContent: 'center',
     },
     initial: { fontFamily: fonts.display, fontSize: 17, color: colors.accent },
+    appearance: { marginTop: 24, gap: 8 },
     caption: { fontFamily: fonts.body, fontSize: 12, color: colors.muted },
     username: { fontFamily: fonts.bodySemi, fontSize: 16, color: colors.text },
     // Shaped like the login button, outlined so it doesn't read as the screen's main action;

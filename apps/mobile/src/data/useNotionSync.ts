@@ -19,6 +19,7 @@ export function useNotionSync(ledgerId: number) {
   const [version, setVersion] = useState(0);
   const [loaded, setLoaded] = useState<{ ledgerId: number; notion: NotionStatus } | null>(null);
   const [failed, setFailed] = useState<number | null>(null);
+  // Not tagged with ledgerId like `loaded`: a session has one ledger, and signing out unmounts Home.
   const [unconfigured, setUnconfigured] = useState(false);
   const [syncing, setSyncing] = useState(false);
   const [outcome, setOutcome] = useState<SyncOutcome | null>(null);

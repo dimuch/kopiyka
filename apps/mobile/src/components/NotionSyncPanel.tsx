@@ -46,11 +46,18 @@ export function NotionSyncPanel({ status, syncing, outcome, onSync }: Props) {
         </Pressable>
       </View>
       {report || refusal ? (
-        <View accessibilityRole="alert" style={styles.result}>
-          {report?.done ? <Text style={styles.done}>{report.done}</Text> : null}
+        // role="alert" sits on the text, not the container, so web doesn't read Retry as part of the message.
+        <View style={styles.result}>
+          {report?.done ? (
+            <Text accessibilityRole="alert" style={styles.done}>
+              {report.done}
+            </Text>
+          ) : null}
           {report?.failed ? (
             <View style={styles.failedRow}>
-              <Text style={styles.failed}>{report.failed}</Text>
+              <Text accessibilityRole="alert" style={styles.failed}>
+                {report.failed}
+              </Text>
               <Pressable
                 accessibilityRole="button"
                 accessibilityState={{ disabled: syncing }}
@@ -68,7 +75,11 @@ export function NotionSyncPanel({ status, syncing, outcome, onSync }: Props) {
               {line}
             </Text>
           ))}
-          {refusal ? <Text style={styles.failed}>{refusal}</Text> : null}
+          {refusal ? (
+            <Text accessibilityRole="alert" style={styles.failed}>
+              {refusal}
+            </Text>
+          ) : null}
         </View>
       ) : null}
     </View>
@@ -103,6 +114,6 @@ const makeStyles = (colors: Palette) =>
     failedRow: { flexDirection: 'row', alignItems: 'center', gap: 12 },
     failed: { fontFamily: fonts.bodyMedium, fontSize: 14, color: colors.danger },
     reason: { fontFamily: fonts.body, fontSize: 13, color: colors.muted },
-    retry: { minHeight: 44, justifyContent: 'center' },
+    retry: { minHeight: 44, minWidth: 44, alignItems: 'center', justifyContent: 'center' },
     retryText: { fontFamily: fonts.bodySemi, fontSize: 14, color: colors.accent },
   });

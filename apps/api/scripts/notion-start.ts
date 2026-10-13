@@ -45,7 +45,9 @@ try {
     } catch (err) {
       const already = (err as { code?: string }).code === 'ER_DUP_ENTRY' || /already set/.test((err as Error).message);
       console.error(
-        already ? 'The totals starting point is already set. Nothing was written.' : (err as Error).message,
+        already
+          ? 'The totals starting point is already set. Nothing was written.'
+          : `${(err as Error).message}\nNothing was written.`,
       );
       process.exit(1);
     }

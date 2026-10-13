@@ -39,11 +39,11 @@ describe.skipIf(!(await testDbReachable()))('Notion groceries records (MySQL)', 
     return res.insertId;
   }
 
-  async function record(expenseId: number, name: string, date: string, pageId: string): Promise<void> {
+  async function record(expenseId: number, name: string, date: string, pageId: string, inTrash = false) {
     await db.query(
-      `INSERT INTO notion_grocery_rows (expense_id, notion_page_id, sent_name, sent_amount_eur, sent_date)
-       VALUES (?, ?, ?, '10.00', ?)`,
-      [expenseId, pageId.padEnd(32, '0'), name, date],
+      `INSERT INTO notion_grocery_rows (expense_id, notion_page_id, sent_name, sent_amount_eur, sent_date, in_trash)
+       VALUES (?, ?, ?, '10.00', ?, ?)`,
+      [expenseId, pageId.padEnd(32, '0'), name, date, inTrash],
     );
   }
 
@@ -103,8 +103,18 @@ describe.skipIf(!(await testDbReachable()))('Notion groceries records (MySQL)', 
       amountEur: '10.00',
       date: '2026-10-02',
       wanted: true,
-      sent: { pageId: 'a1'.padEnd(32, '0'), name: 'Delhaize', amountEur: '10.00', date: '2026-10-02' },
+      sent: { pageId: 'a1'.padEnd(32, '0'), name: 'Delhaize', amountEur: '10.00', date: '2026-10-02', inTrash: false },
     });
+  });
+
+  it('leaves trashed rows alone, and restores one whose grocery came back', async () => {
+    const gone = await addExpense('gone', '2026-10-01', { deleted: true });
+    await record(gone, 'gone', '2026-10-01', 'b1', true);
+    const back = await addExpense('back', '2026-10-02');
+    await record(back, 'back', '2026-10-02', 'b2', true);
+
+    const plan = planGroceries(await loadGroceries(db, scope()));
+    expect(plan.map((c) => [c.kind, c.expense.expenseId])).toEqual([['update', back]]);
   });
 
   describe('adopting rows already in Notion', () => {

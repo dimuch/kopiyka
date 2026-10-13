@@ -13,21 +13,30 @@ export interface GroceryState {
   /** Live, in the ledger's live `groceries` category (by tech_name), dated in the synced year. */
   wanted: boolean;
   /** What its Notion row shows, or null when it has none. */
-  sent: { pageId: string; name: string; amountEur: string; date: string } | null;
+  sent: GrocerySent | null;
 }
 
-export interface GroceryChange {
-  kind: 'create' | 'update' | 'trash';
-  expense: GroceryState;
+/** A grocery's Notion row as kopiyka last left it. */
+export interface GrocerySent {
+  pageId: string;
+  name: string;
+  amountEur: string;
+  date: string;
+  /** Kopiyka moved the row to Notion's trash. */
+  inTrash: boolean;
 }
 
-/** What Notion still needs to hear about, in the given order. */
+export type GroceryChange =
+  { kind: 'create'; expense: GroceryState } | { kind: 'update' | 'trash'; expense: GroceryState; sent: GrocerySent };
+
+/** What Notion still needs to hear about, in the given order. An update of a row in trash restores it. */
 export function planGroceries(states: GroceryState[]): GroceryChange[] {
   return states.flatMap((s): GroceryChange[] => {
-    if (!s.sent) return s.wanted ? [{ kind: 'create', expense: s }] : [];
-    if (!s.wanted) return [{ kind: 'trash', expense: s }];
-    const changed = s.name !== s.sent.name || s.amountEur !== s.sent.amountEur || s.date !== s.sent.date;
-    return changed ? [{ kind: 'update', expense: s }] : [];
+    const { sent } = s;
+    if (!sent) return s.wanted ? [{ kind: 'create', expense: s }] : [];
+    if (!s.wanted) return sent.inTrash ? [] : [{ kind: 'trash', expense: s, sent }];
+    const changed = s.name !== sent.name || s.amountEur !== sent.amountEur || s.date !== sent.date;
+    return sent.inTrash || changed ? [{ kind: 'update', expense: s, sent }] : [];
   });
 }
 
@@ -47,7 +56,7 @@ export async function loadGroceries(db: Db, scope: NotionScope): Promise<Grocery
                    AND e.expense_date >= ? AND e.expense_date < ?)`;
   const [rows] = await db.query<RowDataPacket[]>(
     `SELECT e.expense_id, e.name, e.amount_eur, e.expense_date, ${wanted} AS wanted,
-            r.notion_page_id, r.sent_name, r.sent_amount_eur, r.sent_date
+            r.notion_page_id, r.sent_name, r.sent_amount_eur, r.sent_date, r.in_trash
        FROM expenses e
        JOIN categories c ON c.category_id = e.category_id
        LEFT JOIN notion_grocery_rows r
@@ -63,7 +72,13 @@ export async function loadGroceries(db: Db, scope: NotionScope): Promise<Grocery
     date: r.expense_date,
     wanted: r.wanted === 1,
     sent: r.notion_page_id
-      ? { pageId: r.notion_page_id, name: r.sent_name, amountEur: r.sent_amount_eur, date: r.sent_date }
+      ? {
+          pageId: r.notion_page_id,
+          name: r.sent_name,
+          amountEur: r.sent_amount_eur,
+          date: r.sent_date,
+          inTrash: r.in_trash === 1,
+        }
       : null,
   }));
 }

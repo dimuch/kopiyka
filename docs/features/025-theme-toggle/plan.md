@@ -89,7 +89,7 @@ Alternative considered: keep the static `colors` and swap a mutable object, remo
 - App, `apps/mobile/src/app/(tabs)/settings.tsx`: an "Appearance" caption and the picker, above Sign out.
 - Native config, `apps/mobile/app.json`: `"userInterfaceStyle": "automatic"` (was `"dark"`). Without it the OS cannot
   report Light, so Auto cannot follow it.
-- New dependencies: `@react-native-async-storage/async-storage@~2.2.0`, added with
+- New dependencies: `@react-native-async-storage/async-storage@2.2.0` (exact pin, see Deviations), added with
   `npx expo install` in `apps/mobile`. Expo SDK 57 bundles 2.2.0 (`node_modules/expo/bundledNativeModules.json`); npm's
   latest 3.x is not SDK-matched. Why not `expo-secure-store`, which is already present: it is for secrets, has no web
   implementation, and iOS keeps Keychain items across an uninstall, so a reinstall would keep the old choice. AsyncStorage

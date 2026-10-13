@@ -405,6 +405,10 @@ Record the results in the PR test plan.
 
 ## Follow-ups
 
+- Notion purges trashed pages after about 30 days. A grocery whose row was trashed (moved to another category or out
+  of the year) and that comes back after that would fail its restore with `object_not_found` on every run. A restore
+  that gets `object_not_found` could fall back to the create path (find, then create). Not handled here (review,
+  2026-10-13).
 - Suppose a create succeeds in Notion but isn't recorded, and the expense is then deleted before the next sync. The
   row stays live in Notion: the planner sees "not sent, not wanted", so it never looks the row up. This is rare (an
   interrupted run plus a delete in between). A fix would look up by Kopiyka ID for unrecorded, unwanted expenses, which
@@ -412,7 +416,11 @@ Record the results in the PR test plan.
 
 ## Deviations
 
-<filled by the developer during build>
+- review: a create first checks for a live record of the same expense in another year and fails with
+  `sent_in_other_year` before any Notion call (the plan had the INSERT fail with `internal` after creating the row).
+- review: the last-sync time is taken before the run starts, so it never claims a grocery added during the run.
+- review: the client rejects a create answer without a valid page id (`bad_response`), drains the body before a
+  retry, and spaces requests with `performance.now()`.
 
 ## Revision 1
 

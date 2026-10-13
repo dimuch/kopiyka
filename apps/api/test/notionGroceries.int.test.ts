@@ -297,7 +297,10 @@ describe.skipIf(!(await testDbReachable()))('Notion groceries records (MySQL)', 
       const stuck = await addExpense('stuck', '2027-01-03');
       await record(stuck, 'stuck', '2026-12-31', pageId(10));
       const result = await syncGroceries(db, table2027, scope2027, log);
-      expect(result.failed).toEqual([{ expenseId: stuck, name: 'stuck', date: '2027-01-03', error: 'internal' }]);
+      expect(result.failed).toEqual([
+        { expenseId: stuck, name: 'stuck', date: '2027-01-03', error: 'sent_in_other_year' },
+      ]);
+      expect(table2027.pages.size).toBe(1); // nothing written to the new year's table for it
       expect((await records()).find((r) => r.expense_id === stuck)).toMatchObject({
         notion_page_id: pageId(10),
         sent_date: '2026-12-31',

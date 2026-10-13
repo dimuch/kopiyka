@@ -1,10 +1,11 @@
 import { useState } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import type { Category } from '@/api/types';
+import { useColors, useThemedStyles } from '@/appearance/AppearanceContext';
 import { CategorySheet } from '@/components/CategorySheet';
 import { CategoryTile } from '@/components/CategoryTile';
 import { Icon } from '@/components/Icon';
-import { colors, fonts } from '@/theme';
+import { fonts, type Palette } from '@/theme';
 
 interface Props {
   /** Shown as tiles. */
@@ -17,6 +18,8 @@ interface Props {
 
 /** The quick category tiles, plus a sheet with the rest. */
 export function CategoryPicker({ quick, more, selectedId, onPick }: Props) {
+  const colors = useColors();
+  const styles = useThemedStyles(makeStyles);
   const [sheetOpen, setSheetOpen] = useState(false);
   return (
     <View style={styles.grid}>
@@ -61,27 +64,28 @@ export function CategoryPicker({ quick, more, selectedId, onPick }: Props) {
   );
 }
 
-const styles = StyleSheet.create({
-  grid: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
-  cat: {
-    height: 48,
-    borderRadius: 14,
-    borderWidth: 1,
-    borderColor: colors.borderStrong,
-    backgroundColor: colors.surface,
-    width: '31.5%',
-    paddingHorizontal: 8,
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-  },
-  catOn: { borderColor: colors.accent, backgroundColor: colors.accentTint },
-  catText: { flex: 1, fontFamily: fonts.bodyMedium, fontSize: 13, color: colors.text },
-  more: {
-    borderStyle: 'dashed',
-    borderColor: colors.borderStrongest,
-    backgroundColor: 'transparent',
-    justifyContent: 'center',
-    gap: 6,
-  },
-});
+const makeStyles = (colors: Palette) =>
+  StyleSheet.create({
+    grid: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
+    cat: {
+      height: 48,
+      borderRadius: 14,
+      borderWidth: 1,
+      borderColor: colors.borderStrong,
+      backgroundColor: colors.surface,
+      width: '31.5%',
+      paddingHorizontal: 8,
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 8,
+    },
+    catOn: { borderColor: colors.accent, backgroundColor: colors.accentTint },
+    catText: { flex: 1, fontFamily: fonts.bodyMedium, fontSize: 13, color: colors.text },
+    more: {
+      borderStyle: 'dashed',
+      borderColor: colors.borderStrongest,
+      backgroundColor: 'transparent',
+      justifyContent: 'center',
+      gap: 6,
+    },
+  });

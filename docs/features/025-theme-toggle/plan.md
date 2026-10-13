@@ -132,7 +132,7 @@ Estimated changed lines are insertions plus deletions, excluding lockfile.
   - Verify: web at phone width, looks unchanged; clear `kopiyka.theme` in localStorage and reload, still Dark. iPhone:
     dark look, light status-bar text, and a fresh build after the `app.json` change. Four gates; `rg` AC command.
 
-- [ ] 4. Make shared components and category tiles follow the active theme
+- [x] 4. Make shared components and category tiles follow the active theme
   - Files: `components/` AddExpenseButton, AmountFields, CategoryPicker, CategorySheet, CollapsingSummary, DateChips,
     DateField, LoadError, PlaceholderPage, CategoryTile (`categoryTile(techName, scheme)`); `theme.ts` light branch
     of `categoryTile`. ~90 lines.
@@ -241,6 +241,8 @@ Split option (if the skeptic prefers): PR A is slices 1 to 5 (theme-aware, Dark 
 - slice 2: the iPhone Expo Go launch is not checked by the build; it is a user check (see AC evidence, slice 2).
 - slice 3: the root background and `<StatusBar>` moved to `Root`, which sits inside the provider, so the `styles.root` StyleSheet and its `colors` import went with them. That was slice 5's `styles.root` item, done early because slice 3 needs it. Slice 5 skips it.
 - slice 3: web Light check, with `kopiyka.theme=light` in localStorage: the outer background turns light, the phone column stays dark because the screens still use the static palette. Expected until slice 5.
+- slice 4: the signed-in screens that show these components (tabs, expense form, category sheet) were not walked in the browser. They need the API on port 3000 and MySQL, neither running in this session. Checked: web login in Dark renders unchanged; four gates; the hex `rg` check. The signed-in Dark walk is an open check, to be done with the API running or on the iPhone.
+- slice 4: `categoryTile` light tones (`hsla(hue, 70%, 45%, 0.14)` / `hsl(hue, 70%, 32%)`) are a first pass like the palette; tuned on the iPhone.
 
 ## Follow-ups (build)
 

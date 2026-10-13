@@ -1,8 +1,9 @@
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { createElement } from 'react';
 import { Platform, StyleSheet, View } from 'react-native';
+import { useAppearance, useColors, useThemedStyles } from '@/appearance/AppearanceContext';
 import { parseDate } from '@/format';
-import { colors, fonts } from '@/theme';
+import { fonts, type Palette } from '@/theme';
 
 interface Props {
   value: string; // 'YYYY-MM-DD'
@@ -17,6 +18,9 @@ function toValue(date: Date): string {
 
 /** The native date picker on iOS; a browser date input on web (the picker has no web version). */
 export function DateField({ value, onChange, max, label }: Props) {
+  const colors = useColors();
+  const styles = useThemedStyles(makeStyles);
+  const { scheme } = useAppearance();
   if (Platform.OS === 'web') {
     return createElement('input', {
       type: 'date',
@@ -35,7 +39,7 @@ export function DateField({ value, onChange, max, label }: Props) {
         borderRadius: 14,
         color: colors.text,
         font: `500 16px ${fonts.bodyMedium}, sans-serif`,
-        colorScheme: 'dark',
+        colorScheme: scheme,
       },
     });
   }
@@ -46,7 +50,7 @@ export function DateField({ value, onChange, max, label }: Props) {
         mode="date"
         display="compact"
         maximumDate={parseDate(max)}
-        themeVariant="dark"
+        themeVariant={scheme}
         accentColor={colors.accent}
         accessibilityLabel={label}
         onChange={(_event, date) => date && onChange(toValue(date))}
@@ -55,16 +59,17 @@ export function DateField({ value, onChange, max, label }: Props) {
   );
 }
 
-const styles = StyleSheet.create({
-  native: {
-    flex: 1,
-    height: 48,
-    borderRadius: 14,
-    borderWidth: 1,
-    borderColor: colors.borderStrong,
-    backgroundColor: colors.surface,
-    alignItems: 'flex-start',
-    justifyContent: 'center',
-    paddingHorizontal: 6,
-  },
-});
+const makeStyles = (colors: Palette) =>
+  StyleSheet.create({
+    native: {
+      flex: 1,
+      height: 48,
+      borderRadius: 14,
+      borderWidth: 1,
+      borderColor: colors.borderStrong,
+      backgroundColor: colors.surface,
+      alignItems: 'flex-start',
+      justifyContent: 'center',
+      paddingHorizontal: 6,
+    },
+  });

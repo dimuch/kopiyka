@@ -66,3 +66,9 @@ export function useAppearance(): AppearanceApi {
 export function useColors(): Palette {
   return useAppearance().scheme === 'dark' ? darkColors : lightColors;
 }
+
+/** `make` must be a module-level function; styles are rebuilt only when the palette changes. */
+export function useThemedStyles<T>(make: (colors: Palette) => T): T {
+  const colors = useColors();
+  return useMemo(() => make(colors), [make, colors]);
+}

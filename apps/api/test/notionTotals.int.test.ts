@@ -227,6 +227,33 @@ describe.skipIf(!(await testDbReachable()))('Notion category totals (MySQL)', ()
       ]);
     });
 
+    it("names a new row as Notion spells its category's latest row", async () => {
+      notion.rows.set(pageId(12), { category: 'Sviat', month: '2026-09', inView: true, actualCents: 0n });
+      await addExpense('sviat', '2026-10-07', '3.00');
+      expect(await sync()).toEqual({ added: 1, failed: [] });
+      expect(monthRowsOf('Sviat', '2026-10').map(([, r]) => r.actualCents)).toEqual([300n]);
+    });
+
+    it("lists every create of a run when the table couldn't be read, and creates nothing", async () => {
+      let reads = 0;
+      notion.allRows = async () => {
+        reads++;
+        throw new NotionError(503, 'service_unavailable');
+      };
+      await addExpense('clothes', '2026-10-07', '10.00');
+      await addExpense('home_needs', '2026-10-07', '10.00');
+      expect(await sync()).toEqual({
+        added: 0,
+        failed: [
+          { category: 'clothes', month: '2026-10', error: 'service_unavailable' },
+          { category: 'home_needs', month: '2026-10', error: 'service_unavailable' },
+        ],
+      });
+      expect(reads).toBe(1);
+      expect(notion.calls.filter((c) => c.startsWith('createRow'))).toEqual([]);
+      expect((await loadUncounted(db, scope())).length).toBe(2);
+    });
+
     it('never makes a second row after an interrupted create', async () => {
       await addExpense('clothes', '2026-10-07', '40.00');
       notion.failAfterCreate = true;

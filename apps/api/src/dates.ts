@@ -2,6 +2,9 @@
 
 export const DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
 
+/** A 'YYYY-MM' month. */
+export const MONTH_RE = /^\d{4}-(0[1-9]|1[0-2])$/;
+
 /** True for a real calendar date in 'YYYY-MM-DD' form (rejects 2026-02-30). */
 export function isCalendarDate(value: string): boolean {
   if (!DATE_RE.test(value)) return false;

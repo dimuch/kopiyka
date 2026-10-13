@@ -193,7 +193,7 @@ Alternatives considered:
         `failed: [{ category: 'fun', month: '2026-10', error: 'no_netto_page' }]` and `unsent: 1`;
       - `beforeEach` clears `missingNetto`.
   - ~55 lines.
-- [ ] 2. Read row templates and create rows in the Notion Expenses table
+- [x] 2. Read row templates and create rows in the Notion Expenses table
   - Files: `apps/api/src/notion/client.ts` (`ExpensesTemplate`, `NewExpensesRow`, `allRows`, `createRow`, cents
     helper), `apps/api/test/fakeNotion.ts`, `apps/api/test/notionClient.test.ts`
   - Change: the 2 client methods from Contracts. Their sync caller comes in slice 5.

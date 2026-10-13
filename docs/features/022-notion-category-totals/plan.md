@@ -531,7 +531,14 @@ tables (checked) and has Update content from 021.
 
 ## Deviations
 
-<filled by the developer during build>
+- slice 4: the fake Expenses table gained `failBeforeSet` (refuse a write before storing it). Without it, the "write
+  never landed" and "trashed row" tests passed for the wrong reason (the failure also broke the base read, so nothing
+  was recorded).
+- review: stored base/expected amounts are parsed with their sign (`signedCents`), so an interrupted add on a negative
+  row isn't taken for a hand edit; a failed release after `object_not_found` is listed as `internal` instead of
+  failing the whole sync; `added` counts adds (a recovered and a new one of one category-month count twice), which
+  024 labels to match; README says category totals don't support a year change yet.
+- size: about 1.1k changed lines against ~765 planned, mostly tests (the recovery cases and the client shapes).
 
 ## Revision 1
 

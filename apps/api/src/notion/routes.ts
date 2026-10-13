@@ -33,7 +33,7 @@ export async function notionRoutes(app: FastifyInstance, deps: AppDeps): Promise
     const [rows] = await db.query<RowDataPacket[]>('SELECT last_synced_at FROM notion_syncs WHERE ledger_id = ?', [
       scope.ledgerId,
     ]);
-    const last: Date | undefined = rows[0]?.last_synced_at;
+    const last: Date | null | undefined = rows[0]?.last_synced_at;
     const totals = deps.notionExpenses ? (await loadUncounted(db, scope)).length : 0;
     return {
       unsent: planGroceries(await loadGroceries(db, scope)).length + totals,

@@ -238,10 +238,24 @@ describe.skipIf(!(await testDbReachable()))('Notion category totals (MySQL)', ()
         expect(await adds()).toEqual([{ add_id: expect.any(Number), confirmed: 1 }]);
       });
 
+      it('makes an add again on a row with a negative amount when its write never landed', async () => {
+        notion.rows.get(FUN)!.actualCents = -550n;
+        await addExpense('fun', '2026-10-05', '10.00');
+        notion.failBeforeSet = true;
+        await sync();
+        expect(notion.rows.get(FUN)!.actualCents).toBe(-550n);
+
+        expect(await sync()).toEqual({ added: 1, failed: [] }); // not taken for a hand edit
+        expect(notion.rows.get(FUN)!.actualCents).toBe(450n);
+      });
+
       it('makes an add again when its write never landed', async () => {
         await addExpense('fun', '2026-10-05', '19.47');
         notion.failBeforeSet = true; // Notion never stored it
-        await sync();
+        expect(await sync()).toEqual({
+          added: 0,
+          failed: [{ category: 'fun', month: '2026-10', error: 'notion_unreachable' }],
+        });
         expect(notion.rows.get(FUN)!.actualCents).toBe(6500n);
 
         notion.calls.length = 0;

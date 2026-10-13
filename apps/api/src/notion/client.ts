@@ -18,6 +18,22 @@ export interface GroceriesTable {
   isInTrash(pageId: string): Promise<boolean>;
 }
 
+/** A row in one month's view of the Notion Expenses table. */
+export interface ExpensesRow {
+  pageId: string;
+  category: string;
+}
+
+/** The Notion Expenses table of the synced year, one row per category per month. Page ids are 32 lowercase hex. */
+export interface ExpensesTable {
+  /** The month's live rows: Month is its short name and they relate to the month's Netto page. month is 'YYYY-MM'. */
+  monthRows(month: string): Promise<ExpensesRow[]>;
+  /** A row's Actual Amount in cents; null when empty. */
+  actualCents(pageId: string): Promise<bigint | null>;
+  /** Writes Actual Amount only; other columns are untouched. */
+  setActualCents(pageId: string, cents: bigint): Promise<void>;
+}
+
 /** A failed Notion call: Notion's error code ('object_not_found', 'rate_limited', …) or 'notion_unreachable'. */
 export class NotionError extends Error {
   constructor(

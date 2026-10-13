@@ -251,7 +251,7 @@ Delhaize 12.00: the first sync will create its row`), then `Unsent: N`.
     - P5, with its own fixture of 2 recorded, unchanged groceries: `{ unsent: 0 }`. After `DELETE /categories/:id` on
       groceries it's `{ unsent: 2 }`; after `POST …/restore`, `{ unsent: 0 }` again.
   - ~130 lines.
-- [ ] 4. Add `notion-start` to record the grocery rows already in Notion
+- [x] 4. Add `notion-start` to record the grocery rows already in Notion
   - Files: `apps/api/src/notion/groceries.ts` (`adoptGroceries`), `apps/api/scripts/notion-start.ts`,
     `apps/api/package.json`, `README.md` (a short "Notion sync" subsection: the env vars, the command, refilling Kopiyka ID for a fresh production DB, and one syncing environment at a time),
     `apps/api/test/notionGroceries.int.test.ts`

@@ -9,6 +9,7 @@ import {
   offlineRates,
   makeUser,
   resetSchema,
+  storeMonthList,
   TEST_DB_URL,
   testConfig,
   testDbReachable,
@@ -26,6 +27,16 @@ describe.skipIf(!(await testDbReachable()))('categories API (MySQL)', () => {
 
   const get = (ledgerId: number, headers: Record<string, string> = auth) =>
     app.inject({ method: 'GET', url: `/api/ledgers/${ledgerId}/categories`, headers });
+
+  const listOf = async (month: string) => {
+    const res = await app.inject({
+      method: 'GET',
+      url: `/api/ledgers/${owner.ledgerId}/categories?month=${month}`,
+      headers: auth,
+    });
+    expect(res.statusCode).toBe(200);
+    return res.json().categories.map((c: { techName: string }) => c.techName) as string[];
+  };
 
   const one = (categoryId: number | string, headers: Record<string, string> = auth, ledgerId = owner.ledgerId) =>
     app.inject({ method: 'GET', url: `/api/ledgers/${ledgerId}/categories/${categoryId}`, headers });
@@ -128,6 +139,63 @@ describe.skipIf(!(await testDbReachable()))('categories API (MySQL)', () => {
 
   it('rejects a non-numeric ledger id', async () => {
     expect((await get('abc' as unknown as number)).statusCode).toBe(400);
+  });
+
+  describe('month lists', () => {
+    it('lists the latest stored list on or before the month', async () => {
+      await storeMonthList(db, owner.ledgerId, '2026-10', ['eating_out']);
+
+      for (const month of ['2026-09', '2000-01']) {
+        const list = await listOf(month);
+        expect(list).toHaveLength(15);
+        expect(list).toContain('eating_out');
+      }
+      for (const month of ['2026-10', '2027-03']) {
+        const list = await listOf(month);
+        expect(list).toHaveLength(14);
+        expect(list).not.toContain('eating_out');
+      }
+      const before = await app.inject({
+        method: 'GET',
+        url: `/api/ledgers/${owner.ledgerId}/categories?month=1999-12`,
+        headers: auth,
+      });
+      expect(before.json()).toEqual({ categories: [], quickCategoryIds: [] });
+    });
+
+    it('keeps a category removed from a month out of that month and the ones after it', async () => {
+      await storeMonthList(db, owner.ledgerId, '2026-11', []);
+      await db.query("UPDATE category_months SET deleted_at = ? WHERE category_id = ? AND list_month = '2026-11-01'", [
+        clock,
+        await idOf('gym'),
+      ]);
+
+      for (const month of ['2026-11', '2026-12']) {
+        const list = await listOf(month);
+        expect(list).toHaveLength(14);
+        expect(list).not.toContain('gym');
+        expect(list).toContain('eating_out');
+      }
+      expect(await listOf('2026-10')).toContain('gym');
+    });
+
+    it("lists the current Kyiv month's categories without a month", async () => {
+      now = new Date('2026-09-30T21:30:00Z'); // 1 October, 00:30 in Kyiv
+      await storeMonthList(db, owner.ledgerId, '2026-10', ['eating_out']);
+      expect((await get(owner.ledgerId)).json().categories).toHaveLength(14);
+    });
+
+    it('rejects a malformed month', async () => {
+      for (const month of ['2026-13', '2026-1']) {
+        const res = await app.inject({
+          method: 'GET',
+          url: `/api/ledgers/${owner.ledgerId}/categories?month=${month}`,
+          headers: auth,
+        });
+        expect(res.statusCode).toBe(400);
+        expect(res.json()).toMatchObject({ error: 'invalid_request' });
+      }
+    });
   });
 
   describe('one category', () => {

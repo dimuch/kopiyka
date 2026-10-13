@@ -177,7 +177,7 @@ the real date, because `ledgers.created_at` is the DB clock, while the tests pin
     - `category_months` holds exactly one `2000-01-01` row with `deleted_at` NULL for each of the three categories.
     - A ledger made by `makeUser` after the migration has 15 such rows.
   - ≈ 100 lines.
-- [ ] 2. List the categories of the asked month
+- [x] 2. List the categories of the asked month
   - Files: `apps/api/src/categories/monthLists.ts` (new), `apps/api/src/dates.ts` (`MONTH_RE`),
     `apps/api/src/expenses/routes.ts` (`MonthQuery` uses `MONTH_RE`), `apps/api/src/categories/routes.ts` (list:
     `ListQuery` with optional `month`; `WHERE c.ledger_id = ? AND c.deleted_at IS NULL AND ${inMonthList('?')}`,

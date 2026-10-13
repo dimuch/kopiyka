@@ -25,4 +25,18 @@ describe('loadConfig', () => {
     expect(() => loadConfig({ ...base, NOTION_YEAR: '2026' })).toThrow(/together/);
     expect(() => loadConfig({ ...base, NOTION_LEDGER_ID: '1', NOTION_YEAR: '20x6' })).toThrow();
   });
+
+  it('reads the Notion API settings only when both are set', () => {
+    const ds = '2d2203e3-e5e5-819d-8823-000be6f1bad0';
+    expect(loadConfig(base).notionApi).toBeNull();
+    expect(loadConfig({ ...base, NOTION_TOKEN: 'ntn_x', NOTION_GROCERIES_DATA_SOURCE_ID: ds }).notionApi).toEqual({
+      token: 'ntn_x',
+      groceriesDataSourceId: ds,
+    });
+    expect(() => loadConfig({ ...base, NOTION_TOKEN: 'ntn_x' })).toThrow(/together/);
+    expect(() => loadConfig({ ...base, NOTION_GROCERIES_DATA_SOURCE_ID: ds })).toThrow(/together/);
+    expect(() =>
+      loadConfig({ ...base, NOTION_TOKEN: 'ntn_x', NOTION_GROCERIES_DATA_SOURCE_ID: `collection://${ds}` }),
+    ).toThrow();
+  });
 });

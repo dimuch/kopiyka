@@ -177,7 +177,7 @@ search param copies `expense.tsx` (`/expense?expenseId=…`).
     - The expected amounts were computed with the repo's `eur(toCents(…))`: `1234.50 → €1,234.50`,
       `1222.00 → €1,222`, `12.50 → €12.50`.
   - About 80 lines.
-- [ ] 2. Show what deleting a category would remove, on a confirm screen
+- [x] 2. Show what deleting a category would remove, on a confirm screen
   - Files: `apps/mobile/src/data/useCategoryTotals.ts` (new), `apps/mobile/src/app/delete-category.tsx` (new),
     `apps/mobile/src/app/_layout.tsx`
   - Change: add the hook, register the modal route, and build the screen's header, invalid-link, loading, error and

@@ -114,7 +114,7 @@ Estimated changed lines are insertions plus deletions, excluding lockfile.
     `lightColors` has the same keys as `darkColors` by type, so no runtime test.
   - Verify: the four gates; `rg` AC command prints nothing.
 
-- [ ] 2. Add AsyncStorage to keep the theme choice on this device
+- [x] 2. Add AsyncStorage to keep the theme choice on this device
   - Files: `apps/mobile/package.json`, root `yarn.lock` (via `npx expo install`). ~2 lines plus the lockfile.
   - Change: the dependency only, so the native-module change is reviewable alone.
   - Tests: none (no code). Verify: the four gates; `npx expo-doctor` reports no version mismatch; web still loads at phone
@@ -236,4 +236,10 @@ Split option (if the skeptic prefers): PR A is slices 1 to 5 (theme-aware, Dark 
 
 ## Deviations
 
-<filled by the developer during build>
+- slice 2: `npx expo install` pinned `@react-native-async-storage/async-storage` exactly at `2.2.0`, not the `~2.2.0` range in Contracts. Same SDK-bundled version; no range was needed.
+- slice 2: `npx expo-doctor` fails its SDK version check on drift that predates this slice (`expo` 57.0.26 vs ~57.0.28, `expo-router` 57.0.24 vs ~57.0.26, `expo-constants`, `expo-linking`, `@types/react-dom` 19.3.0 vs ~19.2.3). This slice changes only the AsyncStorage line, so the drift was already there. Not fixed here; see Follow-ups.
+- slice 2: the iPhone Expo Go launch is not checked by the build; it is a user check (see AC evidence, slice 2).
+
+## Follow-ups (build)
+
+- Fix the pre-existing `expo-doctor` SDK drift (`npx expo install --check`) in its own change.

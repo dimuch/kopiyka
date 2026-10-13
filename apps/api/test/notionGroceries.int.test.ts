@@ -78,7 +78,9 @@ describe.skipIf(!(await testDbReachable()))('Notion groceries records (MySQL)', 
     const unchanged = await addExpense('unchanged', '2026-10-05');
     await record(unchanged, 'unchanged', '2026-10-05', 'a5');
 
-    // Never part of the plan.
+    // Never part of the plan, including a row sent to another year's table.
+    const lastYearSent = await addExpense('last year, sent', '2025-12-20');
+    await record(lastYearSent, 'last year, sent', '2025-12-20', 'a6');
     await addExpense('last year', '2025-12-31');
     await addExpense('next year', '2027-01-01');
     await addExpense('deleted, never sent', '2026-10-06', { deleted: true });

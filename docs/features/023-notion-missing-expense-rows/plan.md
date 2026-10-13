@@ -253,7 +253,7 @@ Alternatives considered:
       - The sync gives `{ added: 2, failed: [] }`.
       - The rows show 1600n and 2000n, and `notion.rows.size` is unchanged, so no new row.
   - ~25 lines.
-- [ ] 5. Create a category's missing Expenses row in a month with a Netto page
+- [x] 5. Create a category's missing Expenses row in a month with a Netto page
   - Files: `apps/api/src/notion/totals.ts` (`createMissingRow`, `templates()` cache, step order),
     `apps/api/test/notionTotals.int.test.ts`, `README.md` (Notion sync paragraph)
   - Change: steps 4–5 of `syncTotals` from Contracts, and `no_row` goes away.

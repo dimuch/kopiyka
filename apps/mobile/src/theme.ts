@@ -1,5 +1,5 @@
 // Colors and type from the "Budget App Screens" design canvas.
-export const colors = {
+export const darkColors = {
   bg: '#0E1013',
   surface: '#181B20',
   border: '#23272E',
@@ -22,6 +22,33 @@ export const colors = {
   fainter: '#4A505A',
   backdrop: 'rgba(5,6,8,0.62)',
 };
+
+export type Palette = typeof darkColors;
+
+// First pass derived from the dark tokens; tuned on the iPhone.
+export const lightColors: Palette = {
+  bg: '#F5F6F8',
+  surface: '#FFFFFF',
+  border: '#E3E6EB',
+  borderStrong: '#D5DAE1',
+  track: '#E2E6EC',
+  text: '#14171C',
+  muted: '#5B6470',
+  accent: '#1F5FD1',
+  onAccent: '#FFFFFF',
+  over: '#B25E09',
+  danger: '#C23B31',
+  accentTint: '#E4EEFF',
+  accentLine: '#A9C6F5',
+  surfaceRaised: '#FFFFFF',
+  borderStrongest: '#B9C0CA',
+  faint: '#8B939E',
+  fainter: '#B4BAC3',
+  backdrop: 'rgba(20,23,28,0.35)',
+};
+
+/** Kept until the last consumer moves to useColors(); removed in slice 5. */
+export const colors = darkColors;
 
 export const fonts = {
   display: 'BricolageGrotesque_700Bold',

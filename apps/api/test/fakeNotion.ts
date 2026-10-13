@@ -89,6 +89,8 @@ export interface FakeExpenses extends ExpensesTable {
   calls: string[];
   /** Store the next written value, then throw as if the answer was lost. */
   failAfterSet: boolean;
+  /** Refuse the next write before storing anything. */
+  failBeforeSet: boolean;
   /** Fail actualCents / setActualCents on these page ids. */
   failOn: Map<string, NotionError>;
   /** Fail monthRows for these 'YYYY-MM' months. */
@@ -100,6 +102,7 @@ export function fakeExpenses(): FakeExpenses {
     rows: new Map(),
     calls: [],
     failAfterSet: false,
+    failBeforeSet: false,
     failOn: new Map(),
     failMonth: new Map(),
     async monthRows(month) {
@@ -125,6 +128,10 @@ export function fakeExpenses(): FakeExpenses {
       if (err) throw err;
       const row = fake.rows.get(id);
       if (!row) throw new NotionError(404, 'object_not_found');
+      if (fake.failBeforeSet) {
+        fake.failBeforeSet = false;
+        throw new NotionError(0, 'notion_unreachable');
+      }
       row.actualCents = cents;
       if (fake.failAfterSet) {
         fake.failAfterSet = false;

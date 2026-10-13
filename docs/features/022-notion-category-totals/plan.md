@@ -368,7 +368,7 @@ Alternatives considered:
     - **Interrupted (AC 5, first half):** with `failAfterSet`, run 1 lists `notion_unreachable` and the fake shows 8400. After another new fun expense, run 2 makes no `setActualCents` call and lists `unconfirmed_add` for
       fun/Oct; the fake still shows 8400.
   - ~160 lines.
-- [ ] 4. Finish an interrupted add by reading the row back
+- [x] 4. Finish an interrupted add by reading the row back
   - Files: `apps/api/src/notion/totals.ts` (step 1), `apps/api/test/notionTotals.int.test.ts`
   - Change: recovery of unconfirmed adds, as in Contracts. The `unconfirmed_add` code goes away.
   - Tests:

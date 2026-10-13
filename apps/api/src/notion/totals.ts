@@ -125,16 +125,14 @@ export async function syncTotals(
   log: Pick<FastifyBaseLogger, 'warn'>,
 ): Promise<TotalsResult> {
   const result: TotalsResult = { added: 0, failed: [] };
+  await recover(db, table, scope, log, result);
   const unconfirmed = await unconfirmedMonths(db, scope);
   const months = new Map<string, Promise<ExpensesRow[]>>();
 
   for (const add of planTotals((await loadUncounted(db, scope)).filter((e) => !e.pending))) {
     const fail = (error: string) => result.failed.push({ category: add.techName, month: add.month, error });
-    // Never build on an add that might not have landed: its expenses would be under-counted.
-    if (unconfirmed.has(`${add.categoryId} ${add.month}`)) {
-      fail('unconfirmed_add');
-      continue;
-    }
+    // Never build on an add that might not have landed: its expenses would be under-counted. recover() has listed it.
+    if (unconfirmed.has(`${add.categoryId} ${add.month}`)) continue;
     try {
       if (!months.has(add.month)) months.set(add.month, table.monthRows(add.month));
       const names = notionNames(add.techName);
@@ -155,6 +153,58 @@ export async function syncTotals(
     }
   }
   return result;
+}
+
+/**
+ * Settles each add a previous run left unconfirmed by reading its row back: the expected amount means it landed,
+ * the base means it didn't (its expenses are planned again), anything else is a hand edit, kept and reported once.
+ */
+async function recover(
+  db: Db,
+  table: ExpensesTable,
+  scope: NotionScope,
+  log: Pick<FastifyBaseLogger, 'warn'>,
+  result: TotalsResult,
+): Promise<void> {
+  const [open] = await db.query<RowDataPacket[]>(
+    `SELECT a.add_id, a.notion_page_id, a.base_amount, a.expected_amount, c.tech_name,
+            DATE_FORMAT(a.add_month, '%Y-%m') AS month
+       FROM notion_total_adds a JOIN categories c ON c.category_id = a.category_id
+      WHERE c.ledger_id = ? AND a.confirmed = 0
+      ORDER BY a.add_id`,
+    [scope.ledgerId],
+  );
+  for (const a of open) {
+    const fail = (error: string) => result.failed.push({ category: a.tech_name, month: a.month, error });
+    const confirm = () => db.query('UPDATE notion_total_adds SET confirmed = 1 WHERE add_id = ?', [a.add_id]);
+    try {
+      const current = (await table.actualCents(a.notion_page_id)) ?? 0n;
+      if (current === toCents(a.expected_amount)) {
+        await confirm();
+        result.added++;
+      } else if (current === toCents(a.base_amount)) {
+        await release(db, a.add_id);
+      } else {
+        await confirm(); // never add it twice
+        fail('actual_amount_changed');
+      }
+    } catch (err) {
+      if (err instanceof NotionError && err.code === 'object_not_found') {
+        await release(db, a.add_id); // the row is gone, so the add can't be there
+        continue;
+      }
+      log.warn({ err, category: a.tech_name, month: a.month }, 'Notion totals read-back failed');
+      fail(err instanceof NotionError ? err.code : 'internal');
+    }
+  }
+}
+
+/** Forgets an add that didn't land, so its expenses count as new again. */
+async function release(db: Db, addId: number): Promise<void> {
+  await withTransaction(db, async (conn) => {
+    await conn.query('DELETE FROM notion_counted_expenses WHERE add_id = ?', [addId]);
+    await conn.query('DELETE FROM notion_total_adds WHERE add_id = ?', [addId]);
+  });
 }
 
 /** The scope's category-months ('<categoryId> YYYY-MM') with an add Notion hasn't confirmed. */

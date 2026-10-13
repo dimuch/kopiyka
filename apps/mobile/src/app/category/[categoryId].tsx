@@ -180,7 +180,7 @@ function CategoryMenu({ onDelete, onClose }: { onDelete: () => void; onClose: ()
   // Absolute children ignore the SafeAreaView's padding, so the top inset is added here.
   const insets = useSafeAreaInsets();
   return (
-    <View style={styles.menuLayer}>
+    <View accessibilityViewIsModal style={styles.menuLayer}>
       <Pressable
         accessibilityRole="button"
         accessibilityLabel="Close menu"

@@ -153,8 +153,13 @@ export async function syncGroceries(
       if (change.kind === 'create') {
         if (await createRow(db, table, expense)) result.created++;
         else fail('page_taken');
+      } else if (change.kind === 'trash') {
+        await table.setInTrash(change.sent.pageId, true);
+        await db.query('UPDATE notion_grocery_rows SET in_trash = 1 WHERE expense_id = ?', [expense.expenseId]);
+        result.trashed++;
       } else {
-        fail('not_supported');
+        await updateRow(db, table, expense, change.sent);
+        result.updated++;
       }
     } catch (err) {
       log.warn({ err, expenseId: expense.expenseId, kind: change.kind }, 'Notion sync step failed');
@@ -166,6 +171,20 @@ export async function syncGroceries(
 
 function rowOf(expense: GroceryState): GroceryRow {
   return { expenseId: expense.expenseId, name: expense.name, amountEur: expense.amountEur, date: expense.date };
+}
+
+/** Brings a trashed row back (Notion won't edit a page in trash), then writes the grocery's current values. */
+async function updateRow(db: Db, table: GroceriesTable, expense: GroceryState, sent: GrocerySent): Promise<void> {
+  if (sent.inTrash) {
+    await table.setInTrash(sent.pageId, false);
+    await db.query('UPDATE notion_grocery_rows SET in_trash = 0 WHERE expense_id = ?', [expense.expenseId]);
+  }
+  const row = rowOf(expense);
+  await table.update(sent.pageId, row);
+  await db.query(
+    'UPDATE notion_grocery_rows SET sent_name = ?, sent_amount_eur = ?, sent_date = ? WHERE expense_id = ?',
+    [row.name, row.amountEur, row.date, expense.expenseId],
+  );
 }
 
 /** Creates the grocery's row, or adopts one an interrupted sync left behind. False when that row is someone else's. */

@@ -249,7 +249,7 @@ Alternative considered: `@notionhq/client` (1.5 MB, no runtime deps). It loses b
       2027-01-02 and `in_trash` 0. If the same 2026 record is live instead, the step fails with `internal`, and both
       the record and the 2026 fake row are unchanged.
   - ~150 lines.
-- [ ] 3. Update, trash and restore the grocery rows kopiyka sent
+- [x] 3. Update, trash and restore the grocery rows kopiyka sent
   - Files: `apps/api/src/notion/groceries.ts`, `apps/api/test/notionGroceries.int.test.ts`
   - Change: the **trash** and **update** (including restore) branches replace `not_supported`.
   - Tests:

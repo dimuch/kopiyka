@@ -2,6 +2,7 @@ import type { ResultSetHeader, RowDataPacket } from 'mysql2/promise';
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest';
 import { createDb, type Db } from '../src/db.js';
 import { adoptGroceries, loadGroceries, planGroceries, syncGroceries } from '../src/notion/groceries.js';
+import { NotionError } from '../src/notion/client.js';
 import { fakeNotion, pageId } from './fakeNotion.js';
 import {
   clearData,
@@ -206,6 +207,73 @@ describe.skipIf(!(await testDbReachable()))('Notion groceries records (MySQL)', 
       expect(result.failed).toEqual([{ expenseId: x, name: 'X', date: '2026-10-02', error: 'page_taken' }]);
       expect(notion.pages.get(pageId(7))!.props).toMatchObject({ name: 'typo' });
       expect((await records()).map((r) => [r.expense_id, r.notion_page_id])).toEqual([[y, pageId(7)]]);
+    });
+
+    it('updates, trashes and restores the rows it sent', async () => {
+      const notion = fakeNotion();
+      const a = await addExpense('A', '2026-10-01');
+      const b = await addExpense('B', '2026-10-02');
+      const c = await addExpense('C', '2026-10-03');
+      expect(await syncGroceries(db, notion, scope(), log)).toMatchObject({ created: 3 });
+      await db.query('UPDATE expenses SET deleted_at = NOW() WHERE expense_id = ?', [c]);
+      expect(await syncGroceries(db, notion, scope(), log)).toEqual({ created: 0, updated: 0, trashed: 1, failed: [] });
+
+      const d = await addExpense('D', '2026-10-04');
+      await db.query("UPDATE expenses SET name = 'A renamed', amount_eur = '12.50' WHERE expense_id = ?", [a]);
+      await db.query('UPDATE expenses SET deleted_at = NOW() WHERE expense_id = ?', [b]);
+      await db.query('UPDATE expenses SET deleted_at = NULL WHERE expense_id = ?', [c]);
+      expect(await syncGroceries(db, notion, scope(), log)).toEqual({ created: 1, updated: 2, trashed: 1, failed: [] });
+
+      const page = (expenseId: number) =>
+        [...notion.pages.values()].find((p) => 'expenseId' in p.props && p.props.expenseId === expenseId);
+      expect(page(a)).toEqual({
+        props: { expenseId: a, name: 'A renamed', amountEur: '12.50', date: '2026-10-01' },
+        inTrash: false,
+      });
+      expect(page(b)!.inTrash).toBe(true);
+      expect(page(c)).toEqual({
+        props: { expenseId: c, name: 'C', amountEur: '10.00', date: '2026-10-03' },
+        inTrash: false,
+      });
+      expect(page(d)!.inTrash).toBe(false);
+      expect((await records()).map((r) => [r.expense_id, r.in_trash])).toEqual([
+        [a, 0],
+        [b, 1],
+        [c, 0],
+        [d, 0],
+      ]);
+
+      notion.calls.length = 0;
+      expect(await syncGroceries(db, notion, scope(), log)).toEqual({ created: 0, updated: 0, trashed: 0, failed: [] });
+      expect(notion.calls).toEqual([]);
+    });
+
+    it('trashes a grocery moved out of the year once', async () => {
+      const notion = fakeNotion();
+      const moved = await addExpense('moved', '2026-12-30');
+      await syncGroceries(db, notion, scope(), log);
+      await db.query("UPDATE expenses SET expense_date = '2027-01-02' WHERE expense_id = ?", [moved]);
+
+      expect(await syncGroceries(db, notion, scope(), log)).toMatchObject({ trashed: 1, failed: [] });
+      expect(await syncGroceries(db, notion, scope(), log)).toEqual({ created: 0, updated: 0, trashed: 0, failed: [] });
+    });
+
+    it('lists a failed step and carries on with the rest', async () => {
+      const notion = fakeNotion();
+      const a = await addExpense('A', '2026-10-01');
+      await syncGroceries(db, notion, scope(), log);
+      await db.query("UPDATE expenses SET name = 'A renamed' WHERE expense_id = ?", [a]);
+      notion.failOn.set(pageId(0x1000), new NotionError(404, 'object_not_found'));
+      const b = await addExpense('B', '2026-10-02');
+
+      expect(await syncGroceries(db, notion, scope(), log)).toEqual({
+        created: 1,
+        updated: 0,
+        trashed: 0,
+        failed: [{ expenseId: a, name: 'A renamed', date: '2026-10-01', error: 'object_not_found' }],
+      });
+      expect((await records()).find((r) => r.expense_id === a)).toMatchObject({ sent_name: 'A' });
+      expect((await records()).map((r) => r.expense_id)).toEqual([a, b]);
     });
 
     it("replaces a trashed record from another year's table, but not a live one", async () => {

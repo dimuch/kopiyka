@@ -65,15 +65,16 @@ the second consumer appears or `routes.ts` passes ~200 lines.
 
 ### App — `apps/mobile/src`
 
-| Place                           | Owns                                                                                                  | Must not                                                                             |
-| ------------------------------- | ----------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------ |
-| `app/**` (Expo Router)          | screens: compose components, read params, call data hooks, handle navigation                          | grow pure logic inline — move it to `format.ts`/`data/` once it's testable or reused |
-| `components/`                   | presentational, reusable UI; props in, callbacks out                                                  | call `api()` or read auth                                                            |
-| `data/`                         | client data hooks (`useMonth`) and tiny in-memory handoffs (`undo.ts`)                                | render UI                                                                            |
-| `api/client.ts`, `api/types.ts` | transport (auth header/cookie, errors → `ApiError`), DTO mirrors                                      | contain screen logic                                                                 |
-| `auth/`                         | session state (`AuthContext`)                                                                         | —                                                                                    |
-| `format.ts`                     | pure money/date formatting and parsing                                                                | do I/O                                                                               |
-| `theme.ts`                      | colors, fonts, category hues, layout constants (`phoneWidth`) — the only place for raw hex/font names | —                                                                                    |
+| Place                           | Owns                                                                                                                                  | Must not                                                                             |
+| ------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------ |
+| `app/**` (Expo Router)          | screens: compose components, read params, call data hooks, handle navigation                                                          | grow pure logic inline — move it to `format.ts`/`data/` once it's testable or reused |
+| `components/`                   | presentational, reusable UI; props in, callbacks out                                                                                  | call `api()` or read auth                                                            |
+| `data/`                         | client data hooks (`useMonth`) and tiny in-memory handoffs (`undo.ts`)                                                                | render UI                                                                            |
+| `api/client.ts`, `api/types.ts` | transport (auth header/cookie, errors → `ApiError`), DTO mirrors                                                                      | contain screen logic                                                                 |
+| `appearance/`                   | Light/Dark/Auto choice: pure rules (`preference.ts`), provider and hooks (`useColors`, `useThemedStyles`)                             | hold colour values — those stay in `theme.ts`                                        |
+| `auth/`                         | session state (`AuthContext`)                                                                                                         | —                                                                                    |
+| `format.ts`                     | pure money/date formatting and parsing                                                                                                | do I/O                                                                               |
+| `theme.ts`                      | palettes (`darkColors`, `lightColors`), fonts, category hues, layout constants (`phoneWidth`) — the only place for raw hex/font names | —                                                                                    |
 
 ## 3. Domain invariants (never break these)
 
@@ -126,8 +127,12 @@ the second consumer appears or `routes.ts` passes ~200 lines.
   using `api<T>()`; reload on focus with `useFocusEffect`; guard against
   setting state after unmount (`let live = true`).
 - Every async surface has loading, error (with retry) and empty states.
-- Styles: `StyleSheet.create` at the bottom of the file; tokens from
-  `theme.ts`; small dynamic overrides inline are fine.
+- Styles: a module-level `const makeStyles = (colors: Palette) =>
+StyleSheet.create({...})` at the bottom of the file, read with
+  `useThemedStyles(makeStyles)`; inline colours come from `useColors()`.
+  Never read a palette at module load — it wouldn't follow a theme change.
+  Styles with no colour can stay a plain `StyleSheet.create`. Small dynamic
+  overrides inline are fine.
 - Works on **iOS and web** (react-native-web). Branch on `Platform.OS`
   only at the edge (`confirmDelete`, `client.ts`), not throughout screens.
 - Accessibility: interactive elements get `accessibilityRole` and a label;

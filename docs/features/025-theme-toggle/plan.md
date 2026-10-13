@@ -230,8 +230,8 @@ Split option (if the skeptic prefers): PR A is slices 1 to 5 (theme-aware, Dark 
 
 ## Follow-ups
 
-- Proposal, not a slice: after merge, `kopiyka-conventions` §2 could list `appearance/`, and §5 could name the
-  `useColors` / `useThemedStyles` pattern for theme-aware styles.
+- Done on this branch at the user's request: `kopiyka-conventions` §2 lists `appearance/`, and §5 names the
+  `useColors` / `useThemedStyles(makeStyles)` pattern for theme-aware styles.
 - None else found. The stale local `main` (5a3d5e3) is not used; the base is `origin/main@5b5dbf8`.
 
 ## Deviations

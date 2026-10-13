@@ -53,7 +53,10 @@ export default function Expenses() {
             <Icon name="forward" color={colors.muted} />
           </Pressable>
         </View>
-        {total !== null ? <CompactTotal spentCents={total} budgetCents={null} style={collapse.compactStyle} /> : null}
+        <View style={styles.trailing}>
+          {total !== null ? <CompactTotal spentCents={total} budgetCents={null} style={collapse.compactStyle} /> : null}
+          <AddExpenseButton />
+        </View>
         <HeaderDivider style={collapse.dividerStyle} />
       </View>
 
@@ -119,7 +122,6 @@ export default function Expenses() {
           </>
         )}
       </Animated.ScrollView>
-      <AddExpenseButton />
     </SafeAreaView>
   );
 }
@@ -127,8 +129,9 @@ export default function Expenses() {
 const styles = StyleSheet.create({
   screen: { flex: 1, backgroundColor: colors.bg, paddingHorizontal: 20, paddingTop: 20 },
   header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingBottom: 10, zIndex: 1 },
-  content: { gap: 14, paddingTop: 4, paddingBottom: 104 },
+  content: { gap: 14, paddingTop: 4, paddingBottom: 24 },
   monthSwitch: { flexDirection: 'row', alignItems: 'center', gap: 4 },
+  trailing: { flexDirection: 'row', alignItems: 'center', gap: 4, flexShrink: 1 },
   iconButton: { width: 44, height: 44, alignItems: 'center', justifyContent: 'center', borderRadius: 12 },
   eyebrow: { fontFamily: fonts.body, fontSize: 12, color: colors.muted, letterSpacing: 0.5 },
   month: { fontFamily: fonts.display, fontSize: 22, color: colors.text },

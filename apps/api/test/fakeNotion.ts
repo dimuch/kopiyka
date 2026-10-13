@@ -55,8 +55,8 @@ export function fakeNotion(): FakeNotion {
     async setInTrash(id, inTrash) {
       await call(`setInTrash ${id} ${inTrash}`, id);
       const page = existing(id);
-      // Like real Notion: moving a page to the state it's already in is refused.
-      if (page.inTrash === inTrash) throw new NotionError(400, 'validation_error');
+      // Like real Notion (checked 2026-10-13): trashing a page already in trash is refused; restoring a live one isn't.
+      if (inTrash && page.inTrash) throw new NotionError(400, 'validation_error');
       page.inTrash = inTrash;
     },
     async isInTrash(id) {

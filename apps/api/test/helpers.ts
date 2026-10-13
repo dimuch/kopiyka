@@ -57,6 +57,8 @@ export async function resetSchema(migrationsDir?: string): Promise<void> {
 }
 
 const DATA_TABLES = [
+  'notion_counted_expenses',
+  'notion_total_adds',
   'notion_syncs',
   'notion_grocery_rows',
   'exchange_rates',

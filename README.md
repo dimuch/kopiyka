@@ -49,6 +49,13 @@ them again:
 yarn api notion-start --adopt 57=<notionPageId>,60=<notionPageId>   # expense id = Notion row (page) id
 ```
 
+Category totals (brief 022) start from the Actual Amounts already typed into the Expenses table: run this once,
+before the first sync that includes totals, to count every expense already in kopiyka as already there:
+
+```bash
+yarn api notion-start --totals
+```
+
 The pairs and the Notion "Kopiyka ID" column hold this database's expense ids. A fresh production database has
 different ids, so refill Kopiyka ID with production's ids before its first sync. Only one environment may sync to
 the Budget tables at a time.

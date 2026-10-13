@@ -43,7 +43,7 @@ export function planGroceries(states: GroceryState[]): GroceryChange[] {
 }
 
 /** The year's first day and the next year's, as `>= ? AND < ?` bounds for a DATE column. */
-function yearBounds(year: number): [string, string] {
+export function yearBounds(year: number): [string, string] {
   return [`${year}-01-01`, `${year + 1}-01-01`];
 }
 

@@ -1,0 +1,70 @@
+import type { ResultSetHeader, RowDataPacket } from 'mysql2/promise';
+import type { NotionScope } from '../config.js';
+import { type Db, withTransaction } from '../db.js';
+import { yearBounds } from './groceries.js';
+
+/** A live non-grocery expense of the synced ledger and year that Notion's totals don't include yet. */
+export interface UncountedExpense {
+  expenseId: number;
+  categoryId: number;
+  techName: string;
+  /** 'YYYY-MM', from expense_date. */
+  month: string;
+  /** Decimal string, '12.30'. */
+  amountEur: string;
+  /** Claimed by an add that isn't confirmed yet: maybe in Notion, so it's never planned again. */
+  pending: boolean;
+}
+
+/** The live non-grocery expenses of the scope, as SQL shared by the loader and the starting point. */
+const IN_SCOPE = `c.ledger_id = ? AND c.tech_name <> 'groceries' AND c.deleted_at IS NULL AND e.deleted_at IS NULL
+                  AND e.expense_date >= ? AND e.expense_date < ?`;
+
+export async function loadUncounted(db: Db, scope: NotionScope): Promise<UncountedExpense[]> {
+  const [from, to] = yearBounds(scope.year);
+  const [rows] = await db.query<RowDataPacket[]>(
+    `SELECT e.expense_id, e.category_id, c.tech_name, e.expense_date, e.amount_eur, n.expense_id AS counted
+       FROM expenses e
+       JOIN categories c ON c.category_id = e.category_id
+       LEFT JOIN notion_counted_expenses n ON n.expense_id = e.expense_id
+       LEFT JOIN notion_total_adds a ON a.add_id = n.add_id
+      WHERE ${IN_SCOPE} AND (n.expense_id IS NULL OR a.confirmed = 0)
+      ORDER BY e.expense_date, e.expense_id`,
+    [scope.ledgerId, from, to],
+  );
+  return rows.map((r) => ({
+    expenseId: r.expense_id,
+    categoryId: r.category_id,
+    techName: r.tech_name,
+    month: (r.expense_date as string).slice(0, 7),
+    amountEur: r.amount_eur,
+    pending: r.counted !== null,
+  }));
+}
+
+/**
+ * Records every live non-grocery expense of the scope as already in Notion's totals (the user typed them in by hand)
+ * and stamps totals_started_at. Deleted expenses aren't recorded, so restoring one later adds it. Returns how many
+ * were recorded; throws, writing nothing, if the starting point is already set.
+ */
+export async function startTotals(db: Db, scope: NotionScope, now: Date): Promise<number> {
+  const [from, to] = yearBounds(scope.year);
+  return withTransaction(db, async (conn) => {
+    const [started] = await conn.query<RowDataPacket[]>(
+      'SELECT 1 FROM notion_syncs WHERE ledger_id = ? AND totals_started_at IS NOT NULL FOR UPDATE',
+      [scope.ledgerId],
+    );
+    if (started.length) throw new Error('The totals starting point is already set.');
+    const [res] = await conn.query<ResultSetHeader>(
+      `INSERT INTO notion_counted_expenses (expense_id)
+       SELECT e.expense_id FROM expenses e JOIN categories c ON c.category_id = e.category_id WHERE ${IN_SCOPE}`,
+      [scope.ledgerId, from, to],
+    );
+    await conn.query(
+      `INSERT INTO notion_syncs (ledger_id, totals_started_at) VALUES (?, ?)
+       ON DUPLICATE KEY UPDATE totals_started_at = ?`,
+      [scope.ledgerId, now, now],
+    );
+    return res.affectedRows;
+  });
+}

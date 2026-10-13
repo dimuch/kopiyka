@@ -173,6 +173,24 @@ describe.skipIf(!(await testDbReachable()))('Notion category totals (MySQL)', ()
       expect(notion.rows.get(pageId(6))!.actualCents).toBe(2000n);
     });
 
+    it('reports a month without a Netto page and sends nothing', async () => {
+      notion.missingNetto.add('2026-11');
+      await addExpense('car', '2026-11-02', '10.00');
+      await addExpense('fun', '2026-11-02', '5.00');
+      const rowsBefore = notion.rows.size;
+
+      expect(await sync()).toEqual({
+        added: 0,
+        failed: [
+          { category: 'car', month: '2026-11', error: 'no_netto_page' },
+          { category: 'fun', month: '2026-11', error: 'no_netto_page' },
+        ],
+      });
+      expect(writes()).toEqual([]);
+      expect(notion.rows.size).toBe(rowsBefore);
+      expect((await loadUncounted(db, scope())).length).toBe(2);
+    });
+
     it('refuses to pick between two rows of a category', async () => {
       notion.rows.get(STRAY)!.inView = true;
       await addExpense('fun', '2026-10-06', '5.00');

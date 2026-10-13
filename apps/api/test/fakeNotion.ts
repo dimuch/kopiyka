@@ -95,6 +95,13 @@ export interface FakeExpenses extends ExpensesTable {
   failOn: Map<string, NotionError>;
   /** Fail monthRows for these 'YYYY-MM' months. */
   failMonth: Map<string, NotionError>;
+  /** 'YYYY-MM' months the Netto table has no page for. */
+  missingNetto: Set<string>;
+}
+
+/** The fake Netto page of a 'YYYY-MM' month, e.g. pageId(202610). */
+export function nettoPage(month: string): string {
+  return pageId(Number(month.replace('-', '')));
 }
 
 export function fakeExpenses(): FakeExpenses {
@@ -105,14 +112,17 @@ export function fakeExpenses(): FakeExpenses {
     failBeforeSet: false,
     failOn: new Map(),
     failMonth: new Map(),
+    missingNetto: new Set(),
     async monthRows(month) {
       fake.calls.push(`monthRows ${month}`);
       const err = fake.failMonth.get(month);
       if (err) throw err;
+      if (fake.missingNetto.has(month)) return null;
       // inView models the month view's relation filter and trash.
-      return [...fake.rows]
+      const rows = [...fake.rows]
         .filter(([, r]) => r.month === month && r.inView)
         .map(([pageId, r]) => ({ pageId, category: r.category }));
+      return { nettoPageId: nettoPage(month), rows };
     },
     async actualCents(id) {
       fake.calls.push(`actualCents ${id}`);

@@ -3,7 +3,7 @@ import type { ResultSetHeader, RowDataPacket } from 'mysql2/promise';
 import type { NotionScope } from '../config.js';
 import { type Db, withTransaction } from '../db.js';
 import { centsToString, toCents } from '../money.js';
-import { type ExpensesRow, type ExpensesTable, NotionError } from './client.js';
+import { type ExpensesTable, type MonthView, NotionError } from './client.js';
 import { yearBounds } from './groceries.js';
 
 /** A live non-grocery expense of the synced ledger and year that Notion's totals don't include yet. */
@@ -127,7 +127,7 @@ export async function syncTotals(
   const result: TotalsResult = { added: 0, failed: [] };
   await recover(db, table, scope, log, result);
   const unconfirmed = await unconfirmedMonths(db, scope);
-  const months = new Map<string, Promise<ExpensesRow[]>>();
+  const months = new Map<string, Promise<MonthView | null>>();
 
   for (const add of planTotals((await loadUncounted(db, scope)).filter((e) => !e.pending))) {
     const fail = (error: string) => result.failed.push({ category: add.techName, month: add.month, error });
@@ -135,8 +135,14 @@ export async function syncTotals(
     if (unconfirmed.has(`${add.categoryId} ${add.month}`)) continue;
     try {
       if (!months.has(add.month)) months.set(add.month, table.monthRows(add.month));
+      const view = await months.get(add.month)!;
+      // Netto pages also hold income and balances, which kopiyka doesn't know, so it never makes one.
+      if (!view) {
+        fail('no_netto_page');
+        continue;
+      }
       const names = notionNames(add.techName);
-      const rows = (await months.get(add.month)!).filter((r) => names.includes(r.category.trim().toLowerCase()));
+      const rows = view.rows.filter((r) => names.includes(r.category.trim().toLowerCase()));
       if (rows.length !== 1) {
         fail(rows.length ? 'duplicate_rows' : 'no_row');
         continue;

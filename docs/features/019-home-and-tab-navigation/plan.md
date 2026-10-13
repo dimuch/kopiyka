@@ -275,6 +275,8 @@ None.
   "New expense", not "Add expense".
 - Review: `colors.shadow` dropped, since the floating button was its only user; Home's card labels say "not
   available" instead of "loading" once the first load has failed.
+- After the PR opened, at the user's request: Settings shows an account row (initial, "Signed in as", username) and an
+  outlined "Sign out" button pinned to the bottom of the page, above the tab bar.
 
 ## Revision 1
 

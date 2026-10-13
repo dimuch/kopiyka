@@ -20,7 +20,7 @@ const Pair = z
     const [expenseId, pageId] = s.split('=') as [string, string];
     return { expenseId: Number(expenseId), pageId };
   });
-const pairs = z.array(Pair).safeParse(values.adopt.split(',').filter(Boolean));
+const pairs = z.array(Pair).min(1, 'give at least one pair').safeParse(values.adopt.split(',').filter(Boolean));
 
 const config = loadConfig();
 if (!config.notion) {
@@ -35,21 +35,23 @@ if (!pairs.success) {
 
 const db = createDb(config.databaseUrl);
 try {
-  await adoptGroceries(db, config.notion, pairs.data);
+  try {
+    await adoptGroceries(db, config.notion, pairs.data);
+  } catch (err) {
+    const duplicate = (err as { code?: string }).code === 'ER_DUP_ENTRY';
+    console.error(
+      duplicate
+        ? 'An expense or Notion page is listed twice or already recorded. Nothing was written.'
+        : `${(err as Error).message}\nNothing was written.`,
+    );
+    process.exit(1);
+  }
   console.log(`Recorded ${pairs.data.length} rows.`);
   const plan = planGroceries(await loadGroceries(db, config.notion));
   for (const { kind, expense: e } of plan) {
-    const what = kind === 'create' ? 'the first sync will create its row' : `the first sync will ${kind} its row`;
-    console.log(`${e.expenseId} ${e.date} ${e.name} ${e.amountEur}: ${what}`);
+    console.log(`${e.expenseId} ${e.date} ${e.name} ${e.amountEur}: the first sync will ${kind} its row`);
   }
   console.log(`Unsent: ${plan.length}`);
-} catch (err) {
-  if ((err as { code?: string }).code === 'ER_DUP_ENTRY') {
-    console.error('An expense or Notion page in the list is already recorded. Nothing was written.');
-  } else {
-    console.error(`${(err as Error).message}\nNothing was written.`);
-  }
-  process.exitCode = 1;
 } finally {
   await db.end();
 }

@@ -88,13 +88,15 @@ describe.skipIf(!(await testDbReachable()))('Notion sync status (MySQL)', () => 
   it('needs a session, a ledger of mine and a numeric id', async () => {
     expect((await status(owner.ledgerId, {})).statusCode).toBe(401);
     const stranger = await makeUser(db, config, 'stranger');
-    expect((await status(stranger.ledgerId)).json()).toEqual({ error: 'not_found' });
+    const foreign = await status(stranger.ledgerId);
+    expect([foreign.statusCode, foreign.json()]).toEqual([404, { error: 'not_found' }]);
     expect((await status('abc')).json()).toMatchObject({ error: 'invalid_request' });
   });
 
   it('answers notion_not_configured without a scope, or for a ledger that is not the synced one', async () => {
     config.notion = null;
-    expect((await status()).json()).toEqual({ error: 'notion_not_configured' });
+    const unset = await status();
+    expect([unset.statusCode, unset.json()]).toEqual([404, { error: 'notion_not_configured' }]);
 
     const second = await makeUser(db, config, 'second');
     await db.query("INSERT INTO ledger_members (ledger_id, user_id, role) VALUES (?, ?, 'member')", [

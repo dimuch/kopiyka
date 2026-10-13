@@ -157,18 +157,19 @@ describe.skipIf(!(await testDbReachable()))('Notion groceries records (MySQL)', 
         await addExpense('other ledger', '2026-10-01', { ledgerId: stranger.ledgerId, userId: stranger.userId }),
       ];
       for (const expenseId of bad) {
-        await expect(
-          adoptGroceries(db, scope(), [{ expenseId, pageId: page(1) }]),
-          String(expenseId),
-        ).rejects.toThrow();
+        await expect(adoptGroceries(db, scope(), [{ expenseId, pageId: page(1) }]), String(expenseId)).rejects.toThrow(
+          /not a live 2026 grocery/,
+        );
       }
-      await expect(adoptGroceries(db, scope(), [{ expenseId: good, pageId: page(1).slice(1) }])).rejects.toThrow();
+      await expect(adoptGroceries(db, scope(), [{ expenseId: good, pageId: page(1).slice(1) }])).rejects.toThrow(
+        /bad page id/,
+      );
       await expect(
         adoptGroceries(db, scope(), [
           { expenseId: good, pageId: page(1) },
           { expenseId: bad[0]!, pageId: page(2) },
         ]),
-      ).rejects.toThrow();
+      ).rejects.toThrow(/not a live 2026 grocery/);
       expect(await recorded()).toEqual([]);
     });
 

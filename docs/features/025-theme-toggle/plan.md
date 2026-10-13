@@ -120,7 +120,7 @@ Estimated changed lines are insertions plus deletions, excluding lockfile.
   - Tests: none (no code). Verify: the four gates; `npx expo-doctor` reports no version mismatch; web still loads at phone
     width; the app launches in Expo Go on iPhone, or the slice is marked as needing a dev build.
 
-- [ ] 3. Apply the saved theme at launch and match the status bar
+- [x] 3. Apply the saved theme at launch and match the status bar
   - Files: `apps/mobile/src/appearance/AppearanceContext.tsx` (new), `apps/mobile/src/app/_layout.tsx`,
     `apps/mobile/app.json` (one line). ~110 lines.
   - Change: provider reads `kopiyka.theme` (default Dark), holds the choice and the resolved scheme, sets the native
@@ -239,6 +239,8 @@ Split option (if the skeptic prefers): PR A is slices 1 to 5 (theme-aware, Dark 
 - slice 2: `npx expo install` pinned `@react-native-async-storage/async-storage` exactly at `2.2.0`, not the `~2.2.0` range in Contracts. Same SDK-bundled version; no range was needed.
 - slice 2: `npx expo-doctor` fails its SDK version check on drift that predates this slice (`expo` 57.0.26 vs ~57.0.28, `expo-router` 57.0.24 vs ~57.0.26, `expo-constants`, `expo-linking`, `@types/react-dom` 19.3.0 vs ~19.2.3). This slice changes only the AsyncStorage line, so the drift was already there. Not fixed here; see Follow-ups.
 - slice 2: the iPhone Expo Go launch is not checked by the build; it is a user check (see AC evidence, slice 2).
+- slice 3: the root background and `<StatusBar>` moved to `Root`, which sits inside the provider, so the `styles.root` StyleSheet and its `colors` import went with them. That was slice 5's `styles.root` item, done early because slice 3 needs it. Slice 5 skips it.
+- slice 3: web Light check, with `kopiyka.theme=light` in localStorage: the outer background turns light, the phone column stays dark because the screens still use the static palette. Expected until slice 5.
 
 ## Follow-ups (build)
 

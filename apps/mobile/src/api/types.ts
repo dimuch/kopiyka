@@ -42,3 +42,32 @@ export interface EurUahRate {
   /** 1 EUR in UAH, 4 decimals. */
   eurUah: number;
 }
+
+export interface NotionStatus {
+  /** Expenses Notion hasn't heard about yet: grocery changes plus uncounted category spending. */
+  unsent: number;
+  /** ISO time of the last sync that finished without failures; null before the first. */
+  lastSyncedAt: string | null;
+}
+
+export interface GroceryFailure {
+  expenseId: number;
+  name: string;
+  /** 'YYYY-MM-DD'. */
+  date: string;
+  error: string;
+}
+
+export interface TotalsFailure {
+  /** The category's tech_name. */
+  category: string;
+  /** 'YYYY-MM'. */
+  month: string;
+  error: string;
+}
+
+export interface NotionSyncResult {
+  groceries: { created: number; updated: number; trashed: number; failed: GroceryFailure[] };
+  /** null when the API has no Expenses table configured. */
+  totals: { added: number; failed: TotalsFailure[] } | null;
+}

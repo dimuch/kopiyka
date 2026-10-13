@@ -149,7 +149,7 @@ the web build would show no result. An inline result also stays visible next to 
 
 ## Slices
 
-- [ ] 1. Add the Notion sync DTOs and the status line text (~100 lines)
+- [x] 1. Add the Notion sync DTOs and the status line text (~100 lines)
   - Files: `apps/mobile/src/api/types.ts`, `apps/mobile/src/format.ts`, `apps/mobile/src/data/notionSync.ts`,
     `apps/mobile/test/format.test.ts`, `apps/mobile/test/notionSync.test.ts`
   - Change: `NotionStatus`/`NotionSyncResult` mirrors, `kyivDayTime`, `shortMonthLabel` and `statusText`, as in
@@ -284,9 +284,9 @@ the web build would show no result. An inline result also stays visible next to 
   in two months counts twice. It keeps the brief's wording. Assumed so.
 - **No.** "N couldn’t sync" counts the API's failed entries. A month without a Netto page that holds 3 categories
   counts 3, but shows one reason line. Assumed so.
-- **Decided (user, 2026-10-13, Gate A).** If the status can't be loaded, Home shows "Couldn’t check Notion sync." with Retry, for every ledger. The
-  app can't tell a configured ledger from an unconfigured one without an answer (conventions §5: error with retry).
-  Assumed so. The alternative is to hide the panel silently.
+- **Decided (user, 2026-10-13, Gate A).** If the status can't be loaded, Home shows "Couldn’t check Notion sync."
+  with Retry, for every ledger. The app can't tell a configured ledger from an unconfigured one without an answer
+  (conventions §5: error with retry). Hiding the panel silently was the alternative.
 - **No.** `actual_amount_changed` is listed among the "couldn’t sync" items, as the API reports it, even though that add
   isn't retried. Assumed so.
 - **No.** Verification uses fetch stubs on web for the configured states. The local `apps/api/.env` points ledger 1 at

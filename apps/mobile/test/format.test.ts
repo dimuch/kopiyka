@@ -5,6 +5,7 @@ import {
   convertPreview,
   dayLabel,
   eur,
+  kyivDayTime,
   kyivMonth,
   kyivToday,
   monthLabel,
@@ -14,9 +15,24 @@ import {
   parseDate,
   shiftMonth,
   shortDate,
+  shortMonthLabel,
   toCents,
   uah,
 } from '@/format';
+
+describe('format: Notion sync times', () => {
+  it('formats a sync time as Kyiv day and clock', () => {
+    expect(kyivDayTime('2026-10-10T11:02:00.000Z')).toBe('10 Oct, 14:02'); // UTC+3 in summer
+    expect(kyivDayTime('2026-01-05T08:07:00.000Z')).toBe('5 Jan, 10:07'); // UTC+2, minute padded
+    expect(kyivDayTime('2026-12-31T22:05:00.000Z')).toBe('1 Jan, 00:05'); // the day turns at Kyiv midnight
+    expect(kyivDayTime('2026-10-10T21:00:00.000Z')).toBe('11 Oct, 00:00');
+  });
+
+  it('labels a month short', () => {
+    expect(shortMonthLabel('2027-01')).toBe('Jan 2027');
+    expect(shortMonthLabel('2026-09')).toBe('Sep 2026');
+  });
+});
 
 describe('format: amounts', () => {
   it('turns decimal strings into cents', () => {

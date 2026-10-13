@@ -81,7 +81,15 @@ export function fakeNotion(): FakeNotion {
   return fake;
 }
 
-type FakeExpensesRow = { category: string; month: string; inView: boolean; actualCents: bigint | null };
+type FakeExpensesRow = {
+  category: string;
+  month: string;
+  inView: boolean;
+  actualCents: bigint | null;
+  budgetCents?: bigint | null;
+  type?: string | null;
+  nettoPageId?: string;
+};
 
 /** An in-memory Notion Expenses table: one row per category per month, with Actual Amount in cents. */
 export interface FakeExpenses extends ExpensesTable {
@@ -95,9 +103,19 @@ export interface FakeExpenses extends ExpensesTable {
   failOn: Map<string, NotionError>;
   /** Fail monthRows for these 'YYYY-MM' months. */
   failMonth: Map<string, NotionError>;
+  /** 'YYYY-MM' months the Netto table has no page for. */
+  missingNetto: Set<string>;
+  /** Store the next created row, then throw as if the answer was lost. */
+  failAfterCreate: boolean;
+}
+
+/** The fake Netto page of a 'YYYY-MM' month, e.g. pageId(202610). */
+export function nettoPage(month: string): string {
+  return pageId(Number(month.replace('-', '')));
 }
 
 export function fakeExpenses(): FakeExpenses {
+  let nextRow = 0x9000;
   const fake: FakeExpenses = {
     rows: new Map(),
     calls: [],
@@ -105,14 +123,48 @@ export function fakeExpenses(): FakeExpenses {
     failBeforeSet: false,
     failOn: new Map(),
     failMonth: new Map(),
+    missingNetto: new Set(),
+    failAfterCreate: false,
+    async allRows() {
+      fake.calls.push('allRows');
+      // inView: false rows come back too: here that flag stands for both "in trash" and "live but not in the view",
+      // while the real client skips trashed rows. No sync test depends on the difference.
+      return [...fake.rows.values()].map((r) => ({
+        category: r.category,
+        month: Number(r.month.slice(5, 7)),
+        budgetCents: r.budgetCents ?? null,
+        type: r.type ?? null,
+      }));
+    },
+    async createRow(row) {
+      fake.calls.push(`createRow ${row.category} ${row.month}`);
+      const id = pageId(nextRow++);
+      fake.rows.set(id, {
+        category: row.category,
+        month: row.month,
+        // Models the view's relation filter: the row shows only when it relates to the month's Netto page.
+        inView: row.nettoPageId === nettoPage(row.month) && !fake.missingNetto.has(row.month),
+        actualCents: null,
+        budgetCents: row.budgetCents,
+        type: row.type,
+        nettoPageId: row.nettoPageId,
+      });
+      if (fake.failAfterCreate) {
+        fake.failAfterCreate = false;
+        throw new NotionError(0, 'notion_unreachable');
+      }
+      return id;
+    },
     async monthRows(month) {
       fake.calls.push(`monthRows ${month}`);
       const err = fake.failMonth.get(month);
       if (err) throw err;
+      if (fake.missingNetto.has(month)) return null;
       // inView models the month view's relation filter and trash.
-      return [...fake.rows]
+      const rows = [...fake.rows]
         .filter(([, r]) => r.month === month && r.inView)
         .map(([pageId, r]) => ({ pageId, category: r.category }));
+      return { nettoPageId: nettoPage(month), rows };
     },
     async actualCents(id) {
       fake.calls.push(`actualCents ${id}`);

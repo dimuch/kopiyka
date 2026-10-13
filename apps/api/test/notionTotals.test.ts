@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import { notionNames, planTotals, type UncountedExpense } from '../src/notion/totals.js';
+import type { ExpensesTemplate } from '../src/notion/client.js';
+import { latestTemplate, notionNames, planTotals, type UncountedExpense } from '../src/notion/totals.js';
 
 let nextId = 1;
 const CATEGORY_IDS: Record<string, number> = { car: 31, fun: 47 };
@@ -45,5 +46,35 @@ describe('notionNames', () => {
     expect(notionNames('home_needs')).toEqual(['home needs']);
     expect(notionNames('sviat')).toEqual(['sviat']);
     expect(notionNames('utilities')).toEqual(['utilities', 'utilites']);
+    expect(notionNames('parking')).toEqual(['parking', 'car parking']);
+    expect(notionNames('gift')).toEqual(['gift', 'gifts']);
+  });
+});
+
+describe('latestTemplate', () => {
+  const row = (category: string, month: number | null, budgetCents: bigint | null = null, type: string | null = null) =>
+    ({ category, month, budgetCents, type }) satisfies ExpensesTemplate;
+
+  it("picks the category's row with the latest Month", () => {
+    const sept = row('clothes', 9, 20000n, 'B');
+    expect(latestTemplate([row('clothes', 3, 15000n, 'A'), sept, row('clothes', 6), row('fun', 12)], 'clothes')).toBe(
+      sept,
+    );
+  });
+
+  it("matches titles like the sync does: case, spaces and Notion's other spellings", () => {
+    const sviat = row(' Sviat', 4);
+    expect(latestTemplate([sviat], 'sviat')).toBe(sviat);
+    const december = row('utilities', 12);
+    expect(latestTemplate([row('utilites', 10), december], 'utilities')).toBe(december);
+    const parking = row('car parking', 8);
+    expect(latestTemplate([parking], 'parking')).toBe(parking);
+  });
+
+  it('skips rows without a Month, keeps the first of a tie, and answers null without a row', () => {
+    const first = row('fun', 5, 100n);
+    expect(latestTemplate([row('fun', null), first, row('fun', 5, 200n)], 'fun')).toBe(first);
+    expect(latestTemplate([row('fun', null)], 'fun')).toBeNull();
+    expect(latestTemplate([], 'fun')).toBeNull();
   });
 });

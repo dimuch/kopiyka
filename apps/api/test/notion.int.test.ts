@@ -94,6 +94,7 @@ describe.skipIf(!(await testDbReachable()))('Notion sync status (MySQL)', () => 
     expenses.rows.clear();
     expenses.rows.set(FUN, { category: 'fun', month: '2026-10', inView: true, actualCents: 6500n });
     expenses.calls.length = 0;
+    expenses.missingNetto.clear();
     // The totals starting point (notion-start --totals) on an empty ledger.
     await db.query('INSERT INTO notion_syncs (ledger_id, totals_started_at) VALUES (?, ?)', [owner.ledgerId, clock]);
   });
@@ -182,9 +183,13 @@ describe.skipIf(!(await testDbReachable()))('Notion sync status (MySQL)', () => 
     });
 
     it('keeps the last sync time when a total failed', async () => {
-      await addSpend('car', '10.00'); // no car row in Notion
+      expenses.missingNetto.add('2026-10');
+      await addSpend('fun', '10.00');
       const res = await sync();
-      expect(res.json().totals).toEqual({ added: 0, failed: [{ category: 'car', month: '2026-10', error: 'no_row' }] });
+      expect(res.json().totals).toEqual({
+        added: 0,
+        failed: [{ category: 'fun', month: '2026-10', error: 'no_netto_page' }],
+      });
       expect((await status()).json()).toEqual({ unsent: 1, lastSyncedAt: null });
     });
 

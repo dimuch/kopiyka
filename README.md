@@ -29,8 +29,10 @@ There is no signup: users are created only with the admin script above.
 
 Expenses of one ledger and year sync to the Notion Budget tables: each grocery as its own row in the Groceries table
 (briefs 020–021), and every other category's new spending added to its Actual Amount in the Expenses table (022).
-In Notion, create an internal integration with Read, Update and Insert content at notion.so/profile/integrations and
-share the Budget page with it (⋯ → Connections). Then set, in `apps/api/.env`:
+A category with no row in a month gets one, with Budget and Type copied from its latest row; a month without a page in
+the Netto table gets nothing and is reported instead (023). In Notion, create an internal integration with Read,
+Update and Insert content at notion.so/profile/integrations and share the Budget page with it (⋯ → Connections). Then
+set, in `apps/api/.env`:
 
 ```bash
 NOTION_LEDGER_ID=1

@@ -3,7 +3,7 @@ import type { ResultSetHeader, RowDataPacket } from 'mysql2/promise';
 import type { NotionScope } from '../config.js';
 import { type Db, withTransaction } from '../db.js';
 import { centsToString, toCents } from '../money.js';
-import { type ExpensesRow, type ExpensesTable, NotionError } from './client.js';
+import { type ExpensesTable, type ExpensesTemplate, type MonthView, NotionError } from './client.js';
 import { yearBounds } from './groceries.js';
 
 /** A live non-grocery expense of the synced ledger and year that Notion's totals don't include yet. */
@@ -101,11 +101,32 @@ export function planTotals(expenses: UncountedExpense[]): TotalAdd[] {
 }
 
 /** Notion's other spellings of a category, besides its tech_name read with spaces. */
-const ALIASES: Record<string, string[]> = { utilities: ['utilites'] }; // October's row in Budget ’26
+const ALIASES: Record<string, string[]> = {
+  utilities: ['utilites'], // October's row in Budget ’26
+  parking: ['car parking'], // Jan–Aug
+  gift: ['gifts'], // Jan–May
+};
 
 /** The lower-case Notion Category titles a tech_name matches. */
 export function notionNames(techName: string): string[] {
   return [techName.replaceAll('_', ' '), ...(ALIASES[techName] ?? [])];
+}
+
+/** Whether a Notion Category title names the tech_name, ignoring case and surrounding spaces. */
+function matches(title: string, techName: string): boolean {
+  return notionNames(techName).includes(title.trim().toLowerCase());
+}
+
+/** The category's row with the latest Month (rows without one are skipped; ties keep the first); null when none. */
+export function latestTemplate(rows: ExpensesTemplate[], techName: string): ExpensesTemplate | null {
+  let latest: ExpensesTemplate | null = null;
+  let latestMonth = 0;
+  for (const row of rows) {
+    if (row.month === null || row.month <= latestMonth || !matches(row.category, techName)) continue;
+    latest = row;
+    latestMonth = row.month;
+  }
+  return latest;
 }
 
 export interface TotalsResult {
@@ -115,8 +136,9 @@ export interface TotalsResult {
 }
 
 /**
- * Adds each category-month's new expenses to its row's Actual Amount. Each add is recorded before the write and
- * confirmed after it, so it's never made twice; a failed step is listed and retried on the next sync.
+ * Adds each category-month's new expenses to its row's Actual Amount, creating the row when the month has a Netto page
+ * but no row for the category. Each add is recorded before the write and confirmed after it, so it's never made
+ * twice; a failed step is listed and retried on the next sync.
  */
 export async function syncTotals(
   db: Db,
@@ -127,7 +149,11 @@ export async function syncTotals(
   const result: TotalsResult = { added: 0, failed: [] };
   await recover(db, table, scope, log, result);
   const unconfirmed = await unconfirmedMonths(db, scope);
-  const months = new Map<string, Promise<ExpensesRow[]>>();
+  const months = new Map<string, Promise<MonthView | null>>();
+  // One read of the whole table per run, and only when a row must be created; a failure repeats for the run's other
+  // creates and is retried on the next sync.
+  let templates: Promise<ExpensesTemplate[]> | undefined;
+  const allTemplates = () => (templates ??= table.allRows());
 
   for (const add of planTotals((await loadUncounted(db, scope)).filter((e) => !e.pending))) {
     const fail = (error: string) => result.failed.push({ category: add.techName, month: add.month, error });
@@ -135,17 +161,23 @@ export async function syncTotals(
     if (unconfirmed.has(`${add.categoryId} ${add.month}`)) continue;
     try {
       if (!months.has(add.month)) months.set(add.month, table.monthRows(add.month));
-      const names = notionNames(add.techName);
-      const rows = (await months.get(add.month)!).filter((r) => names.includes(r.category.trim().toLowerCase()));
-      if (rows.length !== 1) {
-        fail(rows.length ? 'duplicate_rows' : 'no_row');
+      const view = await months.get(add.month)!;
+      // Netto pages also hold income and balances, which kopiyka doesn't know, so it never makes one.
+      if (!view) {
+        fail('no_netto_page');
+        continue;
+      }
+      const rows = view.rows.filter((r) => matches(r.category, add.techName));
+      if (rows.length > 1) {
+        fail('duplicate_rows');
         continue;
       }
       if (add.euros === 0n) {
         await countExpenses(db, add.expenseIds, null);
         continue;
       }
-      await addToRow(db, table, add, rows[0]!.pageId);
+      const pageId = rows[0]?.pageId ?? (await createMissingRow(table, add, view.nettoPageId, allTemplates));
+      await addToRow(db, table, add, pageId);
       result.added++;
     } catch (err) {
       log.warn({ err, category: add.techName, month: add.month }, 'Notion totals step failed');
@@ -235,6 +267,27 @@ async function countExpenses(db: Db, expenseIds: number[], addId: number | null)
   await db.query('INSERT INTO notion_counted_expenses (expense_id, add_id) VALUES ?', [
     expenseIds.map((id) => [id, addId]),
   ]);
+}
+
+/**
+ * Makes the category's row for a month that has none, linked to the month's Netto page, with Budget and Type copied
+ * from the category's latest row. Actual Amount stays empty, so the add that follows is recorded from base 0: if this
+ * answer is lost, the next sync finds the empty row in the month's view and adds to it instead of making another.
+ */
+async function createMissingRow(
+  table: ExpensesTable,
+  add: TotalAdd,
+  nettoPageId: string,
+  templates: () => Promise<ExpensesTemplate[]>,
+): Promise<string> {
+  const template = latestTemplate(await templates(), add.techName);
+  return table.createRow({
+    category: template?.category ?? add.techName.replaceAll('_', ' '),
+    month: add.month,
+    nettoPageId,
+    budgetCents: template?.budgetCents ?? null,
+    type: template?.type ?? null,
+  });
 }
 
 /** Records the add with the row's fresh base, writes base + the add, then confirms it. */

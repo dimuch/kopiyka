@@ -38,6 +38,7 @@ export function testConfig(totpKey = randomBytes(32)): Config {
     cookieSecure: false,
     corsOrigins: [],
     notion: null,
+    notionApi: null,
   };
 }
 
@@ -56,6 +57,7 @@ export async function resetSchema(migrationsDir?: string): Promise<void> {
 }
 
 const DATA_TABLES = [
+  'notion_syncs',
   'notion_grocery_rows',
   'exchange_rates',
   'category_budgets',

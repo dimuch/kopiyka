@@ -1,7 +1,14 @@
 import { describe, expect, it } from 'vitest';
 import { type GroceryState, planGroceries } from '../src/notion/groceries.js';
 
-const sent = { pageId: '2d2203e3e5e581e99c53c4ff0d748207', name: 'Delhaize', amountEur: '29.10', date: '2026-10-01' };
+const sent = {
+  pageId: '2d2203e3e5e581e99c53c4ff0d748207',
+  name: 'Delhaize',
+  amountEur: '29.10',
+  date: '2026-10-01',
+  inTrash: false,
+};
+const trashed = { ...sent, inTrash: true };
 
 function state(expenseId: number, extra: Partial<GroceryState> = {}): GroceryState {
   return { expenseId, name: 'Delhaize', amountEur: '29.10', date: '2026-10-01', wanted: true, sent: null, ...extra };
@@ -18,6 +25,9 @@ describe('planGroceries', () => {
       ['sent, date changed', state(6, { sent, date: '2026-10-02' }), 'update'],
       ['sent, no longer a grocery', state(7, { sent, wanted: false }), 'trash'],
       ['sent, gone and changed', state(8, { sent, wanted: false, amountEur: '1.00' }), 'trash'],
+      ['in trash, still gone', state(9, { sent: trashed, wanted: false }), null],
+      ['in trash, back and unchanged', state(10, { sent: trashed }), 'update'],
+      ['in trash, back and renamed', state(11, { sent: trashed, name: 'Delhaize Ixelles' }), 'update'],
     ];
     for (const [label, s, kind] of cases) {
       expect(

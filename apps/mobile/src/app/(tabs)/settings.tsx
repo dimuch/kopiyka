@@ -1,4 +1,4 @@
-import { Pressable, StyleSheet, Text } from 'react-native';
+import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { useSession } from '@/auth/AuthContext';
 import { PlaceholderPage } from '@/components/PlaceholderPage';
 import { colors, fonts } from '@/theme';
@@ -7,14 +7,60 @@ export default function Settings() {
   const { user, logout } = useSession();
   return (
     <PlaceholderPage title="Settings">
+      <View style={styles.account}>
+        <View style={styles.avatar}>
+          <Text style={styles.initial}>{user.username.slice(0, 1).toUpperCase()}</Text>
+        </View>
+        <View style={{ flex: 1, gap: 2 }}>
+          <Text style={styles.caption}>Signed in as</Text>
+          <Text numberOfLines={1} style={styles.username}>
+            {user.username}
+          </Text>
+        </View>
+      </View>
       <Pressable accessibilityRole="button" onPress={logout} style={styles.signOut}>
-        <Text style={styles.small}>Signed in as {user.username} · Sign out</Text>
+        <Text style={styles.signOutText}>Sign out</Text>
       </Pressable>
     </PlaceholderPage>
   );
 }
 
 const styles = StyleSheet.create({
-  signOut: { alignSelf: 'flex-start', paddingVertical: 16 },
-  small: { fontFamily: fonts.body, fontSize: 12, color: colors.muted },
+  account: {
+    marginTop: 12,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    backgroundColor: colors.surface,
+    borderColor: colors.border,
+    borderWidth: 1,
+    borderRadius: 22,
+    paddingVertical: 14,
+    paddingHorizontal: 16,
+  },
+  avatar: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: colors.accentTint,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  initial: { fontFamily: fonts.display, fontSize: 17, color: colors.accent },
+  caption: { fontFamily: fonts.body, fontSize: 12, color: colors.muted },
+  username: { fontFamily: fonts.bodySemi, fontSize: 16, color: colors.text },
+  // Shaped like the login button, outlined so it doesn't read as the screen's main action;
+  // the auto top margin pins it to the bottom of the page, above the tab bar.
+  signOut: {
+    marginTop: 'auto',
+    marginBottom: 20,
+    height: 48,
+    borderRadius: 24,
+    borderWidth: 1,
+    borderColor: colors.borderStrong,
+    backgroundColor: colors.surface,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  signOutText: { fontFamily: fonts.bodySemi, fontSize: 15, color: colors.danger },
 });

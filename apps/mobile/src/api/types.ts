@@ -20,6 +20,13 @@ export interface Category {
   sortOrder: number;
 }
 
+/** One category with its live expenses across all months (GET one category). */
+export interface CategoryWithTotals extends Category {
+  expenseCount: number;
+  /** Decimal string, '0.00' without expenses. */
+  totalEur: string;
+}
+
 export interface Expense {
   expenseId: number;
   categoryId: number;

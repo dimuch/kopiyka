@@ -160,7 +160,7 @@ search param copies `expense.tsx` (`/expense?expenseId=…`).
 
 ## Slices
 
-- [ ] 1. Add the texts for deleting a category and its Undo
+- [x] 1. Add the texts for deleting a category and its Undo
   - Files: `apps/mobile/src/api/types.ts`, `apps/mobile/src/data/categoryDelete.ts` (new),
     `apps/mobile/test/categoryDelete.test.ts` (new)
   - Change: add the `CategoryWithTotals` mirror, plus `deleteWarning` and `deletedMessage` as in Contracts.

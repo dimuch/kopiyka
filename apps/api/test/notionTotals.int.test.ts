@@ -213,23 +213,95 @@ describe.skipIf(!(await testDbReachable()))('Notion category totals (MySQL)', ()
       expect(notion.calls).toEqual([]);
     });
 
-    it('never builds a second add on one it could not confirm', async () => {
-      await addExpense('fun', '2026-10-05', '19.47');
-      notion.failAfterSet = true;
-      expect(await sync()).toEqual({
-        added: 0,
-        failed: [{ category: 'fun', month: '2026-10', error: 'notion_unreachable' }],
-      });
-      expect(notion.rows.get(FUN)!.actualCents).toBe(8400n);
+    describe('after an interrupted add', () => {
+      const adds = async () => {
+        const [rows] = await db.query<RowDataPacket[]>(
+          'SELECT add_id, confirmed FROM notion_total_adds ORDER BY add_id',
+        );
+        return rows;
+      };
 
-      await addExpense('fun', '2026-10-06', '5.00');
-      notion.calls.length = 0;
-      expect(await sync()).toEqual({
-        added: 0,
-        failed: [{ category: 'fun', month: '2026-10', error: 'unconfirmed_add' }],
+      it('confirms an add that landed, without writing it again', async () => {
+        const a = await addExpense('fun', '2026-10-05', '12.30');
+        const b = await addExpense('fun', '2026-10-05', '7.17');
+        notion.failAfterSet = true;
+        expect((await sync()).failed).toEqual([{ category: 'fun', month: '2026-10', error: 'notion_unreachable' }]);
+        expect((await loadUncounted(db, scope())).map((e) => [e.expenseId, e.pending])).toEqual([
+          [a, true],
+          [b, true],
+        ]);
+
+        notion.calls.length = 0;
+        expect(await sync()).toEqual({ added: 1, failed: [] });
+        expect(writes()).toEqual([]);
+        expect(notion.rows.get(FUN)!.actualCents).toBe(8400n);
+        expect(await adds()).toEqual([{ add_id: expect.any(Number), confirmed: 1 }]);
       });
-      expect(writes()).toEqual([]);
-      expect(notion.rows.get(FUN)!.actualCents).toBe(8400n);
+
+      it('makes an add again when its write never landed', async () => {
+        await addExpense('fun', '2026-10-05', '19.47');
+        notion.failBeforeSet = true; // Notion never stored it
+        await sync();
+        expect(notion.rows.get(FUN)!.actualCents).toBe(6500n);
+
+        notion.calls.length = 0;
+        expect(await sync()).toEqual({ added: 1, failed: [] });
+        expect(writes()).toEqual([`setActualCents ${FUN} 8400`]);
+        expect(await adds()).toEqual([{ add_id: expect.any(Number), confirmed: 1 }]);
+      });
+
+      it('confirms, but reports, a row someone changed by hand', async () => {
+        await addExpense('fun', '2026-10-05', '19.47');
+        notion.failAfterSet = true;
+        await sync();
+        notion.rows.get(FUN)!.actualCents = 9000n;
+
+        expect(await sync()).toEqual({
+          added: 0,
+          failed: [{ category: 'fun', month: '2026-10', error: 'actual_amount_changed' }],
+        });
+        expect(writes().length).toBe(1); // only the interrupted one
+        expect(await sync()).toEqual({ added: 0, failed: [] });
+      });
+
+      it('lets go of an add whose row was deleted', async () => {
+        await addExpense('fun', '2026-10-05', '19.47');
+        notion.failAfterSet = true;
+        await sync();
+        notion.rows.delete(FUN);
+
+        expect(await sync()).toEqual({ added: 0, failed: [{ category: 'fun', month: '2026-10', error: 'no_row' }] });
+        expect(await adds()).toEqual([]);
+      });
+
+      it('lets go of an add whose row went to trash showing its base', async () => {
+        await addExpense('fun', '2026-10-05', '19.47');
+        notion.failBeforeSet = true;
+        await sync();
+        notion.rows.get(FUN)!.inView = false;
+
+        expect(await sync()).toEqual({ added: 0, failed: [{ category: 'fun', month: '2026-10', error: 'no_row' }] });
+        expect(await adds()).toEqual([]);
+      });
+
+      it("doesn't add on top of an add it couldn't read back", async () => {
+        await addExpense('fun', '2026-10-05', '19.47');
+        notion.failAfterSet = true;
+        await sync();
+        await addExpense('fun', '2026-10-06', '5.00');
+        notion.failOn.set(FUN, new NotionError(503, 'service_unavailable'));
+
+        notion.calls.length = 0;
+        expect(await sync()).toEqual({
+          added: 0,
+          failed: [{ category: 'fun', month: '2026-10', error: 'service_unavailable' }],
+        });
+        expect(writes()).toEqual([]);
+
+        notion.failOn.clear();
+        expect(await sync()).toEqual({ added: 2, failed: [] });
+        expect(notion.rows.get(FUN)!.actualCents).toBe(8900n); // 84 + 5
+      });
     });
   });
 });

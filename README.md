@@ -25,6 +25,26 @@ yarn mobile start                            # Expo dev server
 
 There is no signup: users are created only with the admin script above.
 
+### Notion sync
+
+Expenses of one ledger and year sync to the Notion Budget tables (briefs 020–024). Set both in `apps/api/.env`:
+
+```bash
+NOTION_LEDGER_ID=1
+NOTION_YEAR=2026
+```
+
+Groceries already copied into the Notion Groceries table by hand are recorded once, so the first sync doesn't send
+them again:
+
+```bash
+yarn api notion-start --adopt 57=<notionPageId>,60=<notionPageId>   # expense id = Notion row (page) id
+```
+
+The pairs and the Notion "Kopiyka ID" column hold this database's expense ids. A fresh production database has
+different ids, so refill Kopiyka ID with production's ids before its first sync. Only one environment may sync to
+the Budget tables at a time.
+
 ## Tests
 
 ```bash

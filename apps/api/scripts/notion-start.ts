@@ -1,0 +1,55 @@
+// One-time setup for Notion sync (brief 020): records the grocery rows already in the Notion Groceries table,
+// so the first sync doesn't send them again, then lists what the first sync will send.
+//
+//   yarn api notion-start --adopt 57=2d2203e3e5e581e99c53c4ff0d748207,60=2d2203e3...
+//
+// Needs NOTION_LEDGER_ID and NOTION_YEAR. The pairs are this database's expense ids, so production needs its own list.
+import { parseArgs } from 'node:util';
+import { z } from 'zod';
+import { loadConfig } from '../src/config.js';
+import { createDb } from '../src/db.js';
+import { adoptGroceries, loadGroceries, planGroceries } from '../src/notion/groceries.js';
+
+const usage = 'Usage: yarn api notion-start --adopt <expenseId>=<notionPageId>[,...]';
+const { values } = parseArgs({ options: { adopt: { type: 'string', default: '' } } });
+
+const Pair = z
+  .string()
+  .regex(/^\d+=[0-9a-fA-F-]+$/, 'expected <expenseId>=<notionPageId>')
+  .transform((s) => {
+    const [expenseId, pageId] = s.split('=') as [string, string];
+    return { expenseId: Number(expenseId), pageId };
+  });
+const pairs = z.array(Pair).safeParse(values.adopt.split(',').filter(Boolean));
+
+const config = loadConfig();
+if (!config.notion) {
+  console.error('Set NOTION_LEDGER_ID and NOTION_YEAR first.');
+  process.exit(1);
+}
+if (!pairs.success) {
+  console.error(usage);
+  for (const issue of pairs.error.issues) console.error(`  ${issue.path.join('.')}: ${issue.message}`);
+  process.exit(1);
+}
+
+const db = createDb(config.databaseUrl);
+try {
+  await adoptGroceries(db, config.notion, pairs.data);
+  console.log(`Recorded ${pairs.data.length} rows.`);
+  const plan = planGroceries(await loadGroceries(db, config.notion));
+  for (const { kind, expense: e } of plan) {
+    const what = kind === 'create' ? 'the first sync will create its row' : `the first sync will ${kind} its row`;
+    console.log(`${e.expenseId} ${e.date} ${e.name} ${e.amountEur}: ${what}`);
+  }
+  console.log(`Unsent: ${plan.length}`);
+} catch (err) {
+  if ((err as { code?: string }).code === 'ER_DUP_ENTRY') {
+    console.error('An expense or Notion page in the list is already recorded. Nothing was written.');
+  } else {
+    console.error(`${(err as Error).message}\nNothing was written.`);
+  }
+  process.exitCode = 1;
+} finally {
+  await db.end();
+}

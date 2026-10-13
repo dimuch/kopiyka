@@ -1,6 +1,6 @@
 import type { RowDataPacket } from 'mysql2/promise';
 import type { NotionScope } from '../config.js';
-import type { Db } from '../db.js';
+import { type Db, withTransaction } from '../db.js';
 
 /** One expense of the synced ledger that is a grocery of the synced year now, or has a Notion row. */
 export interface GroceryState {
@@ -64,4 +64,45 @@ export async function loadGroceries(db: Db, scope: NotionScope): Promise<Grocery
       ? { pageId: r.notion_page_id, name: r.sent_name, amountEur: r.sent_amount_eur, date: r.sent_date }
       : null,
   }));
+}
+
+/**
+ * Records groceries that already have a Notion row (copied by hand before sync existed), with their current values,
+ * so the first sync doesn't send them again. One transaction: any invalid pair throws and nothing is written; an
+ * expense or page that is already recorded throws ER_DUP_ENTRY.
+ */
+export async function adoptGroceries(
+  db: Db,
+  scope: NotionScope,
+  pairs: Array<{ expenseId: number; pageId: string }>,
+): Promise<void> {
+  const rows = pairs.map((p) => ({ expenseId: p.expenseId, pageId: p.pageId.replaceAll('-', '').toLowerCase() }));
+  const badPages = rows.filter((r) => !/^[0-9a-f]{32}$/.test(r.pageId)).map((r) => `${r.expenseId}: bad page id`);
+  if (badPages.length) throw new Error(badPages.join('\n'));
+  if (!rows.length) return;
+
+  const [from, to] = yearBounds(scope.year);
+  await withTransaction(db, async (conn) => {
+    const [found] = await conn.query<RowDataPacket[]>(
+      `SELECT e.expense_id, e.name, e.amount_eur, e.expense_date
+         FROM expenses e JOIN categories c ON c.category_id = e.category_id
+        WHERE e.expense_id IN (?) AND c.ledger_id = ? AND c.tech_name = 'groceries'
+          AND e.deleted_at IS NULL AND c.deleted_at IS NULL AND e.expense_date >= ? AND e.expense_date < ?
+          FOR UPDATE`,
+      [rows.map((r) => r.expenseId), scope.ledgerId, from, to],
+    );
+    const byId = new Map(found.map((f) => [f.expense_id as number, f]));
+    const missing = rows.filter((r) => !byId.has(r.expenseId));
+    if (missing.length) {
+      throw new Error(missing.map((r) => `${r.expenseId}: not a live ${scope.year} grocery of this ledger`).join('\n'));
+    }
+    for (const r of rows) {
+      const e = byId.get(r.expenseId)!;
+      await conn.query(
+        `INSERT INTO notion_grocery_rows (expense_id, notion_page_id, sent_name, sent_amount_eur, sent_date)
+         VALUES (?, ?, ?, ?, ?)`,
+        [r.expenseId, r.pageId, e.name, e.amount_eur, e.expense_date],
+      );
+    }
+  });
 }

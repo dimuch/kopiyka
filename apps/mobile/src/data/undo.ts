@@ -30,7 +30,10 @@ export function takePendingUndo(): PendingUndo | null {
 }
 
 /** Takes a pending Undo when the screen comes into focus and runs its bar; `onRestored` runs after a successful restore. */
-export function useUndoOffer(onRestored: () => void) {
+export function useUndoOffer(onRestored: () => void): {
+  offer: UndoOffer | null;
+  restore: () => Promise<void>;
+} {
   // The Undo offer after a delete; it stays until the restore succeeds or it times out.
   const [offer, setOffer] = useState<UndoOffer | null>(null);
 

@@ -47,7 +47,7 @@ Alternative considered: `<Link href="/" asChild>`. It behaves the same, but `rou
 
 ## Slices
 
-- [ ] 1. Add a Home button to the Expenses header and centre the month switcher
+- [x] 1. Add a Home button to the Expenses header and centre the month switcher
   - Files: `apps/mobile/src/app/(tabs)/expenses.tsx`
   - Change: header = left slot (house button) / centre `monthSwitch` / right slot (`AddExpenseButton`). Drop the
     `CompactTotal` render and import (keep `HeaderDivider`, `useCollapsingSummary`). Styles: `header` drops
@@ -114,4 +114,4 @@ None found.
 
 ## Deviations
 
-<filled by the developer during build>
+None.

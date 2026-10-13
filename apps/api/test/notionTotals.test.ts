@@ -46,6 +46,8 @@ describe('notionNames', () => {
     expect(notionNames('home_needs')).toEqual(['home needs']);
     expect(notionNames('sviat')).toEqual(['sviat']);
     expect(notionNames('utilities')).toEqual(['utilities', 'utilites']);
+    expect(notionNames('parking')).toEqual(['parking', 'car parking']);
+    expect(notionNames('gift')).toEqual(['gift', 'gifts']);
   });
 });
 
@@ -65,7 +67,8 @@ describe('latestTemplate', () => {
     expect(latestTemplate([sviat], 'sviat')).toBe(sviat);
     const december = row('utilities', 12);
     expect(latestTemplate([row('utilites', 10), december], 'utilities')).toBe(december);
-    expect(latestTemplate([row('car parking', 8)], 'parking')).toBeNull(); // no alias yet
+    const parking = row('car parking', 8);
+    expect(latestTemplate([parking], 'parking')).toBe(parking);
   });
 
   it('skips rows without a Month, keeps the first of a tie, and answers null without a row', () => {

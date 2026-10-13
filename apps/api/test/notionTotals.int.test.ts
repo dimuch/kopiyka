@@ -173,6 +173,21 @@ describe.skipIf(!(await testDbReachable()))('Notion category totals (MySQL)', ()
       expect(notion.rows.get(pageId(6))!.actualCents).toBe(2000n);
     });
 
+    it("adds backdated parking and gift expenses to Notion's car parking and gifts rows", async () => {
+      const CAR_PARKING = pageId(7);
+      const GIFTS = pageId(8);
+      notion.rows.set(CAR_PARKING, { category: 'car parking', month: '2026-03', inView: true, actualCents: 1100n });
+      notion.rows.set(GIFTS, { category: 'gifts', month: '2026-04', inView: true, actualCents: 0n });
+      const rowsBefore = notion.rows.size;
+      await addExpense('parking', '2026-03-10', '5.00');
+      await addExpense('gift', '2026-04-02', '20.00');
+
+      expect(await sync()).toEqual({ added: 2, failed: [] });
+      expect(notion.rows.get(CAR_PARKING)!.actualCents).toBe(1600n);
+      expect(notion.rows.get(GIFTS)!.actualCents).toBe(2000n);
+      expect(notion.rows.size).toBe(rowsBefore);
+    });
+
     it('reports a month without a Netto page and sends nothing', async () => {
       notion.missingNetto.add('2026-11');
       await addExpense('car', '2026-11-02', '10.00');

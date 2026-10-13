@@ -202,7 +202,7 @@ Alternative considered: `@notionhq/client` (1.5 MB, no runtime deps). It loses b
 
 ## Slices
 
-- [ ] 1. Remember which Notion grocery rows kopiyka moved to trash
+- [x] 1. Remember which Notion grocery rows kopiyka moved to trash
   - Files: `apps/api/migrations/005_notion_sync.sql`, `apps/api/src/notion/groceries.ts` (types, planner, loader),
     `apps/api/test/helpers.ts`, `apps/api/test/notionGroceries.test.ts`, `apps/api/test/notionGroceries.int.test.ts`
   - Change: the migration, `sent.inTrash` plus the `GroceryChange` union, and the planner rules from Contracts.

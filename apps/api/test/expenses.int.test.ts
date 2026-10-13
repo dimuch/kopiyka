@@ -438,6 +438,18 @@ describe.skipIf(!(await testDbReachable()))('expenses API (MySQL)', () => {
       expect((await put(september.expenseId, gym('2026-09-30', { name: 'pilates' }))).statusCode).toBe(200);
     });
 
+    it('checks the month list before the date and fetches no rate for a refused category', async () => {
+      await withoutGymInOctober();
+      const asked: string[] = [];
+      fetchRate = async (date) => {
+        asked.push(date);
+        return 50.483;
+      };
+      expect((await post(gym('2026-10-08'))).json()).toEqual({ error: 'category_not_in_month' });
+      expect((await post(gym('2026-10-06'))).json()).toEqual({ error: 'category_not_in_month' });
+      expect(asked).toEqual([]);
+    });
+
     it('still says unknown_category for a foreign category', async () => {
       await withoutGymInOctober();
       const other = await makeUser(db, config, 'stranger');

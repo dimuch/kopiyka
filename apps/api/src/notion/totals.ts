@@ -109,7 +109,7 @@ export function notionNames(techName: string): string[] {
 }
 
 export interface TotalsResult {
-  /** Category-months whose add Notion confirmed in this run. */
+  /** Adds Notion confirmed in this run: a recovered one and a new one of the same category-month count twice. */
   added: number;
   failed: Array<{ category: string; month: string; error: string }>;
 }
@@ -179,10 +179,10 @@ async function recover(
     const confirm = () => db.query('UPDATE notion_total_adds SET confirmed = 1 WHERE add_id = ?', [a.add_id]);
     try {
       const current = (await table.actualCents(a.notion_page_id)) ?? 0n;
-      if (current === toCents(a.expected_amount)) {
+      if (current === signedCents(a.expected_amount)) {
         await confirm();
         result.added++;
-      } else if (current === toCents(a.base_amount)) {
+      } else if (current === signedCents(a.base_amount)) {
         await release(db, a.add_id);
       } else {
         await confirm(); // never add it twice
@@ -190,13 +190,26 @@ async function recover(
       }
     } catch (err) {
       if (err instanceof NotionError && err.code === 'object_not_found') {
-        await release(db, a.add_id); // the row is gone, so the add can't be there
+        // The row is gone, so the add can't be there.
+        const released = await release(db, a.add_id).then(
+          () => true,
+          (releaseErr: unknown) => {
+            log.warn({ err: releaseErr, category: a.tech_name, month: a.month }, 'Notion totals release failed');
+            return false;
+          },
+        );
+        if (!released) fail('internal');
         continue;
       }
       log.warn({ err, category: a.tech_name, month: a.month }, 'Notion totals read-back failed');
       fail(err instanceof NotionError ? err.code : 'internal');
     }
   }
+}
+
+/** Cents of a stored DECIMAL, which can be negative when Notion's Actual Amount was (toCents takes no sign). */
+function signedCents(amount: string): bigint {
+  return amount.startsWith('-') ? -toCents(amount.slice(1)) : toCents(amount);
 }
 
 /** Forgets an add that didn't land, so its expenses count as new again. */

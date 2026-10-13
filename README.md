@@ -58,7 +58,9 @@ Set up once per database, in this order: `yarn api migrate`, then the two starti
 
 `POST /api/ledgers/:id/notion/sync` sends what's new (signed in, for the configured ledger); `GET
 /api/ledgers/:id/notion/status` shows how many expenses are unsent and when the last clean sync finished. Sync once
-more before changing `NOTION_YEAR`, and change it together with all three data source ids of that year's page.
+more before changing `NOTION_YEAR`, and change it together with all three data source ids of that year's page. Category totals
+don't support a year change yet: the starting point is set once per ledger, so the new year's Expenses table must
+start with empty Actual Amounts.
 
 The pairs and the Notion "Kopiyka ID" column hold this database's expense ids. A fresh production database has
 different ids, so refill Kopiyka ID with production's ids before its first sync. Only one environment may sync to

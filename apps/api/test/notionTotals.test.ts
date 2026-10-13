@@ -2,8 +2,10 @@ import { describe, expect, it } from 'vitest';
 import { notionNames, planTotals, type UncountedExpense } from '../src/notion/totals.js';
 
 let nextId = 1;
+const CATEGORY_IDS: Record<string, number> = { car: 31, fun: 47 };
 function expense(techName: string, month: string, amountEur: string): UncountedExpense {
-  return { expenseId: nextId++, categoryId: techName.length, techName, month, amountEur, pending: false };
+  const categoryId = CATEGORY_IDS[techName]!;
+  return { expenseId: nextId++, categoryId, techName, month, amountEur, pending: false };
 }
 
 describe('planTotals', () => {
@@ -23,15 +25,15 @@ describe('planTotals', () => {
     const carOct = expense('car', '2026-10', '4.00');
     const funOct2 = expense('fun', '2026-10', '1.00');
     expect(planTotals([funNov, funOct, carOct, funOct2])).toEqual([
-      { categoryId: 3, techName: 'car', month: '2026-10', euros: 4n, expenseIds: [carOct.expenseId] },
+      { categoryId: 31, techName: 'car', month: '2026-10', euros: 4n, expenseIds: [carOct.expenseId] },
       {
-        categoryId: 3,
+        categoryId: 47,
         techName: 'fun',
         month: '2026-10',
         euros: 4n,
         expenseIds: [funOct.expenseId, funOct2.expenseId],
       },
-      { categoryId: 3, techName: 'fun', month: '2026-11', euros: 5n, expenseIds: [funNov.expenseId] },
+      { categoryId: 47, techName: 'fun', month: '2026-11', euros: 5n, expenseIds: [funNov.expenseId] },
     ]);
   });
 });

@@ -26,9 +26,9 @@ Alternative considered: keep the static `colors` and swap a mutable object, remo
 - App, `apps/mobile/src/theme.ts`:
 
   ```ts
-  export const darkColors = { /* today's 18 tokens, unchanged */ };
+  export const darkColors = {/* today's 18 tokens, unchanged */};
   export type Palette = typeof darkColors;
-  export const lightColors: Palette = { /* see below */ };
+  export const lightColors: Palette = {/* see below */};
   /** Kept until the last consumer moves to useColors(); removed in slice 5. */
   export const colors = darkColors;
   export function categoryTile(techName: string, scheme: Scheme): { bg: string; fg: string };
@@ -66,7 +66,11 @@ Alternative considered: keep the static `colors` and swap a mutable object, remo
   ```ts
   export function AppearanceProvider({ children }: { children: ReactNode }): ReactElement;
   /** Renders a background-only view in `darkColors.bg` until the stored choice is read. */
-  export function useAppearance(): { preference: ThemePreference; scheme: Scheme; setPreference: (p: ThemePreference) => void };
+  export function useAppearance(): {
+    preference: ThemePreference;
+    scheme: Scheme;
+    setPreference: (p: ThemePreference) => void;
+  };
   export function useColors(): Palette; // palette for the active scheme; throws outside the provider
   /** `make` must be a module-level function; styles are rebuilt only when the palette changes. */
   export function useThemedStyles<T>(make: (colors: Palette) => T): T;
@@ -96,7 +100,7 @@ Alternative considered: keep the static `colors` and swap a mutable object, remo
 
 Estimated changed lines are insertions plus deletions, excluding lockfile.
 
-- [ ] 1. Add a light palette and the theme preference rules
+- [x] 1. Add a light palette and the theme preference rules
   - Files: `apps/mobile/src/theme.ts`, `apps/mobile/src/appearance/preference.ts` (new),
     `apps/mobile/test/preference.test.ts` (new)
   - Change: rename the dark object to `darkColors`, keep `colors` as an alias, add `Palette`, `lightColors`, and the two
@@ -166,15 +170,15 @@ Split option (if the skeptic prefers): PR A is slices 1 to 5 (theme-aware, Dark 
 
 ## AC to evidence
 
-| AC                                                                                     | Evidence                                                                                                                                                                                                                                                                                                                               |
-| -------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| AC1: Light switches the whole app at once, no restart                                  | Slice 5 and 6 manual: web at phone width, then iPhone. Tabs, expense modal, category sheet, Undo bar, login, date picker, keyboard. `preference.test.ts` `resolveScheme(light, *) = light`.                                                                                                                                             |
-| AC2: Dark always dark; Auto follows the OS and changes live                            | `preference.test.ts` `resolveScheme` rows for dark (both OS values) and auto. Slice 6 manual: web with DevTools `prefers-color-scheme` emulation, no reload. iPhone: Auto with a system appearance change while open; Dark stays dark while the OS is light.                                                                            |
-| AC3: choice survives a kill and relaunch, or a web reload                              | `parsePreference` rows for each stored value. Slice 6 manual: web reload on Light; iPhone kill and relaunch on Light.                                                                                                                                                                                                                  |
-| AC4: a fresh install shows Dark                                                        | `parsePreference(null) = dark`. Slice 3 manual: web with `kopiyka.theme` cleared, Dark. Slice 6 manual: fresh iPhone install (delete the app, reinstall), Dark.                                                                                                                                                                       |
-| AC5: status bar text matches the active theme                                          | Slice 3 code: `style={scheme === 'dark' ? 'light' : 'dark'}`. Slice 6 iPhone: Light shows dark text; Dark shows light text; Auto follows the OS. Web: no-op (expo-status-bar docs), not checked.                                                                                                                                       |
-| AC6: `rg -n "#[0-9A-Fa-f]{3,8}\b\|rgba?\(" apps/mobile/src -g '!theme.ts'` prints nothing | Run at the end of slices 1, 3, 5 and 6. Hex and `rgba` live only in `theme.ts`; `categoryTile` uses `hsla`/`hsl`, which the rg does not match.                                                                                                                                                                                       |
-| AC7: preference logic has unit tests; four gates pass                                  | `apps/mobile/test/preference.test.ts`. `yarn format:check && yarn lint && yarn typecheck && yarn test` before every commit. Brief's "works on iOS and web" is covered by the manual checks above.                                                                                                                                  |
+| AC                                                                                        | Evidence                                                                                                                                                                                                                                                     |
+| ----------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| AC1: Light switches the whole app at once, no restart                                     | Slice 5 and 6 manual: web at phone width, then iPhone. Tabs, expense modal, category sheet, Undo bar, login, date picker, keyboard. `preference.test.ts` `resolveScheme(light, *) = light`.                                                                  |
+| AC2: Dark always dark; Auto follows the OS and changes live                               | `preference.test.ts` `resolveScheme` rows for dark (both OS values) and auto. Slice 6 manual: web with DevTools `prefers-color-scheme` emulation, no reload. iPhone: Auto with a system appearance change while open; Dark stays dark while the OS is light. |
+| AC3: choice survives a kill and relaunch, or a web reload                                 | `parsePreference` rows for each stored value. Slice 6 manual: web reload on Light; iPhone kill and relaunch on Light.                                                                                                                                        |
+| AC4: a fresh install shows Dark                                                           | `parsePreference(null) = dark`. Slice 3 manual: web with `kopiyka.theme` cleared, Dark. Slice 6 manual: fresh iPhone install (delete the app, reinstall), Dark.                                                                                              |
+| AC5: status bar text matches the active theme                                             | Slice 3 code: `style={scheme === 'dark' ? 'light' : 'dark'}`. Slice 6 iPhone: Light shows dark text; Dark shows light text; Auto follows the OS. Web: no-op (expo-status-bar docs), not checked.                                                             |
+| AC6: `rg -n "#[0-9A-Fa-f]{3,8}\b\|rgba?\(" apps/mobile/src -g '!theme.ts'` prints nothing | Run at the end of slices 1, 3, 5 and 6. Hex and `rgba` live only in `theme.ts`; `categoryTile` uses `hsla`/`hsl`, which the rg does not match.                                                                                                               |
+| AC7: preference logic has unit tests; four gates pass                                     | `apps/mobile/test/preference.test.ts`. `yarn format:check && yarn lint && yarn typecheck && yarn test` before every commit. Brief's "works on iOS and web" is covered by the manual checks above.                                                            |
 
 ## Not doing (YAGNI)
 

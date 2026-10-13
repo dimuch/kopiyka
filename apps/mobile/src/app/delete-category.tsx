@@ -1,4 +1,4 @@
-import { router, useLocalSearchParams } from 'expo-router';
+import { router, Stack, useLocalSearchParams } from 'expo-router';
 import { useState } from 'react';
 import { AccessibilityInfo, ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -29,6 +29,8 @@ export default function DeleteCategoryScreen() {
 
   return (
     <SafeAreaView style={styles.screen} edges={['top', 'bottom']}>
+      {/* The iOS modal can’t be swiped away while a delete is in flight either. */}
+      <Stack.Screen options={{ gestureEnabled: !busy }} />
       <View style={styles.header}>
         <Pressable accessibilityRole="button" disabled={busy} onPress={leave} style={styles.cancel}>
           <Text style={styles.cancelText}>Cancel</Text>
@@ -74,6 +76,8 @@ function Confirm({ category, ledgerId, busy, setBusy }: { category: CategoryWith
   const styles = useThemedStyles(makeStyles);
   const warning = deleteWarning(category);
   const [error, setError] = useState<string | null>(null);
+  // Deleted meanwhile (another device): pressing again can't help.
+  const [gone, setGone] = useState(false);
 
   async function remove() {
     setBusy(true);
@@ -88,10 +92,11 @@ function Confirm({ category, ledgerId, busy, setBusy }: { category: CategoryWith
       });
       router.dismissTo('/');
     } catch (err) {
-      const text =
-        err instanceof ApiError && err.code === 'not_found'
-          ? 'This category was already deleted.'
-          : 'Couldn’t delete. Check your connection and try again.';
+      const notFound = err instanceof ApiError && err.code === 'not_found';
+      const text = notFound
+        ? 'This category was already deleted.'
+        : 'Couldn’t delete. Check your connection and try again.';
+      setGone(notFound);
       // The alert role covers web; VoiceOver needs an explicit announcement.
       setError(text);
       AccessibilityInfo.announceForAccessibility(text);
@@ -112,21 +117,23 @@ function Confirm({ category, ledgerId, busy, setBusy }: { category: CategoryWith
         </Text>
       ) : null}
 
-      <Pressable
-        accessibilityRole="button"
-        // While deleting the only child is a spinner, so the name has to be given here.
-        accessibilityLabel={warning.action}
-        accessibilityState={{ busy }}
-        disabled={busy}
-        onPress={remove}
-        style={[styles.destructive, busy && { opacity: 0.6 }]}
-      >
-        {busy ? (
-          <ActivityIndicator color={colors.onAccent} />
-        ) : (
-          <Text style={styles.destructiveText}>{warning.action}</Text>
-        )}
-      </Pressable>
+      {gone ? null : (
+        <Pressable
+          accessibilityRole="button"
+          // While deleting the only child is a spinner, so the name has to be given here.
+          accessibilityLabel={warning.action}
+          accessibilityState={{ busy }}
+          disabled={busy}
+          onPress={remove}
+          style={[styles.destructive, busy && { opacity: 0.6 }]}
+        >
+          {busy ? (
+            <ActivityIndicator color={colors.onAccent} />
+          ) : (
+            <Text style={styles.destructiveText}>{warning.action}</Text>
+          )}
+        </Pressable>
+      )}
     </ScrollView>
   );
 }

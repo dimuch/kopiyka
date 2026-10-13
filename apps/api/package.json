@@ -9,6 +9,7 @@
     "start": "node dist/src/server.js",
     "migrate": "tsx --env-file-if-exists=.env scripts/migrate.ts",
     "create-user": "tsx --env-file-if-exists=.env scripts/create-user.ts",
+    "notion-start": "tsx --env-file-if-exists=.env scripts/notion-start.ts",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
     "test:watch": "vitest",

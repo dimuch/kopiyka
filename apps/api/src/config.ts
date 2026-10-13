@@ -15,6 +15,12 @@ const Env = z.object({
   CORS_ORIGINS: z.string().default(''),
 });
 
+/** Which ledger and year sync to the Notion Budget tables (brief 020). */
+export interface NotionScope {
+  ledgerId: number;
+  year: number;
+}
+
 export interface Config {
   env: 'development' | 'test' | 'production';
   host: string;

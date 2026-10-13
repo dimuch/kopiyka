@@ -225,7 +225,7 @@ Delhaize 12.00: the first sync will create its row`), then `Unsent: N`.
     - sent + not wanted gives trash, even with changed values;
     - the output keeps the input order.
   - ~75 lines.
-- [ ] 2. Record which groceries already have a Notion row
+- [x] 2. Record which groceries already have a Notion row
   - Files: `apps/api/migrations/004_notion_grocery_rows.sql`, `apps/api/src/notion/groceries.ts` (`loadGroceries`),
     `apps/api/test/helpers.ts` (`DATA_TABLES`), `apps/api/test/notionGroceries.int.test.ts`
   - Change: the migration and the loader. `resetSchema()` applying 004 proves the migration runs.
@@ -343,7 +343,7 @@ Build-time steps (no commits). The user approves them at Gate A, because they wr
 
 ## Deviations
 
-<filled by the developer during build>
+- slice 2: `NotionScope` is added to `config.ts` here (type only), not in slice 3, because `loadGroceries` takes it.
 
 ## Revision 1
 

@@ -124,7 +124,7 @@ alignItems/justifyContent: 'center', borderRadius: 12`) and holds `<Icon name="p
     130 lines, not counting the move.
   - Verify: gates, then checks W1 (tab half), W3, W4, W7, W8, W10, W11 and I1, I3, I4 below. Also,
     `git show --stat -M HEAD` lists `apps/mobile/src/app/{index.tsx => (tabs)/expenses.tsx}` as a rename.
-- [ ] 2. Move sign out from Expenses to Settings
+- [x] 2. Move sign out from Expenses to Settings
   - Files: `apps/mobile/src/app/(tabs)/expenses.tsx`, `apps/mobile/src/app/(tabs)/settings.tsx`
   - Change: remove the "Signed in as … · Sign out" `Pressable`, `user`/`logout` and the `signOut` style from Expenses.
     Settings passes the same `Pressable` (role button, `onPress={logout}`) as `PlaceholderPage` children. About 25

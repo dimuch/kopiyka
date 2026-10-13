@@ -235,7 +235,7 @@ Alternatives considered:
     - of 2 rows in the same month, the first wins;
     - no rows gives `null`.
   - ~50 lines.
-- [ ] 4. Match Notion's car parking and gifts rows
+- [x] 4. Match Notion's car parking and gifts rows
   - Files: `apps/api/src/notion/totals.ts` (`ALIASES`), `apps/api/test/notionTotals.test.ts`,
     `apps/api/test/notionTotals.int.test.ts`
   - Change: `ALIASES` becomes

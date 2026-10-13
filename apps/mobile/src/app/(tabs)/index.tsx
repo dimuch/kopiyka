@@ -12,8 +12,8 @@ import { colors, fonts } from '@/theme';
 export default function Home() {
   const { ledger, user } = useSession();
   const [month] = useState(() => kyivMonth(new Date()));
-  // Errors are ignored: the cards still navigate, and the figures stay "—" until a load succeeds.
-  const { data } = useMonth(ledger.ledgerId, month);
+  // No error block: the cards still navigate, and the figures stay "—" until a load succeeds.
+  const { data, error } = useMonth(ledger.ledgerId, month);
   const count = data?.expenses.length;
 
   const cards: { title: string; href: Href; icon: IconName; figure: string | null }[] = [
@@ -44,7 +44,7 @@ export default function Home() {
           <Pressable
             key={c.title}
             accessibilityRole="button"
-            accessibilityLabel={`${c.title}, ${c.figure ?? 'loading'}`}
+            accessibilityLabel={`${c.title}, ${c.figure ?? (error ? 'not available' : 'loading')}`}
             onPress={() => router.navigate(c.href)}
             style={styles.card}
           >

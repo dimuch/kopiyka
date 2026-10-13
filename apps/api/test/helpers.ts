@@ -64,6 +64,7 @@ const DATA_TABLES = [
   'exchange_rates',
   'category_budgets',
   'expenses',
+  'category_months',
   'categories',
   'ledger_invites',
   'ledger_members',

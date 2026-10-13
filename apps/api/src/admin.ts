@@ -40,6 +40,11 @@ export async function createUserWithLedger(
     await conn.query('INSERT INTO categories (ledger_id, tech_name, display_name, sort_order) VALUES ?', [
       DEFAULT_CATEGORIES.map((c, i) => [ledgerId, c.techName, c.displayName, (i + 1) * 10]),
     ]);
+    // One list for all months, as migration 007 starts existing ledgers.
+    await conn.query(
+      "INSERT INTO category_months (category_id, list_month) SELECT category_id, '2000-01-01' FROM categories WHERE ledger_id = ?",
+      [ledgerId],
+    );
     await conn.commit();
     return { userId, ledgerId, otpauthUri: otpauthUri(input.username, secret) };
   } catch (err) {

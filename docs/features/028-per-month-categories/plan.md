@@ -158,7 +158,7 @@ the real date, because `ledgers.created_at` is the DB clock, while the tests pin
 
 ## Slices (part 1)
 
-- [ ] 1. Store a category list per month, starting with today's for all months
+- [x] 1. Store a category list per month, starting with today's for all months
   - Files: `apps/api/migrations/007_category_months.sql` (new), `apps/api/src/admin.ts`, `apps/api/test/helpers.ts`
     (`category_months` added to `DATA_TABLES`, before `categories`), `apps/api/test/migrations.int.test.ts`.
   - Change: the migration above, plus the seed rows in `createUserWithLedger`.
@@ -330,7 +330,8 @@ Contracts are given so the model can be judged now. Details may change in each p
 
 ## Deviations
 
-<filled by the developer during build>
+- slice 1: the 003 and 007 tests share one raw-SQL `rawUser` seeder (the plan allows this) and an `oldSchema(last)`
+  helper. The 007 user therefore has a real encrypted TOTP secret, not `x'00'`.
 
 ## Revision 1
 

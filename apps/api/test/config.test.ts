@@ -26,15 +26,35 @@ describe('loadConfig', () => {
     expect(() => loadConfig({ ...base, NOTION_LEDGER_ID: '1', NOTION_YEAR: '20x6' })).toThrow();
   });
 
-  it('reads the Notion API settings only when both are set', () => {
+  it('reads the Notion API settings in two pairs, the second needing the first', () => {
     const ds = '2d2203e3-e5e5-819d-8823-000be6f1bad0';
+    const expenses = '2d2203e3-e5e5-8154-8e58-000b356e2d71';
+    const netto = '2d2203e3-e5e5-8153-8e48-000b2762daa5';
+    const groceries = { NOTION_TOKEN: 'ntn_x', NOTION_GROCERIES_DATA_SOURCE_ID: ds };
     expect(loadConfig(base).notionApi).toBeNull();
-    expect(loadConfig({ ...base, NOTION_TOKEN: 'ntn_x', NOTION_GROCERIES_DATA_SOURCE_ID: ds }).notionApi).toEqual({
+    expect(loadConfig({ ...base, ...groceries }).notionApi).toEqual({
       token: 'ntn_x',
       groceriesDataSourceId: ds,
+      totals: null,
+    });
+    expect(
+      loadConfig({
+        ...base,
+        ...groceries,
+        NOTION_EXPENSES_DATA_SOURCE_ID: expenses,
+        NOTION_NETTO_DATA_SOURCE_ID: netto,
+      }).notionApi,
+    ).toEqual({
+      token: 'ntn_x',
+      groceriesDataSourceId: ds,
+      totals: { expensesDataSourceId: expenses, nettoDataSourceId: netto },
     });
     expect(() => loadConfig({ ...base, NOTION_TOKEN: 'ntn_x' })).toThrow(/together/);
     expect(() => loadConfig({ ...base, NOTION_GROCERIES_DATA_SOURCE_ID: ds })).toThrow(/together/);
+    expect(() => loadConfig({ ...base, ...groceries, NOTION_EXPENSES_DATA_SOURCE_ID: expenses })).toThrow(/together/);
+    expect(() =>
+      loadConfig({ ...base, NOTION_EXPENSES_DATA_SOURCE_ID: expenses, NOTION_NETTO_DATA_SOURCE_ID: netto }),
+    ).toThrow(/together/);
     expect(() =>
       loadConfig({ ...base, NOTION_TOKEN: 'ntn_x', NOTION_GROCERIES_DATA_SOURCE_ID: `collection://${ds}` }),
     ).toThrow();

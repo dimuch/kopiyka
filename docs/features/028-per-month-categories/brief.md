@@ -29,17 +29,24 @@ before 014 (create and rename) and 015 (reorder), because both depend on this mo
 
 ## Acceptance criteria
 
-- [ ] API: the month list, month totals and the expense form's categories are per month. There are endpoints to
-      remove a category from a month and restore it. Integration tests cover: - remove and restore: only that month's expenses, while other months keep both the category and their expenses; - auth 401, non-member 404, unknown or already-removed 404; - an expense can't be saved (or moved by a date change) into a month where its category doesn't exist (400).
-- [ ] Migration: existing ledgers keep the same categories in every month they had them, with tests; nothing visible
-      changes.
-- [ ] App (web 390×844): in October, Category → ⋯ → Remove from October → the warning with October's count and total
-      → Remove → Home with the Undo bar. October's figures drop and its list has no "eating out". September still
-      shows "eating out" with its spending.
-- [ ] App: Undo restores October's category and expenses; a failed Undo shows "Couldn’t undo" with Retry.
-- [ ] App: in the expense form, the categories follow the chosen date's month.
-- [ ] iPhone (Expo Go): the menu, the confirm screen, Remove and Undo work.
-- [ ] `yarn format:check && yarn lint && yarn typecheck && yarn test` green.
+Split at Gate A (2026-10-13) into 4 PRs: part 1 is this brief's PR, parts 2–4 become briefs 029–031 (see the plan).
+Each AC names its part.
+
+- [ ] API, part 1: the category list is per month (`?month=YYYY-MM`). An expense can't be saved, or moved by a date
+      or category change, into a month whose list lacks its category (400 `category_not_in_month`). Integration
+      tests.
+- [ ] Migration, part 1: existing ledgers keep the same categories in every month they had them, with tests; nothing
+      visible changes.
+- [ ] API, part 2: endpoints to remove a category from a month and restore it, with integration tests: only that
+      month's expenses go and come back, other months keep both the category and their expenses; auth 401,
+      non-member 404, unknown or already-removed 404.
+- [ ] App, part 3: in the expense form, the categories follow the chosen date's month.
+- [ ] App (web 390×844), part 4: in October, Category → ⋯ → Remove from October → the warning with October's count
+      and total → Remove → Home with the Undo bar. October's figures drop and its list has no "eating out".
+      September still shows "eating out" with its spending.
+- [ ] App, part 4: Undo restores October's category and expenses; a failed Undo shows "Couldn’t undo" with Retry.
+- [ ] iPhone (Expo Go), part 4: the menu, the confirm screen, Remove and Undo work.
+- [ ] Every part: `yarn format:check && yarn lint && yarn typecheck && yarn test` green.
 
 ## Out of scope
 

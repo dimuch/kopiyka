@@ -321,6 +321,11 @@ Contracts are given so the model can be judged now. Details may change in each p
 
 ## Follow-ups
 
+- Part 2 (review Q1): `checkCategory` and the INSERT/UPDATE are check-then-write. Once a per-month remove exists, a
+  remove that commits in between could leave a live expense in a month without its category, which the expense list
+  and the Notion sync rely on never happening. 013's delete has the same race today. Part 2's plan decides whether to
+  lock (e.g. `SELECT … FOR UPDATE` on the category_months row in one transaction) or accept it.
+
 - After part 4, drop `categories.deleted_at` and its filters in a migration. Its only meaning will be "deleted before
   028", which no endpoint can undo.
 - Conventions §3 could state the new invariant: "a live expense's category is in its month's list; writes keep it

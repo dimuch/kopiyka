@@ -212,7 +212,7 @@ search param copies `expense.tsx` (`/expense?expenseId=…`).
     - With Notion configured locally, Home's "N new" changes after the delete and after Undo. If it isn't configured,
       the PR records that this wasn't checked (as in 017).
   - About 60 lines.
-- [ ] 4. Open Delete category from a ⋯ menu on the Category screen
+- [x] 4. Open Delete category from a ⋯ menu on the Category screen
   - Files: `apps/mobile/src/app/category/[categoryId].tsx`
   - Change: add the ⋯ button, the `CategoryMenu` overlay and its styles in the screen's `makeStyles`, as in
     Contracts.
@@ -296,7 +296,14 @@ Total: about 365 changed lines.
 
 ## Deviations
 
-<filled by the developer during build>
+- slice 1: `deletedMessage`'s count parameter is `n`, so it doesn't shadow the `expenseCount` helper; the 0-expense
+  test case uses `groceries` (not `gym`) so one title assertion covers every row.
+- slice 3: the screen's `busy` state lives in the screen component and is passed down, because the header's Cancel
+  (outside the loaded content) must be disabled while a delete is in flight.
+- slice 3: not checked: Home's Notion "N new" after a delete and Undo. Locally Notion is set only for ledger 1 (the
+  real Budget ’26), so the QA ledger has no Notion panel.
+- slice 4: with a very large month total (€11,123.54) the compact header label ellipsizes to "eatin…", as the plan's
+  Risks expected; the buttons still fit.
 
 ## Revision 1
 

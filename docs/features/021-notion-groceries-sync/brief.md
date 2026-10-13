@@ -86,7 +86,8 @@ The original 020 AC numbers are in brackets.
   planner contract: sent + in trash + not wanted → nothing; sent + in trash + wanted → update (restore, `in_trash:
 false`). 020's loader only reads records whose `sent_date` is in the synced year, so another year's table is never
   trashed; a date moved to another year trashes the row in this year's table and creates one in the other year's only
-  when that year is configured.
+  when that year is configured. `notion_grocery_rows` keys on `expense_id`, so that create must replace the old year's
+  record (not insert a second one); the plan says how.
 
 ## Open questions
 

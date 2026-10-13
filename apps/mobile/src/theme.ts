@@ -21,7 +21,6 @@ export const colors = {
   faint: '#6E757E',
   fainter: '#4A505A',
   backdrop: 'rgba(5,6,8,0.62)',
-  shadow: '#000',
 };
 
 export const fonts = {

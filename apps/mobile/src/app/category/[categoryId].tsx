@@ -1,7 +1,7 @@
 import { router, useLocalSearchParams } from 'expo-router';
 import { useMemo, useState } from 'react';
 import { ActivityIndicator, Animated, Pressable, StyleSheet, Text, View } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useColors, useThemedStyles } from '@/appearance/AppearanceContext';
 import { useSession } from '@/auth/AuthContext';
 import { AddExpenseButton } from '@/components/AddExpenseButton';
@@ -69,6 +69,7 @@ function CategoryBreakdown({ categoryId, month }: { categoryId: number; month: s
   const collapse = useCollapsingSummary();
   // Not on a missing category: Add would preselect one that doesn't exist.
   const showAdd = !data || !!category;
+  const [menuOpen, setMenuOpen] = useState(false);
 
   return (
     <SafeAreaView style={styles.screen} edges={['top']}>
@@ -87,6 +88,17 @@ function CategoryBreakdown({ categoryId, month }: { categoryId: number; month: s
             />
           )}
           {showAdd ? <AddExpenseButton categoryId={categoryId} /> : null}
+          {category && (
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel="Category actions"
+              accessibilityState={{ expanded: menuOpen }}
+              onPress={() => setMenuOpen((open) => !open)}
+              style={styles.more}
+            >
+              <Icon name="more" color={colors.muted} />
+            </Pressable>
+          )}
         </View>
         <HeaderDivider style={collapse.dividerStyle} />
       </View>
@@ -149,7 +161,39 @@ function CategoryBreakdown({ categoryId, month }: { categoryId: number; month: s
         </Animated.ScrollView>
       )}
       {toast.offer ? <UndoToast offer={toast.offer} onUndo={toast.restore} /> : null}
+      {menuOpen && (
+        <CategoryMenu
+          onClose={() => setMenuOpen(false)}
+          onDelete={() => {
+            setMenuOpen(false);
+            router.push({ pathname: '/delete-category', params: { categoryId } });
+          }}
+        />
+      )}
     </SafeAreaView>
+  );
+}
+
+/** The ⋯ menu: over the whole screen, so a tap anywhere outside the card (Back and "+" included) only closes it. */
+function CategoryMenu({ onDelete, onClose }: { onDelete: () => void; onClose: () => void }) {
+  const styles = useThemedStyles(makeStyles);
+  // Absolute children ignore the SafeAreaView's padding, so the top inset is added here.
+  const insets = useSafeAreaInsets();
+  return (
+    <View accessibilityViewIsModal style={styles.menuLayer}>
+      <Pressable
+        accessibilityRole="button"
+        accessibilityLabel="Close menu"
+        onPress={onClose}
+        style={StyleSheet.absoluteFill}
+      />
+      {/* 64 = the screen's paddingTop (20) + the header's 44 pt row: just under the ⋯ button. */}
+      <View style={[styles.menuCard, { top: insets.top + 64 }]}>
+        <Pressable accessibilityRole="button" onPress={onDelete} style={styles.menuItem}>
+          <Text style={styles.menuDelete}>Delete category</Text>
+        </Pressable>
+      </View>
+    </View>
   );
 }
 
@@ -166,6 +210,21 @@ const makeStyles = (colors: Palette) =>
     },
     content: { gap: 14, paddingTop: 8, paddingBottom: 104 },
     trailing: { flexDirection: 'row', alignItems: 'center', gap: 4, flexShrink: 1 },
+    more: { width: 44, height: 44, alignItems: 'center', justifyContent: 'center', borderRadius: 12 },
+    // Above the header's zIndex 1, so its buttons don't take taps while the menu is open.
+    menuLayer: { ...StyleSheet.absoluteFill, zIndex: 2 },
+    menuCard: {
+      position: 'absolute',
+      right: 20,
+      minWidth: 200,
+      borderRadius: 14,
+      borderWidth: 1,
+      borderColor: colors.borderStrong,
+      backgroundColor: colors.surfaceRaised,
+      paddingVertical: 4,
+    },
+    menuItem: { minHeight: 44, justifyContent: 'center', paddingHorizontal: 16 },
+    menuDelete: { fontFamily: fonts.bodyMedium, fontSize: 15, color: colors.danger },
     back: { height: 44, flexDirection: 'row', alignItems: 'center', gap: 4, marginLeft: -8, paddingHorizontal: 8 },
     backText: { fontFamily: fonts.bodyMedium, fontSize: 15, color: colors.muted },
     titleRow: { flexDirection: 'row', alignItems: 'center', gap: 14 },

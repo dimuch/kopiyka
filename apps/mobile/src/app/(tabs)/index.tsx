@@ -1,5 +1,83 @@
-import { PlaceholderPage } from '@/components/PlaceholderPage';
+import { type Href, router } from 'expo-router';
+import { useState } from 'react';
+import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { useSession } from '@/auth/AuthContext';
+import { Icon, type IconName } from '@/components/Icon';
+import { sumCents } from '@/data/monthSummary';
+import { useMonth } from '@/data/useMonth';
+import { eur, kyivMonth, monthLabel } from '@/format';
+import { colors, fonts } from '@/theme';
 
 export default function Home() {
-  return <PlaceholderPage title="Home" />;
+  const { ledger, user } = useSession();
+  const [month] = useState(() => kyivMonth(new Date()));
+  // Errors are ignored: the cards still navigate, and the figures stay "—" until a load succeeds.
+  const { data } = useMonth(ledger.ledgerId, month);
+  const count = data?.expenses.length;
+
+  const cards: { title: string; href: Href; icon: IconName; figure: string | null }[] = [
+    { title: 'Budget', href: '/budget', icon: 'budget', figure: 'Not set' },
+    {
+      title: 'Expenses',
+      href: '/expenses',
+      icon: 'expenses',
+      figure: data ? eur(sumCents(data.expenses, 'amountEur')) : null,
+    },
+    {
+      title: 'Statistics',
+      href: '/statistics',
+      icon: 'stats',
+      figure: count === undefined ? null : `${count} ${count === 1 ? 'expense' : 'expenses'}`,
+    },
+    { title: 'Settings', href: '/settings', icon: 'settings', figure: user.username },
+  ];
+
+  return (
+    <SafeAreaView style={styles.screen} edges={['top']}>
+      <View style={styles.header}>
+        <Text style={styles.title}>Kopiyka</Text>
+        <Text style={styles.caption}>{monthLabel(month)}</Text>
+      </View>
+      <View style={styles.grid}>
+        {cards.map((c) => (
+          <Pressable
+            key={c.title}
+            accessibilityRole="button"
+            accessibilityLabel={`${c.title}, ${c.figure ?? 'loading'}`}
+            onPress={() => router.navigate(c.href)}
+            style={styles.card}
+          >
+            <Icon name={c.icon} color={colors.accent} size={24} />
+            <Text style={styles.cardTitle}>{c.title}</Text>
+            <Text numberOfLines={1} style={[styles.figure, c.figure === null && { color: colors.muted }]}>
+              {c.figure ?? '—'}
+            </Text>
+          </Pressable>
+        ))}
+      </View>
+    </SafeAreaView>
+  );
 }
+
+const styles = StyleSheet.create({
+  screen: { flex: 1, backgroundColor: colors.bg, paddingHorizontal: 20, paddingTop: 20, gap: 18 },
+  header: { gap: 2 },
+  title: { fontFamily: fonts.display, fontSize: 22, color: colors.text },
+  caption: { fontFamily: fonts.body, fontSize: 13, color: colors.muted },
+  grid: { flexDirection: 'row', flexWrap: 'wrap', gap: 12 },
+  card: {
+    // Two per row: each starts just under half the width and grows into the gap.
+    flexBasis: '45%',
+    flexGrow: 1,
+    backgroundColor: colors.surface,
+    borderColor: colors.border,
+    borderWidth: 1,
+    borderRadius: 22,
+    paddingVertical: 16,
+    paddingHorizontal: 18,
+    gap: 8,
+  },
+  cardTitle: { fontFamily: fonts.bodyMedium, fontSize: 15, color: colors.text },
+  figure: { fontFamily: fonts.display, fontSize: 20, color: colors.text, fontVariant: ['tabular-nums'] },
+});

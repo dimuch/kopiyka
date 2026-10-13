@@ -101,7 +101,11 @@ export function planTotals(expenses: UncountedExpense[]): TotalAdd[] {
 }
 
 /** Notion's other spellings of a category, besides its tech_name read with spaces. */
-const ALIASES: Record<string, string[]> = { utilities: ['utilites'] }; // October's row in Budget ’26
+const ALIASES: Record<string, string[]> = {
+  utilities: ['utilites'], // October's row in Budget ’26
+  parking: ['car parking'], // Jan–Aug
+  gift: ['gifts'], // Jan–May
+};
 
 /** The lower-case Notion Category titles a tech_name matches. */
 export function notionNames(techName: string): string[] {

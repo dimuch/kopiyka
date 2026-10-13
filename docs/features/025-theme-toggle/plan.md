@@ -143,7 +143,7 @@ Estimated changed lines are insertions plus deletions, excluding lockfile.
   - Tests: none new. Verify: four gates (react-hooks rules are errors, so a hook after an early return fails lint);
     web at phone width, Dark unchanged. Light is not visible until slice 5.
 
-- [ ] 5. Make screens and the tab bar follow the active theme
+- [x] 5. Make screens and the tab bar follow the active theme
   - Files: `app/(tabs)/` `_layout.tsx`, `index.tsx`, `expenses.tsx`, `settings.tsx` (styles only; the picker is slice 6),
     `app/expense.tsx`, `app/login.tsx`, `app/category/[categoryId].tsx`, `app/_layout.tsx` (its remaining five `colors`
     uses: the loading view background and spinner, Stack `contentStyle`, the font-gate view, `styles.root`);
@@ -243,6 +243,9 @@ Split option (if the skeptic prefers): PR A is slices 1 to 5 (theme-aware, Dark 
 - slice 3: web Light check, with `kopiyka.theme=light` in localStorage: the outer background turns light, the phone column stays dark because the screens still use the static palette. Expected until slice 5.
 - slice 4: the signed-in screens that show these components (tabs, expense form, category sheet) were not walked in the browser. They need the API on port 3000 and MySQL, neither running in this session. Checked: web login in Dark renders unchanged; four gates; the hex `rg` check. The signed-in Dark walk is an open check, to be done with the API running or on the iPhone.
 - slice 4: `categoryTile` light tones (`hsla(hue, 70%, 45%, 0.14)` / `hsl(hue, 70%, 32%)`) are a first pass like the palette; tuned on the iPhone.
+- slice 5: the `styles.root` item listed for `_layout.tsx` was already done in slice 3, so only the loading view, Stack `contentStyle` and the Screens colours moved here.
+- slice 5: `expense.tsx`'s module-level `field` style read `colors`; it moved inside `makeStyles`, so it follows the theme too.
+- slice 5: the signed-in walk (every tab, expense modal, category sheet, Undo bar, login after sign-out) is not done. It needs the API on port 3000 and MySQL, neither running here. Checked in the browser: web login in Light (renders light) and Dark (unchanged). The signed-in walk is an open check, for you on the iPhone or with the API running.
 
 ## Follow-ups (build)
 

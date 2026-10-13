@@ -49,9 +49,6 @@ export const lightColors: Palette = {
   backdrop: 'rgba(20,23,28,0.35)',
 };
 
-/** Kept until the last consumer moves to useColors(); removed in slice 5. */
-export const colors = darkColors;
-
 export const fonts = {
   display: 'BricolageGrotesque_700Bold',
   displayMedium: 'BricolageGrotesque_500Medium',

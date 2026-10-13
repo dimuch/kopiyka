@@ -1,7 +1,7 @@
 import { Tabs } from 'expo-router/js-tabs';
 import { Platform } from 'react-native';
+import { useColors } from '@/appearance/AppearanceContext';
 import { Icon, type IconName } from '@/components/Icon';
-import { colors } from '@/theme';
 
 const TABS: { name: string; title: string; icon: IconName }[] = [
   { name: 'index', title: 'Home', icon: 'home' },
@@ -12,6 +12,7 @@ const TABS: { name: string; title: string; icon: IconName }[] = [
 ];
 
 export default function TabsLayout() {
+  const colors = useColors();
   return (
     <Tabs
       screenOptions={{

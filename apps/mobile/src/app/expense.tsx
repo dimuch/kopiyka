@@ -16,6 +16,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { ApiError } from '@/api/client';
 import type { Category, Currency } from '@/api/types';
+import { useColors, useThemedStyles } from '@/appearance/AppearanceContext';
 import { useSession } from '@/auth/AuthContext';
 import { AmountFields } from '@/components/AmountFields';
 import { CategoryPicker } from '@/components/CategoryPicker';
@@ -29,7 +30,7 @@ import { type ExpenseDraftData, useExpenseDraft } from '@/data/useExpenseDraft';
 import { type Rate, useRate } from '@/data/useRate';
 import { eur, kyivToday, normalizeAmount, otherAmountText, shortDate, toCents } from '@/format';
 import { parseIdParam } from '@/linkParams';
-import { colors, fonts } from '@/theme';
+import { fonts, type Palette } from '@/theme';
 
 function errorText(err: unknown, doing: 'load' | 'save'): string {
   if (err instanceof ApiError) {
@@ -71,6 +72,7 @@ function leave() {
 }
 
 export default function ExpenseScreen() {
+  const styles = useThemedStyles(makeStyles);
   const params = useLocalSearchParams<{ expenseId?: string | string[]; categoryId?: string | string[] }>();
   // The link asked for an edit even when its id is malformed, so the title still says so.
   const editing = !!params.expenseId;
@@ -98,6 +100,7 @@ export default function ExpenseScreen() {
 
 /** Loads what the form starts from; mounted only for a well-formed link, so a bad one fetches nothing. */
 function ExpenseLoader({ expenseId, categoryId }: { expenseId: number | null; categoryId: number | null }) {
+  const colors = useColors();
   const { ledger } = useSession();
   const draft = useExpenseDraft(ledger.ledgerId, expenseId, categoryId);
   // Retrying can't bring a deleted expense back.
@@ -113,6 +116,7 @@ function ExpenseLoader({ expenseId, categoryId }: { expenseId: number | null; ca
 }
 
 function LoadFailed({ message, onRetry }: { message: string; onRetry?: () => void }) {
+  const styles = useThemedStyles(makeStyles);
   return (
     <View>
       <LoadError message={message} onRetry={onRetry} />
@@ -125,6 +129,8 @@ function LoadFailed({ message, onRetry }: { message: string; onRetry?: () => voi
 
 /** The form, mounted once the draft has loaded so its state can start from it. */
 function ExpenseForm({ draft, ledgerId }: { draft: ExpenseDraftData; ledgerId: number }) {
+  const colors = useColors();
+  const styles = useThemedStyles(makeStyles);
   const { expense } = draft;
   // Kyiv dates, like the NBU rates they're priced at; read the clock once, when the form opens.
   const [today] = useState(() => kyivToday(new Date()));
@@ -298,47 +304,49 @@ function ExpenseForm({ draft, ledgerId }: { draft: ExpenseDraftData; ledgerId: n
   );
 }
 
-const field = {
-  height: 48,
-  borderRadius: 14,
-  borderWidth: 1,
-  borderColor: colors.borderStrong,
-  backgroundColor: colors.surface,
-} as const;
-
-const styles = StyleSheet.create({
-  screen: { flex: 1, backgroundColor: colors.bg, paddingHorizontal: 20, paddingTop: 8 },
-  header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 },
-  cancel: { height: 44, justifyContent: 'center' },
-  cancelText: { fontFamily: fonts.bodyMedium, fontSize: 15, color: colors.muted },
-  title: { fontFamily: fonts.display, fontSize: 18, color: colors.text },
-  form: { gap: 22, paddingBottom: 40 },
-  group: { gap: 8 },
-  label: { fontFamily: fonts.bodySemi, fontSize: 13, color: colors.muted },
-  input: { ...field, paddingHorizontal: 14, color: colors.text, fontFamily: fonts.body, fontSize: 16 },
-  small: { fontFamily: fonts.body, fontSize: 12, color: colors.muted, fontVariant: ['tabular-nums'] },
-  error: { fontFamily: fonts.bodyMedium, fontSize: 13, color: colors.over },
-  primary: {
-    height: 56,
-    borderRadius: 18,
-    backgroundColor: colors.accent,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 8,
-  },
-  primaryText: { fontFamily: fonts.bodySemi, fontSize: 16, color: colors.onAccent },
-  delete: { height: 48, alignItems: 'center', justifyContent: 'center' },
-  deleteText: { fontFamily: fonts.bodyMedium, fontSize: 15, color: colors.danger },
-  added: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 10,
-    padding: 14,
+const makeStyles = (colors: Palette) => {
+  const field = {
+    height: 48,
     borderRadius: 14,
-    backgroundColor: colors.accentTint,
     borderWidth: 1,
-    borderColor: colors.accentLine,
-  },
-  addedText: { flex: 1, fontFamily: fonts.body, fontSize: 14, color: colors.text },
-});
+    borderColor: colors.borderStrong,
+    backgroundColor: colors.surface,
+  } as const;
+
+  return StyleSheet.create({
+    screen: { flex: 1, backgroundColor: colors.bg, paddingHorizontal: 20, paddingTop: 8 },
+    header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 },
+    cancel: { height: 44, justifyContent: 'center' },
+    cancelText: { fontFamily: fonts.bodyMedium, fontSize: 15, color: colors.muted },
+    title: { fontFamily: fonts.display, fontSize: 18, color: colors.text },
+    form: { gap: 22, paddingBottom: 40 },
+    group: { gap: 8 },
+    label: { fontFamily: fonts.bodySemi, fontSize: 13, color: colors.muted },
+    input: { ...field, paddingHorizontal: 14, color: colors.text, fontFamily: fonts.body, fontSize: 16 },
+    small: { fontFamily: fonts.body, fontSize: 12, color: colors.muted, fontVariant: ['tabular-nums'] },
+    error: { fontFamily: fonts.bodyMedium, fontSize: 13, color: colors.over },
+    primary: {
+      height: 56,
+      borderRadius: 18,
+      backgroundColor: colors.accent,
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'center',
+      gap: 8,
+    },
+    primaryText: { fontFamily: fonts.bodySemi, fontSize: 16, color: colors.onAccent },
+    delete: { height: 48, alignItems: 'center', justifyContent: 'center' },
+    deleteText: { fontFamily: fonts.bodyMedium, fontSize: 15, color: colors.danger },
+    added: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 10,
+      padding: 14,
+      borderRadius: 14,
+      backgroundColor: colors.accentTint,
+      borderWidth: 1,
+      borderColor: colors.accentLine,
+    },
+    addedText: { flex: 1, fontFamily: fonts.body, fontSize: 14, color: colors.text },
+  });
+};

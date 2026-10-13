@@ -2,6 +2,7 @@ import { router, useFocusEffect, useLocalSearchParams } from 'expo-router';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { AccessibilityInfo, ActivityIndicator, Animated, Pressable, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useColors, useThemedStyles } from '@/appearance/AppearanceContext';
 import { useSession } from '@/auth/AuthContext';
 import { AddExpenseButton } from '@/components/AddExpenseButton';
 import { CategoryTile } from '@/components/CategoryTile';
@@ -14,7 +15,7 @@ import { useMonth } from '@/data/useMonth';
 import { takePendingUndo, type PendingUndo } from '@/data/undo';
 import { dayLabel, eur, kyivMonth, monthLabel, monthName, toCents, uah } from '@/format';
 import { parseIdParam, parseMonthParam } from '@/linkParams';
-import { colors, fonts } from '@/theme';
+import { fonts, type Palette } from '@/theme';
 
 // Opened straight from a web link there's nothing to go back to, so fall back to Expenses (current month).
 function goBack() {
@@ -38,6 +39,8 @@ export default function CategoryScreen() {
 
 /** No Add button here: there's no valid category to preselect. */
 function InvalidLink() {
+  const colors = useColors();
+  const styles = useThemedStyles(makeStyles);
   return (
     <SafeAreaView style={styles.screen} edges={['top']}>
       <View style={styles.header}>
@@ -52,6 +55,8 @@ function InvalidLink() {
 }
 
 function CategoryBreakdown({ categoryId, month }: { categoryId: number; month: string }) {
+  const colors = useColors();
+  const styles = useThemedStyles(makeStyles);
   const { ledger } = useSession();
   const { data, error, reload } = useMonth(ledger.ledgerId, month, categoryId);
   // The Undo offer after a delete; it stays until the restore succeeds or it times out.
@@ -194,70 +199,71 @@ function CategoryBreakdown({ categoryId, month }: { categoryId: number; month: s
   );
 }
 
-const styles = StyleSheet.create({
-  screen: { flex: 1, backgroundColor: colors.bg, paddingHorizontal: 20, paddingTop: 20 },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    gap: 12,
-    paddingBottom: 6,
-    zIndex: 1,
-  },
-  content: { gap: 14, paddingTop: 8, paddingBottom: 104 },
-  trailing: { flexDirection: 'row', alignItems: 'center', gap: 4, flexShrink: 1 },
-  back: { height: 44, flexDirection: 'row', alignItems: 'center', gap: 4, marginLeft: -8, paddingHorizontal: 8 },
-  backText: { fontFamily: fonts.bodyMedium, fontSize: 15, color: colors.muted },
-  titleRow: { flexDirection: 'row', alignItems: 'center', gap: 14 },
-  title: { fontFamily: fonts.display, fontSize: 28, color: colors.text, letterSpacing: -0.3 },
-  caption: { fontFamily: fonts.body, fontSize: 13, color: colors.muted },
-  small: { fontFamily: fonts.body, fontSize: 12, color: colors.muted, fontVariant: ['tabular-nums'] },
-  card: {
-    backgroundColor: colors.surface,
-    borderColor: colors.border,
-    borderWidth: 1,
-    borderRadius: 22,
-    paddingVertical: 16,
-    paddingHorizontal: 18,
-    gap: 2,
-  },
-  total: {
-    fontFamily: fonts.display,
-    fontSize: 32,
-    color: colors.text,
-    letterSpacing: -0.6,
-    fontVariant: ['tabular-nums'],
-  },
-  dayHead: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'baseline', paddingHorizontal: 4 },
-  dayLabel: { fontFamily: fonts.bodySemi, fontSize: 13, color: colors.muted, letterSpacing: 0.5 },
-  dayCard: { backgroundColor: colors.surface, borderColor: colors.border, borderWidth: 1, borderRadius: 18 },
-  item: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    gap: 12,
-    paddingVertical: 10,
-    paddingHorizontal: 16,
-  },
-  divider: { borderBottomWidth: 1, borderBottomColor: colors.border },
-  itemName: { fontFamily: fonts.bodyMedium, fontSize: 15, color: colors.text },
-  toast: {
-    position: 'absolute',
-    left: 20,
-    right: 20,
-    bottom: 32,
-    minHeight: 56,
-    borderRadius: 18,
-    backgroundColor: colors.surfaceRaised,
-    borderWidth: 1,
-    borderColor: colors.borderStrong,
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingLeft: 18,
-    gap: 12,
-  },
-  toastText: { flex: 1, fontFamily: fonts.bodyMedium, fontSize: 15, color: colors.text },
-  undo: { height: 56, paddingHorizontal: 18, justifyContent: 'center' },
-  undoText: { fontFamily: fonts.bodySemi, fontSize: 15, color: colors.accent },
-  itemAmount: { fontFamily: fonts.bodySemi, fontSize: 15, color: colors.text, fontVariant: ['tabular-nums'] },
-});
+const makeStyles = (colors: Palette) =>
+  StyleSheet.create({
+    screen: { flex: 1, backgroundColor: colors.bg, paddingHorizontal: 20, paddingTop: 20 },
+    header: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      gap: 12,
+      paddingBottom: 6,
+      zIndex: 1,
+    },
+    content: { gap: 14, paddingTop: 8, paddingBottom: 104 },
+    trailing: { flexDirection: 'row', alignItems: 'center', gap: 4, flexShrink: 1 },
+    back: { height: 44, flexDirection: 'row', alignItems: 'center', gap: 4, marginLeft: -8, paddingHorizontal: 8 },
+    backText: { fontFamily: fonts.bodyMedium, fontSize: 15, color: colors.muted },
+    titleRow: { flexDirection: 'row', alignItems: 'center', gap: 14 },
+    title: { fontFamily: fonts.display, fontSize: 28, color: colors.text, letterSpacing: -0.3 },
+    caption: { fontFamily: fonts.body, fontSize: 13, color: colors.muted },
+    small: { fontFamily: fonts.body, fontSize: 12, color: colors.muted, fontVariant: ['tabular-nums'] },
+    card: {
+      backgroundColor: colors.surface,
+      borderColor: colors.border,
+      borderWidth: 1,
+      borderRadius: 22,
+      paddingVertical: 16,
+      paddingHorizontal: 18,
+      gap: 2,
+    },
+    total: {
+      fontFamily: fonts.display,
+      fontSize: 32,
+      color: colors.text,
+      letterSpacing: -0.6,
+      fontVariant: ['tabular-nums'],
+    },
+    dayHead: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'baseline', paddingHorizontal: 4 },
+    dayLabel: { fontFamily: fonts.bodySemi, fontSize: 13, color: colors.muted, letterSpacing: 0.5 },
+    dayCard: { backgroundColor: colors.surface, borderColor: colors.border, borderWidth: 1, borderRadius: 18 },
+    item: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      gap: 12,
+      paddingVertical: 10,
+      paddingHorizontal: 16,
+    },
+    divider: { borderBottomWidth: 1, borderBottomColor: colors.border },
+    itemName: { fontFamily: fonts.bodyMedium, fontSize: 15, color: colors.text },
+    toast: {
+      position: 'absolute',
+      left: 20,
+      right: 20,
+      bottom: 32,
+      minHeight: 56,
+      borderRadius: 18,
+      backgroundColor: colors.surfaceRaised,
+      borderWidth: 1,
+      borderColor: colors.borderStrong,
+      flexDirection: 'row',
+      alignItems: 'center',
+      paddingLeft: 18,
+      gap: 12,
+    },
+    toastText: { flex: 1, fontFamily: fonts.bodyMedium, fontSize: 15, color: colors.text },
+    undo: { height: 56, paddingHorizontal: 18, justifyContent: 'center' },
+    undoText: { fontFamily: fonts.bodySemi, fontSize: 15, color: colors.accent },
+    itemAmount: { fontFamily: fonts.bodySemi, fontSize: 15, color: colors.text, fontVariant: ['tabular-nums'] },
+  });

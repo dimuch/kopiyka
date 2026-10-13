@@ -2,6 +2,7 @@ import { router } from 'expo-router';
 import { useMemo, useState } from 'react';
 import { ActivityIndicator, Animated, Pressable, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useColors, useThemedStyles } from '@/appearance/AppearanceContext';
 import { useSession } from '@/auth/AuthContext';
 import { AddExpenseButton } from '@/components/AddExpenseButton';
 import { CategoryTile } from '@/components/CategoryTile';
@@ -11,9 +12,11 @@ import { LoadError } from '@/components/LoadError';
 import { spentByCategory } from '@/data/monthSummary';
 import { useMonth } from '@/data/useMonth';
 import { eur, kyivMonth, monthName, shiftMonth } from '@/format';
-import { colors, fonts } from '@/theme';
+import { fonts, type Palette } from '@/theme';
 
 export default function Expenses() {
+  const colors = useColors();
+  const styles = useThemedStyles(makeStyles);
   const { ledger } = useSession();
   const [month, setMonth] = useState(() => kyivMonth(new Date()));
   const { data, error, reload } = useMonth(ledger.ledgerId, month);
@@ -126,49 +129,61 @@ export default function Expenses() {
   );
 }
 
-const styles = StyleSheet.create({
-  screen: { flex: 1, backgroundColor: colors.bg, paddingHorizontal: 20, paddingTop: 20 },
-  header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingBottom: 10, zIndex: 1 },
-  content: { gap: 14, paddingTop: 4, paddingBottom: 24 },
-  monthSwitch: { flexDirection: 'row', alignItems: 'center', gap: 4 },
-  trailing: { flexDirection: 'row', alignItems: 'center', gap: 4, flexShrink: 1 },
-  iconButton: { width: 44, height: 44, alignItems: 'center', justifyContent: 'center', borderRadius: 12 },
-  eyebrow: { fontFamily: fonts.body, fontSize: 12, color: colors.muted, letterSpacing: 0.5 },
-  month: { fontFamily: fonts.display, fontSize: 22, color: colors.text },
-  card: {
-    backgroundColor: colors.surface,
-    borderColor: colors.border,
-    borderWidth: 1,
-    borderRadius: 22,
-    paddingVertical: 16,
-    paddingHorizontal: 18,
-    gap: 10,
-  },
-  totalRow: { flexDirection: 'row', alignItems: 'flex-end', justifyContent: 'space-between' },
-  caption: { fontFamily: fonts.body, fontSize: 13, color: colors.muted },
-  total: {
-    fontFamily: fonts.display,
-    fontSize: 34,
-    color: colors.text,
-    letterSpacing: -0.7,
-    fontVariant: ['tabular-nums'],
-  },
-  budget: { fontFamily: fonts.bodySemi, fontSize: 17, color: colors.muted },
-  sectionHead: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'baseline', paddingHorizontal: 4 },
-  sectionTitle: { fontFamily: fonts.display, fontSize: 17, color: colors.text },
-  small: { fontFamily: fonts.body, fontSize: 12, color: colors.muted },
-  listCard: {
-    backgroundColor: colors.surface,
-    borderColor: colors.border,
-    borderWidth: 1,
-    borderRadius: 22,
-    paddingVertical: 4,
-  },
-  row: { flexDirection: 'row', alignItems: 'center', gap: 12, paddingVertical: 12, paddingHorizontal: 16 },
-  divider: { borderBottomWidth: 1, borderBottomColor: colors.border },
-  rowTop: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'baseline', gap: 8 },
-  rowName: { fontFamily: fonts.bodyMedium, fontSize: 15, color: colors.text },
-  rowAmount: { fontFamily: fonts.bodySemi, fontSize: 15, color: colors.text, fontVariant: ['tabular-nums'] },
-  track: { height: 5, backgroundColor: colors.track, borderRadius: 3, overflow: 'hidden' },
-  bar: { height: 5, borderRadius: 3, backgroundColor: colors.accent },
-});
+const makeStyles = (colors: Palette) =>
+  StyleSheet.create({
+    screen: { flex: 1, backgroundColor: colors.bg, paddingHorizontal: 20, paddingTop: 20 },
+    header: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      paddingBottom: 10,
+      zIndex: 1,
+    },
+    content: { gap: 14, paddingTop: 4, paddingBottom: 24 },
+    monthSwitch: { flexDirection: 'row', alignItems: 'center', gap: 4 },
+    trailing: { flexDirection: 'row', alignItems: 'center', gap: 4, flexShrink: 1 },
+    iconButton: { width: 44, height: 44, alignItems: 'center', justifyContent: 'center', borderRadius: 12 },
+    eyebrow: { fontFamily: fonts.body, fontSize: 12, color: colors.muted, letterSpacing: 0.5 },
+    month: { fontFamily: fonts.display, fontSize: 22, color: colors.text },
+    card: {
+      backgroundColor: colors.surface,
+      borderColor: colors.border,
+      borderWidth: 1,
+      borderRadius: 22,
+      paddingVertical: 16,
+      paddingHorizontal: 18,
+      gap: 10,
+    },
+    totalRow: { flexDirection: 'row', alignItems: 'flex-end', justifyContent: 'space-between' },
+    caption: { fontFamily: fonts.body, fontSize: 13, color: colors.muted },
+    total: {
+      fontFamily: fonts.display,
+      fontSize: 34,
+      color: colors.text,
+      letterSpacing: -0.7,
+      fontVariant: ['tabular-nums'],
+    },
+    budget: { fontFamily: fonts.bodySemi, fontSize: 17, color: colors.muted },
+    sectionHead: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'baseline',
+      paddingHorizontal: 4,
+    },
+    sectionTitle: { fontFamily: fonts.display, fontSize: 17, color: colors.text },
+    small: { fontFamily: fonts.body, fontSize: 12, color: colors.muted },
+    listCard: {
+      backgroundColor: colors.surface,
+      borderColor: colors.border,
+      borderWidth: 1,
+      borderRadius: 22,
+      paddingVertical: 4,
+    },
+    row: { flexDirection: 'row', alignItems: 'center', gap: 12, paddingVertical: 12, paddingHorizontal: 16 },
+    divider: { borderBottomWidth: 1, borderBottomColor: colors.border },
+    rowTop: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'baseline', gap: 8 },
+    rowName: { fontFamily: fonts.bodyMedium, fontSize: 15, color: colors.text },
+    rowAmount: { fontFamily: fonts.bodySemi, fontSize: 15, color: colors.text, fontVariant: ['tabular-nums'] },
+    track: { height: 5, backgroundColor: colors.track, borderRadius: 3, overflow: 'hidden' },
+    bar: { height: 5, borderRadius: 3, backgroundColor: colors.accent },
+  });

@@ -240,6 +240,95 @@ describe('notionClient', () => {
       ]);
     });
 
+    it('reads every live row of the table, page by page', async () => {
+      const templateRow = (category: string, month: string | null, budget: number | null, type: string | null) => ({
+        id: '2d2203e3e5e5811eaf85e0821e42c511',
+        in_trash: false,
+        properties: {
+          Category: { title: [{ plain_text: category }] },
+          Month: { select: month === null ? null : { name: month } },
+          Budget: { number: budget },
+          Type: { select: type === null ? null : { name: type } },
+        },
+      });
+      const { expenses, requests } = setup(
+        json({
+          results: [templateRow('clothes', 'Sept', 200, 'X'), templateRow('fun', null, 23.5, null)],
+          has_more: true,
+          next_cursor: 'c2',
+        }),
+        json({
+          results: [templateRow('gym', 'Oct', null, null), { ...templateRow('car', 'Oct', 100, 'X'), in_trash: true }],
+          has_more: false,
+          next_cursor: null,
+        }),
+      );
+      expect(await expenses.allRows()).toEqual([
+        { category: 'clothes', month: 9, budgetCents: 20000n, type: 'X' },
+        { category: 'fun', month: null, budgetCents: 2350n, type: null },
+        { category: 'gym', month: 10, budgetCents: null, type: null },
+      ]);
+      expect(requests.map((r) => [r.url, r.method, r.body])).toEqual([
+        [`https://api.notion.com/v1/data_sources/${expensesDs}/query`, 'POST', { page_size: 100 }],
+        [`https://api.notion.com/v1/data_sources/${expensesDs}/query`, 'POST', { page_size: 100, start_cursor: 'c2' }],
+      ]);
+    });
+
+    it('creates a row linked to the month, with Budget and Type only when given', async () => {
+      const { expenses, requests } = setup(
+        json({ id: '2D2203E3-E5E5-811E-AF85-E0821E42C511' }),
+        json({ id: '2d2203e3e5e5811eaf85e0821e42c512' }),
+        json({}),
+      );
+      const base = { category: 'clothes', month: '2026-10', nettoPageId: OCTOBER };
+      expect(await expenses.createRow({ ...base, budgetCents: 20000n, type: 'Fixed' })).toBe(
+        '2d2203e3e5e5811eaf85e0821e42c511',
+      );
+      expect(
+        await expenses.createRow({
+          category: 'home needs',
+          month: '2026-09',
+          nettoPageId: OCTOBER,
+          budgetCents: null,
+          type: null,
+        }),
+      ).toBe('2d2203e3e5e5811eaf85e0821e42c512');
+      await expect(expenses.createRow({ ...base, budgetCents: null, type: null })).rejects.toMatchObject({
+        code: 'bad_response',
+      });
+
+      const parent = { type: 'data_source_id', data_source_id: expensesDs };
+      const links = { 'B to Netto': { relation: [{ id: OCTOBER }] }, 'E to Netto': { relation: [{ id: OCTOBER }] } };
+      expect(requests.slice(0, 2).map((r) => [r.url, r.method, r.body])).toEqual([
+        [
+          'https://api.notion.com/v1/pages',
+          'POST',
+          {
+            parent,
+            properties: {
+              Category: { title: [{ text: { content: 'clothes' } }] },
+              Month: { select: { name: 'Oct' } },
+              ...links,
+              Budget: { number: 200 },
+              Type: { select: { name: 'Fixed' } },
+            },
+          },
+        ],
+        [
+          'https://api.notion.com/v1/pages',
+          'POST',
+          {
+            parent,
+            properties: {
+              Category: { title: [{ text: { content: 'home needs' } }] },
+              Month: { select: { name: 'Sept' } },
+              ...links,
+            },
+          },
+        ],
+      ]);
+    });
+
     it('is absent without the Expenses settings', () => {
       expect(notionClient({ token, groceriesDataSourceId: ds, totals: null }).expenses).toBeNull();
     });

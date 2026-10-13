@@ -27,13 +27,20 @@ There is no signup: users are created only with the admin script above.
 
 ### Notion sync
 
-Expenses of one ledger and year will sync to the Notion Budget tables (briefs 020–024; this part sets up the
-starting point). Set both in `apps/api/.env`:
+Groceries of one ledger and year sync to the Notion Groceries table (briefs 020–021; category totals and the app
+button follow in 022–024). In Notion, create an internal integration with Read, Update and Insert content at
+notion.so/profile/integrations and share the Budget page with it (⋯ → Connections). Then set, in `apps/api/.env`:
 
 ```bash
 NOTION_LEDGER_ID=1
 NOTION_YEAR=2026
+NOTION_TOKEN=ntn_...                                              # the integration's secret; never commit it
+NOTION_GROCERIES_DATA_SOURCE_ID=2d2203e3-e5e5-819d-8823-000be6f1bad0  # the UUID in the table's collection:// URL
 ```
+
+`POST /api/ledgers/:id/notion/sync` sends new, edited and deleted groceries (signed in, for the configured ledger);
+`GET /api/ledgers/:id/notion/status` shows how many are unsent and when the last clean sync finished. Sync once more
+before changing `NOTION_YEAR`, and change it together with the data source id of that year's table.
 
 Groceries already copied into the Notion Groceries table by hand are recorded once, so the first sync doesn't send
 them again:

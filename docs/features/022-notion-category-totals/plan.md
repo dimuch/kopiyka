@@ -300,7 +300,7 @@ Alternatives considered:
 
 ## Slices
 
-- [ ] 1. Record the Notion totals starting point with notion-start --totals
+- [x] 1. Record the Notion totals starting point with notion-start --totals
   - Files: `apps/api/migrations/006_notion_totals.sql`, `apps/api/test/helpers.ts`,
     `apps/api/src/notion/groceries.ts` (export `yearBounds`), `apps/api/src/notion/totals.ts` (`UncountedExpense`,
     `loadUncounted`, `startTotals`), `apps/api/scripts/notion-start.ts`, `README.md` (the `--totals` line and when to

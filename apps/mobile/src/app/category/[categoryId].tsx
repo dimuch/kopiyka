@@ -104,14 +104,17 @@ function CategoryBreakdown({ categoryId, month }: { categoryId: number; month: s
           <Icon name="back" color={colors.muted} />
           <Text style={styles.backText}>{monthName(month)}</Text>
         </Pressable>
-        {category && (
-          <CompactTotal
-            label={category.displayName}
-            spentCents={totalEur}
-            budgetCents={null}
-            style={collapse.compactStyle}
-          />
-        )}
+        <View style={styles.trailing}>
+          {category && (
+            <CompactTotal
+              label={category.displayName}
+              spentCents={totalEur}
+              budgetCents={null}
+              style={collapse.compactStyle}
+            />
+          )}
+          {showAdd ? <AddExpenseButton categoryId={categoryId} /> : null}
+        </View>
         <HeaderDivider style={collapse.dividerStyle} />
       </View>
 
@@ -186,8 +189,6 @@ function CategoryBreakdown({ categoryId, month }: { categoryId: number; month: s
             <Text style={styles.undoText}>{toast.status === 'failed' ? 'Retry' : 'Undo'}</Text>
           </Pressable>
         </View>
-      ) : showAdd ? (
-        <AddExpenseButton categoryId={categoryId} />
       ) : null}
     </SafeAreaView>
   );
@@ -204,6 +205,7 @@ const styles = StyleSheet.create({
     zIndex: 1,
   },
   content: { gap: 14, paddingTop: 8, paddingBottom: 104 },
+  trailing: { flexDirection: 'row', alignItems: 'center', gap: 4, flexShrink: 1 },
   back: { height: 44, flexDirection: 'row', alignItems: 'center', gap: 4, marginLeft: -8, paddingHorizontal: 8 },
   backText: { fontFamily: fonts.bodyMedium, fontSize: 15, color: colors.muted },
   titleRow: { flexDirection: 'row', alignItems: 'center', gap: 14 },

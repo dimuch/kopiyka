@@ -223,7 +223,7 @@ Alternatives considered:
       - it returns the normalised page id;
       - an answer without an id throws `bad_response`.
   - ~140 lines.
-- [ ] 3. Pick a new row's Budget and Type from the category's latest row
+- [x] 3. Pick a new row's Budget and Type from the category's latest row
   - Files: `apps/api/src/notion/totals.ts` (`latestTemplate`, `matches`), `apps/api/test/notionTotals.test.ts`
   - Change: the pure picker. `syncTotals`'s row filter switches to `matches` (no behaviour change).
   - Tests (unit, as a table, "latestTemplate"):

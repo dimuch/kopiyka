@@ -80,6 +80,14 @@ The original 020 AC numbers are in brackets.
   sync trashes their rows. Restoring the category brings them back.
 - **Deploy.** When kopiyka is deployed (#25), the token and ids go into the production API env.
 
+- **Must handle (from 020's review, 2026-10-13).** 020's `planGroceries` has no "already in trash" state: after a
+  row is trashed its record still reads "sent and not wanted", so every later status and sync would plan trash again,
+  and a restore with unchanged values would plan nothing. 021 records `in_trash` (migration 005) and changes the
+  planner contract: sent + in trash + not wanted → nothing; sent + in trash + wanted → update (restore, `in_trash:
+false`). 020's loader only reads records whose `sent_date` is in the synced year, so another year's table is never
+  trashed; a date moved to another year trashes the row in this year's table and creates one in the other year's only
+  when that year is configured.
+
 ## Open questions
 
 - Not blocking. AC 1's "deleted-then-restored since the last sync" is read as deleted, synced (row trashed), then

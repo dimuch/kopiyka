@@ -27,7 +27,8 @@ There is no signup: users are created only with the admin script above.
 
 ### Notion sync
 
-Expenses of one ledger and year sync to the Notion Budget tables (briefs 020–024). Set both in `apps/api/.env`:
+Expenses of one ledger and year will sync to the Notion Budget tables (briefs 020–024; this part sets up the
+starting point). Set both in `apps/api/.env`:
 
 ```bash
 NOTION_LEDGER_ID=1

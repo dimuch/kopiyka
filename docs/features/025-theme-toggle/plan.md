@@ -154,7 +154,7 @@ Estimated changed lines are insertions plus deletions, excluding lockfile.
     then every tab, the expense modal, the category sheet, the Undo bar, and login (after sign-out) use the light palette.
     iPhone, same walk, plus the date picker and keyboard.
 
-- [ ] 6. Add Light, Dark and Auto to Settings
+- [x] 6. Add Light, Dark and Auto to Settings
   - Files: `components/AppearancePicker.tsx` (new), `app/(tabs)/settings.tsx`. ~70 lines.
   - Change: an "Appearance" caption and the picker above Sign out. `onChange` calls `setPreference`.
   - Tests: none (UI). Pure rules are in slice 1. Verify: four gates; `rg` AC command. Web at phone width: choose
@@ -246,6 +246,13 @@ Split option (if the skeptic prefers): PR A is slices 1 to 5 (theme-aware, Dark 
 - slice 5: the `styles.root` item listed for `_layout.tsx` was already done in slice 3, so only the loading view, Stack `contentStyle` and the Screens colours moved here.
 - slice 5: `expense.tsx`'s module-level `field` style read `colors`; it moved inside `makeStyles`, so it follows the theme too.
 - slice 5: the signed-in walk (every tab, expense modal, category sheet, Undo bar, login after sign-out) is not done. It needs the API on port 3000 and MySQL, neither running here. Checked in the browser: web login in Light (renders light) and Dark (unchanged). The signed-in walk is an open check, for you on the iPhone or with the API running.
+- slice 6 (browser checks, web, against a UI-only stub of the API on port 3000 with fixed sample data; the stub is not in the repo and not the real API, so no DB or auth is exercised):
+  - AC1: Light from Settings switches the app at once, no reload. Home, Expenses (incl. category tiles), the expense form (date field, NBU line) and the Groceries category screen render in Light.
+  - AC2: Auto follows the emulated system scheme live, dark to light, with no reload. Dark stays dark while the system is light.
+  - AC3: Light survives a reload (`kopiyka.theme=light`).
+  - AC4: with the key cleared, the app starts on Dark and the picker shows Dark selected.
+  - Not exercised: the Undo bar and the category sheet (the stub has no delete or restore, and only three categories so the sheet never opens); the iPhone walk; a Light login after sign-out.
+- slice 6: `AppearancePicker` gets `accessibilityLabel` on each radio (the plan named only `accessibilityState`), so VoiceOver reads "Light, radio, not selected" etc.
 
 ## Follow-ups (build)
 

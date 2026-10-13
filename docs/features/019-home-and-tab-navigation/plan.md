@@ -268,12 +268,13 @@ None.
 
 ## Deviations
 
-- Before slice 1: an extra `Format brief 019` commit, because the brief was committed before Prettier ran on it.
 - slice 1: `Icon`'s `color` prop is now `ColorValue` (was `string`), because the tab bar's `tabBarIcon` passes a
   `ColorValue`.
 - slice 4 (verification only): inactive tab scenes stay mounted under the active one with `aria-hidden="true"`, not at
   zero size, so W12's `adds()` also skips elements inside `[aria-hidden="true"]`. The add form's title is the existing
   "New expense", not "Add expense".
+- Review: `colors.shadow` dropped, since the floating button was its only user; Home's card labels say "not
+  available" instead of "loading" once the first load has failed.
 
 ## Revision 1
 

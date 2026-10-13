@@ -1,6 +1,8 @@
+import type { FastifyBaseLogger } from 'fastify';
 import type { RowDataPacket } from 'mysql2/promise';
 import type { NotionScope } from '../config.js';
 import { type Db, withTransaction } from '../db.js';
+import { type GroceriesTable, type GroceryRow, NotionError } from './client.js';
 
 /** One expense of the synced ledger that is a grocery of the synced year now, or has a Notion row. */
 export interface GroceryState {
@@ -122,4 +124,75 @@ export async function adoptGroceries(
       );
     }
   });
+}
+
+export interface SyncResult {
+  created: number;
+  /** Restores included. */
+  updated: number;
+  trashed: number;
+  failed: Array<{ expenseId: number; name: string; date: string; error: string }>;
+}
+
+/**
+ * Sends what Notion still needs to hear about, recording each step as soon as Notion accepts it, so nothing is sent
+ * twice. A failed step is listed and the run goes on; it's retried on the next sync.
+ */
+export async function syncGroceries(
+  db: Db,
+  table: GroceriesTable,
+  scope: NotionScope,
+  log: Pick<FastifyBaseLogger, 'warn'>,
+): Promise<SyncResult> {
+  const result: SyncResult = { created: 0, updated: 0, trashed: 0, failed: [] };
+  for (const change of planGroceries(await loadGroceries(db, scope))) {
+    const { expense } = change;
+    const fail = (error: string) =>
+      result.failed.push({ expenseId: expense.expenseId, name: expense.name, date: expense.date, error });
+    try {
+      if (change.kind === 'create') {
+        if (await createRow(db, table, expense)) result.created++;
+        else fail('page_taken');
+      } else {
+        fail('not_supported');
+      }
+    } catch (err) {
+      log.warn({ err, expenseId: expense.expenseId, kind: change.kind }, 'Notion sync step failed');
+      fail(err instanceof NotionError ? err.code : 'internal');
+    }
+  }
+  return result;
+}
+
+function rowOf(expense: GroceryState): GroceryRow {
+  return { expenseId: expense.expenseId, name: expense.name, amountEur: expense.amountEur, date: expense.date };
+}
+
+/** Creates the grocery's row, or adopts one an interrupted sync left behind. False when that row is someone else's. */
+async function createRow(db: Db, table: GroceriesTable, expense: GroceryState): Promise<boolean> {
+  const row = rowOf(expense);
+  let pageId = await table.find(expense.expenseId);
+  if (pageId) {
+    // A Kopiyka ID typed wrong in Notion can point at a row recorded for another expense: never overwrite it.
+    const [taken] = await db.query<RowDataPacket[]>(
+      'SELECT 1 FROM notion_grocery_rows WHERE notion_page_id = ? AND expense_id <> ?',
+      [pageId, expense.expenseId],
+    );
+    if (taken.length) return false;
+    // What that row shows is unknown, so write kopiyka's values.
+    await table.update(pageId, row);
+  } else {
+    pageId = await table.create(row);
+  }
+  await withTransaction(db, async (conn) => {
+    // Replaces another year's record once its row is in trash; a live one makes the INSERT fail instead of
+    // leaving that row untracked.
+    await conn.query('DELETE FROM notion_grocery_rows WHERE expense_id = ? AND in_trash = 1', [expense.expenseId]);
+    await conn.query(
+      `INSERT INTO notion_grocery_rows (expense_id, notion_page_id, sent_name, sent_amount_eur, sent_date, in_trash)
+       VALUES (?, ?, ?, ?, ?, 0)`,
+      [expense.expenseId, pageId, row.name, row.amountEur, row.date],
+    );
+  });
+  return true;
 }

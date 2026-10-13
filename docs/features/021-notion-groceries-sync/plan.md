@@ -216,7 +216,7 @@ Alternative considered: `@notionhq/client` (1.5 MB, no runtime deps). It loses b
       the plan, and a recorded live one that is in trash is planned as update. `resetSchema()` applying 005 proves the
       migration runs.
   - ~55 lines.
-- [ ] 2. Send new groceries to Notion, looking each one up by Kopiyka ID first
+- [x] 2. Send new groceries to Notion, looking each one up by Kopiyka ID first
   - Files: `apps/api/src/notion/client.ts` (contract only: `GroceryRow`, `GroceriesTable`, `NotionError`),
     `apps/api/src/notion/groceries.ts` (`syncGroceries`, create path), `apps/api/test/fakeNotion.ts`,
     `apps/api/test/notionGroceries.int.test.ts`

@@ -259,6 +259,16 @@ describe.skipIf(!(await testDbReachable()))('Notion groceries records (MySQL)', 
       expect((await records()).map((r) => r.in_trash)).toEqual([1]);
     });
 
+    it("restores a row that's already live again", async () => {
+      const notion = fakeNotion();
+      const a = await addExpense('A', '2026-10-01');
+      await syncGroceries(db, notion, scope(), log);
+      await db.query('UPDATE notion_grocery_rows SET in_trash = 1 WHERE expense_id = ?', [a]); // restore not recorded
+
+      expect(await syncGroceries(db, notion, scope(), log)).toEqual({ created: 0, updated: 1, trashed: 0, failed: [] });
+      expect((await records()).map((r) => r.in_trash)).toEqual([0]);
+    });
+
     it('trashes a grocery moved out of the year once', async () => {
       const notion = fakeNotion();
       const moved = await addExpense('moved', '2026-12-30');

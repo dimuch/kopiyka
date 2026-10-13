@@ -172,7 +172,7 @@ Alternatives considered:
 
 ## Slices
 
-- [ ] 1. Report a month without a Netto page instead of a missing row
+- [x] 1. Report a month without a Netto page instead of a missing row
   - Files: `apps/api/src/notion/client.ts` (`MonthView`, `monthRows` return), `apps/api/src/notion/totals.ts`,
     `apps/api/test/fakeNotion.ts`, `apps/api/test/notionClient.test.ts`, `apps/api/test/notionTotals.int.test.ts`,
     `apps/api/test/notion.int.test.ts`

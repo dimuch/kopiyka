@@ -137,7 +137,7 @@ alignItems/justifyContent: 'center', borderRadius: 12`) and holds `<Icon name="p
     existing `card` (surface, border, radius 22). Each card shows its icon in accent, the title, then the figure (display
     font; muted while it is "—"). About 110 lines.
   - Verify: W1, W2, W5, W6, I2.
-- [ ] 4. Replace the floating Add expense button with a "+" in the header
+- [x] 4. Replace the floating Add expense button with a "+" in the header
   - Files: `apps/mobile/src/components/AddExpenseButton.tsx`, `apps/mobile/src/app/(tabs)/expenses.tsx`,
     `apps/mobile/src/app/category/[categoryId].tsx`
   - Change: as in Contracts. The doc comment becomes "The "+" header button that opens the add form; preselects
@@ -267,6 +267,13 @@ stack screens are `display: none`, so their tabs measure 0.
 None.
 
 ## Deviations
+
+- Before slice 1: an extra `Format brief 019` commit, because the brief was committed before Prettier ran on it.
+- slice 1: `Icon`'s `color` prop is now `ColorValue` (was `string`), because the tab bar's `tabBarIcon` passes a
+  `ColorValue`.
+- slice 4 (verification only): inactive tab scenes stay mounted under the active one with `aria-hidden="true"`, not at
+  zero size, so W12's `adds()` also skips elements inside `[aria-hidden="true"]`. The add form's title is the existing
+  "New expense", not "Add expense".
 
 ## Revision 1
 

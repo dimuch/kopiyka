@@ -265,7 +265,7 @@ Alternative considered: `@notionhq/client` (1.5 MB, no runtime deps). It loses b
     - **A failed step**: an `update` whose fake throws `NotionError(404, 'object_not_found')` is listed with that code,
       its record is unchanged, and the other changes in the same run still go through.
   - ~80 lines.
-- [ ] 4. Add the Notion sync endpoint, one run at a time per ledger
+- [x] 4. Add the Notion sync endpoint, one run at a time per ledger
   - Files: `apps/api/src/app.ts` (`AppDeps.notionGroceries?`), `apps/api/src/notion/routes.ts`,
     `apps/api/test/notion.int.test.ts`
   - Change: the sync route, the lock, the `notion_syncs` upsert, and `lastSyncedAt` in status, all as in Contracts.

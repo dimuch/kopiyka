@@ -9,6 +9,7 @@ import type { Config } from './config.js';
 import type { Db } from './db.js';
 import { ledgerAccess } from './ledgers/access.js';
 import { ledgerRoutes } from './ledgers/routes.js';
+import type { GroceriesTable } from './notion/client.js';
 import { notionRoutes } from './notion/routes.js';
 import type { RateFetcher } from './rates/nbu.js';
 import { rateRoutes } from './rates/routes.js';
@@ -20,6 +21,8 @@ export interface AppDeps {
   now: () => Date;
   /** NBU EUR rate lookup; tests pass a stub. */
   fetchRate: RateFetcher;
+  /** The Notion Groceries table; absent when Notion isn't configured, tests pass a fake. */
+  notionGroceries?: GroceriesTable;
 }
 
 export async function buildApp(deps: AppDeps): Promise<FastifyInstance> {

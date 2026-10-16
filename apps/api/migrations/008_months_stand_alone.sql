@@ -1,7 +1,8 @@
 -- Brief 033. A month's category list is exactly its own rows here: nothing carries over any more, and a month with
 -- no live row has no budget yet. Each ledger's months from its first month (the earlier of the month it was created
 -- and the month of its earliest expense, deleted ones included) up to now keep the list they inherited (brief 028),
--- written out as their own rows; earlier and later months have no budget. created_at is in the DB server's zone,
+-- written out as their own rows; earlier and later months have no budget, except a later month that already has its
+-- own rows (a removal made there, brief 029), which keeps them. created_at is in the DB server's zone,
 -- never later than Kyiv's month for a server at or west of Kyiv. Kyiv is UTC+2 or +3, so UTC+3 is never a month
 -- early. A month that already holds a live expense keeps its list too (on a month's last day an expense can be
 -- dated Kyiv tomorrow). Only live rows of live categories are copied: a month's own removed rows keep their Undo

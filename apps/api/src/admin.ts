@@ -1,6 +1,7 @@
 import type { ResultSetHeader } from 'mysql2/promise';
 import { encryptSecret } from './auth/secretBox.js';
 import { generateSecret, otpauthUri } from './auth/totp.js';
+import { kyivToday } from './dates.js';
 import type { Db } from './db.js';
 import { DEFAULT_CATEGORIES } from './defaultCategories.js';
 
@@ -12,12 +13,14 @@ export interface CreatedUser {
 
 /**
  * Creates a user with a fresh TOTP secret and their own ledger seeded with the
- * default categories. Only the local admin script calls this; the API has no signup.
+ * default categories in the month it's created (Kyiv time). Only the local admin script calls this; the API has no
+ * signup.
  */
 export async function createUserWithLedger(
   db: Db,
   totpKey: Buffer,
   input: { username: string; email: string; ledgerName: string },
+  now: Date,
 ): Promise<CreatedUser> {
   const secret = generateSecret();
   const conn = await db.getConnection();
@@ -40,10 +43,10 @@ export async function createUserWithLedger(
     await conn.query('INSERT INTO categories (ledger_id, tech_name, display_name, sort_order) VALUES ?', [
       DEFAULT_CATEGORIES.map((c, i) => [ledgerId, c.techName, c.displayName, (i + 1) * 10]),
     ]);
-    // One list for all months, as migration 007 starts existing ledgers.
+    // The ledger's first month has a budget; other months are set up later (brief 033).
     await conn.query(
-      "INSERT INTO category_months (category_id, list_month) SELECT category_id, '2000-01-01' FROM categories WHERE ledger_id = ?",
-      [ledgerId],
+      'INSERT INTO category_months (category_id, list_month) SELECT category_id, ? FROM categories WHERE ledger_id = ?',
+      [`${kyivToday(now).slice(0, 7)}-01`, ledgerId],
     );
     await conn.commit();
     return { userId, ledgerId, otpauthUri: otpauthUri(input.username, secret) };

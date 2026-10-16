@@ -2,6 +2,9 @@
 
 Type: feature
 
+> Replaced by `../033-monthly-budget/brief.md` (2026-10-16): create and rename are now per month, on the Budget
+> tab.
+
 ## Why
 
 Categories are fixed: every ledger is seeded with 15, and the app can't add or rename one.

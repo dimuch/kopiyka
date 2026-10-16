@@ -1,40 +1,20 @@
-// Brief 028: each month has its own category list, stored in category_months only when it changes.
+// Brief 028, 033: a month's list is exactly its own rows in category_months; nothing carries over.
 import type { PoolConnection, RowDataPacket } from 'mysql2/promise';
-import { addDays, kyivToday, nextMonthStart } from '../dates.js';
+import { nextMonthStart, previousMonthStart } from '../dates.js';
 import { type Db, withTransaction } from '../db.js';
 
 /**
- * SQL that is true when category `c` is in the list of the month of a date. That list is the latest stored month
- * on or before the date; a removed row still counts as stored. The outer query must alias categories as `c` (and
- * expenses as `e` for 'e.expense_date'). With '?', the date ('YYYY-MM-DD', any day of the month) is the next param.
+ * SQL that is true when category `c` is in the list of the date's own month; nothing carries over (brief 033). The
+ * outer query must alias categories as `c` (and expenses as `e` for 'e.expense_date'). With '?', the date
+ * ('YYYY-MM-DD', any day of the month) is the next param.
  */
 export function inMonthList(date: '?' | 'e.expense_date'): string {
   return `EXISTS (SELECT 1 FROM category_months m
                    WHERE m.category_id = c.category_id AND m.deleted_at IS NULL
-                     AND m.list_month = (SELECT MAX(lm.list_month) FROM category_months lm
-                                           JOIN categories lc ON lc.category_id = lm.category_id
-                                          WHERE lc.ledger_id = c.ledger_id AND lm.list_month <= ${date}))`;
+                     AND m.list_month = DATE_FORMAT(${date}, '%Y-%m-01'))`;
 }
 
-/**
- * Stores the list a month inherits as its own rows, removed rows and their stamps included, so a later change to an
- * earlier month no longer reaches it. A month that already has its own rows is left as it is.
- */
-async function pinMonth(conn: PoolConnection, ledgerId: number, first: string): Promise<void> {
-  await conn.query(
-    `INSERT INTO category_months (category_id, list_month, deleted_at)
-     SELECT m.category_id, ?, m.deleted_at
-       FROM category_months m JOIN categories c ON c.category_id = m.category_id
-      WHERE c.ledger_id = ?
-        AND m.list_month = (SELECT MAX(lm.list_month) FROM category_months lm
-                              JOIN categories lc ON lc.category_id = lm.category_id
-                             WHERE lc.ledger_id = ? AND lm.list_month <= ?)
-        AND m.list_month < ?`,
-    [first, ledgerId, ledgerId, first, first],
-  );
-}
-
-/** One list change per ledger at a time: two removals pinning the same month would otherwise both copy it. */
+/** One list change per ledger at a time: a check and the write after it see the same list. */
 async function lockLedger(conn: PoolConnection, ledgerId: number): Promise<void> {
   await conn.query('SELECT ledger_id FROM ledgers WHERE ledger_id = ? FOR UPDATE', [ledgerId]);
 }
@@ -62,16 +42,10 @@ export async function removeFromMonth(
     );
     if (!rows.length) return false;
 
-    // Later months that haven't started inherit the removal. The month of Kyiv tomorrow keeps its list, because an
-    // expense can already be dated in it.
-    const keepNext = next.slice(0, 7) <= addDays(kyivToday(now), 1).slice(0, 7);
-    await pinMonth(conn, ledgerId, first);
-    if (keepNext) await pinMonth(conn, ledgerId, next);
     await conn.query(
       `UPDATE category_months m JOIN categories c ON c.category_id = m.category_id
           SET m.deleted_at = ?
-        WHERE m.category_id = ? AND c.ledger_id = ? AND m.deleted_at IS NULL
-          AND m.list_month ${keepNext ? '= ?' : '>= ?'}`,
+        WHERE m.category_id = ? AND c.ledger_id = ? AND m.deleted_at IS NULL AND m.list_month = ?`,
       [now, categoryId, ledgerId, first],
     );
     await conn.query(
@@ -86,9 +60,9 @@ export async function removeFromMonth(
 }
 
 /**
- * Undoes the removal of a category from a month: the rows (that month and later) and that month's expenses carrying
- * its stamp. Expenses deleted earlier on their own keep their own stamp and stay deleted. False when it isn't removed
- * there: in the list, only inherited, unknown, foreign or deleted.
+ * Undoes the removal of a category from a month: that month's row and that month's expenses carrying its stamp.
+ * Expenses deleted earlier on their own keep their own stamp and stay deleted. False when it isn't removed there: in
+ * the list, not in that month's list, unknown, foreign or deleted.
  */
 export async function restoreToMonth(db: Db, ledgerId: number, categoryId: number, month: string): Promise<boolean> {
   const first = `${month}-01`;
@@ -112,9 +86,48 @@ export async function restoreToMonth(db: Db, ledgerId: number, categoryId: numbe
     await conn.query(
       `UPDATE category_months m JOIN categories c ON c.category_id = m.category_id
           SET m.deleted_at = NULL
-        WHERE m.category_id = ? AND c.ledger_id = ? AND m.list_month >= ? AND m.deleted_at = ?`,
+        WHERE m.category_id = ? AND c.ledger_id = ? AND m.list_month = ? AND m.deleted_at = ?`,
       [categoryId, ledgerId, first, stamp],
     );
     return true;
+  });
+}
+
+/** True when a month (its first day) has at least one live category of the ledger. */
+async function hasBudget(conn: PoolConnection, ledgerId: number, first: string): Promise<boolean> {
+  const [rows] = await conn.query<RowDataPacket[]>(
+    `SELECT 1 FROM category_months m JOIN categories c ON c.category_id = m.category_id
+      WHERE c.ledger_id = ? AND c.deleted_at IS NULL AND m.deleted_at IS NULL AND m.list_month = ? LIMIT 1`,
+    [ledgerId, first],
+  );
+  return rows.length > 0;
+}
+
+/** What copying the previous month's list into a month did. */
+export type CopyResult = 'copied' | 'budget_exists' | 'no_previous_budget';
+
+/**
+ * Sets up a 'YYYY-MM' month with no budget (no live category) with the previous month's live categories. Rows
+ * removed from it earlier are deleted first: their Undo then answers 404, and their expenses stay deleted.
+ */
+export async function copyPreviousMonth(db: Db, ledgerId: number, month: string): Promise<CopyResult> {
+  const first = `${month}-01`;
+  const previous = previousMonthStart(month);
+  return withTransaction(db, async (conn) => {
+    await lockLedger(conn, ledgerId);
+    if (await hasBudget(conn, ledgerId, first)) return 'budget_exists';
+    if (!(await hasBudget(conn, ledgerId, previous))) return 'no_previous_budget';
+    await conn.query(
+      `DELETE m FROM category_months m JOIN categories c ON c.category_id = m.category_id
+        WHERE c.ledger_id = ? AND m.list_month = ?`,
+      [ledgerId, first],
+    );
+    await conn.query(
+      `INSERT INTO category_months (category_id, list_month)
+       SELECT m.category_id, ? FROM category_months m JOIN categories c ON c.category_id = m.category_id
+        WHERE c.ledger_id = ? AND c.deleted_at IS NULL AND m.deleted_at IS NULL AND m.list_month = ?`,
+      [first, ledgerId, previous],
+    );
+    return 'copied';
   });
 }

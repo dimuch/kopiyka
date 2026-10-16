@@ -23,6 +23,11 @@ export function nextMonthStart(month: string): string {
   return addDays(`${month}-28`, 4).slice(0, 7) + '-01';
 }
 
+/** First day of the month before a 'YYYY-MM' month. */
+export function previousMonthStart(month: string): string {
+  return addDays(`${month}-01`, -1).slice(0, 7) + '-01';
+}
+
 /** Today's date in Kyiv, where the NBU sets its rates. */
 export function kyivToday(now: Date): string {
   return new Intl.DateTimeFormat('en-CA', { timeZone: 'Europe/Kyiv' }).format(now);

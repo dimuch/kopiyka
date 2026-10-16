@@ -272,7 +272,7 @@ and 3) before the API requires it (slice 4).
 
 ## Deviations
 
-<filled by the developer during build>
+None.
 
 ## Revision 1
 

@@ -313,7 +313,7 @@ existing read is the smallest change.
     `categories.int.test.ts` › "Notion after a removal › follows a removal from one month and its restore" already
     covers the same behaviour for the per-month routes.
   - ≈ 25 lines added, ≈ 150 deleted.
-- [ ] 5. Require the month on one category's totals
+- [x] 5. Require the month on one category's totals
   - Files: `apps/api/src/categories/routes.ts`, `apps/api/test/categories.int.test.ts`.
   - Change:
     - `OneQuery`'s month is required, with the comment "every caller sends it since brief 032".

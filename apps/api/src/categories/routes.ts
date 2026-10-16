@@ -3,7 +3,7 @@ import type { RowDataPacket } from 'mysql2/promise';
 import { z } from 'zod';
 import type { AppDeps } from '../app.js';
 import { MONTH_RE, monthEnded, nextMonthStart } from '../dates.js';
-import { inMonthList, removeFromMonth, restoreToMonth } from './monthLists.js';
+import { copyPreviousMonth, inMonthList, removeFromMonth, restoreToMonth } from './monthLists.js';
 
 export const QUICK_CATEGORY_COUNT = 5;
 
@@ -28,6 +28,7 @@ export interface CategoryWithTotalsDto extends CategoryDto {
 
 const CategoryParams = z.object({ categoryId: z.coerce.number().int().positive() });
 const MonthParams = CategoryParams.extend({ month: z.string().regex(MONTH_RE, 'expected YYYY-MM') });
+const CopyParams = z.object({ month: z.string().regex(MONTH_RE, 'expected YYYY-MM') });
 // Every caller sends it since brief 030.
 const ListQuery = z.object({ month: z.string().regex(MONTH_RE, 'expected YYYY-MM') });
 // Every caller sends it since brief 032.
@@ -122,5 +123,13 @@ export async function categoryRoutes(app: FastifyInstance, { db, now }: AppDeps)
     return (await restoreToMonth(db, req.ledger!.ledgerId, categoryId, month))
       ? reply.code(204).send()
       : reply.code(404).send({ error: 'not_found' });
+  });
+
+  // Brief 033: sets up a month with no budget from the month before it.
+  app.post('/api/ledgers/:id/months/:month/copy', guards, async (req, reply) => {
+    const { month } = CopyParams.parse(req.params);
+    if (monthEnded(month, now())) return reply.code(409).send({ error: 'month_ended' });
+    const result = await copyPreviousMonth(db, req.ledger!.ledgerId, month);
+    return result === 'copied' ? reply.code(204).send() : reply.code(409).send({ error: result });
   });
 }

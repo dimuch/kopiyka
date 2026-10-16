@@ -480,6 +480,83 @@ describe.skipIf(!(await testDbReachable()))('categories API (MySQL)', () => {
     });
   });
 
+  describe('copy the previous month', () => {
+    const copy = (month: string, headers: Record<string, string> = auth, ledgerId = owner.ledgerId) =>
+      app.inject({ method: 'POST', url: `/api/ledgers/${ledgerId}/months/${month}/copy`, headers });
+    const monthRows = async () => {
+      const [rows] = await db.query<RowDataPacket[]>('SELECT COUNT(*) AS n FROM category_months');
+      return Number(rows[0]!.n);
+    };
+
+    it("sets up a month with the previous month's list, in its order", async () => {
+      expect((await removeFrom(await idOf('eating_out'))).statusCode).toBe(204);
+      expect((await copy('2026-11')).statusCode).toBe(204);
+
+      expect(await listOf('2026-11')).toEqual(await listOf('2026-10'));
+      expect(await listOf('2026-11')).toHaveLength(14);
+      expect(await listOf('2026-09')).toHaveLength(15);
+    });
+
+    it('refuses a month that has a budget', async () => {
+      const rowsBefore = await monthRows();
+      const res = await copy('2026-10');
+      expect([res.statusCode, res.json()]).toEqual([409, { error: 'budget_exists' }]);
+      expect(await monthRows()).toBe(rowsBefore);
+    });
+
+    it('refuses when the previous month has no budget', async () => {
+      const res = await copy('2026-12');
+      expect([res.statusCode, res.json()]).toEqual([409, { error: 'no_previous_budget' }]);
+      expect(await listOf('2026-12')).toEqual([]);
+
+      await storeMonthList(db, owner.ledgerId, '2026-11', []);
+      await db.query(
+        `UPDATE category_months m JOIN categories c ON c.category_id = m.category_id
+            SET m.deleted_at = ? WHERE c.ledger_id = ? AND m.list_month = '2026-11-01'`,
+        [clock, owner.ledgerId],
+      );
+      expect((await copy('2026-12')).json()).toEqual({ error: 'no_previous_budget' });
+    });
+
+    it('starts a month whose categories were all removed afresh', async () => {
+      await storeMonthList(db, owner.ledgerId, '2026-11', []);
+      const gym = await addSpend('gym', '2026-11-02', '15.00');
+      await db.query(
+        `UPDATE category_months m JOIN categories c ON c.category_id = m.category_id
+            SET m.deleted_at = ? WHERE c.ledger_id = ? AND m.list_month = '2026-11-01'`,
+        [clock, owner.ledgerId],
+      );
+      await db.query('UPDATE expenses SET deleted_at = ? WHERE expense_id = ?', [clock, gym]);
+      expect(await listOf('2026-11')).toEqual([]);
+
+      expect((await copy('2026-11')).statusCode).toBe(204);
+      expect(await listOf('2026-11')).toHaveLength(15);
+      expect((await expense('GET', gym)).statusCode).toBe(404);
+      expect((await restoreTo(await idOf('gym'), auth, owner.ledgerId, '2026-11')).json()).toEqual({
+        error: 'not_found',
+      });
+    });
+
+    it('refuses a month that has ended in Kyiv, changing nothing', async () => {
+      const rowsBefore = await monthRows();
+      const res = await copy('2026-08');
+      expect([res.statusCode, res.json()]).toEqual([409, { error: 'month_ended' }]);
+      expect(await monthRows()).toBe(rowsBefore);
+    });
+
+    it('rejects a malformed month', async () => {
+      for (const month of ['2026-13', '2026-1', 'abc']) {
+        expect((await copy(month)).json(), month).toMatchObject({ error: 'invalid_request' });
+      }
+    });
+
+    it('needs a session and a ledger of mine', async () => {
+      const stranger = await makeUser(db, config, 'stranger');
+      expect((await copy('2026-11', {})).statusCode).toBe(401);
+      expect((await copy('2026-11', auth, stranger.ledgerId)).statusCode).toBe(404);
+    });
+  });
+
   describe('Notion after a removal', () => {
     // Only the loaders and the planner run, on the test DB: no Notion API is reachable from here.
     const scope = () => ({ ledgerId: owner.ledgerId, year: 2026 });

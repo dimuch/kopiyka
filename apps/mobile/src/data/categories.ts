@@ -1,11 +1,11 @@
 import { api } from '@/api/client';
 
-/** Soft-deletes a category and its live expenses, so they can be restored together (Undo). */
-export async function deleteCategory(ledgerId: number, categoryId: number): Promise<void> {
-  await api(`/api/ledgers/${ledgerId}/categories/${categoryId}`, { method: 'DELETE' });
+/** Removes a category from a 'YYYY-MM' month, with that month's expenses in it (Undo: restoreToMonth). */
+export async function removeFromMonth(ledgerId: number, categoryId: number, month: string): Promise<void> {
+  await api(`/api/ledgers/${ledgerId}/categories/${categoryId}/months/${month}`, { method: 'DELETE' });
 }
 
-/** Brings back a category with exactly the expenses deleted with it (Undo). */
-export async function restoreCategory(ledgerId: number, categoryId: number): Promise<void> {
-  await api(`/api/ledgers/${ledgerId}/categories/${categoryId}/restore`, { method: 'POST' });
+/** Brings a category back to a month with exactly the expenses removed with it. */
+export async function restoreToMonth(ledgerId: number, categoryId: number, month: string): Promise<void> {
+  await api(`/api/ledgers/${ledgerId}/categories/${categoryId}/months/${month}/restore`, { method: 'POST' });
 }

@@ -233,7 +233,7 @@ existing read is the smallest change.
       `'2026-11'` with today `'2026-10-31'` (removing from a later month).
     - "says what Undo brings back": 0, 1 and 4 give the three bar texts.
   - ≈ 100 lines.
-- [ ] 3. Remove a category from one month, from its ⋯ menu, with Undo on Home
+- [x] 3. Remove a category from one month, from its ⋯ menu, with Undo on Home
   - Files:
     - `apps/mobile/src/api/types.ts`
     - `apps/mobile/src/data/categories.ts`

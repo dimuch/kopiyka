@@ -152,7 +152,7 @@ existing read is the smallest change.
   - title, always: `Remove “eating out” from October?`
   - the shared tail, `keep`: `Earlier months keep “eating out”; later months won’t have it. You can undo right after.`
     (the user's sentence, plus 018's last one)
-  - On the last day (Gate A): when `addDays(today, 1).slice(0, 7) === shiftMonth(month, 1)`, `keep` is instead
+  - On the last day (Gate A), or for a past month: when `shiftMonth(month, 1) <= addDays(today, 1).slice(0, 7)` (029's `keepNext`; see Deviations), `keep` is instead
     `Other months keep “eating out”. You can undo right after.`
     - This is the case 029 handles with `keepNext`. The next month keeps the category, and later months carry its
       list over, so the removal touches only that month. A later month whose own stored list already lacks the

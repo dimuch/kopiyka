@@ -111,7 +111,7 @@ describe.skipIf(!(await testDbReachable()))('003_category_soft_delete (MySQL)', 
     app = await buildApp({ config, db, now: () => clock, fetchRate: offlineRates });
     const auth = await authHeader(app, owner, clock);
     const { categories } = (
-      await app.inject({ method: 'GET', url: `/api/ledgers/${owner.ledgerId}/categories`, headers: auth })
+      await app.inject({ method: 'GET', url: `/api/ledgers/${owner.ledgerId}/categories?month=2026-10`, headers: auth })
     ).json();
     expect(categories).toHaveLength(15);
     expect(categories.map((c: { techName: string }) => c.techName)).toContain('gym');

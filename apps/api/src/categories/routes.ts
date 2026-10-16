@@ -2,7 +2,7 @@ import type { FastifyInstance } from 'fastify';
 import type { ResultSetHeader, RowDataPacket } from 'mysql2/promise';
 import { z } from 'zod';
 import type { AppDeps } from '../app.js';
-import { kyivToday, MONTH_RE, monthEnded, nextMonthStart } from '../dates.js';
+import { MONTH_RE, monthEnded, nextMonthStart } from '../dates.js';
 import { withTransaction } from '../db.js';
 import { inMonthList, removeFromMonth, restoreToMonth } from './monthLists.js';
 
@@ -24,8 +24,8 @@ export interface CategoryWithTotalsDto extends CategoryDto {
 
 const CategoryParams = z.object({ categoryId: z.coerce.number().int().positive() });
 const MonthParams = CategoryParams.extend({ month: z.string().regex(MONTH_RE, 'expected YYYY-MM') });
-// Optional until the app sends it (brief 030); without it, the current Kyiv month.
-const ListQuery = z.object({ month: z.string().regex(MONTH_RE, 'expected YYYY-MM').optional() });
+// Every caller sends it since brief 030.
+const ListQuery = z.object({ month: z.string().regex(MONTH_RE, 'expected YYYY-MM') });
 // Optional until brief 031; without it, all months, for 018's screen.
 const OneQuery = z.object({ month: z.string().regex(MONTH_RE, 'expected YYYY-MM').optional() });
 
@@ -53,7 +53,7 @@ export async function categoryRoutes(app: FastifyInstance, { db, now }: AppDeps)
   const guards = { preHandler: [app.requireAuth, app.requireLedger] };
 
   app.get('/api/ledgers/:id/categories', guards, async (req) => {
-    const month = ListQuery.parse(req.query).month ?? kyivToday(now()).slice(0, 7);
+    const { month } = ListQuery.parse(req.query);
     const [rows] = await db.query<RowDataPacket[]>(
       `SELECT c.category_id, c.tech_name, c.display_name, c.sort_order, u.last_used_at
            FROM categories c

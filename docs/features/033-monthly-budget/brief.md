@@ -39,22 +39,27 @@ ledger-wide categories. 034 (progress bars and Home totals) builds on this.
 
 ## Acceptance criteria
 
-- [ ] Migration: every month up to and including the month of the migration that has a list today (its own or
-      inherited) keeps exactly that list, with planned amounts €0; later months start with no budget. Tests.
-- [ ] API: per-month endpoints to copy the previous month, add a category, set a planned amount and rename, with
-      integration tests: happy paths, validation 400 (empty/long/duplicate-in-month name, negative or malformed amount),
-      copy when the previous month has no list, ended month 409 `month_ended`, auth 401, non-member 404.
-- [ ] API: a rename in October leaves September's name unchanged; a copy into November takes October's names.
-- [ ] API: an expense dated in a month with no budget is refused (400), as `category_not_in_month` does today.
-- [ ] App (web 390×844): November with no budget shows the empty screen; "Copy October’s categories" fills it with
-      October's list at €0; "Add a category" adds one at €0.
-- [ ] App: setting a planned amount updates the row and the month's planned total; renaming changes the name on the
-      Budget tab, Expenses tab, Category screen and expense form for that month only.
-- [ ] App: in a month with no budget the Expenses tab points to the Budget tab and the form shows "Set up November’s
-      budget first."
-- [ ] App: an ended month's Budget tab has no edit controls.
-- [ ] iPhone (Expo Go): empty screen, copy, add, amount and rename work.
-- [ ] `yarn format:check && yarn lint && yarn typecheck && yarn test` green, integration tests ran.
+Split at Gate A (2026-10-16) into 5 PRs: part 1 is this brief's PR (API: months stand alone, Copy the previous month),
+parts 2–5 are briefs 035 (Budget tab), 036 (planned amounts), 037 (rename in one month) and 038 (add a category). See
+the plan. Each AC names its part.
+
+- [ ] Migration, part 1: every month from the ledger's first month (its creation or first expense, whichever is
+      earlier) up to and including the month of the migration keeps exactly the list it has today (its own or
+      inherited); later months start with no budget. Tests.
+- [ ] API, part 1: copy the previous month, with integration tests: happy path, copy when the previous month has no
+      list, a month that already has a budget, ended month 409 `month_ended`, auth 401, non-member 404.
+- [ ] API, part 1: an expense dated in a month with no budget is refused (400), as `category_not_in_month` does today.
+- [ ] API, parts 3–5: set a planned amount (036), rename (037), add a category (038), with integration tests:
+      validation 400 (empty/long/duplicate-in-month name, negative or malformed amount), 409 `month_ended`, 401, 404.
+- [ ] API, part 4: a rename in October leaves September's name unchanged; a copy into November takes October's names.
+- [ ] App (web 390×844), parts 2 and 5: November with no budget shows the empty screen; "Copy October’s categories"
+      fills it with October's list at €0 (035); "Add a category" adds one at €0 (038).
+- [ ] App, parts 3 and 4: setting a planned amount updates the row and the month's planned total (036); renaming
+      changes the name on the Budget tab, Expenses tab, Category screen and expense form for that month only (037).
+- [ ] App, part 2: in a month with no budget the Expenses tab points to the Budget tab and the form shows "Set up
+      November’s budget first."; an ended month's Budget tab has no edit controls.
+- [ ] iPhone (Expo Go), parts 2–5: empty screen, copy, add, amount and rename work.
+- [ ] Every part: `yarn format:check && yarn lint && yarn typecheck && yarn test` green, integration tests ran.
 
 ## Out of scope
 
@@ -87,3 +92,10 @@ ledger-wide categories. 034 (progress bars and Home totals) builds on this.
 - The copy source is the month before the selected one.
 - Ended months can't change.
 - A budget is required before any expense in that month.
+
+## Decisions (user, Gate A, 2026-10-16)
+
+- Split into 5 parts (033 part 1, then 035–038), each its own PR from main.
+- Part 1 merges when ready and part 2 comes next; if part 2 is late for November, one copy call per ledger sets
+  November up.
+- Migration 008 writes lists from each ledger's first month, not from 2000-01.

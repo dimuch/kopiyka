@@ -158,7 +158,7 @@ earlier (December) would then show the category again after it's removed from Oc
     - `?month=2026-13` gives 400 `invalid_request`.
     - The existing all-months test stays unchanged.
   - ≈ 40 lines.
-- [ ] 2. Tell when a month has ended in Kyiv time
+- [x] 2. Tell when a month has ended in Kyiv time
   - Files: `apps/api/src/dates.ts`, `apps/api/test/dates.test.ts`.
   - Tests (table, with the arithmetic in comments; Kyiv is UTC+3 until 25 Oct 2026, UTC+2 after):
     - `('2026-09', 2026-09-30T20:59:59Z)` gives false (23:59:59 on 30 Sep in Kyiv);

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { addDays, isCalendarDate, kyivToday, nextMonthStart } from '../src/dates.js';
+import { addDays, isCalendarDate, kyivToday, monthEnded, nextMonthStart } from '../src/dates.js';
 
 describe('dates', () => {
   it('accepts only real calendar dates', () => {
@@ -24,5 +24,17 @@ describe('dates', () => {
     // 22:30 UTC on 6 Oct is already 7 Oct in Kyiv (UTC+3 in summer time).
     expect(kyivToday(new Date('2026-10-06T22:30:00Z'))).toBe('2026-10-07');
     expect(kyivToday(new Date('2026-10-06T20:30:00Z'))).toBe('2026-10-06');
+  });
+
+  // Kyiv is UTC+3 until 25 Oct 2026 and UTC+2 after it.
+  it.each([
+    ['2026-09', '2026-09-30T20:59:59Z', false], // 23:59:59 on 30 Sep in Kyiv
+    ['2026-09', '2026-09-30T21:00:00Z', true], // 00:00 on 1 Oct
+    ['2026-10', '2026-10-31T21:59:59Z', false], // 23:59:59 on 31 Oct (UTC+2)
+    ['2026-10', '2026-10-31T22:00:00Z', true], // 00:00 on 1 Nov
+    ['2026-11', '2026-10-06T10:00:00Z', false], // a later month
+    ['2025-12', '2026-01-01T10:00:00Z', true], // across a year end
+  ])('month %s has ended at %s: %s', (month, at, ended) => {
+    expect(monthEnded(month, new Date(at))).toBe(ended);
   });
 });

@@ -90,7 +90,8 @@ function CategoryBreakdown({ categoryId, month, ended }: { categoryId: number; m
             />
           )}
           {showAdd ? <AddExpenseButton categoryId={categoryId} /> : null}
-          {category && (
+          {/* An ended month is read-only (brief 028), so nothing to remove there. */}
+          {category && !ended && (
             <Pressable
               accessibilityRole="button"
               accessibilityLabel="Category actions"
@@ -165,10 +166,11 @@ function CategoryBreakdown({ categoryId, month, ended }: { categoryId: number; m
       {toast.offer ? <UndoToast offer={toast.offer} onUndo={toast.restore} /> : null}
       {menuOpen && (
         <CategoryMenu
+          label={`Remove from ${monthName(month)}`}
           onClose={() => setMenuOpen(false)}
-          onDelete={() => {
+          onRemove={() => {
             setMenuOpen(false);
-            router.push({ pathname: '/delete-category', params: { categoryId } });
+            router.push({ pathname: '/delete-category', params: { categoryId, month } });
           }}
         />
       )}
@@ -177,7 +179,7 @@ function CategoryBreakdown({ categoryId, month, ended }: { categoryId: number; m
 }
 
 /** The ⋯ menu: over the whole screen, so a tap anywhere outside the card (Back and "+" included) only closes it. */
-function CategoryMenu({ onDelete, onClose }: { onDelete: () => void; onClose: () => void }) {
+function CategoryMenu({ label, onRemove, onClose }: { label: string; onRemove: () => void; onClose: () => void }) {
   const styles = useThemedStyles(makeStyles);
   // Absolute children ignore the SafeAreaView's padding, so the top inset is added here.
   const insets = useSafeAreaInsets();
@@ -191,8 +193,8 @@ function CategoryMenu({ onDelete, onClose }: { onDelete: () => void; onClose: ()
       />
       {/* 64 = the screen's paddingTop (20) + the header's 44 pt row: just under the ⋯ button. */}
       <View style={[styles.menuCard, { top: insets.top + 64 }]}>
-        <Pressable accessibilityRole="button" onPress={onDelete} style={styles.menuItem}>
-          <Text style={styles.menuDelete}>Delete category</Text>
+        <Pressable accessibilityRole="button" onPress={onRemove} style={styles.menuItem}>
+          <Text style={styles.menuDelete}>{label}</Text>
         </Pressable>
       </View>
     </View>
@@ -203,7 +205,7 @@ function CategoryMenu({ onDelete, onClose }: { onDelete: () => void; onClose: ()
 function NotInMonth({ categoryId, month }: { categoryId: number; month: string }) {
   const colors = useColors();
   const { ledger } = useSession();
-  const totals = useCategoryTotals(ledger.ledgerId, categoryId);
+  const totals = useCategoryTotals(ledger.ledgerId, categoryId, month);
   if (totals.status === 'loading') return <ActivityIndicator color={colors.accent} style={{ marginTop: 24 }} />;
   if (totals.status === 'ready') {
     return <LoadError message={`“${totals.category.displayName}” isn’t in ${monthName(month)}.`} />;

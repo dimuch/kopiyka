@@ -89,11 +89,17 @@ the second consumer appears or `routes.ts` passes ~200 lines.
 - **Ledger scoping.** Every `/api/ledgers/:id/...` route uses
   `preHandler: [app.requireAuth, app.requireLedger]` and every query joins
   through `ledger_id`. Non-members get **404**, not 403.
-- **Soft delete** for expenses and categories (`deleted_at`) so Undo works;
-  reads filter `deleted_at IS NULL` (expense lists also skip deleted
-  categories; a single expense's GET, PUT and DELETE don't). Deleting a
-  category stamps its live expenses with the same `deleted_at`, which its
-  restore matches.
+- **Soft delete** for expenses (`deleted_at`) so Undo works; reads filter
+  `deleted_at IS NULL` (a single expense's GET, PUT and DELETE find it even
+  when its category is deleted or not in its month's list; PUT still checks
+  the category it's given, and an expense's restore checks its own).
+- **Each month has its own category list** (`category_months`, brief 028):
+  a live expense's category is in its month's list, and writes keep it so
+  (`400 category_not_in_month`). Removing a category from a month stamps its
+  row and that month's live expenses with one `deleted_at`, which its restore
+  matches. Removing from or restoring to an ended month (Kyiv) is refused
+  (`409 month_ended`). `categories.deleted_at` only hides categories deleted
+  before 028.
 - **Errors**: API replies `{ error: 'snake_case_code' }`; Zod errors become
   400 via the global handler; the app maps codes to human text at the screen
   (`errorText`).

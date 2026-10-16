@@ -1,5 +1,5 @@
 import { router, Stack, useLocalSearchParams } from 'expo-router';
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { AccessibilityInfo, ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { ApiError } from '@/api/client';
@@ -7,11 +7,12 @@ import type { CategoryWithTotals } from '@/api/types';
 import { useColors, useThemedStyles } from '@/appearance/AppearanceContext';
 import { useSession } from '@/auth/AuthContext';
 import { LoadError } from '@/components/LoadError';
-import { deleteCategory, restoreCategory } from '@/data/categories';
-import { deleteWarning, deletedMessage } from '@/data/categoryDelete';
+import { removeFromMonth, restoreToMonth } from '@/data/categories';
+import { removedMessage, removeWarning } from '@/data/categoryRemove';
 import { setPendingUndo } from '@/data/undo';
 import { useCategoryTotals } from '@/data/useCategoryTotals';
-import { parseIdParam } from '@/linkParams';
+import { kyivToday, monthName } from '@/format';
+import { parseIdParam, parseMonthParam } from '@/linkParams';
 import { fonts, type Palette } from '@/theme';
 
 // Opened straight from a web link there's nothing to go back to, so fall back to Home.
@@ -22,84 +23,106 @@ function leave() {
 
 export default function DeleteCategoryScreen() {
   const styles = useThemedStyles(makeStyles);
-  const params = useLocalSearchParams<{ categoryId?: string | string[] }>();
+  const params = useLocalSearchParams<{ categoryId?: string | string[]; month?: string | string[] }>();
   const categoryId = parseIdParam(params.categoryId);
-  // A delete in flight navigates when it ends, so the user can't leave meanwhile.
+  const month = parseMonthParam(params.month);
+  // A removal in flight navigates when it ends, so the user can't leave meanwhile.
   const [busy, setBusy] = useState(false);
 
   return (
     <SafeAreaView style={styles.screen} edges={['top', 'bottom']}>
-      {/* The iOS modal can’t be swiped away while a delete is in flight either. */}
+      {/* The iOS modal can’t be swiped away while a removal is in flight either. */}
       <Stack.Screen options={{ gestureEnabled: !busy }} />
       <View style={styles.header}>
         <Pressable accessibilityRole="button" disabled={busy} onPress={leave} style={styles.cancel}>
           <Text style={styles.cancelText}>Cancel</Text>
         </Pressable>
-        <Text style={styles.title}>Delete category</Text>
+        <Text style={styles.title}>Remove category</Text>
         <View style={{ width: 52 }} />
       </View>
 
-      {categoryId === null ? (
+      {categoryId === null || month === null ? (
         <LoadError message="That link isn’t valid." />
       ) : (
-        <CategoryLoader categoryId={categoryId} busy={busy} setBusy={setBusy} />
+        <CategoryLoader categoryId={categoryId} month={month} busy={busy} setBusy={setBusy} />
       )}
     </SafeAreaView>
   );
 }
 
-/** Loads what deleting would remove; mounted only for a well-formed link, so a bad one fetches nothing. */
-function CategoryLoader({ categoryId, ...deleting }: { categoryId: number } & Deleting) {
+/** What removing would take from the month; mounted only for a well-formed link, so a bad one fetches nothing. */
+function CategoryLoader({ categoryId, month, ...removing }: { categoryId: number; month: string } & Removing) {
   const colors = useColors();
   const { ledger } = useSession();
-  const totals = useCategoryTotals(ledger.ledgerId, categoryId);
+  const totals = useCategoryTotals(ledger.ledgerId, categoryId, month);
 
   if (totals.status === 'loading') return <ActivityIndicator color={colors.accent} style={{ marginTop: 32 }} />;
   if (totals.status === 'error') {
-    // Retrying can't bring a deleted category back.
+    // Retrying can't bring an unknown category into being.
     return totals.error instanceof ApiError && totals.error.code === 'not_found' ? (
-      <LoadError message="This category was deleted." />
+      <LoadError message="Category not found." />
     ) : (
       <LoadError message="Couldn’t load this category. Check your connection and try again." onRetry={totals.reload} />
     );
   }
-  return <Confirm category={totals.category} ledgerId={ledger.ledgerId} {...deleting} />;
+  // Same text as the Category screen's: only two uses, so it isn't shared yet.
+  if (!totals.category.inMonth) {
+    return <LoadError message={`“${totals.category.displayName}” isn’t in ${monthName(month)}.`} />;
+  }
+  return <Confirm category={totals.category} month={month} ledgerId={ledger.ledgerId} {...removing} />;
 }
 
-interface Deleting {
+interface Removing {
   busy: boolean;
   setBusy: (busy: boolean) => void;
 }
 
-function Confirm({ category, ledgerId, busy, setBusy }: { category: CategoryWithTotals; ledgerId: number } & Deleting) {
+function Confirm({
+  category,
+  month,
+  ledgerId,
+  busy,
+  setBusy,
+}: { category: CategoryWithTotals; month: string; ledgerId: number } & Removing) {
   const colors = useColors();
   const styles = useThemedStyles(makeStyles);
-  const warning = deleteWarning(category);
+  // Kyiv's date, read once: on the month's last day the warning says the other months keep it.
+  const [today] = useState(() => kyivToday(new Date()));
+  const warning = removeWarning(category, month, today);
   const [error, setError] = useState<string | null>(null);
-  // Deleted meanwhile (another device): pressing again can't help.
+  // The month ended, or the category left it meanwhile: pressing again can't help.
   const [gone, setGone] = useState(false);
 
+  // `busy` disables the button only after a re-render; two presses in one tick would both get here.
+  const inFlight = useRef(false);
+
   async function remove() {
+    if (inFlight.current) return;
+    inFlight.current = true;
     setBusy(true);
     setError(null);
     const { categoryId, displayName, expenseCount } = category;
     try {
-      await deleteCategory(ledgerId, categoryId);
+      await removeFromMonth(ledgerId, categoryId, month);
       // The bar uses the confirmed count; Home takes the offer when it gains focus.
       setPendingUndo({
-        message: deletedMessage(displayName, expenseCount),
-        restore: () => restoreCategory(ledgerId, categoryId),
+        message: removedMessage(displayName, month, expenseCount),
+        restore: () => restoreToMonth(ledgerId, categoryId, month),
       });
       router.dismissTo('/');
     } catch (err) {
-      const notFound = err instanceof ApiError && err.code === 'not_found';
-      const text = notFound
-        ? 'This category was already deleted.'
-        : 'Couldn’t delete. Check your connection and try again.';
-      setGone(notFound);
+      const code = err instanceof ApiError ? err.code : null;
+      const text =
+        code === 'month_ended'
+          ? `${monthName(month)} has ended, so it can’t change.`
+          : code === 'not_found'
+            ? `“${displayName}” isn’t in ${monthName(month)} any more.`
+            : 'Couldn’t remove. Check your connection and try again.';
+      setGone(code === 'month_ended' || code === 'not_found');
       // The alert role covers web; VoiceOver needs an explicit announcement.
       setError(text);
       AccessibilityInfo.announceForAccessibility(text);
+      inFlight.current = false;
       setBusy(false);
     }
   }
@@ -120,7 +143,7 @@ function Confirm({ category, ledgerId, busy, setBusy }: { category: CategoryWith
       {gone ? null : (
         <Pressable
           accessibilityRole="button"
-          // While deleting the only child is a spinner, so the name has to be given here.
+          // While removing the only child is a spinner, so the name has to be given here.
           accessibilityLabel={warning.action}
           accessibilityState={{ busy }}
           disabled={busy}

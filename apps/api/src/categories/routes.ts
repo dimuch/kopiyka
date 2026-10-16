@@ -1,9 +1,8 @@
 import type { FastifyInstance } from 'fastify';
-import type { ResultSetHeader, RowDataPacket } from 'mysql2/promise';
+import type { RowDataPacket } from 'mysql2/promise';
 import { z } from 'zod';
 import type { AppDeps } from '../app.js';
 import { MONTH_RE, monthEnded, nextMonthStart } from '../dates.js';
-import { withTransaction } from '../db.js';
 import { inMonthList, removeFromMonth, restoreToMonth } from './monthLists.js';
 
 export const QUICK_CATEGORY_COUNT = 5;
@@ -15,19 +14,21 @@ export interface CategoryDto {
   sortOrder: number;
 }
 
-/** One category with its live expenses across all months, or one month with `?month=`, for the delete warning. */
+/** One category with its live expenses in one month (`?month=`), and whether that month's list has it. */
 export interface CategoryWithTotalsDto extends CategoryDto {
   expenseCount: number;
   /** Decimal string, '0.00' without expenses. */
   totalEur: string;
+  /** False when the month's list lacks it (removed there or earlier); it then has no live expenses there. */
+  inMonth: boolean;
 }
 
 const CategoryParams = z.object({ categoryId: z.coerce.number().int().positive() });
 const MonthParams = CategoryParams.extend({ month: z.string().regex(MONTH_RE, 'expected YYYY-MM') });
 // Every caller sends it since brief 030.
 const ListQuery = z.object({ month: z.string().regex(MONTH_RE, 'expected YYYY-MM') });
-// Optional until brief 031; without it, all months, for 018's screen.
-const OneQuery = z.object({ month: z.string().regex(MONTH_RE, 'expected YYYY-MM').optional() });
+// Every caller sends it since brief 032.
+const OneQuery = z.object({ month: z.string().regex(MONTH_RE, 'expected YYYY-MM') });
 
 function toDto(r: RowDataPacket): CategoryDto {
   return { categoryId: r.category_id, techName: r.tech_name, displayName: r.display_name, sortOrder: r.sort_order };
@@ -78,69 +79,28 @@ export async function categoryRoutes(app: FastifyInstance, { db, now }: AppDeps)
   app.get('/api/ledgers/:id/categories/:categoryId', guards, async (req, reply) => {
     const { categoryId } = CategoryParams.parse(req.params);
     const { month } = OneQuery.parse(req.query);
-    // With a month: only its expenses, and only when the category is in that month's list.
+    const first = `${month}-01`;
+    // A category the month lacks is still named (the app says it isn't in that month). Its counts are 0: no live
+    // expense can sit in a month whose list lacks its category.
     const [rows] = await db.query<RowDataPacket[]>(
-      `SELECT c.category_id, c.tech_name, c.display_name, c.sort_order,
+      `SELECT c.category_id, c.tech_name, c.display_name, c.sort_order, ${inMonthList('?')} AS in_month,
               COUNT(e.expense_id) AS expense_count, COALESCE(SUM(e.amount_eur), 0) AS total_eur
          FROM categories c
          LEFT JOIN expenses e ON e.category_id = c.category_id AND e.deleted_at IS NULL
-                             ${month ? 'AND e.expense_date >= ? AND e.expense_date < ?' : ''}
-        WHERE c.category_id = ? AND c.ledger_id = ? AND c.deleted_at IS NULL ${month ? `AND ${inMonthList('?')}` : ''}
+                             AND e.expense_date >= ? AND e.expense_date < ?
+        WHERE c.category_id = ? AND c.ledger_id = ? AND c.deleted_at IS NULL
         GROUP BY c.category_id`,
-      month
-        ? [`${month}-01`, nextMonthStart(month), categoryId, req.ledger!.ledgerId, `${month}-01`]
-        : [categoryId, req.ledger!.ledgerId],
+      [first, first, nextMonthStart(month), categoryId, req.ledger!.ledgerId],
     );
     const r = rows[0];
     if (!r) return reply.code(404).send({ error: 'not_found' });
-    const dto: CategoryWithTotalsDto = { ...toDto(r), expenseCount: r.expense_count, totalEur: r.total_eur };
+    const dto: CategoryWithTotalsDto = {
+      ...toDto(r),
+      expenseCount: r.expense_count,
+      totalEur: r.total_eur,
+      inMonth: Boolean(r.in_month),
+    };
     return dto;
-  });
-
-  // The category and its live expenses share one stamp: restore matches it, so it brings back only these expenses.
-  app.delete('/api/ledgers/:id/categories/:categoryId', guards, async (req, reply) => {
-    const { categoryId } = CategoryParams.parse(req.params);
-    const at = now();
-    const deleted = await withTransaction(db, async (conn) => {
-      const [res] = await conn.query<ResultSetHeader>(
-        'UPDATE categories SET deleted_at = ? WHERE category_id = ? AND ledger_id = ? AND deleted_at IS NULL',
-        [at, categoryId, req.ledger!.ledgerId],
-      );
-      if (!res.affectedRows) return false;
-      await conn.query(
-        `UPDATE expenses e JOIN categories c ON c.category_id = e.category_id
-            SET e.deleted_at = ?, e.updated_at = e.updated_at -- not an edit; keep ON UPDATE from firing
-          WHERE e.category_id = ? AND c.ledger_id = ? AND e.deleted_at IS NULL`,
-        [at, categoryId, req.ledger!.ledgerId],
-      );
-      return true;
-    });
-    return deleted ? reply.code(204).send() : reply.code(404).send({ error: 'not_found' });
-  });
-
-  app.post('/api/ledgers/:id/categories/:categoryId/restore', guards, async (req, reply) => {
-    const { categoryId } = CategoryParams.parse(req.params);
-    const restored = await withTransaction(db, async (conn) => {
-      const [rows] = await conn.query<RowDataPacket[]>(
-        `SELECT deleted_at FROM categories
-          WHERE category_id = ? AND ledger_id = ? AND deleted_at IS NOT NULL FOR UPDATE`,
-        [categoryId, req.ledger!.ledgerId],
-      );
-      if (!rows[0]) return false;
-      // Only the expenses deleted with the category carry its stamp; ones deleted earlier on their own stay deleted.
-      await conn.query(
-        `UPDATE expenses e JOIN categories c ON c.category_id = e.category_id
-            SET e.deleted_at = NULL, e.updated_at = e.updated_at
-          WHERE e.category_id = ? AND c.ledger_id = ? AND e.deleted_at = ?`,
-        [categoryId, req.ledger!.ledgerId, rows[0].deleted_at],
-      );
-      await conn.query('UPDATE categories SET deleted_at = NULL WHERE category_id = ? AND ledger_id = ?', [
-        categoryId,
-        req.ledger!.ledgerId,
-      ]);
-      return true;
-    });
-    return restored ? reply.code(204).send() : reply.code(404).send({ error: 'not_found' });
   });
 
   // Brief 029. An ended month is read-only (brief 028's decisions), so it's refused before anything is read.

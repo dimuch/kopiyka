@@ -19,7 +19,10 @@ export interface CategoryWithTotalsDto extends CategoryDto {
   expenseCount: number;
   /** Decimal string, '0.00' without expenses. */
   totalEur: string;
-  /** False when the month's list lacks it (removed there or earlier); it then has no live expenses there. */
+  /**
+   * False when the month's list lacks it (removed there, or the month has no list); it then has no live expenses
+   * there.
+   */
   inMonth: boolean;
 }
 

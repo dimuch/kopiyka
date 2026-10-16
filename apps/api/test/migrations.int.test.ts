@@ -6,7 +6,6 @@ import type { ResultSetHeader, RowDataPacket } from 'mysql2/promise';
 import { afterAll, describe, expect, it } from 'vitest';
 import { createUserWithLedger } from '../src/admin.js';
 import { buildApp } from '../src/app.js';
-import { inMonthList } from '../src/categories/monthLists.js';
 import { encryptSecret } from '../src/auth/secretBox.js';
 import { generateSecret } from '../src/auth/totp.js';
 import type { Config } from '../src/config.js';
@@ -168,16 +167,6 @@ describe.skipIf(!(await testDbReachable()))('007_category_months (MySQL)', () =>
       { tech_name: 'groceries', list_month: '2000-01-01', deleted_at: null },
       { tech_name: 'gym', list_month: '2000-01-01', deleted_at: null },
     ]);
-
-    // Months with expenses list what they did before: the live categories.
-    for (const date of ['2026-09-15', '2026-10-01']) {
-      const [list] = await db.query<RowDataPacket[]>(
-        `SELECT c.tech_name FROM categories c
-          WHERE c.ledger_id = ? AND c.deleted_at IS NULL AND ${inMonthList('?')} ORDER BY c.sort_order`,
-        [owner.ledgerId, date],
-      );
-      expect(list.map((r) => r.tech_name)).toEqual(['rent', 'groceries']);
-    }
   });
 });
 

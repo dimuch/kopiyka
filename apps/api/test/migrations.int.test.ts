@@ -4,6 +4,7 @@ import { join } from 'node:path';
 import type { FastifyInstance } from 'fastify';
 import type { ResultSetHeader, RowDataPacket } from 'mysql2/promise';
 import { afterAll, describe, expect, it } from 'vitest';
+import { createUserWithLedger } from '../src/admin.js';
 import { buildApp } from '../src/app.js';
 import { inMonthList } from '../src/categories/monthLists.js';
 import { encryptSecret } from '../src/auth/secretBox.js';
@@ -15,7 +16,6 @@ import { DEFAULT_CATEGORIES } from '../src/defaultCategories.js';
 import { MIGRATIONS_DIR, runMigrations } from '../src/migrate.js';
 import {
   authHeader,
-  makeUser,
   offlineRates,
   resetSchema,
   TEST_DB_URL,
@@ -178,16 +178,6 @@ describe.skipIf(!(await testDbReachable()))('007_category_months (MySQL)', () =>
       );
       expect(list.map((r) => r.tech_name)).toEqual(['rent', 'groceries']);
     }
-
-    // A ledger made after the migration gets the same starting list.
-    const later = await makeUser(db, config, 'dmytro');
-    const [seeded] = await db.query<RowDataPacket[]>(
-      `SELECT DATE_FORMAT(m.list_month, '%Y-%m-%d') AS list_month, m.deleted_at
-         FROM category_months m JOIN categories c ON c.category_id = m.category_id WHERE c.ledger_id = ?`,
-      [later.ledgerId],
-    );
-    expect(seeded).toHaveLength(15);
-    expect(new Set(seeded.map((r) => `${r.list_month}/${r.deleted_at}`))).toEqual(new Set(['2000-01-01/null']));
   });
 });
 
@@ -290,5 +280,22 @@ describe.skipIf(!(await testDbReachable()))('008_months_stand_alone (MySQL)', ()
       "SELECT COUNT(*) AS n FROM category_months WHERE list_month = '2000-01-01'",
     );
     expect(Number(seed[0]!.n)).toBe(0);
+  });
+
+  it('starts a new ledger with the defaults in its own Kyiv month', async () => {
+    // 1 November, 00:30 in Kyiv.
+    const later = await createUserWithLedger(
+      db!,
+      config.totpKey,
+      { username: 'olena', email: 'olena@example.com', ledgerName: 'Home' },
+      new Date('2026-10-31T22:30:00Z'),
+    );
+    const [seeded] = await db!.query<RowDataPacket[]>(
+      `SELECT DATE_FORMAT(m.list_month, '%Y-%m-%d') AS list_month, m.deleted_at
+         FROM category_months m JOIN categories c ON c.category_id = m.category_id WHERE c.ledger_id = ?`,
+      [later.ledgerId],
+    );
+    expect(seeded).toHaveLength(15);
+    expect(new Set(seeded.map((r) => `${r.list_month}/${r.deleted_at}`))).toEqual(new Set(['2026-11-01/null']));
   });
 });

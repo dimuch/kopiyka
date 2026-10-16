@@ -161,22 +161,22 @@ describe.skipIf(!(await testDbReachable()))('categories API (MySQL)', () => {
     it('lists the latest stored list on or before the month', async () => {
       await storeMonthList(db, owner.ledgerId, '2026-10', ['eating_out']);
 
-      for (const month of ['2026-09', '2000-01']) {
-        const list = await listOf(month);
-        expect(list).toHaveLength(15);
-        expect(list).toContain('eating_out');
-      }
+      const september = await listOf('2026-09');
+      expect(september).toHaveLength(15);
+      expect(september).toContain('eating_out');
       for (const month of ['2026-10', '2027-03']) {
         const list = await listOf(month);
         expect(list).toHaveLength(14);
         expect(list).not.toContain('eating_out');
       }
-      const before = await app.inject({
-        method: 'GET',
-        url: `/api/ledgers/${owner.ledgerId}/categories?month=1999-12`,
-        headers: auth,
-      });
-      expect(before.json()).toEqual({ categories: [], quickCategoryIds: [] });
+      for (const month of ['2000-01', '1999-12']) {
+        const before = await app.inject({
+          method: 'GET',
+          url: `/api/ledgers/${owner.ledgerId}/categories?month=${month}`,
+          headers: auth,
+        });
+        expect(before.json()).toEqual({ categories: [], quickCategoryIds: [] });
+      }
     });
 
     it('keeps a category removed from a month out of that month and the ones after it', async () => {
@@ -344,7 +344,7 @@ describe.skipIf(!(await testDbReachable()))('categories API (MySQL)', () => {
         [eatingOut],
       );
       expect(rows.map((r) => [r.month, r.deleted_at])).toEqual([
-        ['2000-01', null],
+        ['2026-09', null],
         ['2026-10', now],
         ['2026-11', null],
       ]);

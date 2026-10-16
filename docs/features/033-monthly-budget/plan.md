@@ -368,7 +368,7 @@ shows "Set up November’s budget first." from that), so a second code has no ca
   - Verify (web 390×844, this worktree's API, QA user, see Risks): Category → ⋯ → Remove from October shows
     `… in October (€…). Other months keep “…”. You can undo right after.`. Cancel.
   - ≈ 10 lines added, ≈ 45 deleted.
-- [ ] 5. Set up a month by copying the previous month's categories
+- [x] 5. Set up a month by copying the previous month's categories
   - Files:
     - `apps/api/src/dates.ts`
     - `apps/api/src/categories/monthLists.ts`

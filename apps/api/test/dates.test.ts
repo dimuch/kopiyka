@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { addDays, isCalendarDate, kyivToday, monthEnded, nextMonthStart } from '../src/dates.js';
+import { addDays, isCalendarDate, kyivToday, monthEnded, nextMonthStart, previousMonthStart } from '../src/dates.js';
 
 describe('dates', () => {
   it('accepts only real calendar dates', () => {
@@ -18,6 +18,11 @@ describe('dates', () => {
   it('finds the first day of the next month, across a year end', () => {
     expect(nextMonthStart('2026-12')).toBe('2027-01-01');
     expect(nextMonthStart('2026-02')).toBe('2026-03-01');
+  });
+
+  it('finds the first day of the previous month, across a year start', () => {
+    expect(previousMonthStart('2027-01')).toBe('2026-12-01');
+    expect(previousMonthStart('2026-03')).toBe('2026-02-01');
   });
 
   it('uses Kyiv time for today', () => {

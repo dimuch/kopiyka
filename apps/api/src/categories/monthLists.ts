@@ -1,6 +1,6 @@
 // Brief 028, 033: a month's list is exactly its own rows in category_months; nothing carries over.
 import type { PoolConnection, RowDataPacket } from 'mysql2/promise';
-import { nextMonthStart } from '../dates.js';
+import { nextMonthStart, previousMonthStart } from '../dates.js';
 import { type Db, withTransaction } from '../db.js';
 
 /**
@@ -90,5 +90,44 @@ export async function restoreToMonth(db: Db, ledgerId: number, categoryId: numbe
       [categoryId, ledgerId, first, stamp],
     );
     return true;
+  });
+}
+
+/** True when a month (its first day) has at least one live category of the ledger. */
+async function hasBudget(conn: PoolConnection, ledgerId: number, first: string): Promise<boolean> {
+  const [rows] = await conn.query<RowDataPacket[]>(
+    `SELECT 1 FROM category_months m JOIN categories c ON c.category_id = m.category_id
+      WHERE c.ledger_id = ? AND c.deleted_at IS NULL AND m.deleted_at IS NULL AND m.list_month = ? LIMIT 1`,
+    [ledgerId, first],
+  );
+  return rows.length > 0;
+}
+
+/** What copying the previous month's list into a month did. */
+export type CopyResult = 'copied' | 'budget_exists' | 'no_previous_budget';
+
+/**
+ * Sets up a 'YYYY-MM' month with no budget (no live category) with the previous month's live categories. Rows
+ * removed from it earlier are deleted first: their Undo then answers 404, and their expenses stay deleted.
+ */
+export async function copyPreviousMonth(db: Db, ledgerId: number, month: string): Promise<CopyResult> {
+  const first = `${month}-01`;
+  const previous = previousMonthStart(month);
+  return withTransaction(db, async (conn) => {
+    await lockLedger(conn, ledgerId);
+    if (await hasBudget(conn, ledgerId, first)) return 'budget_exists';
+    if (!(await hasBudget(conn, ledgerId, previous))) return 'no_previous_budget';
+    await conn.query(
+      `DELETE m FROM category_months m JOIN categories c ON c.category_id = m.category_id
+        WHERE c.ledger_id = ? AND m.list_month = ?`,
+      [ledgerId, first],
+    );
+    await conn.query(
+      `INSERT INTO category_months (category_id, list_month)
+       SELECT m.category_id, ? FROM category_months m JOIN categories c ON c.category_id = m.category_id
+        WHERE c.ledger_id = ? AND c.deleted_at IS NULL AND m.deleted_at IS NULL AND m.list_month = ?`,
+      [first, ledgerId, previous],
+    );
+    return 'copied';
   });
 }

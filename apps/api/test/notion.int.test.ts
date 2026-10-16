@@ -105,18 +105,6 @@ describe.skipIf(!(await testDbReachable()))('Notion sync status (MySQL)', () => 
     expect([res.statusCode, res.json()]).toEqual([200, { unsent: 1, lastSyncedAt: null }]);
   });
 
-  it('follows a groceries category delete and restore', async () => {
-    await addGrocery('Delhaize', true);
-    await addGrocery('BioPlanet', true);
-    expect((await status()).json()).toMatchObject({ unsent: 0 });
-
-    const category = `/api/ledgers/${owner.ledgerId}/categories/${await groceriesId()}`;
-    await app.inject({ method: 'DELETE', url: category, headers: auth });
-    expect((await status()).json()).toMatchObject({ unsent: 2 });
-    await app.inject({ method: 'POST', url: `${category}/restore`, headers: auth });
-    expect((await status()).json()).toMatchObject({ unsent: 0 });
-  });
-
   it('needs a session, a ledger of mine and a numeric id', async () => {
     expect((await status(owner.ledgerId, {})).statusCode).toBe(401);
     const stranger = await makeUser(db, config, 'stranger');

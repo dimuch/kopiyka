@@ -3,6 +3,7 @@ import { useMemo, useState } from 'react';
 import { ActivityIndicator, Animated, Pressable, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useColors, useThemedStyles } from '@/appearance/AppearanceContext';
+import { ApiError } from '@/api/client';
 import { useSession } from '@/auth/AuthContext';
 import { AddExpenseButton } from '@/components/AddExpenseButton';
 import { CategoryTile } from '@/components/CategoryTile';
@@ -12,6 +13,7 @@ import { LoadError } from '@/components/LoadError';
 import { UndoToast } from '@/components/UndoToast';
 import { expenseCount, groupByDay, sumCents } from '@/data/monthSummary';
 import { useUndoOffer } from '@/data/undo';
+import { useCategoryTotals } from '@/data/useCategoryTotals';
 import { useMonth } from '@/data/useMonth';
 import { dayLabel, eur, kyivMonth, monthLabel, monthName, toCents, uah } from '@/format';
 import { parseIdParam, parseMonthParam } from '@/linkParams';
@@ -31,7 +33,7 @@ export default function CategoryScreen() {
   const month = parseMonthParam(params.month || thisMonth);
   // Checked before anything loads, so a bad link fetches nothing.
   return categoryId !== null && month !== null ? (
-    <CategoryBreakdown categoryId={categoryId} month={month} />
+    <CategoryBreakdown categoryId={categoryId} month={month} ended={month < thisMonth} />
   ) : (
     <InvalidLink />
   );
@@ -54,7 +56,7 @@ function InvalidLink() {
   );
 }
 
-function CategoryBreakdown({ categoryId, month }: { categoryId: number; month: string }) {
+function CategoryBreakdown({ categoryId, month, ended }: { categoryId: number; month: string; ended: boolean }) {
   const colors = useColors();
   const styles = useThemedStyles(makeStyles);
   const { ledger } = useSession();
@@ -67,8 +69,8 @@ function CategoryBreakdown({ categoryId, month }: { categoryId: number; month: s
   const totalUah = data ? sumCents(data.expenses, 'amountUah') : 0;
   const count = data?.expenses.length ?? 0;
   const collapse = useCollapsingSummary();
-  // Not on a missing category: Add would preselect one that doesn't exist.
-  const showAdd = !data || !!category;
+  // Not on a category the month lacks: Add would preselect it. Nor in an ended month, which is read-only (brief 028).
+  const showAdd = !ended && (!data || !!category);
   const [menuOpen, setMenuOpen] = useState(false);
 
   return (
@@ -108,7 +110,7 @@ function CategoryBreakdown({ categoryId, month }: { categoryId: number; month: s
       ) : !data ? (
         <ActivityIndicator color={colors.accent} style={{ marginTop: 24 }} />
       ) : !category ? (
-        <LoadError message="Category not found." />
+        <NotInMonth categoryId={categoryId} month={month} />
       ) : (
         <Animated.ScrollView {...collapse.scrollProps} contentContainerStyle={styles.content}>
           {error && <LoadError message="Couldn’t refresh. Check your connection and try again." onRetry={reload} />}
@@ -194,6 +196,22 @@ function CategoryMenu({ onDelete, onClose }: { onDelete: () => void; onClose: ()
         </Pressable>
       </View>
     </View>
+  );
+}
+
+/** The month's list lacks this category: say so by name, or that it doesn't exist at all. */
+function NotInMonth({ categoryId, month }: { categoryId: number; month: string }) {
+  const colors = useColors();
+  const { ledger } = useSession();
+  const totals = useCategoryTotals(ledger.ledgerId, categoryId);
+  if (totals.status === 'loading') return <ActivityIndicator color={colors.accent} style={{ marginTop: 24 }} />;
+  if (totals.status === 'ready') {
+    return <LoadError message={`“${totals.category.displayName}” isn’t in ${monthName(month)}.`} />;
+  }
+  return totals.error instanceof ApiError && totals.error.code === 'not_found' ? (
+    <LoadError message="Category not found." />
+  ) : (
+    <LoadError message="Couldn’t load this category. Check your connection and try again." onRetry={totals.reload} />
   );
 }
 

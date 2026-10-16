@@ -9,7 +9,7 @@ interface MonthData {
 }
 
 /**
- * Categories plus a month's expenses (optionally one category's), reloaded whenever the screen comes into focus.
+ * A month's own categories plus its expenses (optionally one category's), reloaded whenever the screen comes into focus.
  * `data` is null until this month and category have loaded; a failed refetch keeps it and sets `error`.
  */
 export function useMonth(ledgerId: number, month: string, categoryId?: number) {
@@ -26,7 +26,7 @@ export function useMonth(ledgerId: number, month: string, categoryId?: number) {
       let live = true;
       const filter = categoryId ? `&categoryId=${categoryId}` : '';
       Promise.all([
-        api<{ categories: Category[] }>(`/api/ledgers/${ledgerId}/categories`),
+        api<{ categories: Category[] }>(`/api/ledgers/${ledgerId}/categories?month=${month}`),
         api<{ expenses: Expense[] }>(`/api/ledgers/${ledgerId}/expenses?month=${month}${filter}`),
       ])
         .then(([c, e]) => {

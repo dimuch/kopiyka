@@ -281,7 +281,7 @@ shows "Set up November’s budget first." from that), so a second code has no ca
       - `gym` has no row left: its only row was the `2000-01` seed.
       - `SELECT COUNT(*) FROM category_months WHERE list_month = '2000-01-01'` is 0.
   - ≈ 125 lines.
-- [ ] 2. Start a new ledger's list in its own month
+- [x] 2. Start a new ledger's list in its own month
   - Files:
     - `apps/api/src/admin.ts`
     - `apps/api/scripts/create-user.ts`

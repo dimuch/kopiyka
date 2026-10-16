@@ -40,11 +40,16 @@ if (!input.success) {
 const config = loadConfig();
 const db = createDb(config.databaseUrl);
 try {
-  const user = await createUserWithLedger(db, config.totpKey, {
-    username: input.data.username,
-    email: input.data.email,
-    ledgerName: input.data.ledger,
-  });
+  const user = await createUserWithLedger(
+    db,
+    config.totpKey,
+    {
+      username: input.data.username,
+      email: input.data.email,
+      ledgerName: input.data.ledger,
+    },
+    new Date(),
+  );
   console.log(`Created user #${user.userId} "${input.data.username}" with ledger #${user.ledgerId}.`);
   console.log('Scan this in Google Authenticator (shown once, not stored anywhere readable):\n');
   console.log(await QRCode.toString(user.otpauthUri, { type: 'terminal', small: true }));

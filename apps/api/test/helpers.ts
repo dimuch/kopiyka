@@ -92,21 +92,29 @@ export interface TestUser {
   secret: Buffer;
 }
 
+/** A user with a ledger whose September and October 2026 have the 15 defaults; other months have no budget. */
 export async function makeUser(db: Db, config: Config, username: string): Promise<TestUser> {
-  const created = await createUserWithLedger(db, config.totpKey, {
-    username,
-    email: `${username}@example.com`,
-    ledgerName: 'Home',
-  });
+  const created = await createUserWithLedger(
+    db,
+    config.totpKey,
+    { username, email: `${username}@example.com`, ledgerName: 'Home' },
+    new Date('2026-10-06T10:00:00Z'), // every suite's clock
+  );
+  await storeMonthList(db, created.ledgerId, '2026-09', []);
   const secret = base32Decode(new URL(created.otpauthUri).searchParams.get('secret')!);
   return { userId: created.userId, ledgerId: created.ledgerId, username, secret };
 }
 
 /**
- * Stores a month's own category list ('YYYY-MM'): every category of the ledger except the `without` tech_names.
+ * Replaces a month's own category list ('YYYY-MM'): every category of the ledger except the `without` tech_names.
  * Later months without their own rows inherit it.
  */
 export async function storeMonthList(db: Db, ledgerId: number, month: string, without: string[]): Promise<void> {
+  await db.query(
+    `DELETE m FROM category_months m JOIN categories c ON c.category_id = m.category_id
+      WHERE c.ledger_id = ? AND m.list_month = ?`,
+    [ledgerId, `${month}-01`],
+  );
   // mysql2 turns an empty NOT IN () into a syntax error, so the condition is only added when there's something to skip.
   await db.query(
     `INSERT INTO category_months (category_id, list_month)

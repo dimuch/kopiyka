@@ -127,7 +127,7 @@ moves to another month. That gives two code paths for one list and makes edits l
     - a full quick row `[1, 2, 3, 4, 5]` and selected 9, not in the list: quick `[1, 2, 3, 4, 5]` (9 doesn't take the
       last spot), `missing` true.
   - ≈ 40 lines.
-- [ ] 3. Offer the categories of the date's month in the expense form
+- [x] 3. Offer the categories of the date's month in the expense form
   - Files: `apps/mobile/src/data/useMonthCategories.ts` (new), `apps/mobile/src/data/useExpenseDraft.ts`,
     `apps/mobile/src/app/expense.tsx`.
   - Change, `ExpenseForm`:

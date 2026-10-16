@@ -1,5 +1,5 @@
 import { router, Stack, useLocalSearchParams } from 'expo-router';
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { AccessibilityInfo, ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { ApiError } from '@/api/client';
@@ -93,7 +93,12 @@ function Confirm({
   // The month ended, or the category left it meanwhile: pressing again can't help.
   const [gone, setGone] = useState(false);
 
+  // `busy` disables the button only after a re-render; two presses in one tick would both get here.
+  const inFlight = useRef(false);
+
   async function remove() {
+    if (inFlight.current) return;
+    inFlight.current = true;
     setBusy(true);
     setError(null);
     const { categoryId, displayName, expenseCount } = category;
@@ -117,6 +122,7 @@ function Confirm({
       // The alert role covers web; VoiceOver needs an explicit announcement.
       setError(text);
       AccessibilityInfo.announceForAccessibility(text);
+      inFlight.current = false;
       setBusy(false);
     }
   }

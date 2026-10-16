@@ -1,5 +1,5 @@
 import { router, useLocalSearchParams } from 'expo-router';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import {
   AccessibilityInfo,
   ActivityIndicator,
@@ -25,10 +25,11 @@ import { Icon } from '@/components/Icon';
 import { LoadError } from '@/components/LoadError';
 import { deleteExpense, restoreExpense, saveExpense } from '@/data/expenses';
 import { setPendingUndo } from '@/data/undo';
-import { splitQuick, withQuick } from '@/data/quick';
+import { monthPicker } from '@/data/quick';
 import { type ExpenseDraftData, useExpenseDraft } from '@/data/useExpenseDraft';
+import { useMonthCategories } from '@/data/useMonthCategories';
 import { type Rate, useRate } from '@/data/useRate';
-import { eur, kyivToday, normalizeAmount, otherAmountText, shortDate, toCents } from '@/format';
+import { eur, kyivToday, monthName, normalizeAmount, otherAmountText, shortDate, toCents } from '@/format';
 import { parseIdParam } from '@/linkParams';
 import { fonts, type Palette } from '@/theme';
 
@@ -91,7 +92,7 @@ export default function ExpenseScreen() {
       {editing && expenseId === null ? (
         <LoadFailed message="That link isn’t valid." />
       ) : (
-        // A malformed category id is ignored: the form starts on the first quick category.
+        // A malformed category id is ignored: the form starts on its month's first quick category.
         <ExpenseLoader expenseId={expenseId} categoryId={parseIdParam(params.categoryId)} />
       )}
     </SafeAreaView>
@@ -135,7 +136,6 @@ function ExpenseForm({ draft, ledgerId }: { draft: ExpenseDraftData; ledgerId: n
   // Kyiv dates, like the NBU rates they're priced at; read the clock once, when the form opens.
   const [today] = useState(() => kyivToday(new Date()));
 
-  const [quick, setQuick] = useState(draft.quickIds);
   const [categoryId, setCategoryId] = useState(draft.categoryId);
   const [date, setDate] = useState(expense?.expenseDate ?? today);
   const [name, setName] = useState(expense?.name ?? '');
@@ -155,7 +155,17 @@ function ExpenseForm({ draft, ledgerId }: { draft: ExpenseDraftData; ledgerId: n
   const rate = useRate(date);
   const otherText = storedOther ?? otherAmountText(amountText, entered, rate.status === 'ok' ? rate.eurUah : null);
 
-  const { quick: quickCats, more: moreCats } = splitQuick(quick, draft.categories);
+  // The categories of the date's month (brief 030); a new expense defaults to the one the form opened with.
+  const month = date.slice(0, 7);
+  const list = useMonthCategories(ledgerId, month);
+  const selectedId = categoryId ?? list.firstQuickId;
+  const picker = list.status === 'ready' ? monthPicker(list.categories, list.quickIds, selectedId) : null;
+  const notInMonth = picker?.missing ? `That category isn’t in ${monthName(month)}.` : null;
+
+  // The alert role covers web; VoiceOver needs an explicit announcement.
+  useEffect(() => {
+    if (notInMonth) AccessibilityInfo.announceForAccessibility(notInMonth);
+  }, [notInMonth]);
 
   function edit(setter: (v: string) => void, value: string) {
     setter(value);
@@ -176,7 +186,6 @@ function ExpenseForm({ draft, ledgerId }: { draft: ExpenseDraftData; ledgerId: n
   }
 
   function pickCategory(c: Category) {
-    setQuick((q) => withQuick(q, c.categoryId));
     setCategoryId(c.categoryId);
     setError(null);
   }
@@ -187,28 +196,37 @@ function ExpenseForm({ draft, ledgerId }: { draft: ExpenseDraftData; ledgerId: n
   }
 
   async function save() {
+    if (list.status !== 'ready') return;
     const amount = normalizeAmount(amountText);
-    if (!name.trim() || !amount || !categoryId) {
+    if (!name.trim() || !amount || !selectedId) {
       showError('Add a name and an amount first.');
+      return;
+    }
+    if (notInMonth) {
+      AccessibilityInfo.announceForAccessibility(notInMonth);
       return;
     }
     setBusy(true);
     setError(null);
-    const body = { categoryId, expenseDate: date, name: name.trim(), amount, currency: entered };
+    const body = { categoryId: selectedId, expenseDate: date, name: name.trim(), amount, currency: entered };
     try {
       const saved = await saveExpense(ledgerId, expense?.expenseId ?? null, body);
       if (expense) {
         leave();
         return;
       }
-      const cat = draft.categories.find((c) => c.categoryId === saved.categoryId)?.displayName ?? '';
+      const cat = list.categories.find((c) => c.categoryId === saved.categoryId)?.displayName ?? '';
       const note = `Added “${saved.name}” to ${cat} · ${eur(toCents(saved.amountEur))} · ${shortDate(saved.expenseDate)}`;
       setAdded(note);
       AccessibilityInfo.announceForAccessibility(note);
       setName('');
       setAmountText('');
     } catch (err) {
-      showError(errorText(err, 'save'));
+      showError(
+        err instanceof ApiError && err.code === 'category_not_in_month'
+          ? `That category isn’t in ${monthName(body.expenseDate.slice(0, 7))}.`
+          : errorText(err, 'save'),
+      );
     } finally {
       setBusy(false);
     }
@@ -243,7 +261,23 @@ function ExpenseForm({ draft, ledgerId }: { draft: ExpenseDraftData; ledgerId: n
 
         <View style={styles.group}>
           <Text style={styles.label}>Category</Text>
-          <CategoryPicker quick={quickCats} more={moreCats} selectedId={categoryId} onPick={pickCategory} />
+          {picker ? (
+            <>
+              <CategoryPicker quick={picker.quick} more={picker.more} selectedId={selectedId} onPick={pickCategory} />
+              {notInMonth ? (
+                <Text accessibilityRole="alert" style={styles.error}>
+                  {notInMonth}
+                </Text>
+              ) : null}
+            </>
+          ) : list.status === 'error' ? (
+            <LoadError
+              message="Couldn’t load the categories. Check your connection and try again."
+              onRetry={list.reload}
+            />
+          ) : (
+            <ActivityIndicator color={colors.accent} />
+          )}
         </View>
 
         <View style={styles.group}>
@@ -274,10 +308,10 @@ function ExpenseForm({ draft, ledgerId }: { draft: ExpenseDraftData; ledgerId: n
           accessibilityRole="button"
           // While saving the only child is a spinner, so the name has to be given here.
           accessibilityLabel={expense ? 'Update' : 'Add'}
-          accessibilityState={{ busy }}
-          disabled={busy}
+          accessibilityState={{ busy, disabled: list.status !== 'ready' }}
+          disabled={busy || list.status !== 'ready'}
           onPress={save}
-          style={[styles.primary, busy && { opacity: 0.6 }]}
+          style={[styles.primary, (busy || list.status !== 'ready') && { opacity: 0.6 }]}
         >
           {busy ? (
             <ActivityIndicator color={colors.onAccent} />

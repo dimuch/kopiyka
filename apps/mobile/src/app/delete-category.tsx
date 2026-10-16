@@ -11,7 +11,7 @@ import { removeFromMonth, restoreToMonth } from '@/data/categories';
 import { removedMessage, removeWarning } from '@/data/categoryRemove';
 import { setPendingUndo } from '@/data/undo';
 import { useCategoryTotals } from '@/data/useCategoryTotals';
-import { kyivToday, monthName } from '@/format';
+import { monthName } from '@/format';
 import { parseIdParam, parseMonthParam } from '@/linkParams';
 import { fonts, type Palette } from '@/theme';
 
@@ -86,9 +86,7 @@ function Confirm({
 }: { category: CategoryWithTotals; month: string; ledgerId: number } & Removing) {
   const colors = useColors();
   const styles = useThemedStyles(makeStyles);
-  // Kyiv's date, read once: on the month's last day the warning says the other months keep it.
-  const [today] = useState(() => kyivToday(new Date()));
-  const warning = removeWarning(category, month, today);
+  const warning = removeWarning(category, month);
   const [error, setError] = useState<string | null>(null);
   // The month ended, or the category left it meanwhile: pressing again can't help.
   const [gone, setGone] = useState(false);

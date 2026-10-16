@@ -351,7 +351,7 @@ shows "Set up November’s budget first." from that), so a second code has no ca
   - Tests, `migrations.int.test.ts`: the 007 describe's `inMonthList` loop and import go. After 007 alone, only
     2000-01 has rows. The 008 describe covers the lists.
   - ≈ 75 lines added, ≈ 100 deleted.
-- [ ] 4. Say other months keep a category removed from one month
+- [x] 4. Say other months keep a category removed from one month
   - Files:
     - `apps/mobile/src/data/categoryRemove.ts`
     - `apps/mobile/src/app/delete-category.tsx` (drop `today`, its comment, and the `kyivToday` import)

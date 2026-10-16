@@ -78,7 +78,6 @@ export async function categoryRoutes(app: FastifyInstance, { db, now }: AppDeps)
   app.get('/api/ledgers/:id/categories/:categoryId', guards, async (req, reply) => {
     const { categoryId } = CategoryParams.parse(req.params);
     const { month } = OneQuery.parse(req.query);
-    const first = `${month}-01`;
     // With a month: only its expenses, and only when the category is in that month's list.
     const [rows] = await db.query<RowDataPacket[]>(
       `SELECT c.category_id, c.tech_name, c.display_name, c.sort_order,
@@ -89,7 +88,7 @@ export async function categoryRoutes(app: FastifyInstance, { db, now }: AppDeps)
         WHERE c.category_id = ? AND c.ledger_id = ? AND c.deleted_at IS NULL ${month ? `AND ${inMonthList('?')}` : ''}
         GROUP BY c.category_id`,
       month
-        ? [first, nextMonthStart(month), categoryId, req.ledger!.ledgerId, first]
+        ? [`${month}-01`, nextMonthStart(month), categoryId, req.ledger!.ledgerId, `${month}-01`]
         : [categoryId, req.ledger!.ledgerId],
     );
     const r = rows[0];

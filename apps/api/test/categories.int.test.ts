@@ -222,9 +222,8 @@ describe.skipIf(!(await testDbReachable()))('categories API (MySQL)', () => {
   describe('one category', () => {
     it('requires a month', async () => {
       for (const query of ['', '?month=']) {
-        expect((await one(`${await idOf('groceries')}${query}`)).json(), query).toMatchObject({
-          error: 'invalid_request',
-        });
+        const res = await one(`${await idOf('groceries')}${query}`);
+        expect([res.statusCode, res.json()], query).toMatchObject([400, { error: 'invalid_request' }]);
       }
     });
 

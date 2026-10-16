@@ -103,7 +103,6 @@ export async function categoryRoutes(app: FastifyInstance, { db, now }: AppDeps)
     return dto;
   });
 
-  // The category and its live expenses share one stamp: restore matches it, so it brings back only these expenses.
   // Brief 029. An ended month is read-only (brief 028's decisions), so it's refused before anything is read.
   app.delete('/api/ledgers/:id/categories/:categoryId/months/:month', guards, async (req, reply) => {
     const { categoryId, month } = MonthParams.parse(req.params);

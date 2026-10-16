@@ -146,7 +146,7 @@ earlier (December) would then show the category again after it's removed from Oc
 
 ## Slices
 
-- [ ] 1. Count a category's expenses in one month with ?month=
+- [x] 1. Count a category's expenses in one month with ?month=
   - Files: `apps/api/src/categories/routes.ts`, `apps/api/test/categories.int.test.ts`.
   - Change: `OneQuery` and the month-scoped SQL above. The DTO comment is updated.
   - Tests (`describe('one category')`, clock 2026-10-06):

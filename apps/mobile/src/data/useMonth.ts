@@ -9,7 +9,8 @@ interface MonthData {
 }
 
 /**
- * A month's own categories plus its expenses (optionally one category's), reloaded whenever the screen comes into focus.
+ * A month's own categories plus its expenses (optionally one category's), reloaded whenever the screen comes into
+ * focus.
  * `data` is null until this month and category have loaded; a failed refetch keeps it and sets `error`.
  */
 export function useMonth(ledgerId: number, month: string, categoryId?: number) {

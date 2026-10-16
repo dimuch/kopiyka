@@ -20,11 +20,13 @@ export interface Category {
   sortOrder: number;
 }
 
-/** One category with its live expenses across all months (GET one category). */
+/** One category with its live expenses in one month, and whether that month's list has it (GET one ?month=). */
 export interface CategoryWithTotals extends Category {
   expenseCount: number;
   /** Decimal string, '0.00' without expenses. */
   totalEur: string;
+  /** False when the month's list lacks it; it then has no expenses there. */
+  inMonth: boolean;
 }
 
 export interface Expense {

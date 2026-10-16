@@ -107,7 +107,7 @@ export async function makeUser(db: Db, config: Config, username: string): Promis
 
 /**
  * Replaces a month's own category list ('YYYY-MM'): every category of the ledger except the `without` tech_names.
- * Later months without their own rows inherit it.
+ * Other months keep their own lists.
  */
 export async function storeMonthList(db: Db, ledgerId: number, month: string, without: string[]): Promise<void> {
   await db.query(

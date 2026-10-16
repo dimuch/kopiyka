@@ -454,6 +454,21 @@ describe.skipIf(!(await testDbReachable()))('expenses API (MySQL)', () => {
       expect(asked).toEqual([]);
     });
 
+    it('refuses an expense in a month with no budget, before pricing it', async () => {
+      const asked: string[] = [];
+      fetchRate = async (date) => {
+        asked.push(date);
+        return 50.483;
+      };
+      expect((await post(groceries({ expenseDate: '2026-08-20' }))).json()).toEqual({
+        error: 'category_not_in_month',
+      });
+      expect(asked).toEqual([]);
+
+      await storeMonthList(db, owner.ledgerId, '2026-08', []);
+      expect((await post(groceries({ expenseDate: '2026-08-20' }))).statusCode).toBe(201);
+    });
+
     it('still says unknown_category for a foreign category', async () => {
       await withoutGymInOctober();
       const other = await makeUser(db, config, 'stranger');

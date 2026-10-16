@@ -27,12 +27,12 @@ export interface CategoryWithTotalsDto extends CategoryDto {
 }
 
 const CategoryParams = z.object({ categoryId: z.coerce.number().int().positive() });
-const MonthParams = CategoryParams.extend({ month: z.string().regex(MONTH_RE, 'expected YYYY-MM') });
-const CopyParams = z.object({ month: z.string().regex(MONTH_RE, 'expected YYYY-MM') });
-// Every caller sends it since brief 030.
-const ListQuery = z.object({ month: z.string().regex(MONTH_RE, 'expected YYYY-MM') });
-// Every caller sends it since brief 032.
-const OneQuery = z.object({ month: z.string().regex(MONTH_RE, 'expected YYYY-MM') });
+/**
+ * A required 'YYYY-MM' month: the list's and one category's query (every caller sends it since briefs 030 and 032),
+ * and copy's path.
+ */
+const Month = z.object({ month: z.string().regex(MONTH_RE, 'expected YYYY-MM') });
+const MonthParams = CategoryParams.extend(Month.shape);
 
 function toDto(r: RowDataPacket): CategoryDto {
   return { categoryId: r.category_id, techName: r.tech_name, displayName: r.display_name, sortOrder: r.sort_order };
@@ -58,7 +58,7 @@ export async function categoryRoutes(app: FastifyInstance, { db, now }: AppDeps)
   const guards = { preHandler: [app.requireAuth, app.requireLedger] };
 
   app.get('/api/ledgers/:id/categories', guards, async (req) => {
-    const { month } = ListQuery.parse(req.query);
+    const { month } = Month.parse(req.query);
     const [rows] = await db.query<RowDataPacket[]>(
       `SELECT c.category_id, c.tech_name, c.display_name, c.sort_order, u.last_used_at
            FROM categories c
@@ -82,7 +82,7 @@ export async function categoryRoutes(app: FastifyInstance, { db, now }: AppDeps)
 
   app.get('/api/ledgers/:id/categories/:categoryId', guards, async (req, reply) => {
     const { categoryId } = CategoryParams.parse(req.params);
-    const { month } = OneQuery.parse(req.query);
+    const { month } = Month.parse(req.query);
     const first = `${month}-01`;
     // A category the month lacks is still named (the app says it isn't in that month). Its counts are 0: no live
     // expense can sit in a month whose list lacks its category.
@@ -127,7 +127,7 @@ export async function categoryRoutes(app: FastifyInstance, { db, now }: AppDeps)
 
   // Brief 033: sets up a month with no budget from the month before it.
   app.post('/api/ledgers/:id/months/:month/copy', guards, async (req, reply) => {
-    const { month } = CopyParams.parse(req.params);
+    const { month } = Month.parse(req.params);
     if (monthEnded(month, now())) return reply.code(409).send({ error: 'month_ended' });
     const result = await copyPreviousMonth(db, req.ledger!.ledgerId, month);
     return result === 'copied' ? reply.code(204).send() : reply.code(409).send({ error: result });

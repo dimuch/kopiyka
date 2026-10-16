@@ -4,7 +4,7 @@ import { z } from 'zod';
 import type { AppDeps } from '../app.js';
 import { kyivToday, MONTH_RE, monthEnded, nextMonthStart } from '../dates.js';
 import { withTransaction } from '../db.js';
-import { inMonthList, removeFromMonth } from './monthLists.js';
+import { inMonthList, removeFromMonth, restoreToMonth } from './monthLists.js';
 
 export const QUICK_CATEGORY_COUNT = 5;
 
@@ -150,6 +150,14 @@ export async function categoryRoutes(app: FastifyInstance, { db, now }: AppDeps)
     const at = now();
     if (monthEnded(month, at)) return reply.code(409).send({ error: 'month_ended' });
     return (await removeFromMonth(db, req.ledger!.ledgerId, categoryId, month, at))
+      ? reply.code(204).send()
+      : reply.code(404).send({ error: 'not_found' });
+  });
+
+  app.post('/api/ledgers/:id/categories/:categoryId/months/:month/restore', guards, async (req, reply) => {
+    const { categoryId, month } = MonthParams.parse(req.params);
+    if (monthEnded(month, now())) return reply.code(409).send({ error: 'month_ended' });
+    return (await restoreToMonth(db, req.ledger!.ledgerId, categoryId, month))
       ? reply.code(204).send()
       : reply.code(404).send({ error: 'not_found' });
   });

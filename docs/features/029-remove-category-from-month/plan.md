@@ -204,7 +204,7 @@ earlier (December) would then show the category again after it's removed from Oc
     - **400.** Months `2026-13`, `2026-1` and `abc` give `invalid_request`.
     - The `describe.each` guards (401, non-member 404, non-numeric id 400) gain `['remove from month', removeFrom]`.
   - ≈ 150 lines.
-- [ ] 4. Restore a category to one month (Undo), and prove the Notion sync follows both
+- [x] 4. Restore a category to one month (Undo), and prove the Notion sync follows both
   - Files: `apps/api/src/categories/monthLists.ts` (`restoreToMonth`), `apps/api/src/categories/routes.ts` (the POST
     route, the same shape as DELETE), `apps/api/test/categories.int.test.ts`.
   - Tests, in `describe('restore to a month')`, with helper `restoreTo` (same signature):
@@ -314,7 +314,12 @@ live in `monthLists.ts`. Part 4 removes 013's delete and restore (about 45 lines
 
 ## Deviations
 
-<filled by the developer during build>
+- slice 3: the ledger-row lock is a small private `lockLedger(conn, ledgerId)` in `monthLists.ts`, shared by remove
+  and restore, instead of the same statement written twice. Slice 3 came to about 220 lines (plan ≈150), mostly
+  tests: the 31 Oct case checks lists, expenses, totals and the DB rows separately.
+- slice 4: the restore test's 404 case "deleted through 013" removes groceries from 2026-10 first, then deletes it,
+  as the plan says; MySQL accepted `pinMonth`'s INSERT … SELECT from the same table, so the planned fallback wasn't
+  needed.
 
 ## Revision 1
 

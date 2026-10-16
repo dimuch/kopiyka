@@ -84,3 +84,37 @@ export async function removeFromMonth(
     return true;
   });
 }
+
+/**
+ * Undoes the removal of a category from a month: the rows (that month and later) and that month's expenses carrying
+ * its stamp. Expenses deleted earlier on their own keep their own stamp and stay deleted. False when it isn't removed
+ * there: in the list, only inherited, unknown, foreign or deleted.
+ */
+export async function restoreToMonth(db: Db, ledgerId: number, categoryId: number, month: string): Promise<boolean> {
+  const first = `${month}-01`;
+  return withTransaction(db, async (conn) => {
+    await lockLedger(conn, ledgerId);
+    const [rows] = await conn.query<RowDataPacket[]>(
+      `SELECT m.deleted_at FROM category_months m JOIN categories c ON c.category_id = m.category_id
+        WHERE m.category_id = ? AND c.ledger_id = ? AND c.deleted_at IS NULL
+          AND m.list_month = ? AND m.deleted_at IS NOT NULL`,
+      [categoryId, ledgerId, first],
+    );
+    if (!rows[0]) return false;
+    const stamp = rows[0].deleted_at;
+    await conn.query(
+      `UPDATE expenses e JOIN categories c ON c.category_id = e.category_id
+          SET e.deleted_at = NULL, e.updated_at = e.updated_at
+        WHERE e.category_id = ? AND c.ledger_id = ? AND e.deleted_at = ?
+          AND e.expense_date >= ? AND e.expense_date < ?`,
+      [categoryId, ledgerId, stamp, first, nextMonthStart(month)],
+    );
+    await conn.query(
+      `UPDATE category_months m JOIN categories c ON c.category_id = m.category_id
+          SET m.deleted_at = NULL
+        WHERE m.category_id = ? AND c.ledger_id = ? AND m.list_month >= ? AND m.deleted_at = ?`,
+      [categoryId, ledgerId, first, stamp],
+    );
+    return true;
+  });
+}

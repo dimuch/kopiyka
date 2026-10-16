@@ -168,7 +168,7 @@ earlier (December) would then show the category again after it's removed from Oc
     - `('2026-11', 2026-10-06T10:00:00Z)` gives false (a later month);
     - `('2025-12', 2026-01-01T10:00:00Z)` gives true (across a year).
   - ≈ 20 lines.
-- [ ] 3. Remove a category from one month, with its expenses there
+- [x] 3. Remove a category from one month, with its expenses there
   - Files: `apps/api/src/categories/monthLists.ts` (`removeFromMonth`, `pinMonth`), `apps/api/src/categories/routes.ts`
     (`MonthParams`, the DELETE route: parse, then `monthEnded` and 409, then `removeFromMonth` and 204/404),
     `apps/api/test/categories.int.test.ts`.

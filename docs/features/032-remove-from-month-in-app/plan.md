@@ -214,7 +214,7 @@ existing read is the smallest change.
       `{ inMonth: false, expenseCount: 0, totalEur: '0.00' }` after the removal. This is what the app reads after a
       Remove.
   - ≈ 35 lines.
-- [ ] 2. Add the texts for removing a category from a month
+- [x] 2. Add the texts for removing a category from a month
   - Files: `apps/mobile/src/data/categoryRemove.ts` (new), `apps/mobile/test/categoryRemove.test.ts` (new).
   - Change: `removeWarning` and `removedMessage` as in Contracts. They have no caller until slice 3, as in 018's
     slice 1.
@@ -428,7 +428,11 @@ Gate A put both in this part, so the PR that drops the all-months endpoints also
 
 ## Deviations
 
-<filled by the developer during build>
+- slice 2: `removeWarning`'s "only this month loses it" test is `shiftMonth(month, 1) <= addDays(today, 1).slice(0, 7)`,
+  029's `keepNext`, instead of `===`. The web check showed the `===` form says "Other months keep" for September
+  (whose next month is the current one) but "later months won’t have it" for August, though the API keeps the later
+  months for both (found in slice 3's web check). Only the last day and past months (which the API refuses with `month_ended`) change. A unit test
+  for a past month was added.
 
 ## Revision 1
 

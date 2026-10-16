@@ -54,7 +54,11 @@ describe.skipIf(!(await testDbReachable()))('expenses API (MySQL)', () => {
     fetchRate = async (date) => (date === '2026-10-05' ? 50.6 : date <= '2026-10-07' ? 50.483 : null);
     owner = await makeUser(db, config, 'ivanka');
     auth = await authHeader(app, owner, clock);
-    const res = await app.inject({ method: 'GET', url: `/api/ledgers/${owner.ledgerId}/categories`, headers: auth });
+    const res = await app.inject({
+      method: 'GET',
+      url: `/api/ledgers/${owner.ledgerId}/categories?month=2026-10`,
+      headers: auth,
+    });
     cat = Object.fromEntries(
       res.json().categories.map((c: { techName: string; categoryId: number }) => [c.techName, c.categoryId]),
     );

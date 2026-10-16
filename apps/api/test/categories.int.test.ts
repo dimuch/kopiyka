@@ -28,7 +28,7 @@ describe.skipIf(!(await testDbReachable()))('categories API (MySQL)', () => {
   let auth: { authorization: string };
 
   const get = (ledgerId: number, headers: Record<string, string> = auth) =>
-    app.inject({ method: 'GET', url: `/api/ledgers/${ledgerId}/categories`, headers });
+    app.inject({ method: 'GET', url: `/api/ledgers/${ledgerId}/categories?month=2026-10`, headers });
 
   const listOf = async (month: string) => {
     const res = await app.inject({
@@ -201,10 +201,15 @@ describe.skipIf(!(await testDbReachable()))('categories API (MySQL)', () => {
       expect(await listOf('2026-10')).toContain('gym');
     });
 
-    it("lists the current Kyiv month's categories without a month", async () => {
-      now = new Date('2026-09-30T21:30:00Z'); // 1 October, 00:30 in Kyiv
-      await storeMonthList(db, owner.ledgerId, '2026-10', ['eating_out']);
-      expect((await get(owner.ledgerId)).json().categories).toHaveLength(14);
+    it('requires a month', async () => {
+      for (const query of ['', '?month=']) {
+        const res = await app.inject({
+          method: 'GET',
+          url: `/api/ledgers/${owner.ledgerId}/categories${query}`,
+          headers: auth,
+        });
+        expect([res.statusCode, res.json()], query).toMatchObject([400, { error: 'invalid_request' }]);
+      }
     });
 
     it('rejects a malformed month', async () => {

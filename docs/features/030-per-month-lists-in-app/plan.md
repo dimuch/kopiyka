@@ -168,7 +168,7 @@ moves to another month. That gives two code paths for one list and makes edits l
       picker returns.
     - Checked in Light and Dark.
   - ≈ 125 lines.
-- [ ] 4. Require the month on the category list
+- [x] 4. Require the month on the category list
   - Files: `apps/api/src/categories/routes.ts`, `apps/api/test/categories.int.test.ts`,
     `apps/api/test/expenses.int.test.ts`, `apps/api/test/migrations.int.test.ts`.
   - Change: `ListQuery`'s `month` is required, with the comment "every caller sends it since brief 030". The

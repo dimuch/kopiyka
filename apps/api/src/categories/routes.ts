@@ -2,7 +2,7 @@ import type { FastifyInstance } from 'fastify';
 import type { ResultSetHeader, RowDataPacket } from 'mysql2/promise';
 import { z } from 'zod';
 import type { AppDeps } from '../app.js';
-import { kyivToday, MONTH_RE } from '../dates.js';
+import { kyivToday, MONTH_RE, nextMonthStart } from '../dates.js';
 import { withTransaction } from '../db.js';
 import { inMonthList } from './monthLists.js';
 
@@ -15,7 +15,7 @@ export interface CategoryDto {
   sortOrder: number;
 }
 
-/** One category with its live expenses across all months, for the delete warning. */
+/** One category with its live expenses across all months, or one month with `?month=`, for the delete warning. */
 export interface CategoryWithTotalsDto extends CategoryDto {
   expenseCount: number;
   /** Decimal string, '0.00' without expenses. */
@@ -25,6 +25,8 @@ export interface CategoryWithTotalsDto extends CategoryDto {
 const CategoryParams = z.object({ categoryId: z.coerce.number().int().positive() });
 // Optional until the app sends it (brief 030); without it, the current Kyiv month.
 const ListQuery = z.object({ month: z.string().regex(MONTH_RE, 'expected YYYY-MM').optional() });
+// Optional until brief 031; without it, all months, for 018's screen.
+const OneQuery = z.object({ month: z.string().regex(MONTH_RE, 'expected YYYY-MM').optional() });
 
 function toDto(r: RowDataPacket): CategoryDto {
   return { categoryId: r.category_id, techName: r.tech_name, displayName: r.display_name, sortOrder: r.sort_order };
@@ -74,14 +76,20 @@ export async function categoryRoutes(app: FastifyInstance, { db, now }: AppDeps)
 
   app.get('/api/ledgers/:id/categories/:categoryId', guards, async (req, reply) => {
     const { categoryId } = CategoryParams.parse(req.params);
+    const { month } = OneQuery.parse(req.query);
+    const first = `${month}-01`;
+    // With a month: only its expenses, and only when the category is in that month's list.
     const [rows] = await db.query<RowDataPacket[]>(
       `SELECT c.category_id, c.tech_name, c.display_name, c.sort_order,
               COUNT(e.expense_id) AS expense_count, COALESCE(SUM(e.amount_eur), 0) AS total_eur
          FROM categories c
          LEFT JOIN expenses e ON e.category_id = c.category_id AND e.deleted_at IS NULL
-        WHERE c.category_id = ? AND c.ledger_id = ? AND c.deleted_at IS NULL
+                             ${month ? 'AND e.expense_date >= ? AND e.expense_date < ?' : ''}
+        WHERE c.category_id = ? AND c.ledger_id = ? AND c.deleted_at IS NULL ${month ? `AND ${inMonthList('?')}` : ''}
         GROUP BY c.category_id`,
-      [categoryId, req.ledger!.ledgerId],
+      month
+        ? [first, nextMonthStart(month), categoryId, req.ledger!.ledgerId, first]
+        : [categoryId, req.ledger!.ledgerId],
     );
     const r = rows[0];
     if (!r) return reply.code(404).send({ error: 'not_found' });

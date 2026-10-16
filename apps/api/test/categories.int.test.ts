@@ -219,6 +219,26 @@ describe.skipIf(!(await testDbReachable()))('categories API (MySQL)', () => {
       expect((await one(await idOf('gym'))).json()).toMatchObject({ expenseCount: 0, totalEur: '0.00' });
     });
 
+    it("counts only one month's expenses with ?month=", async () => {
+      await addSpend('groceries', '2026-09-15', '12.50');
+      await addSpend('groceries', '2026-10-01', '1222.00');
+      await addSpend('groceries', '2026-10-02', '5.00', clock);
+      await addSpend('car', '2026-10-01', '99.00');
+      const inMonth = async (techName: string, month: string) =>
+        (await one(`${await idOf(techName)}?month=${month}`)).json();
+
+      expect(await inMonth('groceries', '2026-10')).toMatchObject({ expenseCount: 1, totalEur: '1222.00' });
+      expect(await inMonth('groceries', '2026-09')).toMatchObject({ expenseCount: 1, totalEur: '12.50' });
+      expect(await inMonth('gym', '2026-10')).toMatchObject({ expenseCount: 0, totalEur: '0.00' });
+
+      // Not in that month's list, nor in the months that carry it over.
+      await storeMonthList(db, owner.ledgerId, '2026-11', ['groceries']);
+      for (const month of ['2026-11', '2026-12']) {
+        expect(await inMonth('groceries', month), month).toEqual({ error: 'not_found' });
+      }
+      expect(await inMonth('groceries', '2026-13')).toMatchObject({ error: 'invalid_request' });
+    });
+
     it('answers 404 for an unknown, foreign or deleted category', async () => {
       const stranger = await makeUser(db, config, 'stranger');
       await db.query('UPDATE categories SET deleted_at = ? WHERE category_id = ?', [clock, await idOf('groceries')]);

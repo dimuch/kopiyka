@@ -27,3 +27,8 @@ export function nextMonthStart(month: string): string {
 export function kyivToday(now: Date): string {
   return new Intl.DateTimeFormat('en-CA', { timeZone: 'Europe/Kyiv' }).format(now);
 }
+
+/** True once a 'YYYY-MM' month has ended in Kyiv: from the 1st of the next month, 00:00 Kyiv time. */
+export function monthEnded(month: string, now: Date): boolean {
+  return month < kyivToday(now).slice(0, 7);
+}

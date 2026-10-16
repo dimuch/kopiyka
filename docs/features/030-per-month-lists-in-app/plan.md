@@ -91,7 +91,7 @@ moves to another month. That gives two code paths for one list and makes edits l
 
 ## Slices
 
-- [ ] 1. Show each month's own categories on Home, Expenses and the Category screen
+- [x] 1. Show each month's own categories on Home, Expenses and the Category screen
   - Files: `apps/mobile/src/data/useMonth.ts`, `apps/mobile/src/app/category/[categoryId].tsx`.
   - Change, `useMonth`: add `?month=${month}` to the categories request.
   - Change, Category screen: replace the `!category` branch's "Category not found." with a local `NotInMonth`
@@ -258,6 +258,10 @@ and 3) before the API requires it (slice 4).
   place above Save. Assumption meanwhile: as described.
 
 ## Follow-ups
+
+- Brief 031: 018's ⋯ "Delete category" still shows on an ended month's Category screen (seen in slice 1's check on
+  September) and deletes the category in every month, past expenses included. 031 replaces it with "Remove from
+  {Month}" and must hide it on ended months (read-only, brief 028).
 
 - Brief 031: when `GET one` gets a required `month`, keep the Category screen's “… isn’t in October.” name read
   working (slice 1's `NotInMonth`).

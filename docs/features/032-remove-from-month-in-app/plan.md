@@ -325,7 +325,7 @@ existing read is the smallest change.
     - The 404 test keeps only its `?month=2026-10` calls.
     - The guard row `['GET one', one]` passes unchanged: its checks fail before `month` is read.
   - ≈ 35 lines.
-- [ ] 6. State the per-month category rule in the conventions
+- [x] 6. State the per-month category rule in the conventions
   - Files: `.claude/skills/kopiyka-conventions/SKILL.md` (§3, the soft-delete bullet).
   - Change: the bullet becomes:
 

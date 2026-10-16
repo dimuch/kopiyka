@@ -3,6 +3,8 @@ import type { ResultSetHeader, RowDataPacket } from 'mysql2/promise';
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest';
 import { buildApp } from '../src/app.js';
 import { createDb, type Db } from '../src/db.js';
+import { loadGroceries, planGroceries } from '../src/notion/groceries.js';
+import { loadUncounted } from '../src/notion/totals.js';
 import {
   authHeader,
   clearData,
@@ -54,6 +56,18 @@ describe.skipIf(!(await testDbReachable()))('categories API (MySQL)', () => {
     month = '2026-10',
   ) =>
     app.inject({ method: 'DELETE', url: `/api/ledgers/${ledgerId}/categories/${categoryId}/months/${month}`, headers });
+
+  const restoreTo = (
+    categoryId: number | string,
+    headers: Record<string, string> = auth,
+    ledgerId = owner.ledgerId,
+    month = '2026-10',
+  ) =>
+    app.inject({
+      method: 'POST',
+      url: `/api/ledgers/${ledgerId}/categories/${categoryId}/months/${month}/restore`,
+      headers,
+    });
 
   const expense = (method: 'GET' | 'DELETE' | 'POST', expenseId: number, path = '') =>
     app.inject({ method, url: `/api/ledgers/${owner.ledgerId}/expenses/${expenseId}${path}`, headers: auth });
@@ -477,11 +491,128 @@ describe.skipIf(!(await testDbReachable()))('categories API (MySQL)', () => {
     });
   });
 
+  describe('restore to a month', () => {
+    it('brings back exactly what that removal took', async () => {
+      const eatingOut = await idOf('eating_out');
+      const a = await addSpend('eating_out', '2026-10-01', '20.00');
+      const b = await addSpend('eating_out', '2026-10-02', '30.00');
+      const c = await addSpend('eating_out', '2026-10-03', '5.00');
+      expect((await expense('DELETE', c)).statusCode).toBe(204);
+      const before = [(await expense('GET', a)).json(), (await expense('GET', b)).json()];
+
+      now = new Date(clock.getTime() + 5 * 60_000);
+      expect((await removeFrom(eatingOut)).statusCode).toBe(204);
+      expect((await restoreTo(eatingOut)).statusCode).toBe(204);
+
+      expect([(await expense('GET', a)).json(), (await expense('GET', b)).json()]).toEqual(before);
+      expect((await expense('GET', c)).statusCode).toBe(404);
+      for (const month of ['2026-10', '2026-11']) expect(await listOf(month), month).toContain('eating_out');
+      expect((await one(`${eatingOut}?month=2026-10`)).json()).toMatchObject({ expenseCount: 2 });
+
+      expect((await restoreTo(eatingOut)).json()).toEqual({ error: 'not_found' });
+    });
+
+    it('brings it back to a later month that has its own list', async () => {
+      expect((await removeFrom(await idOf('gym'), auth, owner.ledgerId, '2026-12')).statusCode).toBe(204);
+      expect((await removeFrom(await idOf('eating_out'))).statusCode).toBe(204);
+      expect((await restoreTo(await idOf('eating_out'))).statusCode).toBe(204);
+
+      const december = await listOf('2026-12');
+      expect(december).toContain('eating_out');
+      expect(december).not.toContain('gym');
+    });
+
+    it('refuses a month that has ended in Kyiv, changing nothing', async () => {
+      const eatingOut = await idOf('eating_out');
+      const sep = await addSpend('eating_out', '2026-09-15', '12.50');
+      now = new Date('2026-09-30T20:59:59Z'); // still 30 September in Kyiv
+      expect((await removeFrom(eatingOut, auth, owner.ledgerId, '2026-09')).statusCode).toBe(204);
+
+      now = new Date('2026-09-30T21:00:00Z'); // 1 October, 00:00 in Kyiv
+      const ended = await restoreTo(eatingOut, auth, owner.ledgerId, '2026-09');
+      expect([ended.statusCode, ended.json()]).toEqual([409, { error: 'month_ended' }]);
+      expect(await listOf('2026-09')).not.toContain('eating_out');
+      expect((await expense('GET', sep)).statusCode).toBe(404);
+    });
+
+    it('answers 404 for a category not removed in that month', async () => {
+      const stranger = await makeUser(db, config, 'stranger');
+      expect((await removeFrom(await idOf('eating_out'))).statusCode).toBe(204);
+      expect((await removeFrom(await idOf('groceries'))).statusCode).toBe(204);
+      expect((await del(await idOf('groceries'))).statusCode).toBe(204);
+
+      for (const [id, month] of [
+        [await idOf('rent'), '2026-10'], // in the list
+        [await idOf('eating_out'), '2026-11'], // inherited, not removed there
+        [999_999, '2026-10'],
+        [await idOf('rent', stranger.ledgerId), '2026-10'],
+        [await idOf('groceries'), '2026-10'], // deleted through 013 after its removal
+      ] as const) {
+        expect((await restoreTo(id, auth, owner.ledgerId, month)).json(), `${id} ${month}`).toEqual({
+          error: 'not_found',
+        });
+      }
+    });
+
+    it('rejects a malformed month', async () => {
+      for (const month of ['2026-13', '2026-1', 'abc']) {
+        expect((await restoreTo(await idOf('rent'), auth, owner.ledgerId, month)).json(), month).toMatchObject({
+          error: 'invalid_request',
+        });
+      }
+    });
+  });
+
+  describe('Notion after a removal', () => {
+    // Only the loaders and the planner run, on the test DB: no Notion API is reachable from here.
+    const scope = () => ({ ledgerId: owner.ledgerId, year: 2026 });
+    const changes = async () =>
+      planGroceries(await loadGroceries(db, scope())).map((ch) => [ch.kind, ch.expense.expenseId]);
+    const uncounted = async () => (await loadUncounted(db, scope())).map((e) => e.expenseId);
+
+    it('follows a removal from one month and its restore', async () => {
+      const g9 = await addSpend('groceries', '2026-09-15', '12.50');
+      const g10 = await addSpend('groceries', '2026-10-01', '20.00');
+      for (const [id, date, amount, page] of [
+        [g9, '2026-09-15', '12.50', 'a'],
+        [g10, '2026-10-01', '20.00', 'b'],
+      ] as const) {
+        await db.query(
+          `INSERT INTO notion_grocery_rows (expense_id, notion_page_id, sent_name, sent_amount_eur, sent_date)
+           VALUES (?, ?, 'spend', ?, ?)`,
+          [id, page.padEnd(32, '0'), amount, date],
+        );
+      }
+      const c9 = await addSpend('car', '2026-09-20', '40.00');
+      const c10 = await addSpend('car', '2026-10-02', '60.00');
+      expect(await changes()).toEqual([]);
+      expect(await uncounted()).toEqual([c9, c10]);
+
+      for (const techName of ['groceries', 'car']) {
+        expect((await removeFrom(await idOf(techName))).statusCode).toBe(204);
+      }
+      expect(await changes()).toEqual([['trash', g10]]);
+      expect(await uncounted()).toEqual([c9]);
+
+      for (const techName of ['groceries', 'car']) {
+        expect((await restoreTo(await idOf(techName))).statusCode).toBe(204);
+      }
+      const groceries = await loadGroceries(db, scope());
+      expect(groceries.map((g) => [g.expenseId, g.wanted])).toEqual([
+        [g9, true],
+        [g10, true],
+      ]);
+      expect(await changes()).toEqual([]);
+      expect(await uncounted()).toEqual([c9, c10]);
+    });
+  });
+
   describe.each([
     ['GET one', one],
     ['DELETE', del],
     ['restore', restore],
     ['remove from month', removeFrom],
+    ['restore to month', restoreTo],
   ])('%s guards', (_name, call) => {
     it('needs a session, a ledger of mine and a numeric id', async () => {
       const id = await idOf('rent');

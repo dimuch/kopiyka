@@ -9,6 +9,7 @@ import { inMonthList } from '../src/categories/monthLists.js';
 import { encryptSecret } from '../src/auth/secretBox.js';
 import { generateSecret } from '../src/auth/totp.js';
 import type { Config } from '../src/config.js';
+import { addDays, kyivToday, nextMonthStart } from '../src/dates.js';
 import { createDb, type Db } from '../src/db.js';
 import { DEFAULT_CATEGORIES } from '../src/defaultCategories.js';
 import { MIGRATIONS_DIR, runMigrations } from '../src/migrate.js';
@@ -33,6 +34,7 @@ async function oldSchema(last: string): Promise<string> {
     '004_notion_grocery_rows.sql',
     '005_notion_sync.sql',
     '006_notion_totals.sql',
+    '007_category_months.sql',
   ]) {
     await copyFile(join(MIGRATIONS_DIR, file), join(dir, file));
     if (file === last) break;
@@ -151,8 +153,10 @@ describe.skipIf(!(await testDbReachable()))('007_category_months (MySQL)', () =>
       [owner.userId, owner.ledgerId],
     );
 
-    expect(await runMigrations(TEST_DB_URL!)).toEqual(['007_category_months.sql']);
-    expect(await runMigrations(TEST_DB_URL!)).toEqual([]);
+    // 007 alone: later migrations rewrite its rows.
+    await copyFile(join(MIGRATIONS_DIR, '007_category_months.sql'), join(dir, '007_category_months.sql'));
+    expect(await runMigrations(TEST_DB_URL!, dir)).toEqual(['007_category_months.sql']);
+    expect(await runMigrations(TEST_DB_URL!, dir)).toEqual([]);
 
     const [rows] = await db.query<RowDataPacket[]>(
       `SELECT c.tech_name, DATE_FORMAT(m.list_month, '%Y-%m-%d') AS list_month, m.deleted_at
@@ -184,5 +188,107 @@ describe.skipIf(!(await testDbReachable()))('007_category_months (MySQL)', () =>
     );
     expect(seeded).toHaveLength(15);
     expect(new Set(seeded.map((r) => `${r.list_month}/${r.deleted_at}`))).toEqual(new Set(['2000-01-01/null']));
+  });
+});
+
+describe.skipIf(!(await testDbReachable()))('008_months_stand_alone (MySQL)', () => {
+  const config = testConfig();
+  let dir: string | undefined;
+  let db: Db | undefined;
+
+  afterAll(async () => {
+    await db?.end();
+    if (dir) await rm(dir, { recursive: true, force: true });
+  });
+
+  /** The tech names of a month's live rows of live categories, in list order. */
+  async function own(ledgerId: number, month: string): Promise<string[]> {
+    const [rows] = await db!.query<RowDataPacket[]>(
+      `SELECT c.tech_name FROM category_months m JOIN categories c ON c.category_id = m.category_id
+        WHERE c.ledger_id = ? AND c.deleted_at IS NULL AND m.deleted_at IS NULL AND m.list_month = ?
+        ORDER BY c.sort_order`,
+      [ledgerId, `${month}-01`],
+    );
+    return rows.map((r) => r.tech_name as string);
+  }
+
+  async function addExpense(owner: TestUser, techName: string, date: string, deleted: boolean): Promise<void> {
+    await db!.query(
+      `INSERT INTO expenses (category_id, expense_date, name, amount_eur, created_by, deleted_at)
+       SELECT category_id, ?, 'x', 10, ?, ? FROM categories WHERE ledger_id = ? AND tech_name = ?`,
+      [date, owner.userId, deleted ? '2026-10-01 10:00:00' : null, owner.ledgerId, techName],
+    );
+  }
+
+  it("writes out each month's inherited list from the ledger's first month up to now", async () => {
+    // The schema as it was after 007: every category with a 2000-01 row, and one month with its own list.
+    dir = await oldSchema('007_category_months.sql');
+    db = createDb(TEST_DB_URL!);
+    const a = await rawUser(db, config, 'ivanka', [
+      { techName: 'rent', sortOrder: 10 },
+      { techName: 'groceries', sortOrder: 20 },
+      { techName: 'gym', sortOrder: 30 },
+    ]);
+    const b = await rawUser(db, config, 'dmytro', [{ techName: 'car', sortOrder: 10 }]);
+    await db.query(
+      "INSERT INTO category_months (category_id, list_month) SELECT category_id, '2000-01-01' FROM categories",
+    );
+    await db.query("UPDATE categories SET deleted_at = NOW() WHERE ledger_id = ? AND tech_name = 'gym'", [a.ledgerId]);
+    await db.query(
+      `INSERT INTO category_months (category_id, list_month, deleted_at)
+       SELECT category_id, '2026-08-01', IF(tech_name = 'groceries', '2026-08-20 10:00:00', NULL)
+         FROM categories WHERE ledger_id = ? AND tech_name IN ('rent', 'groceries')`,
+      [a.ledgerId],
+    );
+    // A's first month is May, from a deleted expense before it was created in June.
+    await db.query("UPDATE ledgers SET created_at = '2026-06-10 12:00:00' WHERE ledger_id = ?", [a.ledgerId]);
+    await addExpense(a, 'rent', '2026-05-20', true);
+    // B's first month is this month, from its creation; a live expense keeps a later month's list, a deleted one doesn't.
+    const thisMonth = kyivToday(new Date()).slice(0, 7);
+    const plus = (n: number): string => {
+      let month = thisMonth;
+      for (let i = 0; i < n; i++) month = nextMonthStart(month).slice(0, 7);
+      return month;
+    };
+    const lastMonth = addDays(`${thisMonth}-01`, -1).slice(0, 7);
+    await db.query('UPDATE ledgers SET created_at = ? WHERE ledger_id = ?', [`${thisMonth}-15 12:00:00`, b.ledgerId]);
+    await addExpense(b, 'car', `${plus(3)}-15`, false);
+    await addExpense(b, 'car', `${plus(5)}-15`, true);
+
+    expect(await runMigrations(TEST_DB_URL!)).toEqual(['008_months_stand_alone.sql']);
+    expect(await runMigrations(TEST_DB_URL!)).toEqual([]);
+
+    expect(await own(a.ledgerId, '2000-01')).toEqual([]);
+    expect(await own(a.ledgerId, '2026-04')).toEqual([]);
+    expect(await own(a.ledgerId, '2026-05')).toEqual(['rent', 'groceries']);
+    expect(await own(a.ledgerId, '2026-07')).toEqual(['rent', 'groceries']);
+    expect(await own(a.ledgerId, '2026-08')).toEqual(['rent']);
+    const [stamped] = await db.query<RowDataPacket[]>(
+      `SELECT DATE_FORMAT(m.deleted_at, '%Y-%m-%d %H:%i:%s') AS deleted_at
+         FROM category_months m JOIN categories c ON c.category_id = m.category_id
+        WHERE c.ledger_id = ? AND c.tech_name = 'groceries' AND m.list_month = '2026-08-01'`,
+      [a.ledgerId],
+    );
+    expect(stamped).toEqual([{ deleted_at: '2026-08-20 10:00:00' }]);
+    expect(await own(a.ledgerId, '2026-09')).toEqual(['rent']);
+    expect(await own(a.ledgerId, thisMonth)).toEqual(['rent']);
+    // Next month isn't asserted: on a month's last evening in winter, UTC+3 is already the next month.
+    expect(await own(a.ledgerId, plus(2))).toEqual([]);
+    expect(await own(a.ledgerId, plus(3))).toEqual([]);
+
+    expect(await own(b.ledgerId, lastMonth)).toEqual([]);
+    expect(await own(b.ledgerId, thisMonth)).toEqual(['car']);
+    expect(await own(b.ledgerId, plus(3))).toEqual(['car']);
+    expect(await own(b.ledgerId, plus(4))).toEqual([]);
+
+    const [gym] = await db.query<RowDataPacket[]>(
+      `SELECT COUNT(*) AS n FROM category_months m JOIN categories c ON c.category_id = m.category_id
+        WHERE c.tech_name = 'gym'`,
+    );
+    expect(Number(gym[0]!.n)).toBe(0);
+    const [seed] = await db.query<RowDataPacket[]>(
+      "SELECT COUNT(*) AS n FROM category_months WHERE list_month = '2000-01-01'",
+    );
+    expect(Number(seed[0]!.n)).toBe(0);
   });
 });

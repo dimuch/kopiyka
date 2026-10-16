@@ -200,7 +200,7 @@ existing read is the smallest change.
 
 ## Slices
 
-- [ ] 1. Name a category its month lacks, instead of answering 404
+- [x] 1. Name a category its month lacks, instead of answering 404
   - Files: `apps/api/src/categories/routes.ts`, `apps/api/test/categories.int.test.ts`.
   - Change: with `?month=`, `GET one` drops `inMonthList` from the WHERE and selects it as `in_month`. The params
     become `[first, first, next, categoryId, ledgerId]`. The answer adds `inMonth: Boolean(r.in_month)`. The DTO gets

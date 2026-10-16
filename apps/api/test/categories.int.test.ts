@@ -254,14 +254,23 @@ describe.skipIf(!(await testDbReachable()))('categories API (MySQL)', () => {
       const inMonth = async (techName: string, month: string) =>
         (await one(`${await idOf(techName)}?month=${month}`)).json();
 
-      expect(await inMonth('groceries', '2026-10')).toMatchObject({ expenseCount: 1, totalEur: '1222.00' });
+      expect(await inMonth('groceries', '2026-10')).toMatchObject({
+        expenseCount: 1,
+        totalEur: '1222.00',
+        inMonth: true,
+      });
       expect(await inMonth('groceries', '2026-09')).toMatchObject({ expenseCount: 1, totalEur: '12.50' });
       expect(await inMonth('gym', '2026-10')).toMatchObject({ expenseCount: 0, totalEur: '0.00' });
 
-      // Not in that month's list, nor in the months that carry it over.
+      // Not in that month's list, nor in the months that carry it over: named, with nothing counted.
       await storeMonthList(db, owner.ledgerId, '2026-11', ['groceries']);
       for (const month of ['2026-11', '2026-12']) {
-        expect(await inMonth('groceries', month), month).toEqual({ error: 'not_found' });
+        expect(await inMonth('groceries', month), month).toMatchObject({
+          techName: 'groceries',
+          expenseCount: 0,
+          totalEur: '0.00',
+          inMonth: false,
+        });
       }
       expect(await inMonth('groceries', '2026-13')).toMatchObject({ error: 'invalid_request' });
     });
@@ -271,6 +280,7 @@ describe.skipIf(!(await testDbReachable()))('categories API (MySQL)', () => {
       await db.query('UPDATE categories SET deleted_at = ? WHERE category_id = ?', [clock, await idOf('groceries')]);
       for (const id of [999_999, await idOf('rent', stranger.ledgerId), await idOf('groceries')]) {
         expect((await one(id)).json(), String(id)).toEqual({ error: 'not_found' });
+        expect((await one(`${id}?month=2026-10`)).json(), `${id} in 2026-10`).toEqual({ error: 'not_found' });
       }
     });
   });
@@ -410,6 +420,12 @@ describe.skipIf(!(await testDbReachable()))('categories API (MySQL)', () => {
       expect((await expenseIds('2026-11')).map((e) => e.expenseId)).toEqual([nov]);
       expect((await one(`${eatingOut}?month=2026-09`)).json()).toMatchObject({ expenseCount: 1, totalEur: '12.50' });
       expect((await one(`${eatingOut}?month=2026-11`)).json()).toMatchObject({ expenseCount: 1, totalEur: '7.00' });
+      // What the app reads after a Remove.
+      expect((await one(`${eatingOut}?month=2026-10`)).json()).toMatchObject({
+        inMonth: false,
+        expenseCount: 0,
+        totalEur: '0.00',
+      });
 
       const [stamps] = await db.query<RowDataPacket[]>(
         'SELECT expense_id, deleted_at FROM expenses WHERE category_id = ? ORDER BY expense_id',

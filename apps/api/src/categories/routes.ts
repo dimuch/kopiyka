@@ -20,6 +20,8 @@ export interface CategoryWithTotalsDto extends CategoryDto {
   expenseCount: number;
   /** Decimal string, '0.00' without expenses. */
   totalEur: string;
+  /** With `?month=`: whether that month's list has the category. When it doesn't, the counts are 0. */
+  inMonth?: boolean;
 }
 
 const CategoryParams = z.object({ categoryId: z.coerce.number().int().positive() });
@@ -78,23 +80,24 @@ export async function categoryRoutes(app: FastifyInstance, { db, now }: AppDeps)
   app.get('/api/ledgers/:id/categories/:categoryId', guards, async (req, reply) => {
     const { categoryId } = CategoryParams.parse(req.params);
     const { month } = OneQuery.parse(req.query);
-    // With a month: only its expenses, and only when the category is in that month's list.
+    // With a month: only its expenses, and whether its list has the category. A category the month lacks is still
+    // named (the app says it isn't in that month); its counts are 0, since no live expense can sit there.
     const [rows] = await db.query<RowDataPacket[]>(
-      `SELECT c.category_id, c.tech_name, c.display_name, c.sort_order,
+      `SELECT c.category_id, c.tech_name, c.display_name, c.sort_order, ${month ? `${inMonthList('?')} AS in_month,` : ''}
               COUNT(e.expense_id) AS expense_count, COALESCE(SUM(e.amount_eur), 0) AS total_eur
          FROM categories c
          LEFT JOIN expenses e ON e.category_id = c.category_id AND e.deleted_at IS NULL
                              ${month ? 'AND e.expense_date >= ? AND e.expense_date < ?' : ''}
-        WHERE c.category_id = ? AND c.ledger_id = ? AND c.deleted_at IS NULL ${month ? `AND ${inMonthList('?')}` : ''}
+        WHERE c.category_id = ? AND c.ledger_id = ? AND c.deleted_at IS NULL
         GROUP BY c.category_id`,
       month
-        ? [`${month}-01`, nextMonthStart(month), categoryId, req.ledger!.ledgerId, `${month}-01`]
+        ? [`${month}-01`, `${month}-01`, nextMonthStart(month), categoryId, req.ledger!.ledgerId]
         : [categoryId, req.ledger!.ledgerId],
     );
     const r = rows[0];
     if (!r) return reply.code(404).send({ error: 'not_found' });
     const dto: CategoryWithTotalsDto = { ...toDto(r), expenseCount: r.expense_count, totalEur: r.total_eur };
-    return dto;
+    return month ? { ...dto, inMonth: Boolean(r.in_month) } : dto;
   });
 
   // The category and its live expenses share one stamp: restore matches it, so it brings back only these expenses.

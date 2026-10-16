@@ -117,7 +117,7 @@ moves to another month. That gives two code paths for one list and makes edits l
     - `/category/999999?month=2026-10` shows "Category not found.".
     - Home's Expenses figure equals October's total.
   - ≈ 45 lines.
-- [ ] 2. Work out the form's category tiles for one month
+- [x] 2. Work out the form's category tiles for one month
   - Files: `apps/mobile/src/data/quick.ts`, `apps/mobile/test/quick.test.ts`.
   - Change: `monthPicker` as in Contracts.
   - Tests, `quick.test.ts` › `monthPicker`, with categories 1–6 and quick `[1, 2]`:

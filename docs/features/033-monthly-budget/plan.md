@@ -244,7 +244,7 @@ shows "Set up November’s budget first." from that), so a second code has no ca
 
 ## Slices (part 1)
 
-- [ ] 1. Write every month's inherited category list out as its own
+- [x] 1. Write every month's inherited category list out as its own
   - Files: `apps/api/migrations/008_months_stand_alone.sql` (new), `apps/api/test/migrations.int.test.ts`.
   - Change: the migration above. The code still reads with carry-over, which gives the same lists over the written-out
     rows from each ledger's first month on. Months before the first month now list nothing; that is the Gate A

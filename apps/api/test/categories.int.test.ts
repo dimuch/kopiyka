@@ -47,6 +47,14 @@ describe.skipIf(!(await testDbReachable()))('categories API (MySQL)', () => {
   const restore = (categoryId: number | string, headers: Record<string, string> = auth, ledgerId = owner.ledgerId) =>
     app.inject({ method: 'POST', url: `/api/ledgers/${ledgerId}/categories/${categoryId}/restore`, headers });
 
+  const removeFrom = (
+    categoryId: number | string,
+    headers: Record<string, string> = auth,
+    ledgerId = owner.ledgerId,
+    month = '2026-10',
+  ) =>
+    app.inject({ method: 'DELETE', url: `/api/ledgers/${ledgerId}/categories/${categoryId}/months/${month}`, headers });
+
   const expense = (method: 'GET' | 'DELETE' | 'POST', expenseId: number, path = '') =>
     app.inject({ method, url: `/api/ledgers/${owner.ledgerId}/expenses/${expenseId}${path}`, headers: auth });
 
@@ -339,10 +347,141 @@ describe.skipIf(!(await testDbReachable()))('categories API (MySQL)', () => {
     });
   });
 
+  describe('remove from a month', () => {
+    const monthRows = async () => {
+      const [rows] = await db.query<RowDataPacket[]>('SELECT COUNT(*) AS n FROM category_months');
+      return Number(rows[0]!.n);
+    };
+    const expenseIds = async (month: string) =>
+      (
+        await app.inject({
+          method: 'GET',
+          url: `/api/ledgers/${owner.ledgerId}/expenses?month=${month}`,
+          headers: auth,
+        })
+      ).json().expenses as Array<{ expenseId: number; amountEur: string }>;
+
+    it('removes it and its expenses from that month only, on its last day', async () => {
+      now = new Date('2026-10-31T10:00:00Z');
+      auth = await authHeader(app, owner, now);
+      const sep = await addSpend('eating_out', '2026-09-15', '12.50');
+      const oct1 = await addSpend('eating_out', '2026-10-01', '20.00');
+      const oct2 = await addSpend('eating_out', '2026-10-02', '30.00');
+      const nov = await addSpend('eating_out', '2026-11-01', '7.00');
+      const car = await addSpend('car', '2026-10-03', '40.00');
+      const eatingOut = await idOf('eating_out');
+
+      expect((await removeFrom(eatingOut)).statusCode).toBe(204);
+
+      // November is Kyiv tomorrow, so it keeps the category, and so do the months that carry it over.
+      for (const [month, n] of [
+        ['2026-09', 15],
+        ['2026-10', 14],
+        ['2026-11', 15],
+        ['2026-12', 15],
+      ] as const) {
+        expect(await listOf(month), month).toHaveLength(n);
+      }
+      expect(await listOf('2026-10')).not.toContain('eating_out');
+
+      const october = await expenseIds('2026-10');
+      expect(october.map((e) => e.expenseId)).toEqual([car]);
+      expect(october.reduce((sum, e) => sum + Number(e.amountEur), 0).toFixed(2)).toBe('40.00');
+      expect((await expenseIds('2026-09')).map((e) => e.expenseId)).toEqual([sep]);
+      expect((await expenseIds('2026-11')).map((e) => e.expenseId)).toEqual([nov]);
+      expect((await one(`${eatingOut}?month=2026-09`)).json()).toMatchObject({ expenseCount: 1, totalEur: '12.50' });
+      expect((await one(`${eatingOut}?month=2026-11`)).json()).toMatchObject({ expenseCount: 1, totalEur: '7.00' });
+
+      const [stamps] = await db.query<RowDataPacket[]>(
+        'SELECT expense_id, deleted_at FROM expenses WHERE category_id = ? ORDER BY expense_id',
+        [eatingOut],
+      );
+      expect(stamps.map((r) => [r.expense_id, r.deleted_at])).toEqual([
+        [sep, null],
+        [oct1, now],
+        [oct2, now],
+        [nov, null],
+      ]);
+      const [rows] = await db.query<RowDataPacket[]>(
+        `SELECT DATE_FORMAT(list_month, '%Y-%m') AS month, deleted_at FROM category_months
+          WHERE category_id = ? ORDER BY list_month`,
+        [eatingOut],
+      );
+      expect(rows.map((r) => [r.month, r.deleted_at])).toEqual([
+        ['2000-01', null],
+        ['2026-10', now],
+        ['2026-11', null],
+      ]);
+    });
+
+    it('carries the removal over to months that have not started', async () => {
+      expect((await removeFrom(await idOf('eating_out'))).statusCode).toBe(204);
+      for (const month of ['2026-11', '2027-03']) expect(await listOf(month), month).not.toContain('eating_out');
+      expect(await listOf('2026-09')).toContain('eating_out');
+    });
+
+    it('also takes it out of a later month that has its own list', async () => {
+      expect((await removeFrom(await idOf('gym'), auth, owner.ledgerId, '2026-12')).statusCode).toBe(204);
+      expect((await removeFrom(await idOf('eating_out'))).statusCode).toBe(204);
+
+      const december = await listOf('2026-12');
+      expect(december).not.toContain('gym');
+      expect(december).not.toContain('eating_out');
+      const november = await listOf('2026-11');
+      expect(november).toContain('gym');
+      expect(november).not.toContain('eating_out');
+      expect(await listOf('2026-10')).toContain('gym');
+    });
+
+    it('refuses a month that has ended in Kyiv, changing nothing', async () => {
+      const sep = await addSpend('eating_out', '2026-09-15', '12.50');
+      const rowsBefore = await monthRows();
+
+      now = new Date('2026-09-30T21:00:00Z'); // 1 October, 00:00 in Kyiv
+      const ended = await removeFrom(await idOf('eating_out'), auth, owner.ledgerId, '2026-09');
+      expect([ended.statusCode, ended.json()]).toEqual([409, { error: 'month_ended' }]);
+      expect(await listOf('2026-09')).toHaveLength(15);
+      expect((await expenseIds('2026-09')).map((e) => e.expenseId)).toEqual([sep]);
+      expect(await monthRows()).toBe(rowsBefore);
+
+      now = new Date('2026-09-30T20:59:59Z'); // still 30 September in Kyiv
+      expect((await removeFrom(await idOf('eating_out'), auth, owner.ledgerId, '2026-09')).statusCode).toBe(204);
+    });
+
+    it('answers 404 for a category not in that month, changing nothing', async () => {
+      const stranger = await makeUser(db, config, 'stranger');
+      expect((await del(await idOf('groceries'))).statusCode).toBe(204);
+      expect((await removeFrom(await idOf('eating_out'))).statusCode).toBe(204);
+      const rowsBefore = await monthRows();
+
+      for (const [id, month] of [
+        [999_999, '2026-10'],
+        [await idOf('rent', stranger.ledgerId), '2026-10'],
+        [await idOf('groceries'), '2026-10'],
+        [await idOf('eating_out'), '2026-10'],
+        [await idOf('eating_out'), '2026-11'],
+      ] as const) {
+        expect((await removeFrom(id, auth, owner.ledgerId, month)).json(), `${id} ${month}`).toEqual({
+          error: 'not_found',
+        });
+      }
+      expect(await monthRows()).toBe(rowsBefore);
+    });
+
+    it('rejects a malformed month', async () => {
+      for (const month of ['2026-13', '2026-1', 'abc']) {
+        expect((await removeFrom(await idOf('rent'), auth, owner.ledgerId, month)).json(), month).toMatchObject({
+          error: 'invalid_request',
+        });
+      }
+    });
+  });
+
   describe.each([
     ['GET one', one],
     ['DELETE', del],
     ['restore', restore],
+    ['remove from month', removeFrom],
   ])('%s guards', (_name, call) => {
     it('needs a session, a ledger of mine and a numeric id', async () => {
       const id = await idOf('rent');

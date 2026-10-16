@@ -2,9 +2,9 @@ import type { FastifyInstance } from 'fastify';
 import type { ResultSetHeader, RowDataPacket } from 'mysql2/promise';
 import { z } from 'zod';
 import type { AppDeps } from '../app.js';
-import { kyivToday, MONTH_RE, nextMonthStart } from '../dates.js';
+import { kyivToday, MONTH_RE, monthEnded, nextMonthStart } from '../dates.js';
 import { withTransaction } from '../db.js';
-import { inMonthList } from './monthLists.js';
+import { inMonthList, removeFromMonth } from './monthLists.js';
 
 export const QUICK_CATEGORY_COUNT = 5;
 
@@ -23,6 +23,7 @@ export interface CategoryWithTotalsDto extends CategoryDto {
 }
 
 const CategoryParams = z.object({ categoryId: z.coerce.number().int().positive() });
+const MonthParams = CategoryParams.extend({ month: z.string().regex(MONTH_RE, 'expected YYYY-MM') });
 // Optional until the app sends it (brief 030); without it, the current Kyiv month.
 const ListQuery = z.object({ month: z.string().regex(MONTH_RE, 'expected YYYY-MM').optional() });
 // Optional until brief 031; without it, all months, for 018's screen.
@@ -141,5 +142,15 @@ export async function categoryRoutes(app: FastifyInstance, { db, now }: AppDeps)
       return true;
     });
     return restored ? reply.code(204).send() : reply.code(404).send({ error: 'not_found' });
+  });
+
+  // Brief 029. An ended month is read-only (brief 028's decisions), so it's refused before anything is read.
+  app.delete('/api/ledgers/:id/categories/:categoryId/months/:month', guards, async (req, reply) => {
+    const { categoryId, month } = MonthParams.parse(req.params);
+    const at = now();
+    if (monthEnded(month, at)) return reply.code(409).send({ error: 'month_ended' });
+    return (await removeFromMonth(db, req.ledger!.ledgerId, categoryId, month, at))
+      ? reply.code(204).send()
+      : reply.code(404).send({ error: 'not_found' });
   });
 }

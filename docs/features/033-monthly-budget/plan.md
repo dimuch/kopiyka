@@ -300,7 +300,7 @@ shows "Set up November’s budget first." from that), so a second code has no ca
     - In "removes it and its expenses from that month only", the expected `category_months` rows start with
       `['2026-09', null]` instead of `['2000-01', null]`.
   - ≈ 50 lines.
-- [ ] 3. Give each month exactly its own category list
+- [x] 3. Give each month exactly its own category list
   - Files:
     - `apps/api/src/categories/monthLists.ts`
     - `apps/api/test/helpers.ts` (the `storeMonthList` JSDoc)
@@ -559,6 +559,8 @@ The contracts are given so the model can be judged now. Each part's own plan may
 ## Deviations
 
 <filled by the developer during build>
+
+- slice 3: "removes it and its expenses from that month only" keeps the 31 October clock instead of the default one — its 1 November expense would otherwise be refused as `date_in_future`.
 
 ## Revision 1
 

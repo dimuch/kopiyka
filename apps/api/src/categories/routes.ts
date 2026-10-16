@@ -14,21 +14,21 @@ export interface CategoryDto {
   sortOrder: number;
 }
 
-/** One category with its live expenses across all months, or one month with `?month=`, for the delete warning. */
+/** One category with its live expenses in one month (`?month=`), and whether that month's list has it. */
 export interface CategoryWithTotalsDto extends CategoryDto {
   expenseCount: number;
   /** Decimal string, '0.00' without expenses. */
   totalEur: string;
-  /** With `?month=`: whether that month's list has the category. When it doesn't, the counts are 0. */
-  inMonth?: boolean;
+  /** False when the month's list lacks it (removed there or earlier); it then has no live expenses there. */
+  inMonth: boolean;
 }
 
 const CategoryParams = z.object({ categoryId: z.coerce.number().int().positive() });
 const MonthParams = CategoryParams.extend({ month: z.string().regex(MONTH_RE, 'expected YYYY-MM') });
 // Every caller sends it since brief 030.
 const ListQuery = z.object({ month: z.string().regex(MONTH_RE, 'expected YYYY-MM') });
-// Optional until brief 031; without it, all months, for 018's screen.
-const OneQuery = z.object({ month: z.string().regex(MONTH_RE, 'expected YYYY-MM').optional() });
+// Every caller sends it since brief 032.
+const OneQuery = z.object({ month: z.string().regex(MONTH_RE, 'expected YYYY-MM') });
 
 function toDto(r: RowDataPacket): CategoryDto {
   return { categoryId: r.category_id, techName: r.tech_name, displayName: r.display_name, sortOrder: r.sort_order };
@@ -79,24 +79,28 @@ export async function categoryRoutes(app: FastifyInstance, { db, now }: AppDeps)
   app.get('/api/ledgers/:id/categories/:categoryId', guards, async (req, reply) => {
     const { categoryId } = CategoryParams.parse(req.params);
     const { month } = OneQuery.parse(req.query);
-    // With a month: only its expenses, and whether its list has the category. A category the month lacks is still
-    // named (the app says it isn't in that month); its counts are 0, since no live expense can sit there.
+    const first = `${month}-01`;
+    // A category the month lacks is still named (the app says it isn't in that month). Its counts are 0: no live
+    // expense can sit in a month whose list lacks its category.
     const [rows] = await db.query<RowDataPacket[]>(
-      `SELECT c.category_id, c.tech_name, c.display_name, c.sort_order, ${month ? `${inMonthList('?')} AS in_month,` : ''}
+      `SELECT c.category_id, c.tech_name, c.display_name, c.sort_order, ${inMonthList('?')} AS in_month,
               COUNT(e.expense_id) AS expense_count, COALESCE(SUM(e.amount_eur), 0) AS total_eur
          FROM categories c
          LEFT JOIN expenses e ON e.category_id = c.category_id AND e.deleted_at IS NULL
-                             ${month ? 'AND e.expense_date >= ? AND e.expense_date < ?' : ''}
+                             AND e.expense_date >= ? AND e.expense_date < ?
         WHERE c.category_id = ? AND c.ledger_id = ? AND c.deleted_at IS NULL
         GROUP BY c.category_id`,
-      month
-        ? [`${month}-01`, `${month}-01`, nextMonthStart(month), categoryId, req.ledger!.ledgerId]
-        : [categoryId, req.ledger!.ledgerId],
+      [first, first, nextMonthStart(month), categoryId, req.ledger!.ledgerId],
     );
     const r = rows[0];
     if (!r) return reply.code(404).send({ error: 'not_found' });
-    const dto: CategoryWithTotalsDto = { ...toDto(r), expenseCount: r.expense_count, totalEur: r.total_eur };
-    return month ? { ...dto, inMonth: Boolean(r.in_month) } : dto;
+    const dto: CategoryWithTotalsDto = {
+      ...toDto(r),
+      expenseCount: r.expense_count,
+      totalEur: r.total_eur,
+      inMonth: Boolean(r.in_month),
+    };
+    return dto;
   });
 
   // The category and its live expenses share one stamp: restore matches it, so it brings back only these expenses.

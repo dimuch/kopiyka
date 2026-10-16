@@ -220,24 +220,12 @@ describe.skipIf(!(await testDbReachable()))('categories API (MySQL)', () => {
   });
 
   describe('one category', () => {
-    it("gives a category's expense count and EUR total across all months", async () => {
-      await addSpend('groceries', '2026-09-15', '12.50');
-      await addSpend('groceries', '2026-10-01', '1222.00');
-      await addSpend('groceries', '2026-10-02', '5.00', clock);
-      await addSpend('car', '2026-10-01', '99.00');
-
-      const res = await one(await idOf('groceries'));
-      expect(res.statusCode).toBe(200);
-      // 12.50 + 1222.00; the deleted 5.00 and car's 99.00 are left out.
-      expect(res.json()).toEqual({
-        categoryId: await idOf('groceries'),
-        techName: 'groceries',
-        displayName: 'groceries',
-        sortOrder: 20,
-        expenseCount: 2,
-        totalEur: '1234.50',
-      });
-      expect((await one(await idOf('gym'))).json()).toMatchObject({ expenseCount: 0, totalEur: '0.00' });
+    it('requires a month', async () => {
+      for (const query of ['', '?month=']) {
+        expect((await one(`${await idOf('groceries')}${query}`)).json(), query).toMatchObject({
+          error: 'invalid_request',
+        });
+      }
     });
 
     it("counts only one month's expenses with ?month=", async () => {
@@ -273,8 +261,7 @@ describe.skipIf(!(await testDbReachable()))('categories API (MySQL)', () => {
       const stranger = await makeUser(db, config, 'stranger');
       await db.query('UPDATE categories SET deleted_at = ? WHERE category_id = ?', [clock, await idOf('groceries')]);
       for (const id of [999_999, await idOf('rent', stranger.ledgerId), await idOf('groceries')]) {
-        expect((await one(id)).json(), String(id)).toEqual({ error: 'not_found' });
-        expect((await one(`${id}?month=2026-10`)).json(), `${id} in 2026-10`).toEqual({ error: 'not_found' });
+        expect((await one(`${id}?month=2026-10`)).json(), String(id)).toEqual({ error: 'not_found' });
       }
     });
   });

@@ -294,7 +294,7 @@ existing read is the smallest change.
       - Undo;
       - September has no ⋯.
   - ≈ 90 lines added, ≈ 90 deleted (mostly the two old files).
-- [ ] 4. Remove the all-months category delete and restore from the API
+- [x] 4. Remove the all-months category delete and restore from the API
   - Files: `apps/api/src/categories/routes.ts`, `apps/api/test/categories.int.test.ts`,
     `apps/api/test/notion.int.test.ts`.
   - Change, `routes.ts`:

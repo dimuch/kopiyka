@@ -43,12 +43,6 @@ describe.skipIf(!(await testDbReachable()))('categories API (MySQL)', () => {
   const one = (categoryId: number | string, headers: Record<string, string> = auth, ledgerId = owner.ledgerId) =>
     app.inject({ method: 'GET', url: `/api/ledgers/${ledgerId}/categories/${categoryId}`, headers });
 
-  const del = (categoryId: number | string, headers: Record<string, string> = auth, ledgerId = owner.ledgerId) =>
-    app.inject({ method: 'DELETE', url: `/api/ledgers/${ledgerId}/categories/${categoryId}`, headers });
-
-  const restore = (categoryId: number | string, headers: Record<string, string> = auth, ledgerId = owner.ledgerId) =>
-    app.inject({ method: 'POST', url: `/api/ledgers/${ledgerId}/categories/${categoryId}/restore`, headers });
-
   const removeFrom = (
     categoryId: number | string,
     headers: Record<string, string> = auth,
@@ -285,95 +279,16 @@ describe.skipIf(!(await testDbReachable()))('categories API (MySQL)', () => {
     });
   });
 
-  describe('delete', () => {
-    it('deletes a category and its live expenses in one stamp', async () => {
-      const groceries = await idOf('groceries');
-      await addSpend('groceries', '2026-09-15', '12.50');
-      await addSpend('groceries', '2026-10-01', '1222.00');
-      const fuel = await addSpend('car', '2026-10-03', '40.00');
-      await db.query(
-        "INSERT INTO category_budgets (category_id, budget_month, planned_eur) VALUES (?, '2026-10-01', 100)",
-        [groceries],
-      );
-
-      expect((await del(groceries)).statusCode).toBe(204);
-
-      const { categories } = (await get(owner.ledgerId)).json();
-      expect(categories).toHaveLength(14);
-      expect(categories.map((c: { techName: string }) => c.techName)).not.toContain('groceries');
-      expect((await one(groceries)).statusCode).toBe(404);
-      const [stamps] = await db.query<RowDataPacket[]>('SELECT deleted_at FROM expenses WHERE category_id = ?', [
-        groceries,
-      ]);
-      expect(stamps.map((r) => r.deleted_at)).toEqual([clock, clock]);
-      const month = await app.inject({
-        method: 'GET',
-        url: `/api/ledgers/${owner.ledgerId}/expenses?month=2026-10`,
-        headers: auth,
-      });
-      expect(month.json().expenses.map((e: { expenseId: number }) => e.expenseId)).toEqual([fuel]);
-      const [budgets] = await db.query<RowDataPacket[]>('SELECT 1 FROM category_budgets WHERE category_id = ?', [
-        groceries,
-      ]);
-      expect(budgets).toHaveLength(1);
-
-      expect((await del(groceries)).json()).toEqual({ error: 'not_found' });
-    });
-
-    it('answers 404 for an unknown or foreign category', async () => {
-      const stranger = await makeUser(db, config, 'stranger');
-      for (const id of [999_999, await idOf('rent', stranger.ledgerId)]) {
-        expect((await del(id)).json(), String(id)).toEqual({ error: 'not_found' });
-      }
-      expect(
-        (await one(await idOf('rent', stranger.ledgerId), await authHeader(app, stranger, clock), stranger.ledgerId))
-          .statusCode,
-      ).toBe(200);
-    });
-  });
-
-  describe('restore', () => {
-    it('restores the category and its expenses unchanged', async () => {
-      const groceries = await idOf('groceries');
-      const ids = [
-        await addSpend('groceries', '2026-09-15', '12.50'),
-        await addSpend('groceries', '2026-10-01', '1222.00'),
-      ];
-      const before = await Promise.all(ids.map(async (id) => (await expense('GET', id)).json()));
-
-      await del(groceries);
-      expect((await restore(groceries)).statusCode).toBe(204);
-
-      // Equal DTOs, updated_at included: delete and restore aren't edits.
-      expect(await Promise.all(ids.map(async (id) => (await expense('GET', id)).json()))).toEqual(before);
-      expect((await one(groceries)).json()).toMatchObject({ expenseCount: 2, totalEur: '1234.50' });
-      expect((await get(owner.ledgerId)).json().categories).toHaveLength(15);
-    });
-
-    it('keeps an expense deleted earlier on its own deleted', async () => {
-      const groceries = await idOf('groceries');
-      const a = await addSpend('groceries', '2026-10-01', '10.00');
-      const b = await addSpend('groceries', '2026-10-02', '20.00');
-      expect((await expense('DELETE', a)).statusCode).toBe(204);
-
-      now = new Date('2026-10-06T10:05:00Z');
-      await del(groceries);
-      await restore(groceries);
-
-      expect((await expense('GET', b)).statusCode).toBe(200);
-      expect((await expense('GET', a)).statusCode).toBe(404);
-      expect((await one(groceries)).json()).toMatchObject({ expenseCount: 1 });
-      expect((await expense('POST', a, '/restore')).statusCode).toBe(200);
-    });
-
-    it('answers 404 for restoring a live, unknown or foreign category', async () => {
-      const stranger = await makeUser(db, config, 'stranger');
-      const foreign = await idOf('rent', stranger.ledgerId);
-      await db.query('UPDATE categories SET deleted_at = ? WHERE category_id = ?', [clock, foreign]);
-      for (const id of [await idOf('rent'), 999_999, foreign]) {
-        expect((await restore(id)).json(), String(id)).toEqual({ error: 'not_found' });
-      }
-    });
+  it('no longer deletes or restores a category in every month', async () => {
+    const eatingOut = await idOf('eating_out');
+    const lunch = await addSpend('eating_out', '2026-10-01', '20.00');
+    for (const method of ['DELETE', 'POST'] as const) {
+      const url = `/api/ledgers/${owner.ledgerId}/categories/${eatingOut}${method === 'POST' ? '/restore' : ''}`;
+      const res = await app.inject({ method, url, headers: auth });
+      expect([res.statusCode, res.json()], method).toEqual([404, { error: 'not_found' }]);
+    }
+    expect(await listOf('2026-10')).toContain('eating_out');
+    expect((await expense('GET', lunch)).statusCode).toBe(200);
   });
 
   describe('remove from a month', () => {
@@ -485,7 +400,8 @@ describe.skipIf(!(await testDbReachable()))('categories API (MySQL)', () => {
 
     it('answers 404 for a category not in that month, changing nothing', async () => {
       const stranger = await makeUser(db, config, 'stranger');
-      expect((await del(await idOf('groceries'))).statusCode).toBe(204);
+      // Deleted before brief 028, the only way such a category exists now.
+      await db.query('UPDATE categories SET deleted_at = ? WHERE category_id = ?', [clock, await idOf('groceries')]);
       expect((await removeFrom(await idOf('eating_out'))).statusCode).toBe(204);
       const rowsBefore = await monthRows();
 
@@ -560,14 +476,15 @@ describe.skipIf(!(await testDbReachable()))('categories API (MySQL)', () => {
       const stranger = await makeUser(db, config, 'stranger');
       expect((await removeFrom(await idOf('eating_out'))).statusCode).toBe(204);
       expect((await removeFrom(await idOf('groceries'))).statusCode).toBe(204);
-      expect((await del(await idOf('groceries'))).statusCode).toBe(204);
+      // Deleted before brief 028, the only way such a category exists now.
+      await db.query('UPDATE categories SET deleted_at = ? WHERE category_id = ?', [clock, await idOf('groceries')]);
 
       for (const [id, month] of [
         [await idOf('rent'), '2026-10'], // in the list
         [await idOf('eating_out'), '2026-11'], // inherited, not removed there
         [999_999, '2026-10'],
         [await idOf('rent', stranger.ledgerId), '2026-10'],
-        [await idOf('groceries'), '2026-10'], // deleted through 013 after its removal
+        [await idOf('groceries'), '2026-10'], // deleted (before brief 028) after its removal
       ] as const) {
         expect((await restoreTo(id, auth, owner.ledgerId, month)).json(), `${id} ${month}`).toEqual({
           error: 'not_found',
@@ -630,8 +547,6 @@ describe.skipIf(!(await testDbReachable()))('categories API (MySQL)', () => {
 
   describe.each([
     ['GET one', one],
-    ['DELETE', del],
-    ['restore', restore],
     ['remove from month', removeFrom],
     ['restore to month', restoreTo],
   ])('%s guards', (_name, call) => {

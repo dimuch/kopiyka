@@ -1,9 +1,8 @@
 import type { FastifyInstance } from 'fastify';
-import type { ResultSetHeader, RowDataPacket } from 'mysql2/promise';
+import type { RowDataPacket } from 'mysql2/promise';
 import { z } from 'zod';
 import type { AppDeps } from '../app.js';
 import { MONTH_RE, monthEnded, nextMonthStart } from '../dates.js';
-import { withTransaction } from '../db.js';
 import { inMonthList, removeFromMonth, restoreToMonth } from './monthLists.js';
 
 export const QUICK_CATEGORY_COUNT = 5;
@@ -101,51 +100,6 @@ export async function categoryRoutes(app: FastifyInstance, { db, now }: AppDeps)
   });
 
   // The category and its live expenses share one stamp: restore matches it, so it brings back only these expenses.
-  app.delete('/api/ledgers/:id/categories/:categoryId', guards, async (req, reply) => {
-    const { categoryId } = CategoryParams.parse(req.params);
-    const at = now();
-    const deleted = await withTransaction(db, async (conn) => {
-      const [res] = await conn.query<ResultSetHeader>(
-        'UPDATE categories SET deleted_at = ? WHERE category_id = ? AND ledger_id = ? AND deleted_at IS NULL',
-        [at, categoryId, req.ledger!.ledgerId],
-      );
-      if (!res.affectedRows) return false;
-      await conn.query(
-        `UPDATE expenses e JOIN categories c ON c.category_id = e.category_id
-            SET e.deleted_at = ?, e.updated_at = e.updated_at -- not an edit; keep ON UPDATE from firing
-          WHERE e.category_id = ? AND c.ledger_id = ? AND e.deleted_at IS NULL`,
-        [at, categoryId, req.ledger!.ledgerId],
-      );
-      return true;
-    });
-    return deleted ? reply.code(204).send() : reply.code(404).send({ error: 'not_found' });
-  });
-
-  app.post('/api/ledgers/:id/categories/:categoryId/restore', guards, async (req, reply) => {
-    const { categoryId } = CategoryParams.parse(req.params);
-    const restored = await withTransaction(db, async (conn) => {
-      const [rows] = await conn.query<RowDataPacket[]>(
-        `SELECT deleted_at FROM categories
-          WHERE category_id = ? AND ledger_id = ? AND deleted_at IS NOT NULL FOR UPDATE`,
-        [categoryId, req.ledger!.ledgerId],
-      );
-      if (!rows[0]) return false;
-      // Only the expenses deleted with the category carry its stamp; ones deleted earlier on their own stay deleted.
-      await conn.query(
-        `UPDATE expenses e JOIN categories c ON c.category_id = e.category_id
-            SET e.deleted_at = NULL, e.updated_at = e.updated_at
-          WHERE e.category_id = ? AND c.ledger_id = ? AND e.deleted_at = ?`,
-        [categoryId, req.ledger!.ledgerId, rows[0].deleted_at],
-      );
-      await conn.query('UPDATE categories SET deleted_at = NULL WHERE category_id = ? AND ledger_id = ?', [
-        categoryId,
-        req.ledger!.ledgerId,
-      ]);
-      return true;
-    });
-    return restored ? reply.code(204).send() : reply.code(404).send({ error: 'not_found' });
-  });
-
   // Brief 029. An ended month is read-only (brief 028's decisions), so it's refused before anything is read.
   app.delete('/api/ledgers/:id/categories/:categoryId/months/:month', guards, async (req, reply) => {
     const { categoryId, month } = MonthParams.parse(req.params);

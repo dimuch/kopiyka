@@ -7,7 +7,7 @@ Type: feature
 With planned amounts per category per month (033), the user needs to see at a glance how much of each category's plan
 is used, and to be warned before going over.
 
-Depends on 033.
+Depends on 036 (planned amounts, part 3 of 033).
 
 ## What
 

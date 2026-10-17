@@ -3,7 +3,8 @@ import type { RowDataPacket } from 'mysql2/promise';
 import { z } from 'zod';
 import type { AppDeps } from '../app.js';
 import { MONTH_RE, monthEnded, nextMonthStart } from '../dates.js';
-import { copyPreviousMonth, inMonthList, removeFromMonth, restoreToMonth } from './monthLists.js';
+import { AMOUNT_RE } from '../money.js';
+import { copyPreviousMonth, inMonthList, removeFromMonth, restoreToMonth, setPlanned } from './monthLists.js';
 
 export const QUICK_CATEGORY_COUNT = 5;
 
@@ -35,6 +36,8 @@ const CategoryParams = z.object({ categoryId: z.coerce.number().int().positive()
  */
 const Month = z.object({ month: z.string().regex(MONTH_RE, 'expected YYYY-MM') });
 const MonthParams = CategoryParams.extend(Month.shape);
+// Money crosses the wire as decimal strings; €0 is a plan.
+const PlannedBody = z.object({ amount: z.string().regex(AMOUNT_RE, 'expected an amount ≥ 0, 2 decimals at most') });
 
 function toDto(r: RowDataPacket): CategoryDto {
   return {
@@ -134,6 +137,16 @@ export async function categoryRoutes(app: FastifyInstance, { db, now }: AppDeps)
     const { categoryId, month } = MonthParams.parse(req.params);
     if (monthEnded(month, now())) return reply.code(409).send({ error: 'month_ended' });
     return (await restoreToMonth(db, req.ledger!.ledgerId, categoryId, month))
+      ? reply.code(204).send()
+      : reply.code(404).send({ error: 'not_found' });
+  });
+
+  // Brief 036. An ended month is read-only, so it's refused before anything is read.
+  app.put('/api/ledgers/:id/categories/:categoryId/months/:month/planned', guards, async (req, reply) => {
+    const { categoryId, month } = MonthParams.parse(req.params);
+    const { amount } = PlannedBody.parse(req.body);
+    if (monthEnded(month, now())) return reply.code(409).send({ error: 'month_ended' });
+    return (await setPlanned(db, req.ledger!.ledgerId, categoryId, month, amount))
       ? reply.code(204).send()
       : reply.code(404).send({ error: 'not_found' });
   });

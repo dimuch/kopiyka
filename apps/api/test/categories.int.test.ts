@@ -157,6 +157,29 @@ describe.skipIf(!(await testDbReachable()))('categories API (MySQL)', () => {
     expect((await get('abc' as unknown as number)).statusCode).toBe(400);
   });
 
+  it('gives each category its planned amount for the month, €0 without one', async () => {
+    const rent = await idOf('rent');
+    await db.query(
+      "INSERT INTO category_budgets (category_id, budget_month, planned_eur) VALUES (?, '2026-10-01', 120.50), (?, '2026-09-01', 99)",
+      [rent, rent],
+    );
+    const planned = async (month: string) =>
+      (
+        await app.inject({
+          method: 'GET',
+          url: `/api/ledgers/${owner.ledgerId}/categories?month=${month}`,
+          headers: auth,
+        })
+      ).json().categories as Array<{ techName: string; plannedEur: string }>;
+
+    const october = await planned('2026-10');
+    expect(october.find((c) => c.techName === 'rent')?.plannedEur).toBe('120.50');
+    expect(october.filter((c) => c.techName !== 'rent').map((c) => c.plannedEur)).toEqual(Array(14).fill('0.00'));
+    expect((await planned('2026-09')).find((c) => c.techName === 'rent')?.plannedEur).toBe('99.00');
+    expect((await one(`${rent}?month=2026-10`)).json()).toMatchObject({ plannedEur: '120.50', expenseCount: 0 });
+    expect((await one(`${rent}?month=2026-12`)).json()).toMatchObject({ plannedEur: '0.00', inMonth: false });
+  });
+
   describe('month lists', () => {
     it("lists exactly the month's own list", async () => {
       await storeMonthList(db, owner.ledgerId, '2026-10', ['eating_out']);

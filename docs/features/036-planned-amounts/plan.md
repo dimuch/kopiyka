@@ -154,7 +154,7 @@ whatever the URL says. Every other modal here loads by id, so this lost.
     - Guards: add `['set planned amount', plan]` to the existing `describe.each` guards table. That covers 401, the
       non-member 404, and 400 for a non-numeric id.
 
-- [ ] 3. Start a copied month's planned amounts at €0
+- [x] 3. Start a copied month's planned amounts at €0
   - Files: `apps/api/src/categories/monthLists.ts` (`copyPreviousMonth`), `apps/api/test/categories.int.test.ts`.
   - Change: one `DELETE b …` after the `category_months` delete, and the JSDoc says amounts go too. About 12 lines.
   - Tests:

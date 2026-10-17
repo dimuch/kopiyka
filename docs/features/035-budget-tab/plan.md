@@ -208,7 +208,12 @@ Delete the QA user and ledger after the PR.
 
 ## Deviations
 
-<filled by the developer during build>
+- slice 2: Home's Budget card (`/budget`, no month) opens the current month even when the tab was left on another
+  one (checked on web).
+- slice 3: `NoBudget`'s button also sets `disabled` in its accessibility state; the previous-month `LoadError` is
+  hidden for an ended month (no Copy there anyway); the generic copy failure is tagged with its month, like refusals.
+- Light theme wasn't checked visually: the QA user's stored appearance is dark. The new components use theme tokens
+  only.
 
 ## Revision 1 (skeptic, approve with edits)
 

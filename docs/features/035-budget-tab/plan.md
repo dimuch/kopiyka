@@ -91,7 +91,7 @@ show yet (034 will).
     "No budget for November yet" with no button, and the URL reads `/budget?month=2026-11`. Previous/Next work, and
     `/budget?month=bad` opens October. Check light and dark.
 
-- [ ] 3. Set up a month by copying the previous month's categories
+- [x] 3. Set up a month by copying the previous month's categories
   - Files: `apps/mobile/src/data/categories.ts`, `apps/mobile/src/data/monthCopy.ts` (new),
     `apps/mobile/test/monthCopy.test.ts` (new), `apps/mobile/src/components/NoBudget.tsx` (gains `action` and
     `note`), `apps/mobile/src/app/(tabs)/budget.tsx`, `apps/mobile/src/data/useMonthCategories.ts` (JSDoc rewrite

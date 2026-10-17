@@ -224,7 +224,7 @@ whatever the URL says. Every other modal here loads by id, so this lost.
     - The ended-month link check in AC row 3 also applies.
     - While a save is in flight (throttle the network), Cancel is disabled.
 
-- [ ] 6b. Open the planned amount editor from a Budget row
+- [x] 6b. Open the planned amount editor from a Budget row
   - Files: `apps/mobile/src/app/(tabs)/budget.tsx`.
   - Change:
     - When `!ended`, each row is a `Pressable`, `accessibilityRole="button"`,

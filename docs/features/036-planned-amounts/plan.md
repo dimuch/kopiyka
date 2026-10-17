@@ -320,7 +320,10 @@ Delete the QA user and ledger after the PR.
 
 ## Deviations
 
-<filled by the developer during build>
+- None in contracts or behaviour. Size: slice 2 ~145 vs ~110 and slice 6a ~240 vs ~180 lines, from fuller tests and
+  the editor's styles; the branch is ~1.3× the estimate.
+- Not checked: Cancel disabled during an in-flight save (the busy and gesture lock is copied from
+  `delete-category.tsx`), and the light theme (the QA user's stored theme is dark; theme tokens only).
 
 ## Revision 1 (skeptic: approve, suggestions applied)
 

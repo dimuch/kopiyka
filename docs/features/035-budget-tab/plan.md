@@ -122,7 +122,7 @@ show yet (034 will).
     - `'not_found'` and `'unknown'` give `null`.
   - Verify: see AC rows 1–3. About 125 lines.
 
-- [ ] 4. Point an Expenses month with no budget to the Budget tab
+- [x] 4. Point an Expenses month with no budget to the Budget tab
   - Files: `apps/mobile/src/app/(tabs)/expenses.tsx`.
   - Change: when `rows` is loaded and empty, render
     `<NoBudget month={month} action={{ label: 'Go to Budget', onPress: () => router.navigate({ pathname: '/budget', params: { month } }), busy: false }} />`

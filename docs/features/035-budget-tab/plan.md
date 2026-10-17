@@ -133,7 +133,7 @@ show yet (034 will).
     tab on December. Then go back to Expenses, pick January, and press Go to Budget again: the already-mounted Budget
     tab moves to January.
 
-- [ ] 5. Ask for a budget before saving an expense into a month with none
+- [x] 5. Ask for a budget before saving an expense into a month with none
   - Files: `apps/mobile/src/app/expense.tsx`.
   - Change:
     - `const noBudget = list.status === 'ready' && list.categories.length === 0 ? `Set up ${monthName(month)}’s budget first.` : null`.

@@ -9,9 +9,10 @@ import { CategoryTile } from '@/components/CategoryTile';
 import { HeaderDivider, useCollapsingSummary } from '@/components/CollapsingSummary';
 import { Icon } from '@/components/Icon';
 import { LoadError } from '@/components/LoadError';
+import { MonthSwitcher } from '@/components/MonthSwitcher';
 import { spentByCategory } from '@/data/monthSummary';
 import { useMonth } from '@/data/useMonth';
-import { eur, kyivMonth, monthName, shiftMonth } from '@/format';
+import { eur, kyivMonth } from '@/format';
 import { fonts, type Palette } from '@/theme';
 
 export default function Expenses() {
@@ -45,28 +46,7 @@ export default function Expenses() {
             <Icon name="home" color={colors.muted} />
           </Pressable>
         </View>
-        <View style={styles.monthSwitch}>
-          <Pressable
-            accessibilityRole="button"
-            accessibilityLabel="Previous month"
-            onPress={() => setMonth((m) => shiftMonth(m, -1))}
-            style={styles.iconButton}
-          >
-            <Icon name="back" color={colors.muted} />
-          </Pressable>
-          <View style={styles.monthLabel}>
-            <Text style={styles.eyebrow}>BUDGET ’{month.slice(2, 4)}</Text>
-            <Text style={styles.month}>{monthName(month)}</Text>
-          </View>
-          <Pressable
-            accessibilityRole="button"
-            accessibilityLabel="Next month"
-            onPress={() => setMonth((m) => shiftMonth(m, 1))}
-            style={styles.iconButton}
-          >
-            <Icon name="forward" color={colors.muted} />
-          </Pressable>
-        </View>
+        <MonthSwitcher month={month} onChange={setMonth} />
         <View style={[styles.side, styles.sideEnd]}>
           <AddExpenseButton />
         </View>
@@ -149,14 +129,10 @@ const makeStyles = (colors: Palette) =>
       zIndex: 1,
     },
     content: { gap: 14, paddingTop: 4, paddingBottom: 24 },
-    monthSwitch: { flexDirection: 'row', alignItems: 'center', gap: 4 },
-    monthLabel: { alignItems: 'center' },
     // Equal-width sides keep the month switcher on the header's true centre; flexBasis 0 matters on web.
     side: { flex: 1, flexBasis: 0, flexDirection: 'row' },
     sideEnd: { justifyContent: 'flex-end' },
     iconButton: { width: 44, height: 44, alignItems: 'center', justifyContent: 'center', borderRadius: 12 },
-    eyebrow: { fontFamily: fonts.body, fontSize: 12, color: colors.muted, letterSpacing: 0.5 },
-    month: { fontFamily: fonts.display, fontSize: 22, color: colors.text },
     card: {
       backgroundColor: colors.surface,
       borderColor: colors.border,

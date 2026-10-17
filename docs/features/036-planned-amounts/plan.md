@@ -186,7 +186,7 @@ whatever the URL says. Every other modal here loads by id, so this lost.
 
     The existing `normalizeAmount` case, which rejects `'0'` and `'0.00'`, stays and guards the refactor.
 
-- [ ] 6a. Set a category's planned amount in a modal opened by link
+- [x] 6a. Set a category's planned amount in a modal opened by link
   - Files: `apps/mobile/src/app/planned-amount.tsx` (new), `apps/mobile/src/app/_layout.tsx` (one
     `Stack.Screen name="planned-amount"` with `presentation: 'modal'`), `apps/mobile/src/data/categories.ts`
     (`setPlanned`).

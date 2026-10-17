@@ -12,6 +12,8 @@ export interface CategoryDto {
   techName: string;
   displayName: string;
   sortOrder: number;
+  /** The month's planned EUR (brief 036): a decimal string ≥ 0, '0.00' when none is set. */
+  plannedEur: string;
 }
 
 /** One category with its live expenses in one month (`?month=`), and whether that month's list has it. */
@@ -35,7 +37,13 @@ const Month = z.object({ month: z.string().regex(MONTH_RE, 'expected YYYY-MM') }
 const MonthParams = CategoryParams.extend(Month.shape);
 
 function toDto(r: RowDataPacket): CategoryDto {
-  return { categoryId: r.category_id, techName: r.tech_name, displayName: r.display_name, sortOrder: r.sort_order };
+  return {
+    categoryId: r.category_id,
+    techName: r.tech_name,
+    displayName: r.display_name,
+    sortOrder: r.sort_order,
+    plannedEur: r.planned_eur,
+  };
 }
 
 /**
@@ -59,9 +67,12 @@ export async function categoryRoutes(app: FastifyInstance, { db, now }: AppDeps)
 
   app.get('/api/ledgers/:id/categories', guards, async (req) => {
     const { month } = Month.parse(req.query);
+    const first = `${month}-01`;
     const [rows] = await db.query<RowDataPacket[]>(
-      `SELECT c.category_id, c.tech_name, c.display_name, c.sort_order, u.last_used_at
+      `SELECT c.category_id, c.tech_name, c.display_name, c.sort_order, COALESCE(b.planned_eur, 0) AS planned_eur,
+              u.last_used_at
            FROM categories c
+           LEFT JOIN category_budgets b ON b.category_id = c.category_id AND b.budget_month = ?
            LEFT JOIN (
              SELECT category_id, MAX(created_at) AS last_used_at
                FROM expenses
@@ -70,7 +81,7 @@ export async function categoryRoutes(app: FastifyInstance, { db, now }: AppDeps)
            ) u ON u.category_id = c.category_id
           WHERE c.ledger_id = ? AND c.deleted_at IS NULL AND ${inMonthList('?')}
           ORDER BY c.sort_order, c.category_id`,
-      [req.ledger!.ledgerId, `${month}-01`],
+      [first, req.ledger!.ledgerId, first],
     );
 
     const categories = rows.map(toDto);
@@ -88,13 +99,15 @@ export async function categoryRoutes(app: FastifyInstance, { db, now }: AppDeps)
     // expense can sit in a month whose list lacks its category.
     const [rows] = await db.query<RowDataPacket[]>(
       `SELECT c.category_id, c.tech_name, c.display_name, c.sort_order, ${inMonthList('?')} AS in_month,
+              COALESCE(b.planned_eur, 0) AS planned_eur,
               COUNT(e.expense_id) AS expense_count, COALESCE(SUM(e.amount_eur), 0) AS total_eur
          FROM categories c
+         LEFT JOIN category_budgets b ON b.category_id = c.category_id AND b.budget_month = ?
          LEFT JOIN expenses e ON e.category_id = c.category_id AND e.deleted_at IS NULL
                              AND e.expense_date >= ? AND e.expense_date < ?
         WHERE c.category_id = ? AND c.ledger_id = ? AND c.deleted_at IS NULL
         GROUP BY c.category_id`,
-      [first, first, nextMonthStart(month), categoryId, req.ledger!.ledgerId],
+      [first, first, first, nextMonthStart(month), categoryId, req.ledger!.ledgerId],
     );
     const r = rows[0];
     if (!r) return reply.code(404).send({ error: 'not_found' });

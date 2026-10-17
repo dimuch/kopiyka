@@ -10,6 +10,7 @@ import { HeaderDivider, useCollapsingSummary } from '@/components/CollapsingSumm
 import { Icon } from '@/components/Icon';
 import { LoadError } from '@/components/LoadError';
 import { MonthSwitcher } from '@/components/MonthSwitcher';
+import { NoBudget } from '@/components/NoBudget';
 import { spentByCategory } from '@/data/monthSummary';
 import { useMonth } from '@/data/useMonth';
 import { eur, kyivMonth } from '@/format';
@@ -19,7 +20,8 @@ export default function Expenses() {
   const colors = useColors();
   const styles = useThemedStyles(makeStyles);
   const { ledger } = useSession();
-  const [month, setMonth] = useState(() => kyivMonth(new Date()));
+  const [thisMonth] = useState(() => kyivMonth(new Date()));
+  const [month, setMonth] = useState(thisMonth);
   const { data, error, reload } = useMonth(ledger.ledgerId, month);
 
   const rows = useMemo(() => {
@@ -88,30 +90,46 @@ export default function Expenses() {
         ) : (
           <>
             {error && <LoadError message="Couldn’t refresh. Check your connection and try again." onRetry={reload} />}
-            <View style={styles.listCard}>
-              {rows.map((r, i) => (
-                <Pressable
-                  key={r.categoryId}
-                  accessibilityRole="button"
-                  accessibilityLabel={`${r.displayName}, ${eur(r.spent)} spent`}
-                  onPress={() =>
-                    router.push({ pathname: '/category/[categoryId]', params: { categoryId: r.categoryId, month } })
-                  }
-                  style={[styles.row, i < rows.length - 1 && styles.divider]}
-                >
-                  <CategoryTile techName={r.techName} label={r.displayName} />
-                  <View style={{ flex: 1, gap: 7 }}>
-                    <View style={styles.rowTop}>
-                      <Text style={styles.rowName}>{r.displayName}</Text>
-                      <Text style={styles.rowAmount}>{eur(r.spent)}</Text>
+            {rows.length === 0 ? (
+              <NoBudget
+                month={month}
+                // An ended month can't be set up any more, so there's nothing to go to (brief 035, Gate A).
+                action={
+                  month < thisMonth
+                    ? undefined
+                    : {
+                        label: 'Go to Budget',
+                        onPress: () => router.navigate({ pathname: '/budget', params: { month } }),
+                        busy: false,
+                      }
+                }
+              />
+            ) : (
+              <View style={styles.listCard}>
+                {rows.map((r, i) => (
+                  <Pressable
+                    key={r.categoryId}
+                    accessibilityRole="button"
+                    accessibilityLabel={`${r.displayName}, ${eur(r.spent)} spent`}
+                    onPress={() =>
+                      router.push({ pathname: '/category/[categoryId]', params: { categoryId: r.categoryId, month } })
+                    }
+                    style={[styles.row, i < rows.length - 1 && styles.divider]}
+                  >
+                    <CategoryTile techName={r.techName} label={r.displayName} />
+                    <View style={{ flex: 1, gap: 7 }}>
+                      <View style={styles.rowTop}>
+                        <Text style={styles.rowName}>{r.displayName}</Text>
+                        <Text style={styles.rowAmount}>{eur(r.spent)}</Text>
+                      </View>
+                      <View style={styles.track}>
+                        <View style={[styles.bar, { width: `${Math.round((r.spent / maxSpent) * 100)}%` }]} />
+                      </View>
                     </View>
-                    <View style={styles.track}>
-                      <View style={[styles.bar, { width: `${Math.round((r.spent / maxSpent) * 100)}%` }]} />
-                    </View>
-                  </View>
-                </Pressable>
-              ))}
-            </View>
+                  </Pressable>
+                ))}
+              </View>
+            )}
           </>
         )}
       </Animated.ScrollView>

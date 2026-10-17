@@ -18,6 +18,8 @@ export interface Category {
   techName: string;
   displayName: string;
   sortOrder: number;
+  /** The month's planned EUR (brief 036): a decimal string ≥ 0, '0.00' when none is set. */
+  plannedEur: string;
 }
 
 /** One category with its live expenses in one month, and whether that month's list has it (GET one ?month=). */

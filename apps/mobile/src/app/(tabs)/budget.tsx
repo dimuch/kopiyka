@@ -13,7 +13,7 @@ import { copyPreviousMonth } from '@/data/categories';
 import { copyRefusedText } from '@/data/monthCopy';
 import { type MonthData, useMonth } from '@/data/useMonth';
 import { useMonthCategories } from '@/data/useMonthCategories';
-import { kyivMonth, monthName, shiftMonth } from '@/format';
+import { eur, kyivMonth, monthName, shiftMonth, toCents } from '@/format';
 import { parseMonthParam } from '@/linkParams';
 import { fonts, type Palette } from '@/theme';
 
@@ -112,12 +112,18 @@ export default function Budget() {
               </>
             ) : (
               <>
-                <Text style={styles.sectionTitle}>Categories</Text>
+                <View style={styles.sectionHead}>
+                  <Text style={styles.sectionTitle}>Categories</Text>
+                  <Text style={styles.small}>
+                    {eur(data.categories.reduce((sum, c) => sum + toCents(c.plannedEur), 0))} planned
+                  </Text>
+                </View>
                 <View style={styles.listCard}>
                   {data.categories.map((c, i) => (
                     <View key={c.categoryId} style={[styles.row, i < data.categories.length - 1 && styles.divider]}>
                       <CategoryTile techName={c.techName} label={c.displayName} />
                       <Text style={styles.rowName}>{c.displayName}</Text>
+                      <Text style={styles.rowAmount}>{eur(toCents(c.plannedEur))}</Text>
                     </View>
                   ))}
                 </View>
@@ -135,7 +141,14 @@ const makeStyles = (colors: Palette) =>
     screen: { flex: 1, backgroundColor: colors.bg, paddingHorizontal: 20, paddingTop: 20 },
     header: { flexDirection: 'row', justifyContent: 'center', paddingBottom: 10 },
     content: { gap: 14, paddingTop: 4, paddingBottom: 24 },
-    sectionTitle: { fontFamily: fonts.display, fontSize: 17, color: colors.text, paddingHorizontal: 4 },
+    sectionHead: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'baseline',
+      paddingHorizontal: 4,
+    },
+    sectionTitle: { fontFamily: fonts.display, fontSize: 17, color: colors.text },
+    small: { fontFamily: fonts.body, fontSize: 12, color: colors.muted },
     listCard: {
       backgroundColor: colors.surface,
       borderColor: colors.border,
@@ -145,5 +158,6 @@ const makeStyles = (colors: Palette) =>
     },
     row: { flexDirection: 'row', alignItems: 'center', gap: 12, paddingVertical: 12, paddingHorizontal: 16 },
     divider: { borderBottomWidth: 1, borderBottomColor: colors.border },
-    rowName: { fontFamily: fonts.bodyMedium, fontSize: 15, color: colors.text },
+    rowName: { flex: 1, fontFamily: fonts.bodyMedium, fontSize: 15, color: colors.text },
+    rowAmount: { fontFamily: fonts.bodySemi, fontSize: 15, color: colors.text, fontVariant: ['tabular-nums'] },
   });

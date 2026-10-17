@@ -11,6 +11,7 @@ import {
   monthLabel,
   monthName,
   normalizeAmount,
+  normalizePlanned,
   numericDate,
   otherAmountText,
   parseDate,
@@ -58,6 +59,24 @@ describe('format: amounts', () => {
     for (const [typed, normalized] of ok) expect(normalizeAmount(typed)).toBe(normalized);
     for (const bad of ['0', '0.00', '1.234', '123456789', '-1', 'abc', '', '.5', '1,5,0']) {
       expect(normalizeAmount(bad)).toBeNull();
+    }
+  });
+
+  it('normalizes typed planned amounts, allowing €0', () => {
+    for (const [typed, normalized] of [
+      ['0', '0.00'],
+      ['0.00', '0.00'],
+      ['120', '120.00'],
+      ['12,5', '12.50'],
+      [' 7 ', '7.00'],
+      ['007.5', '7.50'],
+      ['12.', '12.00'],
+      ['99999999.99', '99999999.99'],
+    ]) {
+      expect(normalizePlanned(typed!), typed).toBe(normalized);
+    }
+    for (const bad of ['-1', '-0', '1.234', '123456789', 'abc', '', '.5', '1,5,0']) {
+      expect(normalizePlanned(bad), bad).toBeNull();
     }
   });
 

@@ -176,7 +176,7 @@ whatever the URL says. Every other modal here loads by id, so this lost.
 (<rent>, '2026-10-01', 120.50), (<gym>, '2026-10-01', 40)`. Reload: rent shows €120.50, gym €40, and the head
     "€160.50 planned". Check light and dark.
 
-- [ ] 5. Parse a typed planned amount, allowing €0
+- [x] 5. Parse a typed planned amount, allowing €0
   - Files: `apps/mobile/src/format.ts`, `apps/mobile/test/format.test.ts`.
   - Change: `normalizePlanned`, with `normalizeAmount` built on it (Contracts). About 30 lines.
   - Tests, a new case "normalizes typed planned amounts, allowing €0", table style:

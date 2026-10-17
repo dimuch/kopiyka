@@ -102,13 +102,21 @@ export function dayLabel(date: string): string {
   return `${weekday} ${day.getDate()} ${mon}`.toUpperCase();
 }
 
-/** Typed amount → '12.50'-style string the API accepts, or null. A comma works as the decimal mark. */
-export function normalizeAmount(text: string): string | null {
+/**
+ * Typed planned amount → '12.50'-style string the API accepts, or null; €0 is a plan. A comma works as the decimal
+ * mark.
+ */
+export function normalizePlanned(text: string): string | null {
   const t = text.trim().replace(',', '.');
   if (!/^\d{1,8}(\.\d{0,2})?$/.test(t)) return null;
   const [whole, frac = ''] = t.split('.');
-  const value = `${Number(whole)}.${frac.padEnd(2, '0')}`;
-  return toCents(value) > 0 ? value : null;
+  return `${Number(whole)}.${frac.padEnd(2, '0')}`;
+}
+
+/** Typed expense amount → '12.50'-style string the API accepts, or null; it must be more than €0. */
+export function normalizeAmount(text: string): string | null {
+  const value = normalizePlanned(text);
+  return value && toCents(value) > 0 ? value : null;
 }
 
 /** Live preview of the other currency, rounded half up like the server. */

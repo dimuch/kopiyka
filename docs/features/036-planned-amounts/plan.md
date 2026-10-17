@@ -113,7 +113,7 @@ whatever the URL says. Every other modal here loads by id, so this lost.
 
 ## Slices
 
-- [ ] 1. List each category's planned amount for the month
+- [x] 1. List each category's planned amount for the month
   - Files: `apps/api/src/categories/routes.ts`, `apps/api/test/categories.int.test.ts`.
   - Change: `plannedEur` on `CategoryDto`, plus the `LEFT JOIN` in the list and GET-one SQL (Contracts). About 30
     lines.

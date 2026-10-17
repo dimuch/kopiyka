@@ -37,7 +37,7 @@ export function NoBudget({
           )}
         </Pressable>
       )}
-      {note && <LoadError message={note} />}
+      {note ? <LoadError message={note} /> : null}
     </View>
   );
 }

@@ -3,7 +3,13 @@ import type { Category } from '@/api/types';
 import { monthPicker, splitQuick, withQuick } from '@/data/quick';
 
 function category(categoryId: number, sortOrder: number): Category {
-  return { categoryId, techName: `cat${categoryId}`, displayName: `Category ${categoryId}`, sortOrder };
+  return {
+    categoryId,
+    techName: `cat${categoryId}`,
+    displayName: `Category ${categoryId}`,
+    sortOrder,
+    plannedEur: '0.00',
+  };
 }
 
 describe('quick', () => {

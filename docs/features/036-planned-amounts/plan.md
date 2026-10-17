@@ -163,7 +163,7 @@ whatever the URL says. Every other modal here loads by id, so this lost.
     - Extend "starts a month whose categories were all removed afresh": PUT November gym `'15.00'` before the rows are
       stamped. After the copy, November's gym is `'0.00'`. This assertion fails without the `DELETE` (Prove-It).
 
-- [ ] 4. Show planned amounts and the month's total on the Budget tab
+- [x] 4. Show planned amounts and the month's total on the Budget tab
   - Files: `apps/mobile/src/api/types.ts`, `apps/mobile/test/quick.test.ts` (the fixture gains
     `plannedEur: '0.00'`), `apps/mobile/src/app/(tabs)/budget.tsx`.
   - Change: the section head becomes a row: "Categories" on the left, `` `${eur(plannedTotal)} planned` `` on the

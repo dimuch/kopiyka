@@ -68,7 +68,7 @@ show yet (034 will).
 
 ## Slices
 
-- [ ] 1. Share the month switcher between tabs as a component
+- [x] 1. Share the month switcher between tabs as a component
   - Files: `apps/mobile/src/components/MonthSwitcher.tsx` (new), `apps/mobile/src/app/(tabs)/expenses.tsx`.
   - Change: move the switcher JSX and its styles (`monthSwitch`, `monthLabel`, `eyebrow`, `month`, and its own
     `iconButton`) into the component. `expenses.tsx` renders `<MonthSwitcher month={month} onChange={setMonth} />` and

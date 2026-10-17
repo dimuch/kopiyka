@@ -160,12 +160,16 @@ function ExpenseForm({ draft, ledgerId }: { draft: ExpenseDraftData; ledgerId: n
   const list = useMonthCategories(ledgerId, month);
   const selectedId = categoryId ?? list.firstQuickId;
   const picker = list.status === 'ready' ? monthPicker(list.categories, list.quickIds, selectedId) : null;
-  const notInMonth = picker?.missing ? `That category isn’t in ${monthName(month)}.` : null;
+  // A month with no categories has to be set up on the Budget tab first (brief 035).
+  const noBudget =
+    list.status === 'ready' && list.categories.length === 0 ? `Set up ${monthName(month)}’s budget first.` : null;
+  const notInMonth = !noBudget && picker?.missing ? `That category isn’t in ${monthName(month)}.` : null;
+  const categoryAlert = noBudget ?? notInMonth;
 
   // The alert role covers web; VoiceOver needs an explicit announcement.
   useEffect(() => {
-    if (notInMonth) AccessibilityInfo.announceForAccessibility(notInMonth);
-  }, [notInMonth]);
+    if (categoryAlert) AccessibilityInfo.announceForAccessibility(categoryAlert);
+  }, [categoryAlert]);
 
   function edit(setter: (v: string) => void, value: string) {
     setter(value);
@@ -197,6 +201,10 @@ function ExpenseForm({ draft, ledgerId }: { draft: ExpenseDraftData; ledgerId: n
 
   async function save() {
     if (list.status !== 'ready') return;
+    if (noBudget) {
+      AccessibilityInfo.announceForAccessibility(noBudget);
+      return;
+    }
     const amount = normalizeAmount(amountText);
     if (!name.trim() || !amount || !selectedId) {
       showError('Add a name and an amount first.');
@@ -261,7 +269,11 @@ function ExpenseForm({ draft, ledgerId }: { draft: ExpenseDraftData; ledgerId: n
 
         <View style={styles.group}>
           <Text style={styles.label}>Category</Text>
-          {picker ? (
+          {noBudget ? (
+            <Text accessibilityRole="alert" style={styles.error}>
+              {noBudget}
+            </Text>
+          ) : picker ? (
             <>
               <CategoryPicker quick={picker.quick} more={picker.more} selectedId={selectedId} onPick={pickCategory} />
               {notInMonth ? (

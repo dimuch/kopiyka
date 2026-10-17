@@ -14,3 +14,11 @@ export async function restoreToMonth(ledgerId: number, categoryId: number, month
 export async function copyPreviousMonth(ledgerId: number, month: string): Promise<void> {
   await api(`/api/ledgers/${ledgerId}/months/${month}/copy`, { method: 'POST' });
 }
+
+/** Sets a category's planned EUR ('12.50', ≥ 0) for a 'YYYY-MM' month (brief 036). */
+export async function setPlanned(ledgerId: number, categoryId: number, month: string, amount: string): Promise<void> {
+  await api(`/api/ledgers/${ledgerId}/categories/${categoryId}/months/${month}/planned`, {
+    method: 'PUT',
+    body: { amount },
+  });
+}

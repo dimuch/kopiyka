@@ -525,13 +525,25 @@ describe.skipIf(!(await testDbReachable()))('categories API (MySQL)', () => {
       return Number(rows[0]!.n);
     };
 
-    it("sets up a month with the previous month's list, in its order", async () => {
+    const plannedIn = async (month: string) =>
+      (
+        await app.inject({
+          method: 'GET',
+          url: `/api/ledgers/${owner.ledgerId}/categories?month=${month}`,
+          headers: auth,
+        })
+      ).json().categories as Array<{ techName: string; plannedEur: string }>;
+
+    it("sets up a month with the previous month's list, in its order, at €0", async () => {
       expect((await removeFrom(await idOf('eating_out'))).statusCode).toBe(204);
+      expect((await plan(await idOf('rent'), auth, owner.ledgerId, '2026-10', '120.00')).statusCode).toBe(204);
       expect((await copy('2026-11')).statusCode).toBe(204);
 
       expect(await listOf('2026-11')).toEqual(await listOf('2026-10'));
       expect(await listOf('2026-11')).toHaveLength(14);
       expect(await listOf('2026-09')).toHaveLength(15);
+      expect(new Set((await plannedIn('2026-11')).map((c) => c.plannedEur))).toEqual(new Set(['0.00']));
+      expect((await plannedIn('2026-10')).find((c) => c.techName === 'rent')?.plannedEur).toBe('120.00');
     });
 
     it('refuses a month that has a budget', async () => {
@@ -557,6 +569,7 @@ describe.skipIf(!(await testDbReachable()))('categories API (MySQL)', () => {
 
     it('starts a month whose categories were all removed afresh', async () => {
       await storeMonthList(db, owner.ledgerId, '2026-11', []);
+      expect((await plan(await idOf('gym'), auth, owner.ledgerId, '2026-11', '15.00')).statusCode).toBe(204);
       const gym = await addSpend('gym', '2026-11-02', '15.00');
       await db.query(
         `UPDATE category_months m JOIN categories c ON c.category_id = m.category_id
@@ -568,6 +581,8 @@ describe.skipIf(!(await testDbReachable()))('categories API (MySQL)', () => {
 
       expect((await copy('2026-11')).statusCode).toBe(204);
       expect(await listOf('2026-11')).toHaveLength(15);
+      // The removed rows' amounts go with them: a copy starts at €0.
+      expect((await plannedIn('2026-11')).find((c) => c.techName === 'gym')?.plannedEur).toBe('0.00');
       expect((await expense('GET', gym)).statusCode).toBe(404);
       expect((await restoreTo(await idOf('gym'), auth, owner.ledgerId, '2026-11')).json()).toEqual({
         error: 'not_found',

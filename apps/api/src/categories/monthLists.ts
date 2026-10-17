@@ -1,4 +1,5 @@
-// Brief 028, 033: a month's list is exactly its own rows in category_months; nothing carries over.
+// Brief 028, 033: a month's list is exactly its own rows in category_months; nothing carries over. Brief 036: a
+// month's planned amounts live in category_budgets.
 import type { PoolConnection, RowDataPacket } from 'mysql2/promise';
 import { nextMonthStart, previousMonthStart } from '../dates.js';
 import { type Db, withTransaction } from '../db.js';
@@ -136,8 +137,9 @@ async function hasBudget(conn: PoolConnection, ledgerId: number, first: string):
 export type CopyResult = 'copied' | 'budget_exists' | 'no_previous_budget';
 
 /**
- * Sets up a 'YYYY-MM' month with no budget (no live category) with the previous month's live categories. Rows
- * removed from it earlier are deleted first: their Undo then answers 404, and their expenses stay deleted.
+ * Sets up a 'YYYY-MM' month with no budget (no live category) with the previous month's live categories, every
+ * planned amount at €0 (brief 036). Rows removed from it earlier are deleted first, with their amounts: their Undo
+ * then answers 404, and their expenses stay deleted.
  */
 export async function copyPreviousMonth(db: Db, ledgerId: number, month: string): Promise<CopyResult> {
   const first = `${month}-01`;
@@ -149,6 +151,11 @@ export async function copyPreviousMonth(db: Db, ledgerId: number, month: string)
     await conn.query(
       `DELETE m FROM category_months m JOIN categories c ON c.category_id = m.category_id
         WHERE c.ledger_id = ? AND m.list_month = ?`,
+      [ledgerId, first],
+    );
+    await conn.query(
+      `DELETE b FROM category_budgets b JOIN categories c ON c.category_id = b.category_id
+        WHERE c.ledger_id = ? AND b.budget_month = ?`,
       [ledgerId, first],
     );
     await conn.query(

@@ -160,9 +160,13 @@ function ExpenseForm({ draft, ledgerId }: { draft: ExpenseDraftData; ledgerId: n
   const list = useMonthCategories(ledgerId, month);
   const selectedId = categoryId ?? list.firstQuickId;
   const picker = list.status === 'ready' ? monthPicker(list.categories, list.quickIds, selectedId) : null;
-  // A month with no categories has to be set up on the Budget tab first (brief 035).
+  // A month with no categories has to be set up on the Budget tab first (brief 035); an ended one can't be any more.
   const noBudget =
-    list.status === 'ready' && list.categories.length === 0 ? `Set up ${monthName(month)}’s budget first.` : null;
+    list.status !== 'ready' || list.categories.length > 0
+      ? null
+      : month < today.slice(0, 7)
+        ? `${monthName(month)} had no budget, so it can’t take expenses.`
+        : `Set up ${monthName(month)}’s budget first.`;
   const notInMonth = !noBudget && picker?.missing ? `That category isn’t in ${monthName(month)}.` : null;
   const categoryAlert = noBudget ?? notInMonth;
 

@@ -212,6 +212,8 @@ Delete the QA user and ledger after the PR.
   one (checked on web).
 - slice 3: `NoBudget`'s button also sets `disabled` in its accessibility state; the previous-month `LoadError` is
   hidden for an ended month (no Copy there anyway); the generic copy failure is tagged with its month, like refusals.
+- Review, user decision (2026-10-17): an ended month with no budget says "September had no budget, so it can’t take
+  expenses." in the form, since it can't be set up any more; current and later months keep "Set up …’s budget first.".
 - Light theme wasn't checked visually: the QA user's stored appearance is dark. The new components use theme tokens
   only.
 

@@ -121,11 +121,12 @@ export default function Budget() {
                 <View style={styles.listCard}>
                   {data.categories.map((c, i) => {
                     const style = [styles.row, i < data.categories.length - 1 && styles.divider];
+                    const planned = eur(toCents(c.plannedEur));
                     const content = (
                       <>
                         <CategoryTile techName={c.techName} label={c.displayName} />
                         <Text style={styles.rowName}>{c.displayName}</Text>
-                        <Text style={styles.rowAmount}>{eur(toCents(c.plannedEur))}</Text>
+                        <Text style={styles.rowAmount}>{planned}</Text>
                       </>
                     );
                     // An ended month can't change, so its rows aren't buttons.
@@ -137,7 +138,7 @@ export default function Budget() {
                       <Pressable
                         key={c.categoryId}
                         accessibilityRole="button"
-                        accessibilityLabel={`${c.displayName}, ${eur(toCents(c.plannedEur))} planned`}
+                        accessibilityLabel={`${c.displayName}, ${planned} planned`}
                         accessibilityHint="Sets the planned amount"
                         onPress={() =>
                           router.push({ pathname: '/planned-amount', params: { categoryId: c.categoryId, month } })

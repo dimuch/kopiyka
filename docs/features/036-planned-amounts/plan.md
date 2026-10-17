@@ -126,7 +126,7 @@ whatever the URL says. Every other modal here loads by id, so this lost.
 
     The existing `toMatchObject` assertions are unaffected.
 
-- [ ] 2. Set a category's planned amount for a month
+- [x] 2. Set a category's planned amount for a month
   - Files: `apps/api/src/categories/monthLists.ts` (`setPlanned`), `apps/api/src/categories/routes.ts`
     (`PlannedBody`, the PUT), `apps/api/test/categories.int.test.ts`.
   - Change: as in Contracts. About 110 lines, 75 of them tests.

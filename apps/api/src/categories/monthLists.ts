@@ -93,6 +93,35 @@ export async function restoreToMonth(db: Db, ledgerId: number, categoryId: numbe
   });
 }
 
+/**
+ * Sets a category's planned EUR ('12.50', ≥ 0) for a 'YYYY-MM' month (brief 036). False, writing nothing, when the
+ * category isn't in the month's list (unknown, foreign, deleted, removed, or the month has no budget).
+ */
+export async function setPlanned(
+  db: Db,
+  ledgerId: number,
+  categoryId: number,
+  month: string,
+  amount: string,
+): Promise<boolean> {
+  const first = `${month}-01`;
+  return withTransaction(db, async (conn) => {
+    await lockLedger(conn, ledgerId);
+    const [rows] = await conn.query<RowDataPacket[]>(
+      `SELECT 1 FROM categories c
+        WHERE c.category_id = ? AND c.ledger_id = ? AND c.deleted_at IS NULL AND ${inMonthList('?')}`,
+      [categoryId, ledgerId, first],
+    );
+    if (!rows.length) return false;
+    await conn.query(
+      `INSERT INTO category_budgets (category_id, budget_month, planned_eur) VALUES (?, ?, ?)
+       ON DUPLICATE KEY UPDATE planned_eur = ?`,
+      [categoryId, first, amount, amount],
+    );
+    return true;
+  });
+}
+
 /** True when a month (its first day) has at least one live category of the ledger. */
 async function hasBudget(conn: PoolConnection, ledgerId: number, first: string): Promise<boolean> {
   const [rows] = await conn.query<RowDataPacket[]>(

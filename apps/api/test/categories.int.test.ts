@@ -63,6 +63,20 @@ describe.skipIf(!(await testDbReachable()))('categories API (MySQL)', () => {
       headers,
     });
 
+  const plan = (
+    categoryId: number | string,
+    headers: Record<string, string> = auth,
+    ledgerId = owner.ledgerId,
+    month = '2026-10',
+    amount: unknown = '120.50',
+  ) =>
+    app.inject({
+      method: 'PUT',
+      url: `/api/ledgers/${ledgerId}/categories/${categoryId}/months/${month}/planned`,
+      payload: { amount },
+      headers,
+    });
+
   const expense = (method: 'GET' | 'DELETE' | 'POST', expenseId: number, path = '') =>
     app.inject({ method, url: `/api/ledgers/${owner.ledgerId}/expenses/${expenseId}${path}`, headers: auth });
 
@@ -624,10 +638,97 @@ describe.skipIf(!(await testDbReachable()))('categories API (MySQL)', () => {
     });
   });
 
+  describe('planned amounts', () => {
+    const plannedOf = async (month: string) =>
+      Object.fromEntries(
+        (
+          (
+            await app.inject({
+              method: 'GET',
+              url: `/api/ledgers/${owner.ledgerId}/categories?month=${month}`,
+              headers: auth,
+            })
+          ).json().categories as Array<{ techName: string; plannedEur: string }>
+        ).map((c) => [c.techName, c.plannedEur]),
+      );
+    const budgetRows = async () => {
+      const [rows] = await db.query<RowDataPacket[]>('SELECT COUNT(*) AS n FROM category_budgets');
+      return Number(rows[0]!.n);
+    };
+
+    it('sets and replaces the amount for that month only', async () => {
+      const rent = await idOf('rent');
+      expect((await plan(rent)).statusCode).toBe(204);
+      expect((await plannedOf('2026-10')).rent).toBe('120.50');
+      expect((await plan(rent, auth, owner.ledgerId, '2026-10', '0')).statusCode).toBe(204);
+      expect((await plannedOf('2026-10')).rent).toBe('0.00');
+      expect((await plan(rent, auth, owner.ledgerId, '2026-10', '99999999.99')).statusCode).toBe(204);
+      expect((await plannedOf('2026-10')).rent).toBe('99999999.99');
+      expect((await plannedOf('2026-09')).rent).toBe('0.00');
+
+      await storeMonthList(db, owner.ledgerId, '2026-11', []);
+      expect((await plan(await idOf('gym'), auth, owner.ledgerId, '2026-11', '40')).statusCode).toBe(204);
+      const november = await plannedOf('2026-11');
+      expect(november.gym).toBe('40.00');
+      expect(november.rent).toBe('0.00');
+      expect((await plannedOf('2026-10')).gym).toBe('0.00');
+    });
+
+    it('rejects a negative or malformed amount, changing nothing', async () => {
+      const rent = await idOf('rent');
+      for (const amount of ['-1', '-0.01', '1.234', 'abc', '', '123456789', 120, null]) {
+        const res = await plan(rent, auth, owner.ledgerId, '2026-10', amount);
+        expect([res.statusCode, res.json()], String(amount)).toMatchObject([400, { error: 'invalid_request' }]);
+      }
+      const noBody = await app.inject({
+        method: 'PUT',
+        url: `/api/ledgers/${owner.ledgerId}/categories/${rent}/months/2026-10/planned`,
+        headers: auth,
+      });
+      expect(noBody.statusCode).toBe(400);
+      expect((await plan(rent, auth, owner.ledgerId, '2026-13')).json()).toMatchObject({ error: 'invalid_request' });
+      expect(await budgetRows()).toBe(0);
+    });
+
+    it("answers 404 for a category not in that month's list, changing nothing", async () => {
+      const stranger = await makeUser(db, config, 'stranger');
+      expect((await removeFrom(await idOf('eating_out'))).statusCode).toBe(204);
+      // Deleted before brief 028, the only way such a category exists now.
+      await db.query('UPDATE categories SET deleted_at = ? WHERE category_id = ?', [clock, await idOf('groceries')]);
+
+      for (const [id, month] of [
+        [await idOf('eating_out'), '2026-10'], // removed there
+        [await idOf('rent'), '2026-12'], // the month has no budget
+        [await idOf('groceries'), '2026-10'],
+        [999_999, '2026-10'],
+        [await idOf('rent', stranger.ledgerId), '2026-10'],
+      ] as const) {
+        expect((await plan(id, auth, owner.ledgerId, month)).json(), `${id} ${month}`).toEqual({ error: 'not_found' });
+      }
+      expect(await budgetRows()).toBe(0);
+    });
+
+    it('refuses a month that has ended in Kyiv, changing nothing', async () => {
+      const res = await plan(await idOf('rent'), auth, owner.ledgerId, '2026-09');
+      expect([res.statusCode, res.json()]).toEqual([409, { error: 'month_ended' }]);
+      expect(await budgetRows()).toBe(0);
+    });
+
+    it('keeps the amount through Remove and Undo', async () => {
+      const gym = await idOf('gym');
+      expect((await plan(gym, auth, owner.ledgerId, '2026-10', '50.00')).statusCode).toBe(204);
+      expect((await removeFrom(gym)).statusCode).toBe(204);
+      expect(await plannedOf('2026-10')).not.toHaveProperty('gym');
+      expect((await restoreTo(gym)).statusCode).toBe(204);
+      expect((await plannedOf('2026-10')).gym).toBe('50.00');
+    });
+  });
+
   describe.each([
     ['GET one', one],
     ['remove from month', removeFrom],
     ['restore to month', restoreTo],
+    ['set planned amount', plan],
   ])('%s guards', (_name, call) => {
     it('needs a session, a ledger of mine and a numeric id', async () => {
       const id = await idOf('rent');

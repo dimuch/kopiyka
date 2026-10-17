@@ -1,6 +1,6 @@
 import { router, useLocalSearchParams } from 'expo-router';
 import { useRef, useState } from 'react';
-import { ActivityIndicator, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { ApiError } from '@/api/client';
 import { useColors, useThemedStyles } from '@/appearance/AppearanceContext';
@@ -119,13 +119,35 @@ export default function Budget() {
                   </Text>
                 </View>
                 <View style={styles.listCard}>
-                  {data.categories.map((c, i) => (
-                    <View key={c.categoryId} style={[styles.row, i < data.categories.length - 1 && styles.divider]}>
-                      <CategoryTile techName={c.techName} label={c.displayName} />
-                      <Text style={styles.rowName}>{c.displayName}</Text>
-                      <Text style={styles.rowAmount}>{eur(toCents(c.plannedEur))}</Text>
-                    </View>
-                  ))}
+                  {data.categories.map((c, i) => {
+                    const style = [styles.row, i < data.categories.length - 1 && styles.divider];
+                    const content = (
+                      <>
+                        <CategoryTile techName={c.techName} label={c.displayName} />
+                        <Text style={styles.rowName}>{c.displayName}</Text>
+                        <Text style={styles.rowAmount}>{eur(toCents(c.plannedEur))}</Text>
+                      </>
+                    );
+                    // An ended month can't change, so its rows aren't buttons.
+                    return ended ? (
+                      <View key={c.categoryId} style={style}>
+                        {content}
+                      </View>
+                    ) : (
+                      <Pressable
+                        key={c.categoryId}
+                        accessibilityRole="button"
+                        accessibilityLabel={`${c.displayName}, ${eur(toCents(c.plannedEur))} planned`}
+                        accessibilityHint="Sets the planned amount"
+                        onPress={() =>
+                          router.push({ pathname: '/planned-amount', params: { categoryId: c.categoryId, month } })
+                        }
+                        style={style}
+                      >
+                        {content}
+                      </Pressable>
+                    );
+                  })}
                 </View>
               </>
             )}

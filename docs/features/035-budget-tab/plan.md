@@ -76,7 +76,7 @@ show yet (034 will).
   - Verify: typecheck and lint. On web at 390×844, the Expenses tab looks and switches months exactly as before, in
     light and dark.
 
-- [ ] 2. Show the selected month's categories on the Budget tab
+- [x] 2. Show the selected month's categories on the Budget tab
   - Files: `apps/mobile/src/app/(tabs)/budget.tsx` (rewrite), `apps/mobile/src/components/NoBudget.tsx` (new, `month`
     prop only).
   - Change:

@@ -10,7 +10,10 @@ export type MonthCategories = {
 
 type Loaded = { status: 'error' } | { status: 'ready'; categories: Category[]; quickIds: number[] };
 
-/** A 'YYYY-MM' month's categories and its quick row, for the expense form; loads again when `month` changes. */
+/**
+ * A 'YYYY-MM' month's categories and its quick row, for the expense form and the Budget tab's Copy check (does the
+ * previous month have any?); loads again when `month` changes.
+ */
 export function useMonthCategories(ledgerId: number, month: string): MonthCategories {
   const [version, setVersion] = useState(0);
   // Tagged with its request, so a new month (or a reload) reads as loading without resetting state in the effect.

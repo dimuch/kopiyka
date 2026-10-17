@@ -9,3 +9,8 @@ export async function removeFromMonth(ledgerId: number, categoryId: number, mont
 export async function restoreToMonth(ledgerId: number, categoryId: number, month: string): Promise<void> {
   await api(`/api/ledgers/${ledgerId}/categories/${categoryId}/months/${month}/restore`, { method: 'POST' });
 }
+
+/** Sets up a 'YYYY-MM' month with no budget with the previous month's categories (brief 033). */
+export async function copyPreviousMonth(ledgerId: number, month: string): Promise<void> {
+  await api(`/api/ledgers/${ledgerId}/months/${month}/copy`, { method: 'POST' });
+}

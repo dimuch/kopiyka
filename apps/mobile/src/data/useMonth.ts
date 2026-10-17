@@ -3,7 +3,7 @@ import { useCallback, useState } from 'react';
 import { api } from '@/api/client';
 import type { Category, Expense } from '@/api/types';
 
-interface MonthData {
+export interface MonthData {
   categories: Category[];
   expenses: Expense[];
 }

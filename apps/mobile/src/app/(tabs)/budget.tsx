@@ -1,15 +1,19 @@
 import { router, useLocalSearchParams } from 'expo-router';
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { ActivityIndicator, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { ApiError } from '@/api/client';
 import { useColors, useThemedStyles } from '@/appearance/AppearanceContext';
 import { useSession } from '@/auth/AuthContext';
 import { CategoryTile } from '@/components/CategoryTile';
 import { LoadError } from '@/components/LoadError';
 import { MonthSwitcher } from '@/components/MonthSwitcher';
 import { NoBudget } from '@/components/NoBudget';
-import { useMonth } from '@/data/useMonth';
-import { kyivMonth } from '@/format';
+import { copyPreviousMonth } from '@/data/categories';
+import { copyRefusedText } from '@/data/monthCopy';
+import { type MonthData, useMonth } from '@/data/useMonth';
+import { useMonthCategories } from '@/data/useMonthCategories';
+import { kyivMonth, monthName, shiftMonth } from '@/format';
 import { parseMonthParam } from '@/linkParams';
 import { fonts, type Palette } from '@/theme';
 
@@ -26,6 +30,51 @@ export default function Budget() {
   // A missing or malformed month opens the current one.
   const month = parseMonthParam(params.month) ?? thisMonth;
   const { data, error, reload } = useMonth(ledger.ledgerId, month);
+  const previousMonth = shiftMonth(month, -1);
+  const previous = useMonthCategories(ledger.ledgerId, previousMonth);
+  const ended = month < thisMonth;
+
+  const [busy, setBusy] = useState(false);
+  // Tagged with their month, so switching months clears them without an effect.
+  const [refused, setRefused] = useState<{ month: string; text: string } | null>(null);
+  const [failed, setFailed] = useState<string | null>(null);
+  // The empty month loaded before a successful copy: useMonth keeps it until the reload lands, so without this Copy
+  // would flash back.
+  const [copiedOver, setCopiedOver] = useState<MonthData | null>(null);
+  // `busy` disables the button only after a re-render; two presses in one tick would both get here.
+  const inFlight = useRef(false);
+
+  async function copy() {
+    if (inFlight.current) return;
+    inFlight.current = true;
+    setBusy(true);
+    setFailed(null);
+    const before = data;
+    try {
+      await copyPreviousMonth(ledger.ledgerId, month);
+      setCopiedOver(before);
+      reload();
+    } catch (err) {
+      const text = err instanceof ApiError ? copyRefusedText(err.code, month) : null;
+      if (text) {
+        setRefused({ month, text });
+        // A budget_exists brings the list in; a no_previous_budget refreshes the previous month.
+        reload();
+        previous.reload();
+      } else {
+        setFailed(month);
+      }
+    } finally {
+      // The screen stays mounted, so a later copy into another month must work.
+      inFlight.current = false;
+      setBusy(false);
+    }
+  }
+
+  const refusal = refused?.month === month ? refused.text : null;
+  const canCopy =
+    !ended && previous.status === 'ready' && previous.categories.length > 0 && !refusal && data !== copiedOver;
+  const note = refusal ?? (failed === month ? 'Couldn’t copy. Check your connection and try again.' : null);
 
   return (
     <SafeAreaView style={styles.screen} edges={['top']}>
@@ -44,7 +93,23 @@ export default function Budget() {
           <>
             {error && <LoadError message="Couldn’t refresh. Check your connection and try again." onRetry={reload} />}
             {data.categories.length === 0 ? (
-              <NoBudget month={month} />
+              <>
+                <NoBudget
+                  month={month}
+                  action={
+                    canCopy
+                      ? { label: `Copy ${monthName(previousMonth)}’s categories`, onPress: copy, busy }
+                      : undefined
+                  }
+                  note={note}
+                />
+                {!ended && previous.status === 'error' && (
+                  <LoadError
+                    message={`Couldn’t check ${monthName(previousMonth)}’s categories. Check your connection and try again.`}
+                    onRetry={previous.reload}
+                  />
+                )}
+              </>
             ) : (
               <>
                 <Text style={styles.sectionTitle}>Categories</Text>

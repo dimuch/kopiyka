@@ -11,6 +11,7 @@ import { MonthSwitcher } from '@/components/MonthSwitcher';
 import { NoBudget } from '@/components/NoBudget';
 import { copyPreviousMonth } from '@/data/categories';
 import { copyRefusedText } from '@/data/monthCopy';
+import { plannedCents } from '@/data/monthSummary';
 import { type MonthData, useMonth } from '@/data/useMonth';
 import { useMonthCategories } from '@/data/useMonthCategories';
 import { eur, kyivMonth, monthName, shiftMonth, toCents } from '@/format';
@@ -114,9 +115,7 @@ export default function Budget() {
               <>
                 <View style={styles.sectionHead}>
                   <Text style={styles.sectionTitle}>Categories</Text>
-                  <Text style={styles.small}>
-                    {eur(data.categories.reduce((sum, c) => sum + toCents(c.plannedEur), 0))} planned
-                  </Text>
+                  <Text style={styles.small}>{eur(plannedCents(data.categories))} planned</Text>
                 </View>
                 <View style={styles.listCard}>
                   {data.categories.map((c, i) => {

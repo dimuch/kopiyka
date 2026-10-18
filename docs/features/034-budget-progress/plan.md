@@ -69,6 +69,7 @@ duplicate that and add a route change, with its integration tests, that no AC ne
   - light: `text` 16.5, `muted` 5.5, `accent` 5.4.
 
   Light `over` (#B25E09) would only reach 4.3 on this background, so "€12.40 over" uses `text`, not `over`.
+
 - App, row copy on the Expenses tab:
   - right of the name: `${eur(spent)} of ${eur(planned)}` ("€86.20 of €120"); the " of €120" part is muted;
   - under the bar, only when `overCents > 0`: `${eur(overCents)} over` ("€12.40 over");
@@ -83,6 +84,7 @@ duplicate that and add a route change, with its integration tests, that no AC ne
   `'Spent this month, loading'`; for a month with no categories `` `Spent this month, ${eur(total)}, budget not set` ``;
   otherwise `` `Spent this month, ${eur(total)} of ${eur(plannedCents(data.categories))}` ``. The total Text's own
   `'Loading'` label goes, because the group label covers it (same pattern as `CompactTotal`'s `accessible` View).
+
 - App, the Home Budget card figure:
   - `null` (shows '—') while loading;
   - "Not set" when `data.categories.length === 0`;
@@ -91,7 +93,7 @@ duplicate that and add a route change, with its integration tests, that no AC ne
 
 ## Slices
 
-- [ ] 1. Work out how much of each category's plan is used
+- [x] 1. Work out how much of each category's plan is used
   - Files: `apps/mobile/src/data/budgetProgress.ts` (new), `apps/mobile/src/data/monthSummary.ts` (`plannedCents`),
     `apps/mobile/src/app/(tabs)/budget.tsx` (use `plannedCents`), `apps/mobile/test/budgetProgress.test.ts` (new),
     `apps/mobile/test/monthSummary.test.ts`.
@@ -111,6 +113,7 @@ duplicate that and add a route change, with its integration tests, that no AC ne
     - `[1, 0, 1, true, 1]` (planned €0, any spending is over).
 
     Fractions are checked with `toBeCloseTo(x, 10)`, and everything else with `toBe`.
+
   - Tests, `monthSummary.test.ts`, a new case "sums the planned amounts in cents": `[]` gives 0;
     `['120.50', '0.00', '0.10', '0.20']` gives 12080 (exact, with the 0.1 + 0.2 comment).
   - Verify: the Budget tab head still reads "€… planned", the same as before (a mechanical replacement).
@@ -164,15 +167,15 @@ QA setup (local dev DB, QA ledgers only; the running API must be this checkout's
 
 Delete both QA users and ledgers after the PR.
 
-| AC                                                                       | Evidence                                                                                                                                                                                                                                                                                                                                         |
-| ------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| 1. Unit tests: fill, cap at 100%, 90% threshold, over amount, planned €0 | `apps/mobile/test/budgetProgress.test.ts` (slice 1 table); `monthSummary.test.ts` "sums the planned amounts in cents".                                                                                                                                                                                                                           |
-| 2. €50/€120 half-empty, no warning; €108/€120 warning; €132.40 full, over | Web 390×844, Expenses → October:<br>rent "€50 of €120", bar about 42% full, plain background.<br>Groceries "€108 of €120", warning background.<br>Fun "€132.40 of €120", bar full, warning background, "€12.40 over".<br>Screen reader label on fun: "fun, €132.40 of €120 spent, €12.40 over".                                               |
-| 3. Planned €0: empty bar and no warning; with spending, over             | Same screen: gym "€0 of €0", empty bar, plain background. Car "€5 of €0", full bar, warning background, "€5 over".                                                                                                                                                                                                                               |
-| 4. Expenses tab spent of planned; Home Budget planned total or "Not set" | Expenses card: "Spent this month €295.40", "Budget €360". November (no budget): "Budget Not set".<br>Home as claude-qa-034: Budget "€360", Expenses "€295.40".<br>Home as claude-qa-034-empty: Budget "Not set".                                                                                                                              |
-| 5. Figures update after add, edit, delete and a planned-amount change    | Web, starting from the Expenses tab:<br>add €10 to rent → "€60 of €120", total +€10;<br>edit it to €58 → "€108 of €120" with the warning background;<br>delete it → back to "€50"; Undo on the Category screen and back → "€108" again;<br>Budget → rent €200 → Expenses shows "of €200", plain background; Home's Budget card goes up by €80. |
-| 6. Light and dark readable; iPhone (Expo Go)                             | `theme.test.ts` contrast assertions; web checks in rows 2–4 in both themes (Settings → Appearance).<br>The user, on iPhone: the same three rows, the over line, and the card and Home totals; in light mode, note whether the empty part of the bar track (1.15:1 on `warnBg`) is still visible on a warning row.                                                                                                                                                   |
-| 7. Gates green                                                           | `yarn format:check && yarn lint && yarn typecheck && yarn test` on every slice.                                                                                                                                                                                                                                                                  |
+| AC                                                                        | Evidence                                                                                                                                                                                                                                                                                                                                       |
+| ------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1. Unit tests: fill, cap at 100%, 90% threshold, over amount, planned €0  | `apps/mobile/test/budgetProgress.test.ts` (slice 1 table); `monthSummary.test.ts` "sums the planned amounts in cents".                                                                                                                                                                                                                         |
+| 2. €50/€120 half-empty, no warning; €108/€120 warning; €132.40 full, over | Web 390×844, Expenses → October:<br>rent "€50 of €120", bar about 42% full, plain background.<br>Groceries "€108 of €120", warning background.<br>Fun "€132.40 of €120", bar full, warning background, "€12.40 over".<br>Screen reader label on fun: "fun, €132.40 of €120 spent, €12.40 over".                                                |
+| 3. Planned €0: empty bar and no warning; with spending, over              | Same screen: gym "€0 of €0", empty bar, plain background. Car "€5 of €0", full bar, warning background, "€5 over".                                                                                                                                                                                                                             |
+| 4. Expenses tab spent of planned; Home Budget planned total or "Not set"  | Expenses card: "Spent this month €295.40", "Budget €360". November (no budget): "Budget Not set".<br>Home as claude-qa-034: Budget "€360", Expenses "€295.40".<br>Home as claude-qa-034-empty: Budget "Not set".                                                                                                                               |
+| 5. Figures update after add, edit, delete and a planned-amount change     | Web, starting from the Expenses tab:<br>add €10 to rent → "€60 of €120", total +€10;<br>edit it to €58 → "€108 of €120" with the warning background;<br>delete it → back to "€50"; Undo on the Category screen and back → "€108" again;<br>Budget → rent €200 → Expenses shows "of €200", plain background; Home's Budget card goes up by €80. |
+| 6. Light and dark readable; iPhone (Expo Go)                              | `theme.test.ts` contrast assertions; web checks in rows 2–4 in both themes (Settings → Appearance).<br>The user, on iPhone: the same three rows, the over line, and the card and Home totals; in light mode, note whether the empty part of the bar track (1.15:1 on `warnBg`) is still visible on a warning row.                              |
+| 7. Gates green                                                            | `yarn format:check && yarn lint && yarn typecheck && yarn test` on every slice.                                                                                                                                                                                                                                                                |
 
 ## Not doing (YAGNI)
 

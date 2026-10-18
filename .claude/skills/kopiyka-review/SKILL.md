@@ -35,7 +35,8 @@ brief/plan → review anyway, mark spec compliance `UNVERIFIED`.
 3. **Gates on head**: `yarn format:check`, `yarn lint`, `yarn typecheck`,
    `yarn test`. Record results; note if integration tests were skipped.
 4. **Per commit** (`git show <sha>`): one concern each, subject matches
-   the change, no fix-ups of earlier commits that should be squashed, no
+   the change, no fix-ups of earlier commits that should be squashed
+   (commits listed in the plan's `## Consolidate` are expected, not fix-ups), no
    `Co-Authored-By` trailer, mechanical changes separate.
 5. **Blast radius**: for every changed CONTRACT, find dependents not
    touched by the branch (`rg -n "<symbol>|<path>" apps`) and check they
@@ -58,6 +59,11 @@ brief/plan → review anyway, mark spec compliance `UNVERIFIED`.
    - **Simplicity / over-engineering**: unused params/options, abstractions
      with one caller, speculative generality, dependencies an AC didn't
      need, code that could be half as long with the same behaviour.
+   - **Duplication**: new code that re-implements an existing function,
+     hook, component or query (search per
+     `.claude/skills/kopiyka-refactoring/SKILL.md` §8) →
+     Important, fix: reuse it. Check that the LEAVE reasons in the plan's
+     `## Consolidate` still hold.
    - **Tests**: required cases from conventions §6 present; tests assert
      behaviour with exact values; no network; fixed clock; no snapshots;
      UI checks listed for UI-only behaviour.

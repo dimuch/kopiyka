@@ -51,7 +51,9 @@ For each unticked slice, in order:
    - placement (§2) and invariants (§3) hold; names say what things are;
      comments explain _why_;
    - could this be simpler or shorter with the same behaviour? If yes,
-     simplify now (`code-simplification`).
+     simplify now (`code-simplification`);
+   - does new code re-implement an existing helper? Call the existing one
+     (search per `.claude/skills/kopiyka-refactoring/SKILL.md` §8).
 7. **Commit** — stage only this slice's files plus the ticked checkbox in
    `plan.md`:
    ```bash

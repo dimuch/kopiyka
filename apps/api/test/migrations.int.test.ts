@@ -34,6 +34,7 @@ async function oldSchema(last: string): Promise<string> {
     '005_notion_sync.sql',
     '006_notion_totals.sql',
     '007_category_months.sql',
+    '008_months_stand_alone.sql',
   ]) {
     await copyFile(join(MIGRATIONS_DIR, file), join(dir, file));
     if (file === last) break;
@@ -234,8 +235,10 @@ describe.skipIf(!(await testDbReachable()))('008_months_stand_alone (MySQL)', ()
     await addExpense(b, 'car', `${plus(3)}-15`, false);
     await addExpense(b, 'car', `${plus(5)}-15`, true);
 
-    expect(await runMigrations(TEST_DB_URL!)).toEqual(['008_months_stand_alone.sql']);
-    expect(await runMigrations(TEST_DB_URL!)).toEqual([]);
+    // 008 alone: later migrations change its table.
+    await copyFile(join(MIGRATIONS_DIR, '008_months_stand_alone.sql'), join(dir, '008_months_stand_alone.sql'));
+    expect(await runMigrations(TEST_DB_URL!, dir)).toEqual(['008_months_stand_alone.sql']);
+    expect(await runMigrations(TEST_DB_URL!, dir)).toEqual([]);
 
     expect(await own(a.ledgerId, '2000-01')).toEqual([]);
     expect(await own(a.ledgerId, '2026-04')).toEqual([]);
@@ -270,8 +273,74 @@ describe.skipIf(!(await testDbReachable()))('008_months_stand_alone (MySQL)', ()
     );
     expect(Number(seed[0]!.n)).toBe(0);
   });
+});
 
-  it('starts a new ledger with the defaults in its own Kyiv month', async () => {
+describe.skipIf(!(await testDbReachable()))('009_category_month_names (MySQL)', () => {
+  const config = testConfig();
+  let dir: string | undefined;
+  let db: Db | undefined;
+
+  afterAll(async () => {
+    await db?.end();
+    if (dir) await rm(dir, { recursive: true, force: true });
+  });
+
+  it("starts every month's name as its category's name", async () => {
+    // The schema as it was after 008, with two months of rows and one removed there.
+    dir = await oldSchema('008_months_stand_alone.sql');
+    db = createDb(TEST_DB_URL!);
+    const owner = await rawUser(db, config, 'ivanka', [
+      { techName: 'rent', sortOrder: 10 },
+      { techName: 'eating_out', sortOrder: 20 },
+      { techName: 'gym', sortOrder: 30 },
+    ]);
+    await db.query(
+      "UPDATE categories SET display_name = 'Eating Out' WHERE ledger_id = ? AND tech_name = 'eating_out'",
+      [owner.ledgerId],
+    );
+    await db.query(
+      `INSERT INTO category_months (category_id, list_month, deleted_at)
+       SELECT category_id, d, IF(tech_name = 'eating_out' AND d = '2026-10-01', '2026-10-05 10:00:00', NULL)
+         FROM categories, (SELECT '2026-09-01' AS d UNION SELECT '2026-10-01') ds WHERE ledger_id = ?`,
+      [owner.ledgerId],
+    );
+
+    await copyFile(join(MIGRATIONS_DIR, '009_category_month_names.sql'), join(dir, '009_category_month_names.sql'));
+    expect(await runMigrations(TEST_DB_URL!, dir)).toEqual(['009_category_month_names.sql']);
+    expect(await runMigrations(TEST_DB_URL!, dir)).toEqual([]);
+
+    const [rows] = await db.query<RowDataPacket[]>(
+      `SELECT c.tech_name, DATE_FORMAT(m.list_month, '%Y-%m') AS month, m.display_name,
+              DATE_FORMAT(m.deleted_at, '%Y-%m-%d %H:%i:%s') AS deleted_at
+         FROM category_months m JOIN categories c ON c.category_id = m.category_id
+        ORDER BY m.list_month, c.sort_order`,
+    );
+    expect(rows).toEqual(
+      ['2026-09', '2026-10'].flatMap((month) => [
+        { tech_name: 'rent', month, display_name: 'rent', deleted_at: null },
+        {
+          tech_name: 'eating_out',
+          month,
+          display_name: 'Eating Out',
+          deleted_at: month === '2026-10' ? '2026-10-05 10:00:00' : null,
+        },
+        { tech_name: 'gym', month, display_name: 'gym', deleted_at: null },
+      ]),
+    );
+
+    // Code from before 037 doesn't know the column: its rows store '' (reads fall back to the category's name).
+    await db.query(
+      `INSERT INTO category_months (category_id, list_month)
+       SELECT category_id, '2026-11-01' FROM categories WHERE ledger_id = ?`,
+      [owner.ledgerId],
+    );
+    const [blank] = await db.query<RowDataPacket[]>(
+      "SELECT DISTINCT display_name FROM category_months WHERE list_month = '2026-11-01'",
+    );
+    expect(blank).toEqual([{ display_name: '' }]);
+  });
+
+  it('starts a new ledger with the defaults, named, in its own Kyiv month', async () => {
     // 1 November, 00:30 in Kyiv.
     const later = await createUserWithLedger(
       db!,
@@ -280,11 +349,13 @@ describe.skipIf(!(await testDbReachable()))('008_months_stand_alone (MySQL)', ()
       new Date('2026-10-31T22:30:00Z'),
     );
     const [seeded] = await db!.query<RowDataPacket[]>(
-      `SELECT DATE_FORMAT(m.list_month, '%Y-%m-%d') AS list_month, m.deleted_at
-         FROM category_months m JOIN categories c ON c.category_id = m.category_id WHERE c.ledger_id = ?`,
+      `SELECT DATE_FORMAT(m.list_month, '%Y-%m-%d') AS list_month, m.deleted_at, m.display_name
+         FROM category_months m JOIN categories c ON c.category_id = m.category_id
+        WHERE c.ledger_id = ? ORDER BY c.sort_order`,
       [later.ledgerId],
     );
     expect(seeded).toHaveLength(15);
     expect(new Set(seeded.map((r) => `${r.list_month}/${r.deleted_at}`))).toEqual(new Set(['2026-11-01/null']));
+    expect(seeded.map((r) => r.display_name)).toEqual(DEFAULT_CATEGORIES.map((c) => c.displayName));
   });
 });

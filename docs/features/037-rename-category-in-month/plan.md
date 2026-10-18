@@ -189,7 +189,7 @@ Alternatives considered:
 
 ## Slices
 
-- [ ] 1. Store each category's name per month, starting from its current name
+- [x] 1. Store each category's name per month, starting from its current name
   - Files:
     - `apps/api/migrations/009_category_month_names.sql` (new);
     - `apps/api/src/admin.ts`;

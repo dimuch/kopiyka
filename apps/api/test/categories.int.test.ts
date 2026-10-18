@@ -520,6 +520,22 @@ describe.skipIf(!(await testDbReachable()))('categories API (MySQL)', () => {
   });
 
   describe('restore to a month', () => {
+    it("refuses to bring back a name another category took meanwhile, until it's free again", async () => {
+      const eatingOut = await idOf('eating_out');
+      const lunch = await addSpend('eating_out', '2026-10-03', '15.00');
+      expect((await removeFrom(eatingOut)).statusCode).toBe(204);
+      expect((await rename(await idOf('gym'), auth, owner.ledgerId, '2026-10', 'Eating Out')).statusCode).toBe(204);
+
+      const refused = await restoreTo(eatingOut);
+      expect([refused.statusCode, refused.json()]).toEqual([409, { error: 'name_taken' }]);
+      expect(await listOf('2026-10')).not.toContain('eating_out');
+      expect((await expense('GET', lunch)).statusCode).toBe(404);
+
+      expect((await rename(await idOf('gym'), auth, owner.ledgerId, '2026-10', 'gym')).statusCode).toBe(204);
+      expect((await restoreTo(eatingOut)).statusCode).toBe(204);
+      expect((await expense('GET', lunch)).statusCode).toBe(200);
+    });
+
     it('brings back exactly what that removal took', async () => {
       const eatingOut = await idOf('eating_out');
       const a = await addSpend('eating_out', '2026-10-01', '20.00');

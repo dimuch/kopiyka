@@ -296,7 +296,7 @@ Alternatives considered:
     - **Guards:** add `['rename in month', rename]` to the `describe.each` guards table, for 401, the non-member 404
       and 400 for a non-numeric id.
 
-- [ ] 4. Refuse an Undo that would bring back a name now taken in that month
+- [x] 4. Refuse an Undo that would bring back a name now taken in that month
   - Files: `apps/api/src/categories/monthLists.ts` (`restoreToMonth`), `apps/api/src/categories/routes.ts` (the
     restore route), `apps/api/test/categories.int.test.ts`.
   - Change: as in Contracts (Decision 2). About 35 lines.

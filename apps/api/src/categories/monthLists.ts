@@ -15,6 +15,15 @@ export function inMonthList(date: '?' | 'e.expense_date'): string {
                      AND m.list_month = DATE_FORMAT(${date}, '%Y-%m-01'))`;
 }
 
+/**
+ * SQL naming category `c` in a month (brief 037): the name on its row with the latest list_month on or before the
+ * month, removed or not; '' (a row written before 037) or no row falls back to categories.display_name. The month's
+ * first day ('YYYY-MM-01') is the next param.
+ */
+export const NAME_IN_MONTH = `COALESCE(NULLIF((SELECT m.display_name FROM category_months m
+                                                 WHERE m.category_id = c.category_id AND m.list_month <= ?
+                                                 ORDER BY m.list_month DESC LIMIT 1), ''), c.display_name)`;
+
 /** One list change per ledger at a time: a check and the write after it see the same list. */
 async function lockLedger(conn: PoolConnection, ledgerId: number): Promise<void> {
   await conn.query('SELECT ledger_id FROM ledgers WHERE ledger_id = ? FOR UPDATE', [ledgerId]);

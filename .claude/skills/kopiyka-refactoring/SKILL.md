@@ -1,6 +1,6 @@
 ---
 name: kopiyka-refactoring
-description: The kopiyka rules for changing code structure without changing behaviour — the behaviour-preservation contract, how to prove it per slice, the smell catalogue mapped to this repo, naming and readability rules (descriptive names instead of single letters in loops and callbacks), and what not to "improve". Use when planning, building or reviewing a refactor in the kopiyka monorepo, from /kopiyka-hos-refactoring, or when a cleanup is proposed during feature work.
+description: The kopiyka rules for changing code structure without changing behaviour — the behaviour-preservation contract, how to prove it per slice, the smell catalogue mapped to this repo, naming and readability rules (descriptive names instead of single letters in loops and callbacks), what not to "improve", and the post-feature consolidation pass (reuse or extract instead of a second copy of the same logic). Use when planning, building or reviewing a refactor in the kopiyka monorepo, from /kopiyka-hos-refactoring, or when a cleanup is proposed during feature work.
 ---
 
 # Kopiyka refactoring
@@ -43,9 +43,10 @@ refactor: stop and route it through `/kopiyka-hos` with its own brief.
 3. **Existing tests stay as they are.** A refactor slice may touch a test file
    only for a mechanical rename/move of an imported symbol. Changed assertions,
    deleted cases, new `skip` → the slice changed behaviour or the test was
-   wrong; either way, stop and report.
+   wrong; either way, stop and report. (One exception, for duplicates a
+   feature branch added: §8 "Do it safely".)
 4. **Same proof after.** Every slice ends with all gates green and the same
-   test count or more. UI-touching slices also get the web check at phone
+   test count or more (or fewer by exactly the cases §8 drops). UI-touching slices also get the web check at phone
    width from `kopiyka-develop` step 5.
 
 ## 3. Smells worth fixing here (and their kopiyka-shaped fix)
@@ -162,3 +163,79 @@ eye. Vague names (`data`, `item`, `tmp`) and missing units still need a human.
 - A rename that also changes logic in the same hunk.
 - A diff that touches files the plan didn't list.
 - The refactored version is longer and you can't say what got clearer.
+
+## 8. Consolidate after a feature (no second copy of the same logic)
+
+Run by `/kopiyka-hos` Phase 3a on a finished feature branch. The goal is
+narrow: code this branch added should not re-implement something the repo
+already has, or repeat itself across slices. It is not a general cleanup.
+
+### Find the twins
+
+1. List what the branch added in source (tests and migrations are noise here):
+
+   ```bash
+   git diff origin/main...HEAD -U0 -- apps/api/src apps/mobile/src \
+     | grep -E '^\+.*(function |const [A-Za-z]+(: [^=]+)? = (\(|async|use[A-Z]|memo\()|export |(type|interface) [A-Z]|app\.(get|post|put|patch|delete)\(|SELECT|INSERT|UPDATE|DELETE|z\.object|StyleSheet\.create)'
+   ```
+
+   It shows only the first line of a multi-line SQL string: open each changed
+   query and read its `JOIN`s and `WHERE` (ledger scope, `deleted_at IS NULL`,
+   month list) — that's what you compare.
+
+2. Read the exports of the modules where shared code lives, and match each
+   new piece against them by what it does, not by name:
+
+   | Area                | Read the exports of                                                                                                 |
+   | ------------------- | ------------------------------------------------------------------------------------------------------------------- |
+   | money, dates (API)  | `apps/api/src/money.ts`, `apps/api/src/dates.ts`                                                                    |
+   | money, dates (app)  | `apps/mobile/src/format.ts`                                                                                         |
+   | SQL and access      | the domain's own `routes.ts` / `service.ts` / `<concern>.ts` — e.g. `categories/monthLists.ts`, `ledgers/access.ts` |
+   | Zod params / bodies | sibling routes in the same domain (`ExpenseParams`)                                                                 |
+   | app data and states | `apps/mobile/src/data/`, `apps/mobile/src/components/` (e.g. `useCategoryTotals` + `CategoryInMonth`, PR #48)       |
+   | styles              | sibling components' `makeStyles`; colours only from `theme.ts`                                                      |
+
+3. Compare the branch's own slices with each other: two slices that each wrote
+   the same mapping or check is the most common twin.
+
+### Decide: REUSE, EXTRACT or LEAVE
+
+- **REUSE** — an existing function, hook or component already does it →
+  replace the new copy with a call. Do it even for two copies: the existing
+  one is tested and named.
+- **EXTRACT** — the same logic now appears a **third** time inside one domain
+  (conventions §1, rule of three), or a **second** time as pure logic in
+  `app/**` screens (conventions §2: move it to `format.ts` / `data/` once
+  reused) → one named function where conventions §2 puts it, all copies call it.
+  Copies that already existed on main may be switched to the new function
+  (call-site swap only); never change an existing export's signature or
+  behaviour here.
+- **LEAVE** — and say why:
+  - only two copies outside screens, and neither is existing shared code;
+  - across the API/app boundary (`money.ts` bigint vs `format.ts` number,
+    DTO mirrors) — different runtimes on purpose;
+  - per-screen by convention (`errorText` maps codes to text at each screen);
+  - looks alike but differs in units, rounding, Kyiv-date handling, scope
+    (ledger, soft delete) or edge cases — merging them would change behaviour.
+
+### Do it safely
+
+- One commit per REUSE or EXTRACT, one kind of change each, gates green,
+  `.claude/skills/kopiyka-refactoring/scripts/find-short-names.sh --diff origin/main`
+  clean on touched lines. Subject names the reuse ("Reuse toCents for planned
+  totals", "Share the category scope check across the month routes").
+- Tests: every test stays unmodified **except** the tests of a helper this
+  branch added and this commit deletes. Move each of their cases that the
+  existing function's tests don't already cover into those tests (same
+  inputs, same expected values) and drop the rest; the test count may fall by
+  exactly those dropped cases. Never edit an expected value to make it fit —
+  that means the twins differ: LEAVE.
+- Budget: the whole pass stays under ~100 changed lines. Over budget, or a
+  twin that needs a signature or behaviour change → `## Follow-ups` and a
+  `/kopiyka-hos-refactoring` brief. These commits are **consolidate
+  deviations**: they don't need a mini Gate A, unlike material deviations in
+  `kopiyka-develop`.
+- Write the result into the plan's `## Consolidate` section in the first
+  consolidate commit (or as a plan-only commit when nothing changes): the
+  `CONSOLIDATE:` line, one line per REUSE/EXTRACT, and every LEAVE with its
+  reason. Resume and the reviewer read it from there.

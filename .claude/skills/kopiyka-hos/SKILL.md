@@ -1,6 +1,6 @@
 ---
 name: kopiyka-hos
-description: High Order Skill (orchestrator) for building features in the kopiyka repo from a local brief file instead of a ticket. Takes a .md/.txt brief (or a short inline description), then runs planner → skeptic plan approval → human approval → incremental build with atomic tested commits → pre-push PR review → human approval → push and PR. Use when the user runs /kopiyka-hos, points at a docs/features brief, or asks to start, resume or ship a kopiyka feature.
+description: High Order Skill (orchestrator) for building features in the kopiyka repo from a local brief file instead of a ticket. Takes a .md/.txt brief (or a short inline description), then runs planner → skeptic plan approval → human approval → incremental build with atomic tested commits → consolidation pass that removes duplicated logic → pre-push PR review → human approval → push and PR. Use when the user runs /kopiyka-hos, points at a docs/features brief, or asks to start, resume or ship a kopiyka feature.
 ---
 
 # HOS: kopiyka feature flow
@@ -15,6 +15,7 @@ brief ─► 1 PLAN (kopiyka-planner) ─► 2 SKEPTIC (kopiyka-plan-skeptic) �
           └────────────────────────────────────────────────────────────┘
       ─► ⛔ GATE A: user approves plan
       ─► 3 BUILD (kopiyka-develop, slice → gates → commit)
+      ─► 3a CONSOLIDATE (kopiyka-refactoring §8: find twins → reuse / extract / leave)
       ─► 4 REVIEW (kopiyka-reviewer) ─► fix ─► re-review (≤3 rounds)
       ─► 5 SELF-CHECK ─► ⛔ GATE B: user approves push ─► 6 SHIP (push + PR)
 ```
@@ -112,10 +113,27 @@ line to the user (slice n/N, sha, subject, what was verified). Without
   skeptic re-checks only the delta; user approves the delta (mini Gate A).
 - Follow-ups found on the way → `## Follow-ups` in the plan, not code.
 
+## Phase 3a — Consolidate (refactor loop)
+
+The feature works; now make sure it didn't add a second copy of logic the
+repo already has. Follow `.claude/skills/kopiyka-refactoring/SKILL.md` §8 on
+`origin/main...HEAD`: loop over every new function, hook, component, route
+and query, find its twin, and decide **REUSE** / **EXTRACT** / **LEAVE**.
+
+- Each REUSE or EXTRACT is its own behaviour-preserving commit under §8's
+  test and budget rules; the result goes in the plan's `## Consolidate`.
+- One pass over the list. Phase 4's duplication axis is the backstop for
+  anything missed; bigger cleanups become a `/kopiyka-hos-refactoring` brief.
+- Skip it, saying so in one line, when the branch adds no new function,
+  hook, component, route or query (copy or docs changes only).
+
+Report one line: `CONSOLIDATE: reused <n> · extracted <n> · left <n> (<why>)`.
+
 ## Phase 4 — Pre-push review
 
 1. Spawn a **fresh** `kopiyka-reviewer` with base `origin/main`, head
-   `HEAD`, brief and plan paths.
+   `HEAD`, brief and plan paths (the plan's `## Consolidate` holds the
+   Phase 3a result and its LEAVE reasons).
 2. For each Critical and Important: fix it as a new atomic commit
    (`Fix <what> found in review` or a precise subject), or — only if you
    can argue it's wrong — record `DISPUTED: <reason>` for the user. Cheap
@@ -142,6 +160,7 @@ Before Gate B, answer honestly, in the report:
 ```
 READY TO PUSH: feat/<slug> — <n> commits, +<a>/−<d>
 GATES: format ✔ lint ✔ typecheck ✔ tests ✔ (integration ran: yes/no)
+CONSOLIDATE: reused <n> · extracted <n> · left <n> | skipped (<why>)
 REVIEW: <verdict> after <k> rounds — open nits: <n>, disputed: <n>
 AC EVIDENCE: <AC → test/check>
 SELF-CHECK: <2–4 lines>

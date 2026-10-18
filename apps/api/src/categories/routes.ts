@@ -157,9 +157,11 @@ export async function categoryRoutes(app: FastifyInstance, { db, now }: AppDeps)
   app.post('/api/ledgers/:id/categories/:categoryId/months/:month/restore', guards, async (req, reply) => {
     const { categoryId, month } = MonthParams.parse(req.params);
     if (monthEnded(month, now())) return reply.code(409).send({ error: 'month_ended' });
-    return (await restoreToMonth(db, req.ledger!.ledgerId, categoryId, month))
-      ? reply.code(204).send()
-      : reply.code(404).send({ error: 'not_found' });
+    const result = await restoreToMonth(db, req.ledger!.ledgerId, categoryId, month);
+    if (result === 'not_found') return reply.code(404).send({ error: 'not_found' });
+    // The request is fine; the month's current names clash with it (brief 037).
+    if (result === 'name_taken') return reply.code(409).send({ error: 'name_taken' });
+    return reply.code(204).send();
   });
 
   // Brief 036. An ended month is read-only, so it's refused before anything is read.

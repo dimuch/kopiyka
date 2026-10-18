@@ -96,6 +96,7 @@ Alternative considered: <one line + why not>.
 - DB: <migration NNN_name.sql: table/columns/types/indexes | none>
 - API: <METHOD /api/... → 2xx body; errors: code→status | none>
 - App: <types, hook signature, component props, routes | none>
+- Reuses: <existing functions, hooks, components the slices call instead of rewriting (`.claude/skills/kopiyka-refactoring/SKILL.md` §8) | none>
 - New dependencies: <name@range — why — or none>
 
 ## Slices
@@ -131,6 +132,10 @@ Alternative considered: <one line + why not>.
 ## Deviations
 
 <filled by the developer during build>
+
+## Consolidate
+
+<filled in /kopiyka-hos Phase 3a: CONSOLIDATE line, each reuse/extract, each LEAVE + reason>
 ```
 
 ## Approval checklist (the skeptic enforces this; self-check first)
@@ -169,6 +174,8 @@ complexity, naming that conventions don't decide.
 ## Red flags
 
 - A slice named "refactor", "cleanup" or "polish" with no AC behind it.
+- A new helper, hook or query that does what an existing one already does
+  (search per `.claude/skills/kopiyka-refactoring/SKILL.md` §8 before planning it).
 - "Add tests" as a separate final slice.
 - New package, state library, generic `utils`, or config option "for later".
 - Contracts described as "TBD" or "similar to X".

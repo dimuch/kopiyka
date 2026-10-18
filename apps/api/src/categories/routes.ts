@@ -9,6 +9,7 @@ import {
   inMonthList,
   NAME_IN_MONTH,
   removeFromMonth,
+  renameInMonth,
   restoreToMonth,
   setPlanned,
 } from './monthLists.js';
@@ -44,6 +45,8 @@ const CategoryParams = z.object({ categoryId: z.coerce.number().int().positive()
  */
 const Month = z.object({ month: z.string().regex(MONTH_RE, 'expected YYYY-MM') });
 const MonthParams = CategoryParams.extend(Month.shape);
+// 1–40 characters after trimming (brief 037).
+const NameBody = z.object({ name: z.string().trim().min(1).max(40) });
 // Money crosses the wire as decimal strings; €0 is a plan.
 const PlannedBody = z.object({ amount: z.string().regex(AMOUNT_RE, 'expected an amount ≥ 0, 2 decimals at most') });
 
@@ -167,6 +170,17 @@ export async function categoryRoutes(app: FastifyInstance, { db, now }: AppDeps)
     return (await setPlanned(db, req.ledger!.ledgerId, categoryId, month, amount))
       ? reply.code(204).send()
       : reply.code(404).send({ error: 'not_found' });
+  });
+
+  // Brief 037. An ended month is read-only, so it's refused before anything is read.
+  app.put('/api/ledgers/:id/categories/:categoryId/months/:month/name', guards, async (req, reply) => {
+    const { categoryId, month } = MonthParams.parse(req.params);
+    const { name } = NameBody.parse(req.body);
+    if (monthEnded(month, now())) return reply.code(409).send({ error: 'month_ended' });
+    const result = await renameInMonth(db, req.ledger!.ledgerId, categoryId, month, name);
+    if (result === 'not_found') return reply.code(404).send({ error: 'not_found' });
+    if (result === 'name_taken') return reply.code(400).send({ error: 'name_taken' });
+    return reply.code(204).send();
   });
 
   // Brief 033: sets up a month with no budget from the month before it.

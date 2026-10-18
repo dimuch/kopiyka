@@ -63,6 +63,23 @@ describe.skipIf(!(await testDbReachable()))('categories API (MySQL)', () => {
       headers,
     });
 
+  const copy = (month: string, headers: Record<string, string> = auth, ledgerId = owner.ledgerId) =>
+    app.inject({ method: 'POST', url: `/api/ledgers/${ledgerId}/months/${month}/copy`, headers });
+
+  const rename = (
+    categoryId: number | string,
+    headers: Record<string, string> = auth,
+    ledgerId = owner.ledgerId,
+    month = '2026-10',
+    name: unknown = 'food out',
+  ) =>
+    app.inject({
+      method: 'PUT',
+      url: `/api/ledgers/${ledgerId}/categories/${categoryId}/months/${month}/name`,
+      payload: { name },
+      headers,
+    });
+
   const plan = (
     categoryId: number | string,
     headers: Record<string, string> = auth,
@@ -583,8 +600,6 @@ describe.skipIf(!(await testDbReachable()))('categories API (MySQL)', () => {
       expect((await namesIn('2026-09')).eating_out).toBe('eating out');
     });
 
-    const copy = (month: string, headers: Record<string, string> = auth, ledgerId = owner.ledgerId) =>
-      app.inject({ method: 'POST', url: `/api/ledgers/${ledgerId}/months/${month}/copy`, headers });
     const monthRows = async () => {
       const [rows] = await db.query<RowDataPacket[]>('SELECT COUNT(*) AS n FROM category_months');
       return Number(rows[0]!.n);
@@ -804,11 +819,125 @@ describe.skipIf(!(await testDbReachable()))('categories API (MySQL)', () => {
     });
   });
 
+  describe('rename in a month', () => {
+    it('renames it in that month only', async () => {
+      await addSpend('car', '2026-10-02', '60.00');
+      const eatingOut = await idOf('eating_out');
+      expect((await rename(eatingOut, auth, owner.ledgerId, '2026-10', '  food out  ')).statusCode).toBe(204);
+
+      expect((await namesIn('2026-10')).eating_out).toBe('food out');
+      expect((await namesIn('2026-09')).eating_out).toBe('eating out');
+      expect((await one(`${eatingOut}?month=2026-10`)).json()).toMatchObject({
+        displayName: 'food out',
+        techName: 'eating_out',
+      });
+      const [[category]] = await db.query<RowDataPacket[]>(
+        'SELECT tech_name, display_name FROM categories WHERE category_id = ?',
+        [eatingOut],
+      );
+      expect(category).toEqual({ tech_name: 'eating_out', display_name: 'eating out' });
+
+      // Notion matches on tech_name, so a rename changes nothing it sends.
+      expect((await rename(await idOf('car'), auth, owner.ledgerId, '2026-10', 'auto')).statusCode).toBe(204);
+      expect((await loadUncounted(db, { ledgerId: owner.ledgerId, year: 2026 })).map((e) => e.techName)).toEqual([
+        'car',
+      ]);
+
+      // Its own name in another case is fine.
+      expect((await rename(await idOf('rent'), auth, owner.ledgerId, '2026-10', 'Rent')).statusCode).toBe(204);
+      expect((await namesIn('2026-10')).rent).toBe('Rent');
+    });
+
+    it("a later copy takes the source month's names and stays apart", async () => {
+      const eatingOut = await idOf('eating_out');
+      expect((await rename(eatingOut)).statusCode).toBe(204);
+      expect((await copy('2026-11')).statusCode).toBe(204);
+      expect((await namesIn('2026-11')).eating_out).toBe('food out');
+
+      expect((await rename(eatingOut, auth, owner.ledgerId, '2026-11', 'restaurants')).statusCode).toBe(204);
+      expect((await namesIn('2026-10')).eating_out).toBe('food out');
+      expect((await namesIn('2026-11')).eating_out).toBe('restaurants');
+    });
+
+    it('rejects an empty or too long name, changing nothing', async () => {
+      const gym = await idOf('gym');
+      for (const name of ['', '   ', 'x'.repeat(41), 123, null]) {
+        const res = await rename(gym, auth, owner.ledgerId, '2026-10', name);
+        expect([res.statusCode, res.json()], String(name)).toMatchObject([400, { error: 'invalid_request' }]);
+      }
+      const noBody = await app.inject({
+        method: 'PUT',
+        url: `/api/ledgers/${owner.ledgerId}/categories/${gym}/months/2026-10/name`,
+        headers: auth,
+      });
+      expect(noBody.statusCode).toBe(400);
+      expect((await rename(gym, auth, owner.ledgerId, '2026-13')).json()).toMatchObject({ error: 'invalid_request' });
+      expect((await namesIn('2026-10')).gym).toBe('gym');
+
+      expect((await rename(gym, auth, owner.ledgerId, '2026-10', 'x'.repeat(40))).statusCode).toBe(204);
+    });
+
+    it('refuses a name another category has in that month, ignoring case and accents', async () => {
+      const gym = await idOf('gym');
+      for (const name of ['RENT', 'Grocéries']) {
+        const res = await rename(gym, auth, owner.ledgerId, '2026-10', name);
+        expect([res.statusCode, res.json()], name).toEqual([400, { error: 'name_taken' }]);
+      }
+      expect((await namesIn('2026-10')).gym).toBe('gym');
+
+      // A row without a name of its own (written before 037) still blocks its category's name.
+      await db.query(
+        `INSERT INTO category_months (category_id, list_month)
+         SELECT category_id, '2026-11-01' FROM categories WHERE ledger_id = ?`,
+        [owner.ledgerId],
+      );
+      expect((await rename(gym, auth, owner.ledgerId, '2026-11', 'rent')).json()).toEqual({ error: 'name_taken' });
+      expect((await rename(gym, auth, owner.ledgerId, '2026-11', 'food')).statusCode).toBe(204);
+
+      // A removed row doesn't block.
+      expect((await removeFrom(await idOf('eating_out'))).statusCode).toBe(204);
+      expect((await rename(gym, auth, owner.ledgerId, '2026-10', 'eating out')).statusCode).toBe(204);
+
+      // Another month's name doesn't block.
+      const rent = await idOf('rent');
+      expect((await rename(rent, auth, owner.ledgerId, '2026-11', 'housing')).statusCode).toBe(204);
+      expect((await rename(await idOf('car'), auth, owner.ledgerId, '2026-11', 'rent')).statusCode).toBe(204);
+      expect((await namesIn('2026-10')).rent).toBe('rent');
+    });
+
+    it("answers 404 for a category not in that month's list, changing nothing", async () => {
+      const stranger = await makeUser(db, config, 'stranger');
+      expect((await removeFrom(await idOf('eating_out'))).statusCode).toBe(204);
+      // Deleted before brief 028, the only way such a category exists now.
+      await db.query('UPDATE categories SET deleted_at = ? WHERE category_id = ?', [clock, await idOf('groceries')]);
+
+      for (const [id, month] of [
+        [await idOf('eating_out'), '2026-10'], // removed there
+        [await idOf('rent'), '2026-12'], // the month has no budget
+        [await idOf('groceries'), '2026-10'],
+        [999_999, '2026-10'],
+        [await idOf('rent', stranger.ledgerId), '2026-10'],
+      ] as const) {
+        expect((await rename(id, auth, owner.ledgerId, month)).json(), `${id} ${month}`).toEqual({
+          error: 'not_found',
+        });
+      }
+      expect((await namesIn('2026-10')).rent).toBe('rent');
+    });
+
+    it('refuses a month that has ended in Kyiv, changing nothing', async () => {
+      const res = await rename(await idOf('rent'), auth, owner.ledgerId, '2026-09');
+      expect([res.statusCode, res.json()]).toEqual([409, { error: 'month_ended' }]);
+      expect((await namesIn('2026-09')).rent).toBe('rent');
+    });
+  });
+
   describe.each([
     ['GET one', one],
     ['remove from month', removeFrom],
     ['restore to month', restoreTo],
     ['set planned amount', plan],
+    ['rename in month', rename],
   ])('%s guards', (_name, call) => {
     it('needs a session, a ledger of mine and a numeric id', async () => {
       const id = await idOf('rent');

@@ -1,9 +1,14 @@
-import type { Expense } from '@/api/types';
+import type { Category, Expense } from '@/api/types';
 import { toCents } from '@/format';
 
 /** Sum of one amount column over `expenses`, in integer cents. */
 export function sumCents(expenses: Expense[], field: 'amountEur' | 'amountUah'): number {
   return expenses.reduce((sum, e) => sum + toCents(e[field]), 0);
+}
+
+/** The month's planned EUR over `categories`, in integer cents. */
+export function plannedCents(categories: Category[]): number {
+  return categories.reduce((sum, c) => sum + toCents(c.plannedEur), 0);
 }
 
 /** '0 expenses', '1 expense', '23 expenses'. */

@@ -24,8 +24,11 @@ export const NAME_IN_MONTH = `COALESCE(NULLIF((SELECT m.display_name FROM catego
                                                  WHERE m.category_id = c.category_id AND m.list_month <= ?
                                                  ORDER BY m.list_month DESC LIMIT 1), ''), c.display_name)`;
 
-/** A month row's effective name: its own, or its category's when it has none (''). Aliases `m` and `c`. */
-const ROW_NAME = `COALESCE(NULLIF(m.display_name, ''), c.display_name)`;
+/**
+ * A month row's effective name: its own, or its category's when it has none (''). Aliases `m` and `c`. The collation
+ * is explicit because categories.display_name takes the server's default, which may differ from the column's.
+ */
+const ROW_NAME = `COALESCE(NULLIF(m.display_name, ''), c.display_name) COLLATE utf8mb4_0900_ai_ci`;
 
 /**
  * True when another live category of the ledger is called `name` in the month (first day), ignoring case and

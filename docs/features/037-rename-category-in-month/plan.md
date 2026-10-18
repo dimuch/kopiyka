@@ -329,7 +329,7 @@ The two app ACs map to brief 040; this PR has no UI change.
 
 ## Later part (brief 040, app, outline)
 
-Brief 040 still has to be written; this plan doesn't create it. It is built from `main` after this PR merges, and its
+Brief 040 is `../040-rename-category-in-app/brief.md` (added with this plan). It is built from `main` after this PR merges, and its
 own plan may change details.
 
 - **A `/rename-category?categoryId=&month=` modal** (`apps/mobile/src/app/rename-category.tsx`), registered in
@@ -415,11 +415,9 @@ own plan may change details.
   Assumed fine.
 - **No: `GET one` for a month where the category was removed shows that month's (removed) row's name.** That's the
   name its Undo would bring back.
-- **No: brief 040 still has to be written,** with 037's two app ACs. Assumption meanwhile: the outline above.
 
 ## Follow-ups
 
-- Write brief 040 (rename in the app) with 037's app ACs, and point 037's brief at it when this PR merges.
 - Conventions §3 could add "a category's name is per month (`category_months.display_name`, brief 037)", next to
   033's proposed "nothing carries over" note. This is a proposal, not a slice.
 - The Undo bar could explain a refusal ("Another category is called “eating out” now"), if `name_taken` turns out to
@@ -428,6 +426,12 @@ own plan may change details.
 - 033's and 035's follow-ups stand: `linkParams.ts`'s `MONTH_RE` accepting `9999-12`.
 
 ## Deviations
+
+- Size: ~423 code and test lines against ~335 (1.26×), from fuller tests.
+- Tests: the name helper is `namesIn` (added in slice 2, used by slice 3) instead of slice 3's `nameOf`; the "another
+  month's name doesn't block" case uses rent → housing and car → rent in November.
+- Review: `ROW_NAME` declares `COLLATE utf8mb4_0900_ai_ci`, so the uniqueness check doesn't depend on
+  `categories.display_name` having the same collation as the new column (production's default may differ).
 
 ## Revision 1 (user decisions, 2026-10-18)
 

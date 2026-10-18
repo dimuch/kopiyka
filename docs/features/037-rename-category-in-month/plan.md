@@ -221,7 +221,7 @@ Alternatives considered:
 
     - The existing copy cases in `categories.int.test.ts` keep passing.
 
-- [ ] 2. Show each category under its name in the month asked for
+- [x] 2. Show each category under its name in the month asked for
   - Files:
     - `apps/api/src/categories/monthLists.ts` (`NAME_IN_MONTH`);
     - `apps/api/src/categories/routes.ts` (list and GET one SQL and params, JSDoc);

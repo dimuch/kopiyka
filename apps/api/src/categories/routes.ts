@@ -4,13 +4,21 @@ import { z } from 'zod';
 import type { AppDeps } from '../app.js';
 import { MONTH_RE, monthEnded, nextMonthStart } from '../dates.js';
 import { AMOUNT_RE } from '../money.js';
-import { copyPreviousMonth, inMonthList, removeFromMonth, restoreToMonth, setPlanned } from './monthLists.js';
+import {
+  copyPreviousMonth,
+  inMonthList,
+  NAME_IN_MONTH,
+  removeFromMonth,
+  restoreToMonth,
+  setPlanned,
+} from './monthLists.js';
 
 export const QUICK_CATEGORY_COUNT = 5;
 
 export interface CategoryDto {
   categoryId: number;
   techName: string;
+  /** The month's name (brief 037). */
   displayName: string;
   sortOrder: number;
   /** The month's planned EUR (brief 036): a decimal string ≥ 0, '0.00' when none is set. */
@@ -72,7 +80,8 @@ export async function categoryRoutes(app: FastifyInstance, { db, now }: AppDeps)
     const { month } = Month.parse(req.query);
     const first = `${month}-01`;
     const [rows] = await db.query<RowDataPacket[]>(
-      `SELECT c.category_id, c.tech_name, c.display_name, c.sort_order, COALESCE(b.planned_eur, 0) AS planned_eur,
+      `SELECT c.category_id, c.tech_name, ${NAME_IN_MONTH} AS display_name, c.sort_order,
+              COALESCE(b.planned_eur, 0) AS planned_eur,
               u.last_used_at
            FROM categories c
            LEFT JOIN category_budgets b ON b.category_id = c.category_id AND b.budget_month = ?
@@ -84,7 +93,7 @@ export async function categoryRoutes(app: FastifyInstance, { db, now }: AppDeps)
            ) u ON u.category_id = c.category_id
           WHERE c.ledger_id = ? AND c.deleted_at IS NULL AND ${inMonthList('?')}
           ORDER BY c.sort_order, c.category_id`,
-      [first, req.ledger!.ledgerId, first],
+      [first /* name */, first /* b */, req.ledger!.ledgerId, first /* inMonthList */],
     );
 
     const categories = rows.map(toDto);
@@ -101,7 +110,8 @@ export async function categoryRoutes(app: FastifyInstance, { db, now }: AppDeps)
     // A category the month lacks is still named (the app says it isn't in that month). Its counts are 0: no live
     // expense can sit in a month whose list lacks its category.
     const [rows] = await db.query<RowDataPacket[]>(
-      `SELECT c.category_id, c.tech_name, c.display_name, c.sort_order, ${inMonthList('?')} AS in_month,
+      `SELECT c.category_id, c.tech_name, ${NAME_IN_MONTH} AS display_name, c.sort_order,
+              ${inMonthList('?')} AS in_month,
               COALESCE(b.planned_eur, 0) AS planned_eur,
               COUNT(e.expense_id) AS expense_count, COALESCE(SUM(e.amount_eur), 0) AS total_eur
          FROM categories c
@@ -110,7 +120,15 @@ export async function categoryRoutes(app: FastifyInstance, { db, now }: AppDeps)
                              AND e.expense_date >= ? AND e.expense_date < ?
         WHERE c.category_id = ? AND c.ledger_id = ? AND c.deleted_at IS NULL
         GROUP BY c.category_id`,
-      [first, first, first, nextMonthStart(month), categoryId, req.ledger!.ledgerId],
+      [
+        first /* name */,
+        first /* in_month */,
+        first /* b */,
+        first,
+        nextMonthStart(month),
+        categoryId,
+        req.ledger!.ledgerId,
+      ],
     );
     const r = rows[0];
     if (!r) return reply.code(404).send({ error: 'not_found' });

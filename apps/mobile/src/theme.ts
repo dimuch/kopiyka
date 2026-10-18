@@ -12,6 +12,8 @@ export const darkColors = {
   accent: '#7CB0FF',
   onAccent: '#0E1013',
   over: '#FFA65C',
+  /** Row background at ≥ 90% of plan; row text keeps ≥ 4.5:1 on it. */
+  warnBg: '#2A2117',
   danger: '#FF8A80',
   /** Selected chips and the "Added" note. */
   accentTint: '#16233A',
@@ -39,6 +41,7 @@ export const lightColors: Palette = {
   accent: '#1F5FD1',
   onAccent: '#FFFFFF',
   over: '#B25E09',
+  warnBg: '#FFF4E6',
   danger: '#C23B31',
   accentTint: '#E4EEFF',
   accentLine: '#A9C6F5',

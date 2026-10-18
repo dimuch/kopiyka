@@ -118,7 +118,7 @@ duplicate that and add a route change, with its integration tests, that no AC ne
     `['120.50', '0.00', '0.10', '0.20']` gives 12080 (exact, with the 0.1 + 0.2 comment).
   - Verify: the Budget tab head still reads "€… planned", the same as before (a mechanical replacement).
 
-- [ ] 2. Show each category's progress against its plan on the Expenses tab
+- [x] 2. Show each category's progress against its plan on the Expenses tab
   - Files: `apps/mobile/src/theme.ts` (`warnBg`), `apps/mobile/test/theme.test.ts` (new),
     `apps/mobile/src/app/(tabs)/expenses.tsx`.
   - Change:
@@ -223,7 +223,8 @@ Delete both QA users and ledgers after the PR.
 
 ## Deviations
 
-<filled by the developer during build>
+- slice 2: `rowAmount` also gets `flexShrink: 0`. With only `rowName` shrinking, "of €1,500" still wrapped under
+  a 40-character name at 390 px on web; now the name truncates and the amount stays on one line.
 
 ## Revision 1 (skeptic: approve with edits)
 

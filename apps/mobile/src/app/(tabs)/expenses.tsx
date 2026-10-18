@@ -11,9 +11,10 @@ import { Icon } from '@/components/Icon';
 import { LoadError } from '@/components/LoadError';
 import { MonthSwitcher } from '@/components/MonthSwitcher';
 import { NoBudget } from '@/components/NoBudget';
+import { budgetProgress } from '@/data/budgetProgress';
 import { spentByCategory } from '@/data/monthSummary';
 import { useMonth } from '@/data/useMonth';
-import { eur, kyivMonth } from '@/format';
+import { eur, kyivMonth, toCents } from '@/format';
 import { fonts, type Palette } from '@/theme';
 
 export default function Expenses() {
@@ -27,11 +28,14 @@ export default function Expenses() {
   const rows = useMemo(() => {
     if (!data) return null;
     const spent = spentByCategory(data.expenses);
-    return data.categories.map((c) => ({ ...c, spent: spent.get(c.categoryId) ?? 0 }));
+    return data.categories.map((c) => {
+      const spentCents = spent.get(c.categoryId) ?? 0;
+      const planned = toCents(c.plannedEur);
+      return { ...c, spent: spentCents, planned, progress: budgetProgress(spentCents, planned) };
+    });
   }, [data]);
   // Null until the month has loaded: €0 would read as "spent nothing".
   const total = rows ? rows.reduce((s, r) => s + r.spent, 0) : null;
-  const maxSpent = Math.max(1, ...(rows ?? []).map((r) => r.spent));
   const collapse = useCollapsingSummary();
 
   return (
@@ -73,12 +77,11 @@ export default function Expenses() {
               <Text style={styles.budget}>—</Text>
             </View>
           </View>
-          <Text style={styles.caption}>Budgets arrive with the next update; amounts show what you spent.</Text>
         </Animated.View>
 
         <View style={styles.sectionHead}>
           <Text style={styles.sectionTitle}>Categories</Text>
-          <Text style={styles.small}>spent</Text>
+          <Text style={styles.small}>spent of planned</Text>
         </View>
 
         {!rows ? (
@@ -110,21 +113,36 @@ export default function Expenses() {
                   <Pressable
                     key={r.categoryId}
                     accessibilityRole="button"
-                    accessibilityLabel={`${r.displayName}, ${eur(r.spent)} spent`}
+                    accessibilityLabel={
+                      `${r.displayName}, ${eur(r.spent)} of ${eur(r.planned)} spent` +
+                      (r.progress.overCents > 0 ? `, ${eur(r.progress.overCents)} over` : '')
+                    }
                     onPress={() =>
                       router.push({ pathname: '/category/[categoryId]', params: { categoryId: r.categoryId, month } })
                     }
-                    style={[styles.row, i < rows.length - 1 && styles.divider]}
+                    style={[
+                      styles.row,
+                      i < rows.length - 1 && styles.divider,
+                      r.progress.warning && { backgroundColor: colors.warnBg },
+                    ]}
                   >
                     <CategoryTile techName={r.techName} label={r.displayName} />
                     <View style={{ flex: 1, gap: 7 }}>
                       <View style={styles.rowTop}>
-                        <Text style={styles.rowName}>{r.displayName}</Text>
-                        <Text style={styles.rowAmount}>{eur(r.spent)}</Text>
+                        <Text style={styles.rowName} numberOfLines={1}>
+                          {r.displayName}
+                        </Text>
+                        <Text style={styles.rowAmount}>
+                          {eur(r.spent)}
+                          <Text style={styles.rowPlanned}> of {eur(r.planned)}</Text>
+                        </Text>
                       </View>
                       <View style={styles.track}>
-                        <View style={[styles.bar, { width: `${Math.round((r.spent / maxSpent) * 100)}%` }]} />
+                        <View style={[styles.bar, { width: `${r.progress.fill * 100}%` }]} />
                       </View>
+                      {r.progress.overCents > 0 && (
+                        <Text style={styles.overText}>{eur(r.progress.overCents)} over</Text>
+                      )}
                     </View>
                   </Pressable>
                 ))}
@@ -184,12 +202,24 @@ const makeStyles = (colors: Palette) =>
       borderWidth: 1,
       borderRadius: 22,
       paddingVertical: 4,
+      // Keeps a warning background on the first or last row inside the rounded corners.
+      overflow: 'hidden',
     },
     row: { flexDirection: 'row', alignItems: 'center', gap: 12, paddingVertical: 12, paddingHorizontal: 16 },
     divider: { borderBottomWidth: 1, borderBottomColor: colors.border },
     rowTop: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'baseline', gap: 8 },
-    rowName: { fontFamily: fonts.bodyMedium, fontSize: 15, color: colors.text },
-    rowAmount: { fontFamily: fonts.bodySemi, fontSize: 15, color: colors.text, fontVariant: ['tabular-nums'] },
+    rowName: { flexShrink: 1, fontFamily: fonts.bodyMedium, fontSize: 15, color: colors.text },
+    // The name gives way to the amount, which stays on one line.
+    rowAmount: {
+      flexShrink: 0,
+      fontFamily: fonts.bodySemi,
+      fontSize: 15,
+      color: colors.text,
+      fontVariant: ['tabular-nums'],
+    },
+    rowPlanned: { fontFamily: fonts.body, color: colors.muted },
+    // `text`, not `over`: light `over` falls below 4.5:1 on `warnBg`.
+    overText: { fontFamily: fonts.bodyMedium, fontSize: 12, color: colors.text },
     track: { height: 5, backgroundColor: colors.track, borderRadius: 3, overflow: 'hidden' },
     bar: { height: 5, borderRadius: 3, backgroundColor: colors.accent },
   });

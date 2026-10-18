@@ -83,7 +83,7 @@ That's about 6 fewer lines and leaves the hook unchanged, but a component that r
 
 ## Slices
 
-- [ ] 1. Share the category loading states with the Remove category modal
+- [x] 1. Share the category loading states with the Remove category modal
   - Files:
     - `apps/mobile/src/data/useCategoryTotals.ts`
     - `apps/mobile/src/components/CategoryInMonth.tsx` (new)
@@ -102,7 +102,7 @@ That's about 6 fewer lines and leaves the hook unchanged, but a component that r
     - A valid link reaches the confirm view.
     - With DevTools "Offline", the Retry error appears. Going back online and pressing Retry loads the category.
     - With "Slow 4G", the spinner shows with `margin-top: 32px`.
-- [ ] 2. Share the category loading states with the Planned amount modal
+- [x] 2. Share the category loading states with the Planned amount modal
   - Files: `apps/mobile/src/app/planned-amount.tsx`
   - Change:
     - Do the same as slice 1, rendering `<Editor … />` in `children`.
@@ -111,7 +111,7 @@ That's about 6 fewer lines and leaves the hook unchanged, but a component that r
   - Size: ~35 lines.
   - Verify: gates, then the same six checks on `/planned-amount?...`. The editor opens with the stored amount, and
     Cancel on a bad link still goes to `/budget`.
-- [ ] 3. Share the category loading states with the Category screen
+- [x] 3. Share the category loading states with the Category screen
   - Files: `apps/mobile/src/app/category/[categoryId].tsx`
   - Change: `NotInMonth` keeps its `useSession` + `useCategoryTotals` (still mounted only when the month's list lacks
     the category) and returns `<CategoryInMonth totals={totals} spinnerMargin={24}>{() => null}</CategoryInMonth>`.
@@ -181,4 +181,6 @@ the web build).
 
 ## Deviations
 
-<filled by the developer during build>
+- Slices 1–3 landed as one commit. Widening `useCategoryTotals`'s return type with `invalid` stops the other two
+  screens' old loaders from type-checking, so slice 1 alone can't be green without throwaway guards that slices 2–3
+  would delete. Same files, contracts and checks as planned.

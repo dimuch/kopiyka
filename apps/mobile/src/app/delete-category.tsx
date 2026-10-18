@@ -6,7 +6,7 @@ import { ApiError } from '@/api/client';
 import type { CategoryWithTotals } from '@/api/types';
 import { useColors, useThemedStyles } from '@/appearance/AppearanceContext';
 import { useSession } from '@/auth/AuthContext';
-import { LoadError } from '@/components/LoadError';
+import { CategoryInMonth } from '@/components/CategoryInMonth';
 import { removeFromMonth, restoreToMonth } from '@/data/categories';
 import { removedMessage, removeWarning } from '@/data/categoryRemove';
 import { setPendingUndo } from '@/data/undo';
@@ -26,6 +26,9 @@ export default function DeleteCategoryScreen() {
   const params = useLocalSearchParams<{ categoryId?: string | string[]; month?: string | string[] }>();
   const categoryId = parseIdParam(params.categoryId);
   const month = parseMonthParam(params.month);
+  const { ledger } = useSession();
+  // Nothing is fetched for a bad link.
+  const totals = useCategoryTotals(ledger.ledgerId, categoryId, month);
   // A removal in flight navigates when it ends, so the user can't leave meanwhile.
   const [busy, setBusy] = useState(false);
 
@@ -41,35 +44,13 @@ export default function DeleteCategoryScreen() {
         <View style={{ width: 52 }} />
       </View>
 
-      {categoryId === null || month === null ? (
-        <LoadError message="That link isn’t valid." />
-      ) : (
-        <CategoryLoader categoryId={categoryId} month={month} busy={busy} setBusy={setBusy} />
-      )}
+      <CategoryInMonth totals={totals}>
+        {(category, month) => (
+          <Confirm category={category} month={month} ledgerId={ledger.ledgerId} busy={busy} setBusy={setBusy} />
+        )}
+      </CategoryInMonth>
     </SafeAreaView>
   );
-}
-
-/** What removing would take from the month; mounted only for a well-formed link, so a bad one fetches nothing. */
-function CategoryLoader({ categoryId, month, ...removing }: { categoryId: number; month: string } & Removing) {
-  const colors = useColors();
-  const { ledger } = useSession();
-  const totals = useCategoryTotals(ledger.ledgerId, categoryId, month);
-
-  if (totals.status === 'loading') return <ActivityIndicator color={colors.accent} style={{ marginTop: 32 }} />;
-  if (totals.status === 'error') {
-    // Retrying can't bring an unknown category into being.
-    return totals.error instanceof ApiError && totals.error.code === 'not_found' ? (
-      <LoadError message="Category not found." />
-    ) : (
-      <LoadError message="Couldn’t load this category. Check your connection and try again." onRetry={totals.reload} />
-    );
-  }
-  // Same text as the Category screen's: only two uses, so it isn't shared yet.
-  if (!totals.category.inMonth) {
-    return <LoadError message={`“${totals.category.displayName}” isn’t in ${monthName(month)}.`} />;
-  }
-  return <Confirm category={totals.category} month={month} ledgerId={ledger.ledgerId} {...removing} />;
 }
 
 interface Removing {

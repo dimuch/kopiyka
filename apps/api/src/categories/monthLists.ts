@@ -24,6 +24,29 @@ export const NAME_IN_MONTH = `COALESCE(NULLIF((SELECT m.display_name FROM catego
                                                  WHERE m.category_id = c.category_id AND m.list_month <= ?
                                                  ORDER BY m.list_month DESC LIMIT 1), ''), c.display_name)`;
 
+/** A month row's effective name: its own, or its category's when it has none (''). Aliases `m` and `c`. */
+const ROW_NAME = `COALESCE(NULLIF(m.display_name, ''), c.display_name)`;
+
+/**
+ * True when another live category of the ledger is called `name` in the month (first day), ignoring case and
+ * accents.
+ */
+async function nameTaken(
+  conn: PoolConnection,
+  ledgerId: number,
+  first: string,
+  name: string,
+  categoryId: number,
+): Promise<boolean> {
+  const [rows] = await conn.query<RowDataPacket[]>(
+    `SELECT 1 FROM category_months m JOIN categories c ON c.category_id = m.category_id
+      WHERE c.ledger_id = ? AND c.deleted_at IS NULL AND m.deleted_at IS NULL AND m.list_month = ?
+        AND m.category_id <> ? AND ${ROW_NAME} = ? LIMIT 1`,
+    [ledgerId, first, categoryId, name],
+  );
+  return rows.length > 0;
+}
+
 /** One list change per ledger at a time: a check and the write after it see the same list. */
 async function lockLedger(conn: PoolConnection, ledgerId: number): Promise<void> {
   await conn.query('SELECT ledger_id FROM ledgers WHERE ledger_id = ? FOR UPDATE', [ledgerId]);
@@ -129,6 +152,35 @@ export async function setPlanned(
       [categoryId, first, amount, amount],
     );
     return true;
+  });
+}
+
+/**
+ * Renames a category in a 'YYYY-MM' month only (brief 037); `name` is already trimmed. 'not_found', writing nothing,
+ * when it isn't in the month's list; 'name_taken' when another category there has the name.
+ */
+export async function renameInMonth(
+  db: Db,
+  ledgerId: number,
+  categoryId: number,
+  month: string,
+  name: string,
+): Promise<'renamed' | 'not_found' | 'name_taken'> {
+  const first = `${month}-01`;
+  return withTransaction(db, async (conn) => {
+    await lockLedger(conn, ledgerId);
+    const [rows] = await conn.query<RowDataPacket[]>(
+      `SELECT 1 FROM categories c
+        WHERE c.category_id = ? AND c.ledger_id = ? AND c.deleted_at IS NULL AND ${inMonthList('?')}`,
+      [categoryId, ledgerId, first],
+    );
+    if (!rows.length) return 'not_found';
+    if (await nameTaken(conn, ledgerId, first, name, categoryId)) return 'name_taken';
+    await conn.query(
+      'UPDATE category_months SET display_name = ? WHERE category_id = ? AND list_month = ? AND deleted_at IS NULL',
+      [name, categoryId, first],
+    );
+    return 'renamed';
   });
 }
 

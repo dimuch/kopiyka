@@ -248,7 +248,7 @@ Alternatives considered:
       October rename, then `copy('2026-11')`: November's eating_out is `'food out'`, and September's is still
       `'eating out'`.
 
-- [ ] 3. Rename a category in one month
+- [x] 3. Rename a category in one month
   - Files:
     - `apps/api/src/categories/monthLists.ts` (`ROW_NAME`, `nameTaken`, `renameInMonth`);
     - `apps/api/src/categories/routes.ts` (`NameBody`, the PUT);

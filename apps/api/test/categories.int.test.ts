@@ -194,7 +194,65 @@ describe.skipIf(!(await testDbReachable()))('categories API (MySQL)', () => {
     expect((await one(`${rent}?month=2026-12`)).json()).toMatchObject({ plannedEur: '0.00', inMonth: false });
   });
 
+  /** techName → displayName in a month's list. */
+  const namesIn = async (month: string) =>
+    Object.fromEntries(
+      (
+        (
+          await app.inject({
+            method: 'GET',
+            url: `/api/ledgers/${owner.ledgerId}/categories?month=${month}`,
+            headers: auth,
+          })
+        ).json().categories as Array<{ techName: string; displayName: string }>
+      ).map((c) => [c.techName, c.displayName]),
+    );
+  const nameMonth = (techName: string, month: string, name: string) =>
+    db.query(
+      `UPDATE category_months m JOIN categories c ON c.category_id = m.category_id
+          SET m.display_name = ? WHERE c.ledger_id = ? AND c.tech_name = ? AND m.list_month = ?`,
+      [name, owner.ledgerId, techName, `${month}-01`],
+    );
+
   describe('month lists', () => {
+    it('names each category as its month does', async () => {
+      await nameMonth('eating_out', '2026-10', 'food out');
+      const eatingOut = await idOf('eating_out');
+
+      expect((await namesIn('2026-10')).eating_out).toBe('food out');
+      expect((await namesIn('2026-09')).eating_out).toBe('eating out');
+      expect((await one(`${eatingOut}?month=2026-10`)).json()).toMatchObject({
+        displayName: 'food out',
+        techName: 'eating_out',
+      });
+      expect((await one(`${eatingOut}?month=2026-09`)).json()).toMatchObject({ displayName: 'eating out' });
+      // No row there: the latest earlier month names it, or the category itself before its first row.
+      expect((await one(`${eatingOut}?month=2026-12`)).json()).toMatchObject({ displayName: 'food out' });
+      expect((await one(`${eatingOut}?month=2026-08`)).json()).toMatchObject({ displayName: 'eating out' });
+
+      expect((await removeFrom(eatingOut)).statusCode).toBe(204);
+      expect((await one(`${eatingOut}?month=2026-10`)).json()).toMatchObject({
+        displayName: 'food out',
+        inMonth: false,
+      });
+    });
+
+    it("reads a row written without a name, as code from before 037 writes it, as its category's name", async () => {
+      await nameMonth('eating_out', '2026-10', 'food out');
+      await db.query(
+        `INSERT INTO category_months (category_id, list_month)
+         SELECT category_id, '2026-11-01' FROM categories WHERE ledger_id = ?`,
+        [owner.ledgerId],
+      );
+      const november = await namesIn('2026-11');
+      expect(Object.values(november)).not.toContain('');
+      expect(november.eating_out).toBe('eating out');
+      expect(november.sviat).toBe('Sviat');
+      expect((await one(`${await idOf('eating_out')}?month=2026-11`)).json()).toMatchObject({
+        displayName: 'eating out',
+      });
+    });
+
     it("lists exactly the month's own list", async () => {
       await storeMonthList(db, owner.ledgerId, '2026-10', ['eating_out']);
 
@@ -518,6 +576,13 @@ describe.skipIf(!(await testDbReachable()))('categories API (MySQL)', () => {
   });
 
   describe('copy the previous month', () => {
+    it('names the copy as the month it came from', async () => {
+      await nameMonth('eating_out', '2026-10', 'food out');
+      expect((await copy('2026-11')).statusCode).toBe(204);
+      expect((await namesIn('2026-11')).eating_out).toBe('food out');
+      expect((await namesIn('2026-09')).eating_out).toBe('eating out');
+    });
+
     const copy = (month: string, headers: Record<string, string> = auth, ledgerId = owner.ledgerId) =>
       app.inject({ method: 'POST', url: `/api/ledgers/${ledgerId}/months/${month}/copy`, headers });
     const monthRows = async () => {

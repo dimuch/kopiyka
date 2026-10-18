@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import type { Expense } from '@/api/types';
-import { expenseCount, groupByDay, spentByCategory, sumCents } from '@/data/monthSummary';
+import type { Category, Expense } from '@/api/types';
+import { expenseCount, groupByDay, plannedCents, spentByCategory, sumCents } from '@/data/monthSummary';
 
 describe('expenseCount', () => {
   it('says how many expenses, singular for one', () => {
@@ -70,5 +70,18 @@ describe('monthSummary', () => {
       { date: '2026-10-05', items: [b], totalCents: 300 },
     ]);
     expect(groupByDay([])).toEqual([]);
+  });
+
+  it('sums the planned amounts in cents', () => {
+    const planned = (plannedEur: string, categoryId: number): Category => ({
+      categoryId,
+      techName: `category_${categoryId}`,
+      displayName: `Category ${categoryId}`,
+      sortOrder: categoryId,
+      plannedEur,
+    });
+    expect(plannedCents([])).toBe(0);
+    // 120.50 + 0 + 0.10 + 0.20; in floats 0.1 + 0.2 isn't 0.3, in cents it's exactly 30.
+    expect(plannedCents(['120.50', '0.00', '0.10', '0.20'].map(planned))).toBe(12080);
   });
 });

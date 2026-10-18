@@ -3,9 +3,9 @@ import { useMemo, useState } from 'react';
 import { ActivityIndicator, Animated, Pressable, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useColors, useThemedStyles } from '@/appearance/AppearanceContext';
-import { ApiError } from '@/api/client';
 import { useSession } from '@/auth/AuthContext';
 import { AddExpenseButton } from '@/components/AddExpenseButton';
+import { CategoryInMonth } from '@/components/CategoryInMonth';
 import { CategoryTile } from '@/components/CategoryTile';
 import { CompactTotal, HeaderDivider, useCollapsingSummary } from '@/components/CollapsingSummary';
 import { Icon } from '@/components/Icon';
@@ -203,17 +203,13 @@ function CategoryMenu({ label, onRemove, onClose }: { label: string; onRemove: (
 
 /** The month's list lacks this category: say so by name, or that it doesn't exist at all. */
 function NotInMonth({ categoryId, month }: { categoryId: number; month: string }) {
-  const colors = useColors();
   const { ledger } = useSession();
   const totals = useCategoryTotals(ledger.ledgerId, categoryId, month);
-  if (totals.status === 'loading') return <ActivityIndicator color={colors.accent} style={{ marginTop: 24 }} />;
-  if (totals.status === 'ready') {
-    return <LoadError message={`“${totals.category.displayName}” isn’t in ${monthName(month)}.`} />;
-  }
-  return totals.error instanceof ApiError && totals.error.code === 'not_found' ? (
-    <LoadError message="Category not found." />
-  ) : (
-    <LoadError message="Couldn’t load this category. Check your connection and try again." onRetry={totals.reload} />
+  // In the month after all (another member restored it since the list loaded): nothing to say until the next reload.
+  return (
+    <CategoryInMonth totals={totals} spinnerMargin={24}>
+      {() => null}
+    </CategoryInMonth>
   );
 }
 

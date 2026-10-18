@@ -159,8 +159,8 @@ export async function copyPreviousMonth(db: Db, ledgerId: number, month: string)
       [ledgerId, first],
     );
     await conn.query(
-      `INSERT INTO category_months (category_id, list_month)
-       SELECT m.category_id, ? FROM category_months m JOIN categories c ON c.category_id = m.category_id
+      `INSERT INTO category_months (category_id, list_month, display_name)
+       SELECT m.category_id, ?, m.display_name FROM category_months m JOIN categories c ON c.category_id = m.category_id
         WHERE c.ledger_id = ? AND c.deleted_at IS NULL AND m.deleted_at IS NULL AND m.list_month = ?`,
       [first, ledgerId, previous],
     );

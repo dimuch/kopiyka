@@ -94,21 +94,30 @@ export async function removeFromMonth(
 
 /**
  * Undoes the removal of a category from a month: that month's row and that month's expenses carrying its stamp.
- * Expenses deleted earlier on their own keep their own stamp and stay deleted. False when it isn't removed there: in
- * the list, not in that month's list, unknown, foreign or deleted.
+ * Expenses deleted earlier on their own keep their own stamp and stay deleted. 'not_found' when it isn't removed
+ * there: in the list, not in that month's list, unknown, foreign or deleted. 'name_taken', writing nothing, when
+ * another category in that month now has its name (brief 037); the stamp stays, so the Undo works once it's free.
  */
-export async function restoreToMonth(db: Db, ledgerId: number, categoryId: number, month: string): Promise<boolean> {
+export async function restoreToMonth(
+  db: Db,
+  ledgerId: number,
+  categoryId: number,
+  month: string,
+): Promise<'restored' | 'not_found' | 'name_taken'> {
   const first = `${month}-01`;
   return withTransaction(db, async (conn) => {
     await lockLedger(conn, ledgerId);
     const [rows] = await conn.query<RowDataPacket[]>(
-      `SELECT m.deleted_at FROM category_months m JOIN categories c ON c.category_id = m.category_id
+      `SELECT m.deleted_at, ${ROW_NAME} AS name
+         FROM category_months m JOIN categories c ON c.category_id = m.category_id
         WHERE m.category_id = ? AND c.ledger_id = ? AND c.deleted_at IS NULL
           AND m.list_month = ? AND m.deleted_at IS NOT NULL`,
       [categoryId, ledgerId, first],
     );
-    if (!rows[0]) return false;
-    const stamp = rows[0].deleted_at;
+    const row = rows[0];
+    if (!row) return 'not_found';
+    if (await nameTaken(conn, ledgerId, first, row.name, categoryId)) return 'name_taken';
+    const stamp = row.deleted_at;
     await conn.query(
       `UPDATE expenses e JOIN categories c ON c.category_id = e.category_id
           SET e.deleted_at = NULL, e.updated_at = e.updated_at
@@ -122,7 +131,7 @@ export async function restoreToMonth(db: Db, ledgerId: number, categoryId: numbe
         WHERE m.category_id = ? AND c.ledger_id = ? AND m.list_month = ? AND m.deleted_at = ?`,
       [categoryId, ledgerId, first, stamp],
     );
-    return true;
+    return 'restored';
   });
 }
 

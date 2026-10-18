@@ -117,8 +117,8 @@ export async function storeMonthList(db: Db, ledgerId: number, month: string, wi
   );
   // mysql2 turns an empty NOT IN () into a syntax error, so the condition is only added when there's something to skip.
   await db.query(
-    `INSERT INTO category_months (category_id, list_month)
-     SELECT category_id, ? FROM categories WHERE ledger_id = ?${without.length ? ' AND tech_name NOT IN (?)' : ''}`,
+    `INSERT INTO category_months (category_id, list_month, display_name)
+     SELECT category_id, ?, display_name FROM categories WHERE ledger_id = ?${without.length ? ' AND tech_name NOT IN (?)' : ''}`,
     [`${month}-01`, ledgerId, ...(without.length ? [without] : [])],
   );
 }

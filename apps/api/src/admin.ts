@@ -45,7 +45,8 @@ export async function createUserWithLedger(
     ]);
     // The ledger's first month has a budget; other months are set up later (brief 033).
     await conn.query(
-      'INSERT INTO category_months (category_id, list_month) SELECT category_id, ? FROM categories WHERE ledger_id = ?',
+      `INSERT INTO category_months (category_id, list_month, display_name)
+       SELECT category_id, ?, display_name FROM categories WHERE ledger_id = ?`,
       [`${kyivToday(now).slice(0, 7)}-01`, ledgerId],
     );
     await conn.commit();

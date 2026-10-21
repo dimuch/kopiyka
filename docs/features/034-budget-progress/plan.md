@@ -141,7 +141,7 @@ duplicate that and add a route change, with its integration tests, that no AC ne
   - Verify: AC rows 2 and 3 (QA setup below), on web at 390×844, light and dark. Rename one QA category (037) to a
     40-character name: it stays on one line, truncated, and the amount stays visible.
 
-- [ ] 3. Show the month's planned total on the Expenses tab
+- [x] 3. Show the month's planned total on the Expenses tab
   - Files: `apps/mobile/src/app/(tabs)/expenses.tsx`.
   - Change: the summary card's "Budget" slot and its accessibility label follow Contracts. About 20 lines.
   - Verify: AC row 4, Expenses part.

@@ -12,7 +12,7 @@ import { LoadError } from '@/components/LoadError';
 import { MonthSwitcher } from '@/components/MonthSwitcher';
 import { NoBudget } from '@/components/NoBudget';
 import { budgetProgress } from '@/data/budgetProgress';
-import { spentByCategory } from '@/data/monthSummary';
+import { plannedCents, spentByCategory } from '@/data/monthSummary';
 import { useMonth } from '@/data/useMonth';
 import { eur, kyivMonth, toCents } from '@/format';
 import { fonts, type Palette } from '@/theme';
@@ -36,6 +36,9 @@ export default function Expenses() {
   }, [data]);
   // Null until the month has loaded: €0 would read as "spent nothing".
   const total = rows ? rows.reduce((s, r) => s + r.spent, 0) : null;
+  // A month without categories has no budget; otherwise its plan is the sum of theirs, €0 included.
+  const noBudget = data?.categories.length === 0;
+  const planned = data ? eur(plannedCents(data.categories)) : null;
   const collapse = useCollapsingSummary();
 
   return (
@@ -61,20 +64,27 @@ export default function Expenses() {
 
       <Animated.ScrollView {...collapse.scrollProps} contentContainerStyle={styles.content}>
         <Animated.View onLayout={collapse.onCardLayout} style={[styles.card, collapse.cardStyle]}>
-          <View style={styles.totalRow}>
+          <View
+            accessible
+            accessibilityLabel={
+              total === null
+                ? 'Spent this month, loading'
+                : noBudget
+                  ? `Spent this month, ${eur(total)}, budget not set`
+                  : `Spent this month, ${eur(total)} of ${planned}`
+            }
+            style={styles.totalRow}
+          >
             <View style={{ gap: 2 }}>
               <Text style={styles.caption}>Spent this month</Text>
               {/* The total's own size, so the card doesn't change height when the amount arrives. */}
-              <Text
-                accessibilityLabel={total === null ? 'Loading' : undefined}
-                style={[styles.total, total === null && { color: colors.muted }]}
-              >
+              <Text style={[styles.total, total === null && { color: colors.muted }]}>
                 {total === null ? '—' : eur(total)}
               </Text>
             </View>
             <View style={{ alignItems: 'flex-end', gap: 2, paddingBottom: 6 }}>
               <Text style={styles.caption}>Budget</Text>
-              <Text style={styles.budget}>—</Text>
+              <Text style={styles.budget}>{planned === null ? '—' : noBudget ? 'Not set' : planned}</Text>
             </View>
           </View>
         </Animated.View>

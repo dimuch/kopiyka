@@ -105,7 +105,8 @@ so piped `sudo` commands don't prompt twice at once.
    ```
 
    Don't quote the values. Keep a copy of `TOTP_ENC_KEY` in your password manager: without it, existing users' authenticator codes stop
-   working.
+   working. Starting from the laptop's ledger (below)? Use the laptop's `TOTP_ENC_KEY` from `apps/api/.env` instead of
+   a new one: the imported user's secret is encrypted with it.
 
    `NOTION_LEDGER_ID` and `NOTION_YEAR` go together, as do the Expenses and Netto ids. Before the first sync, run
    `dist/scripts/notion-start.js --totals` once, the way step 10 runs `create-user.js`, or sync answers
@@ -180,13 +181,54 @@ so piped `sudo` commands don't prompt twice at once.
 9. **First deploy.** Actions → Deploy → Run workflow on `main`. In a second `ssh do` session, run `vmstat 5` during the
    deploy and note the lowest `free`/available memory and swap use (the workflow log has each step's time).
 
-10. **First user.** Run as `kopiyka` with the env file, so the key never leaves the droplet; scan the printed QR:
+10. **First user.** To start from the laptop's ledger instead, skip this step and follow the next section. Run as
+    `kopiyka` with the env file, so the key never leaves the droplet; scan the printed QR:
 
     ```bash
     sudo systemd-run --pty --wait --collect -p User=kopiyka -p EnvironmentFile=/etc/kopiyka/api.env \
       -p WorkingDirectory=/opt/kopiyka/current/apps/api \
       /usr/bin/node dist/scripts/create-user.js --username <name> --email <email> [--ledger <name>]
     ```
+
+## Starting from the laptop's ledger
+
+Production starts with November 2026: the same `dimuch` login and authenticator, the same ledger and categories, and
+no expenses. October's expenses stay on the laptop (and in Notion). Do steps 1–9 any time before; do this on 1
+November, after October's last expense.
+
+1. **Last sync from the laptop.** In the laptop app, Home → Sync to Notion, so Notion has all of October. Then remove
+   the `NOTION_*` lines from the laptop's `apps/api/.env` and restart its API: only production syncs from now on,
+   or the same expenses are added twice.
+2. **Export.** On the laptop, in the repo: user 1's ledger 1 with October's list, names and planned amounts.
+
+   ```bash
+   (set -a; . apps/api/.env; set +a; deploy/export-ledger.sh 1 1 2026-10) > ./kopiyka-ledger.sql
+   grep -c '^INSERT' ./kopiyka-ledger.sql    # 5, or 6 when October has planned amounts
+   scp ./kopiyka-ledger.sql do:/tmp/ && rm ./kopiyka-ledger.sql
+   ```
+
+   mysqldump may print "SELECT command denied … masking policies" per table; that's harmless.
+
+3. **Import** into the migrated, still empty database (after the first deploy; no user created in step 10):
+
+   ```bash
+   mysql -h 127.0.0.1 -u kopiyka -p kopiyka < /tmp/kopiyka-ledger.sql && shred -u /tmp/kopiyka-ledger.sql
+   mysql -h 127.0.0.1 -u kopiyka -p kopiyka -e 'SELECT user_id, username FROM users; SELECT COUNT(*) FROM categories'
+   ```
+
+   It prints `1 dimuch` and `15`. If the import stops halfway, empty the six tables (`DELETE FROM` in the order
+   `category_budgets`, `category_months`, `categories`, `ledger_members`, `ledgers`, `users`) and run it again.
+
+4. **Notion starting point.** With the `NOTION_*` lines in `api.env` (`NOTION_LEDGER_ID=1`), run once, the way
+   step 10 runs `create-user.js`:
+
+   ```bash
+   sudo systemd-run --pty --wait --collect -p User=kopiyka -p EnvironmentFile=/etc/kopiyka/api.env \
+     -p WorkingDirectory=/opt/kopiyka/current/apps/api /usr/bin/node dist/scripts/notion-start.js --totals
+   ```
+
+5. **November.** Log in at `https://kopiyka.englishplus.com.ua` with your usual authenticator code. Budget tab →
+   November → **Copy October's categories**, then set the planned amounts.
 
 ## After the first deploy
 

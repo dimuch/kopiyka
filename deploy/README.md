@@ -93,10 +93,24 @@ so piped `sudo` commands don't prompt twice at once.
    ```ini
    DATABASE_URL=mysql://kopiyka:<the hex password>@127.0.0.1:3306/kopiyka
    TOTP_ENC_KEY=<the base64 key>
+
+   # Optional: Notion sync (briefs 020–024). Leave all six out and the API runs without it (no sync panel on Home).
+   # Same values as the laptop's apps/api/.env; NOTION_LEDGER_ID is this database's ledger id.
+   NOTION_LEDGER_ID=<ledger id>
+   NOTION_YEAR=2026
+   NOTION_TOKEN=<ntn_… integration secret>
+   NOTION_GROCERIES_DATA_SOURCE_ID=<uuid>
+   NOTION_EXPENSES_DATA_SOURCE_ID=<uuid>
+   NOTION_NETTO_DATA_SOURCE_ID=<uuid>
    ```
 
    Don't quote the values. Keep a copy of `TOTP_ENC_KEY` in your password manager: without it, existing users' authenticator codes stop
    working.
+
+   `NOTION_LEDGER_ID` and `NOTION_YEAR` go together, as do the Expenses and Netto ids. Before the first sync, run
+   `dist/scripts/notion-start.js --totals` once, the way step 10 runs `create-user.js`, or sync answers
+   `totals_not_started`. In January, `NOTION_YEAR` and the
+   three ids move to the new year's Budget page.
 
 6. **Service, deploy script, sudo rule.**
 

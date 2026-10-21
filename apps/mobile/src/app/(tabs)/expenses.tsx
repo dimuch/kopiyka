@@ -28,10 +28,10 @@ export default function Expenses() {
   const rows = useMemo(() => {
     if (!data) return null;
     const spent = spentByCategory(data.expenses);
-    return data.categories.map((c) => {
-      const spentCents = spent.get(c.categoryId) ?? 0;
-      const planned = toCents(c.plannedEur);
-      return { ...c, spent: spentCents, planned, progress: budgetProgress(spentCents, planned) };
+    return data.categories.map((category) => {
+      const spentCents = spent.get(category.categoryId) ?? 0;
+      const planned = toCents(category.plannedEur);
+      return { ...category, spent: spentCents, planned, progress: budgetProgress(spentCents, planned) };
     });
   }, [data]);
   // Null until the month has loaded: €0 would read as "spent nothing".

@@ -236,9 +236,10 @@ CONSOLIDATE: reused 0 · extracted 0 · left 3
 - LEAVE `plannedCents` vs `sumCents`: same shape (a cents sum), but over a different type and field
   (`Category.plannedEur` vs `Expense.amountEur|amountUah`); `plannedCents` is already the one shared copy for its
   three callers (Budget, Expenses, Home).
-- LEAVE the "no categories means no budget" check in `index.tsx` and `expenses.tsx`: a one-expression
-  `categories.length === 0`, written inline the same way in `budget.tsx` and the Expenses list branch already; a
-  helper would name an emptiness check, not hide logic.
+- LEAVE the budget figure in `index.tsx` and `expenses.tsx` (no categories → "Not set", otherwise
+  `eur(plannedCents(…))`): two screens only, and the Expenses tab also needs the "budget not set" screen-reader phrase,
+  so a shared `budgetFigure()` would replace half of it. Extract into `data/monthSummary.ts` if a third caller appears
+  (review nit 1).
 - Not a consolidate change: single-letter names in this branch's new lines (`find-short-names.sh --diff origin/main`)
   renamed in a separate commit.
 

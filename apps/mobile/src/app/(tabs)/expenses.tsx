@@ -38,7 +38,7 @@ export default function Expenses() {
   const total = rows ? rows.reduce((s, r) => s + r.spent, 0) : null;
   // A month without categories has no budget; otherwise its plan is the sum of theirs, €0 included.
   const noBudget = data?.categories.length === 0;
-  const planned = data ? eur(plannedCents(data.categories)) : null;
+  const plannedText = data ? eur(plannedCents(data.categories)) : null;
   const collapse = useCollapsingSummary();
 
   return (
@@ -68,10 +68,10 @@ export default function Expenses() {
             accessible
             accessibilityLabel={
               total === null
-                ? 'Spent this month, loading'
+                ? `Spent this month, ${error ? 'not available' : 'loading'}`
                 : noBudget
                   ? `Spent this month, ${eur(total)}, budget not set`
-                  : `Spent this month, ${eur(total)} of ${planned}`
+                  : `Spent this month, ${eur(total)} of ${plannedText}`
             }
             style={styles.totalRow}
           >
@@ -84,7 +84,7 @@ export default function Expenses() {
             </View>
             <View style={{ alignItems: 'flex-end', gap: 2, paddingBottom: 6 }}>
               <Text style={styles.caption}>Budget</Text>
-              <Text style={styles.budget}>{planned === null ? '—' : noBudget ? 'Not set' : planned}</Text>
+              <Text style={styles.budget}>{plannedText === null ? '—' : noBudget ? 'Not set' : plannedText}</Text>
             </View>
           </View>
         </Animated.View>

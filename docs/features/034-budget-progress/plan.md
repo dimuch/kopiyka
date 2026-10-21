@@ -226,6 +226,22 @@ Delete both QA users and ledgers after the PR.
 - slice 2: `rowAmount` also gets `flexShrink: 0`. With only `rowName` shrinking, "of €1,500" still wrapped under
   a 40-character name at 390 px on web; now the name truncates and the amount stays on one line.
 
+## Consolidate
+
+CONSOLIDATE: reused 0 · extracted 0 · left 3
+
+- LEAVE `budgetProgress` vs `CompactTotal`'s `over` (`components/CollapsingSummary.tsx`): `CompactTotal` colours the
+  Category screen's total when spent is strictly above the budget, with no 90% step and no €0 rule. Merging would
+  change the Category screen, which the brief keeps out of scope.
+- LEAVE `plannedCents` vs `sumCents`: same shape (a cents sum), but over a different type and field
+  (`Category.plannedEur` vs `Expense.amountEur|amountUah`); `plannedCents` is already the one shared copy for its
+  three callers (Budget, Expenses, Home).
+- LEAVE the "no categories means no budget" check in `index.tsx` and `expenses.tsx`: a one-expression
+  `categories.length === 0`, written inline the same way in `budget.tsx` and the Expenses list branch already; a
+  helper would name an emptiness check, not hide logic.
+- Not a consolidate change: single-letter names in this branch's new lines (`find-short-names.sh --diff origin/main`)
+  renamed in a separate commit.
+
 ## Revision 1 (skeptic: approve with edits)
 
 - #9: the Expenses totals row gets one `accessible` group label for loading, no budget and spent of planned; the

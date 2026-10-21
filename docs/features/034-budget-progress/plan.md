@@ -146,7 +146,7 @@ duplicate that and add a route change, with its integration tests, that no AC ne
   - Change: the summary card's "Budget" slot and its accessibility label follow Contracts. About 20 lines.
   - Verify: AC row 4, Expenses part.
 
-- [ ] 4. Show the month's planned total on Home's Budget card
+- [x] 4. Show the month's planned total on Home's Budget card
   - Files: `apps/mobile/src/app/(tabs)/index.tsx`.
   - Change: the Budget card figure follows Contracts, in place of the constant 'Not set'. About 8 lines.
   - Verify: AC row 4, Home part.

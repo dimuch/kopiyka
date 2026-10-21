@@ -8,7 +8,7 @@ import { Icon, type IconName } from '@/components/Icon';
 import { LoadError } from '@/components/LoadError';
 import { NotionSyncPanel } from '@/components/NotionSyncPanel';
 import { UndoToast } from '@/components/UndoToast';
-import { expenseCount, sumCents } from '@/data/monthSummary';
+import { expenseCount, plannedCents, sumCents } from '@/data/monthSummary';
 import { useUndoOffer } from '@/data/undo';
 import { useMonth } from '@/data/useMonth';
 import { useNotionSync } from '@/data/useNotionSync';
@@ -31,7 +31,13 @@ export default function Home() {
   });
 
   const cards: { title: string; href: Href; icon: IconName; figure: string | null }[] = [
-    { title: 'Budget', href: '/budget', icon: 'budget', figure: 'Not set' },
+    {
+      title: 'Budget',
+      href: '/budget',
+      icon: 'budget',
+      // A month without categories has no budget (brief 034).
+      figure: !data ? null : data.categories.length === 0 ? 'Not set' : eur(plannedCents(data.categories)),
+    },
     {
       title: 'Expenses',
       href: '/expenses',

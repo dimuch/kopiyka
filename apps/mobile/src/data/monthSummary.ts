@@ -8,7 +8,7 @@ export function sumCents(expenses: Expense[], field: 'amountEur' | 'amountUah'):
 
 /** The month's planned EUR over `categories`, in integer cents. */
 export function plannedCents(categories: Category[]): number {
-  return categories.reduce((sum, c) => sum + toCents(c.plannedEur), 0);
+  return categories.reduce((sum, category) => sum + toCents(category.plannedEur), 0);
 }
 
 /** '0 expenses', '1 expense', '23 expenses'. */

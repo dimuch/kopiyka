@@ -18,6 +18,7 @@ import { useSession } from '@/auth/AuthContext';
 import { closeToBudget } from '@/closeToBudget';
 import { CategoryInMonth } from '@/components/CategoryInMonth';
 import { setPlanned } from '@/data/categories';
+import { notInMonthText } from '@/data/categoryName';
 import { monthEndedText } from '@/data/monthEnded';
 import { useCategoryTotals } from '@/data/useCategoryTotals';
 import { monthName, normalizePlanned } from '@/format';
@@ -109,7 +110,7 @@ function Editor({
         code === 'month_ended'
           ? monthEndedText(month)
           : code === 'not_found'
-            ? `“${category.displayName}” isn’t in ${monthName(month)} any more.`
+            ? notInMonthText(category.displayName, month)
             : 'Couldn’t save. Check your connection and try again.',
       );
       inFlight.current = false;

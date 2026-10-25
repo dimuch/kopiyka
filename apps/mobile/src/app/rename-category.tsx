@@ -1,4 +1,4 @@
-import { Stack, useLocalSearchParams } from 'expo-router';
+import { router, Stack, useLocalSearchParams } from 'expo-router';
 import { useState } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -9,7 +9,7 @@ import { CategoryInMonth } from '@/components/CategoryInMonth';
 import { CategoryNameForm } from '@/components/CategoryNameForm';
 import { renameInMonth } from '@/data/categories';
 import { useCategoryTotals } from '@/data/useCategoryTotals';
-import { monthName } from '@/format';
+import { kyivMonth, monthName } from '@/format';
 import { parseIdParam, parseMonthParam } from '@/linkParams';
 import { fonts, type Palette } from '@/theme';
 
@@ -24,6 +24,7 @@ export default function RenameCategoryScreen() {
   const totals = useCategoryTotals(ledger.ledgerId, categoryId, month);
   // A save in flight navigates when it ends, so the user can't leave meanwhile.
   const [busy, setBusy] = useState(false);
+  const [thisMonth] = useState(() => kyivMonth(new Date()));
 
   return (
     <SafeAreaView style={styles.screen} edges={['top', 'bottom']}>
@@ -54,7 +55,24 @@ export default function RenameCategoryScreen() {
               await renameInMonth(ledger.ledgerId, category.categoryId, month, name);
               closeToBudget(month);
             }}
-          />
+          >
+            {/* An ended month can't change (brief 028); a deep link there gets no Remove. */}
+            {month < thisMonth ? null : (
+              <Pressable
+                accessibilityRole="button"
+                disabled={busy}
+                onPress={() =>
+                  router.push({
+                    pathname: '/delete-category',
+                    params: { categoryId: category.categoryId, month, from: 'budget' },
+                  })
+                }
+                style={styles.remove}
+              >
+                <Text style={styles.removeText}>{`Remove from ${monthName(month)}`}</Text>
+              </Pressable>
+            )}
+          </CategoryNameForm>
         )}
       </CategoryInMonth>
     </SafeAreaView>
@@ -68,4 +86,6 @@ const makeStyles = (colors: Palette) =>
     cancel: { height: 44, justifyContent: 'center' },
     cancelText: { fontFamily: fonts.bodyMedium, fontSize: 15, color: colors.muted },
     title: { fontFamily: fonts.display, fontSize: 18, color: colors.text },
+    remove: { height: 48, alignItems: 'center', justifyContent: 'center' },
+    removeText: { fontFamily: fonts.bodyMedium, fontSize: 15, color: colors.danger },
   });

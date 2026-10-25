@@ -22,3 +22,11 @@ export async function setPlanned(ledgerId: number, categoryId: number, month: st
     body: { amount },
   });
 }
+
+/**
+ * Adds a category by name to a 'YYYY-MM' month at €0 (brief 038), reusing the ledger's category with that name. The
+ * reply isn't read: screens reload on focus.
+ */
+export async function addToMonth(ledgerId: number, month: string, name: string): Promise<void> {
+  await api(`/api/ledgers/${ledgerId}/months/${month}/categories`, { method: 'POST', body: { name } });
+}

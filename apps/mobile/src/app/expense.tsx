@@ -170,7 +170,8 @@ function ExpenseForm({ draft, ledgerId }: { draft: ExpenseDraftData; ledgerId: n
     locked || list.status !== 'ready' || list.categories.length > 0
       ? null
       : `Set up ${monthName(month)}’s budget first.`;
-  const notInMonth = !locked && !noBudget && picker?.missing ? `That category isn’t in ${monthName(month)}.` : null;
+  // Shown on a locked form too: it explains an empty selection, though nothing there can be fixed.
+  const notInMonth = !noBudget && picker?.missing ? `That category isn’t in ${monthName(month)}.` : null;
   const categoryAlert = noBudget ?? notInMonth;
 
   // The alert role covers web; VoiceOver needs an explicit announcement.

@@ -1,21 +1,16 @@
-import { router, Stack, useLocalSearchParams } from 'expo-router';
+import { Stack, useLocalSearchParams } from 'expo-router';
 import { useState } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useThemedStyles } from '@/appearance/AppearanceContext';
 import { useSession } from '@/auth/AuthContext';
+import { closeToBudget } from '@/closeToBudget';
 import { CategoryNameForm } from '@/components/CategoryNameForm';
 import { LoadError } from '@/components/LoadError';
 import { addToMonth } from '@/data/categories';
 import { monthName } from '@/format';
 import { parseMonthParam } from '@/linkParams';
 import { fonts, type Palette } from '@/theme';
-
-// Opened straight from a web link there's nothing to go back to, so fall back to the Budget tab on that month.
-function leave(month: string | null) {
-  if (router.canGoBack()) router.back();
-  else router.replace(month ? { pathname: '/budget', params: { month } } : '/budget');
-}
 
 /** Adds a category by name to a month at €0 (brief 038): `/add-category?month=2026-11`. */
 export default function AddCategoryScreen() {
@@ -31,7 +26,12 @@ export default function AddCategoryScreen() {
       {/* The iOS modal can’t be swiped away while a save is in flight either. */}
       <Stack.Screen options={{ gestureEnabled: !busy }} />
       <View style={styles.header}>
-        <Pressable accessibilityRole="button" disabled={busy} onPress={() => leave(month)} style={styles.cancel}>
+        <Pressable
+          accessibilityRole="button"
+          disabled={busy}
+          onPress={() => closeToBudget(month)}
+          style={styles.cancel}
+        >
           <Text style={styles.cancelText}>Cancel</Text>
         </Pressable>
         <Text style={styles.title}>Add a category</Text>
@@ -47,7 +47,7 @@ export default function AddCategoryScreen() {
           setBusy={setBusy}
           save={async (name) => {
             await addToMonth(ledger.ledgerId, month, name);
-            leave(month);
+            closeToBudget(month);
           }}
         />
       ) : (

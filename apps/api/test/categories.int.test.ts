@@ -94,6 +94,27 @@ describe.skipIf(!(await testDbReachable()))('categories API (MySQL)', () => {
       headers,
     });
 
+  const add = (
+    headers: Record<string, string> = auth,
+    ledgerId = owner.ledgerId,
+    month = '2026-10',
+    name: unknown = 'pets',
+  ) =>
+    app.inject({
+      method: 'POST',
+      url: `/api/ledgers/${ledgerId}/months/${month}/categories`,
+      payload: { name },
+      headers,
+    });
+
+  /** How many categories the ledger has, deleted ones included. */
+  async function categoryCount(ledgerId = owner.ledgerId): Promise<number> {
+    const [[row]] = await db.query<RowDataPacket[]>('SELECT COUNT(*) AS n FROM categories WHERE ledger_id = ?', [
+      ledgerId,
+    ]);
+    return Number(row!.n);
+  }
+
   const expense = (method: 'GET' | 'DELETE' | 'POST', expenseId: number, path = '') =>
     app.inject({ method, url: `/api/ledgers/${owner.ledgerId}/expenses/${expenseId}${path}`, headers: auth });
 
@@ -945,6 +966,97 @@ describe.skipIf(!(await testDbReachable()))('categories API (MySQL)', () => {
       const res = await rename(await idOf('rent'), auth, owner.ledgerId, '2026-09');
       expect([res.statusCode, res.json()]).toEqual([409, { error: 'month_ended' }]);
       expect((await namesIn('2026-09')).rent).toBe('rent');
+    });
+  });
+
+  describe('add to a month', () => {
+    it("creates a category at the end of the month's list, at €0", async () => {
+      const res = await add();
+      expect(res.statusCode).toBe(201);
+      expect(res.json()).toEqual({
+        categoryId: expect.any(Number),
+        techName: 'pets',
+        displayName: 'pets',
+        sortOrder: 160,
+        plannedEur: '0.00',
+      });
+      const october = await listOf('2026-10');
+      expect(october).toHaveLength(16);
+      expect(october.at(-1)).toBe('pets');
+      expect(await listOf('2026-09')).not.toContain('pets');
+      expect((await one(`${res.json().categoryId}?month=2026-10`)).json()).toMatchObject({ inMonth: true });
+
+      const dogFood = await add(auth, owner.ledgerId, '2026-10', '  Dog Food  ');
+      expect(dogFood.json()).toMatchObject({ techName: 'dog_food', displayName: 'Dog Food', sortOrder: 170 });
+      const [[category]] = await db.query<RowDataPacket[]>(
+        'SELECT display_name FROM categories WHERE category_id = ?',
+        [dogFood.json().categoryId],
+      );
+      expect(category).toEqual({ display_name: 'Dog Food' });
+    });
+
+    it('starts an empty month', async () => {
+      expect((await add(auth, owner.ledgerId, '2026-11')).statusCode).toBe(201);
+      expect(await listOf('2026-11')).toEqual(['pets']);
+      expect((await copy('2026-11')).json()).toEqual({ error: 'budget_exists' });
+    });
+
+    it('keeps tech_names unique, deleted categories included', async () => {
+      // Deleted before brief 028, the only way such a category exists now.
+      const gym = await idOf('gym');
+      await db.query('UPDATE categories SET deleted_at = ? WHERE category_id = ?', [clock, gym]);
+
+      // 'gym' equals the deleted row's tech_name under the column's collation.
+      const upper = await add(auth, owner.ledgerId, '2026-10', 'GYM');
+      expect(upper.statusCode).toBe(201);
+      expect(upper.json()).toMatchObject({ techName: 'gym_2', displayName: 'GYM' });
+      expect(upper.json().categoryId).not.toBe(gym);
+
+      // 'gym 2' isn't taken in the month (gym_2 is called 'GYM' there), but its slug is.
+      expect((await add(auth, owner.ledgerId, '2026-10', 'gym 2')).json()).toMatchObject({ techName: 'gym_2_2' });
+    });
+
+    it('refuses a name another category has in that month, ignoring case and accents, adding nothing', async () => {
+      for (const name of ['RENT', 'Grocéries']) {
+        const res = await add(auth, owner.ledgerId, '2026-10', name);
+        expect([res.statusCode, res.json()], name).toEqual([400, { error: 'name_taken' }]);
+      }
+      expect(await categoryCount()).toBe(15);
+
+      expect((await rename(await idOf('gym'), auth, owner.ledgerId, '2026-10', 'sport')).statusCode).toBe(204);
+      expect((await add(auth, owner.ledgerId, '2026-10', 'Sport')).json()).toEqual({ error: 'name_taken' });
+      expect(await categoryCount()).toBe(15);
+    });
+
+    it('rejects an empty or too long name and a malformed month, adding nothing', async () => {
+      for (const name of ['', '   ', 'x'.repeat(41), 123, null]) {
+        const res = await add(auth, owner.ledgerId, '2026-10', name);
+        expect([res.statusCode, res.json()], String(name)).toMatchObject([400, { error: 'invalid_request' }]);
+      }
+      const noBody = await app.inject({
+        method: 'POST',
+        url: `/api/ledgers/${owner.ledgerId}/months/2026-10/categories`,
+        headers: auth,
+      });
+      expect(noBody.statusCode).toBe(400);
+      expect((await add(auth, owner.ledgerId, '2026-13')).json()).toMatchObject({ error: 'invalid_request' });
+      expect(await categoryCount()).toBe(15);
+
+      expect((await add(auth, owner.ledgerId, '2026-10', 'x'.repeat(40))).statusCode).toBe(201);
+    });
+
+    it('refuses a month that has ended in Kyiv, adding nothing', async () => {
+      const res = await add(auth, owner.ledgerId, '2026-09');
+      expect([res.statusCode, res.json()]).toEqual([409, { error: 'month_ended' }]);
+      expect(await categoryCount()).toBe(15);
+      expect(await listOf('2026-09')).toHaveLength(15);
+    });
+
+    it('needs a session and a ledger of mine', async () => {
+      expect((await add({})).statusCode).toBe(401);
+      const stranger = await makeUser(db, config, 'stranger');
+      expect((await add(auth, stranger.ledgerId)).statusCode).toBe(404);
+      expect(await categoryCount(stranger.ledgerId)).toBe(15);
     });
   });
 

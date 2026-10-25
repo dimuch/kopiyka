@@ -165,7 +165,7 @@ app already has, and 040 can follow it.
     - `'Їжа вдома'` → `'їжа_вдома'`;
     - `'İ'.repeat(40)` (80 code points once lower-cased) → 40 code points.
 
-- [ ] 2. Add a new category to a month
+- [x] 2. Add a new category to a month
   - Files: `apps/api/src/categories/monthLists.ts` (`AddedCategory`, `addToMonth` with steps 1, 2, 5 and 6, without
     `findByName`), `apps/api/src/categories/routes.ts` (the POST), `apps/api/test/categories.int.test.ts`.
   - Change: as in Contracts, with every name creating a category unless it's taken in the month. Slice 3 adds reuse.

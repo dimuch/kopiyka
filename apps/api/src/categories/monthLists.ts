@@ -1,5 +1,5 @@
 // Brief 028, 033: a month's list is exactly its own rows in category_months; nothing carries over. Brief 036: a
-// month's planned amounts live in category_budgets.
+// month's planned amounts live in category_budgets. Brief 038: a category is added to a month by name.
 import type { PoolConnection, RowDataPacket } from 'mysql2/promise';
 import { nextMonthStart, previousMonthStart } from '../dates.js';
 import { type Db, withTransaction } from '../db.js';
@@ -48,6 +48,14 @@ async function nameTaken(
     [ledgerId, first, categoryId, name],
   );
   return rows.length > 0;
+}
+
+/**
+ * A new category's tech_name before any suffix (brief 038), from its trimmed name: lower case, each run of
+ * whitespace one '_', at most 40 code points (lower-casing can lengthen a name; the column holds 50).
+ */
+export function techNameBase(name: string): string {
+  return [...name.toLowerCase().replace(/\s+/g, '_')].slice(0, 40).join('');
 }
 
 /** One list change per ledger at a time: a check and the write after it see the same list. */

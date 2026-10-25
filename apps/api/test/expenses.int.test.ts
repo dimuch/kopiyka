@@ -1,4 +1,5 @@
 import type { FastifyInstance } from 'fastify';
+import type { RowDataPacket } from 'mysql2/promise';
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest';
 import { buildApp } from '../src/app.js';
 import { createDb, type Db } from '../src/db.js';
@@ -18,6 +19,9 @@ import {
 describe.skipIf(!(await testDbReachable()))('expenses API (MySQL)', () => {
   const config = testConfig();
   const clock = new Date('2026-10-06T10:00:00Z');
+  // The last day of September, before it ends: the only time a September expense can be written.
+  const lastOfSeptember = new Date('2026-09-30T10:00:00Z');
+  let now = clock;
   let db: Db;
   let app: FastifyInstance;
   let owner: TestUser;
@@ -29,6 +33,15 @@ describe.skipIf(!(await testDbReachable()))('expenses API (MySQL)', () => {
   const post = (payload: Record<string, unknown>, headers = auth) =>
     app.inject({ method: 'POST', url: url(), payload, headers });
   const list = (query: string, headers = auth) => app.inject({ method: 'GET', url: url(query), headers });
+  /** Runs `write` while September is still open, then goes back to the suite's clock. */
+  async function inSeptember<T>(write: () => Promise<T>): Promise<T> {
+    now = lastOfSeptember;
+    try {
+      return await write();
+    } finally {
+      now = clock;
+    }
+  }
   const groceries = (extra: Record<string, unknown> = {}) => ({
     categoryId: cat.groceries,
     expenseDate: '2026-10-06',
@@ -41,7 +54,7 @@ describe.skipIf(!(await testDbReachable()))('expenses API (MySQL)', () => {
   beforeAll(async () => {
     await resetSchema();
     db = createDb(TEST_DB_URL!);
-    app = await buildApp({ config, db, now: () => clock, fetchRate: (d) => fetchRate(d) });
+    app = await buildApp({ config, db, now: () => now, fetchRate: (d) => fetchRate(d) });
   });
 
   afterAll(async () => {
@@ -50,6 +63,7 @@ describe.skipIf(!(await testDbReachable()))('expenses API (MySQL)', () => {
   });
 
   beforeEach(async () => {
+    now = clock;
     await clearData(db);
     fetchRate = async (date) => (date === '2026-10-05' ? 50.6 : date <= '2026-10-07' ? 50.483 : null);
     owner = await makeUser(db, config, 'ivanka');
@@ -258,7 +272,7 @@ describe.skipIf(!(await testDbReachable()))('expenses API (MySQL)', () => {
 
     it('leaves the expense unchanged when the rate is unavailable', async () => {
       fetchRate = async () => null;
-      expect((await put(expenseId, groceries({ expenseDate: '2026-09-01', amount: '99' }))).statusCode).toBe(503);
+      expect((await put(expenseId, groceries({ expenseDate: '2026-10-05', amount: '99' }))).statusCode).toBe(503);
       expect((await list('?month=2026-10')).json().expenses[0]).toMatchObject({ amountEur: '12.50' });
     });
   });
@@ -338,7 +352,7 @@ describe.skipIf(!(await testDbReachable()))('expenses API (MySQL)', () => {
     beforeEach(async () => {
       await post(groceries({ expenseDate: '2026-10-01', name: 'first' }));
       await post(groceries({ expenseDate: '2026-10-06', name: 'latest' }));
-      await post(groceries({ expenseDate: '2026-09-30', name: 'september' }));
+      await inSeptember(() => post(groceries({ expenseDate: '2026-09-30', name: 'september' })));
       await post(groceries({ categoryId: cat.car, expenseDate: '2026-10-03', name: 'fuel' }));
     });
 
@@ -423,23 +437,31 @@ describe.skipIf(!(await testDbReachable()))('expenses API (MySQL)', () => {
       await withoutGymInOctober();
       expect((await post(gym('2026-10-06'))).json()).toEqual({ error: 'category_not_in_month' });
       expect((await list('?month=2026-10')).json().expenses).toEqual([]);
-      expect((await post(gym('2026-09-30'))).statusCode).toBe(201);
+      // Putting gym back in October's list lets it in.
+      await storeMonthList(db, owner.ledgerId, '2026-10', []);
+      expect((await post(gym('2026-10-06'))).statusCode).toBe(201);
     });
 
     it('refuses moving an expense, or switching its category, into such a month', async () => {
-      const september = (await post(gym('2026-09-30'))).json();
-      const october = (await post(groceries())).json();
-      await withoutGymInOctober();
+      // The only two open months there can be: the last day of October and November, Kyiv's tomorrow.
+      now = new Date('2026-10-31T10:00:00Z');
+      auth = await authHeader(app, owner, now);
+      fetchRate = async () => 50.483;
+      await storeMonthList(db, owner.ledgerId, '2026-11', ['gym']);
+      const lastOfOctober = (await post(gym('2026-10-31'))).json();
+      const october = (await post(groceries({ expenseDate: '2026-10-31' }))).json();
 
-      const moved = await put(september.expenseId, gym('2026-10-01'));
+      const moved = await put(lastOfOctober.expenseId, gym('2026-11-01'));
       expect([moved.statusCode, moved.json()]).toEqual([400, { error: 'category_not_in_month' }]);
-      expect((await app.inject({ method: 'GET', url: url(`/${september.expenseId}`), headers: auth })).json()).toEqual(
-        september,
-      );
-      expect((await put(october.expenseId, groceries({ categoryId: cat.gym }))).json()).toEqual({
-        error: 'category_not_in_month',
-      });
-      expect((await put(september.expenseId, gym('2026-09-30', { name: 'pilates' }))).statusCode).toBe(200);
+      expect(
+        (await app.inject({ method: 'GET', url: url(`/${lastOfOctober.expenseId}`), headers: auth })).json(),
+      ).toEqual(lastOfOctober);
+      expect((await put(lastOfOctober.expenseId, gym('2026-10-31', { name: 'pilates' }))).statusCode).toBe(200);
+
+      await withoutGymInOctober();
+      expect(
+        (await put(october.expenseId, groceries({ expenseDate: '2026-10-31', categoryId: cat.gym }))).json(),
+      ).toEqual({ error: 'category_not_in_month' });
     });
 
     it('checks the month list before the date and fetches no rate for a refused category', async () => {
@@ -460,13 +482,13 @@ describe.skipIf(!(await testDbReachable()))('expenses API (MySQL)', () => {
         asked.push(date);
         return 50.483;
       };
-      expect((await post(groceries({ expenseDate: '2026-08-20' }))).json()).toEqual({
-        error: 'category_not_in_month',
-      });
+      // October emptied: an open month with no budget.
+      await storeMonthList(db, owner.ledgerId, '2026-10', Object.keys(cat));
+      expect((await post(groceries())).json()).toEqual({ error: 'category_not_in_month' });
       expect(asked).toEqual([]);
 
-      await storeMonthList(db, owner.ledgerId, '2026-08', []);
-      expect((await post(groceries({ expenseDate: '2026-08-20' }))).statusCode).toBe(201);
+      await storeMonthList(db, owner.ledgerId, '2026-10', []);
+      expect((await post(groceries())).statusCode).toBe(201);
     });
 
     it('still says unknown_category for a foreign category', async () => {
@@ -483,10 +505,7 @@ describe.skipIf(!(await testDbReachable()))('expenses API (MySQL)', () => {
 
     it("won't restore an expense into a month whose list lacks its category", async () => {
       const october = (await post(gym('2026-10-02'))).json();
-      const september = (await post(gym('2026-09-30'))).json();
-      for (const e of [october, september]) {
-        await app.inject({ method: 'DELETE', url: url(`/${e.expenseId}`), headers: auth });
-      }
+      await app.inject({ method: 'DELETE', url: url(`/${october.expenseId}`), headers: auth });
       await withoutGymInOctober();
 
       const restore = (expenseId: number) =>
@@ -495,7 +514,95 @@ describe.skipIf(!(await testDbReachable()))('expenses API (MySQL)', () => {
         404,
         [],
       ]);
-      expect((await restore(september.expenseId)).statusCode).toBe(200);
+      await storeMonthList(db, owner.ledgerId, '2026-10', []);
+      expect((await restore(october.expenseId)).statusCode).toBe(200);
+    });
+  });
+
+  describe('ended months', () => {
+    const put = (expenseId: number, payload: Record<string, unknown>, headers = auth) =>
+      app.inject({ method: 'PUT', url: url(`/${expenseId}`), payload, headers });
+    const row = async (expenseId: number) => {
+      const [[found]] = await db.query<RowDataPacket[]>('SELECT * FROM expenses WHERE expense_id = ?', [expenseId]);
+      return found;
+    };
+    const count = async (table: 'expenses' | 'exchange_rates') => {
+      const [[found]] = await db.query<RowDataPacket[]>(`SELECT COUNT(*) AS n FROM ${table}`);
+      return Number(found!.n);
+    };
+    const refused = { error: 'month_ended' };
+    let september: { expenseId: number };
+
+    beforeEach(async () => {
+      september = (await inSeptember(() => post(groceries({ expenseDate: '2026-09-29', name: 'september' })))).json();
+    });
+
+    it('refuses a new September expense, writing nothing', async () => {
+      const asked: string[] = [];
+      fetchRate = async (date) => {
+        asked.push(date);
+        return 50.483;
+      };
+      const [expenses, rates] = [await count('expenses'), await count('exchange_rates')];
+      const res = await post(groceries({ expenseDate: '2026-09-20' }));
+      expect([res.statusCode, res.json()]).toEqual([409, refused]);
+      expect([await count('expenses'), await count('exchange_rates'), asked]).toEqual([expenses, rates, []]);
+    });
+
+    it('refuses editing a September expense, even within September', async () => {
+      const before = await row(september.expenseId);
+      const res = await put(september.expenseId, groceries({ expenseDate: '2026-09-28', name: 'edited' }));
+      expect([res.statusCode, res.json()]).toEqual([409, refused]);
+      expect(await row(september.expenseId)).toEqual(before);
+    });
+
+    it('refuses moving an expense into or out of an ended month', async () => {
+      const october = (await post(groceries())).json();
+      const [octoberBefore, septemberBefore] = [await row(october.expenseId), await row(september.expenseId)];
+      expect((await put(october.expenseId, groceries({ expenseDate: '2026-09-30' }))).json()).toEqual(refused);
+      expect((await put(september.expenseId, groceries({ expenseDate: '2026-10-02' }))).json()).toEqual(refused);
+      expect([await row(october.expenseId), await row(september.expenseId)]).toEqual([octoberBefore, septemberBefore]);
+
+      expect((await put(october.expenseId, groceries({ expenseDate: '2026-10-05' }))).statusCode).toBe(200);
+    });
+
+    it('says month_ended before category_not_in_month', async () => {
+      const gymInSeptember = (
+        await inSeptember(() => post(groceries({ categoryId: cat.gym, expenseDate: '2026-09-29' })))
+      ).json();
+      await storeMonthList(db, owner.ledgerId, '2026-10', ['gym']);
+      const moved = await put(gymInSeptember.expenseId, groceries({ categoryId: cat.gym, expenseDate: '2026-10-01' }));
+      expect([moved.statusCode, moved.json()]).toEqual([409, refused]);
+      // August has no list at all.
+      expect((await post(groceries({ expenseDate: '2026-08-20' }))).json()).toEqual(refused);
+    });
+
+    it('answers 404, not month_ended, for an unknown or other-ledger expense', async () => {
+      const september30 = groceries({ expenseDate: '2026-09-30' });
+      expect((await put(999_999, september30)).json()).toEqual({ error: 'not_found' });
+      const stranger = await makeUser(db, config, 'stranger');
+      const res = await app.inject({
+        method: 'PUT',
+        url: `/api/ledgers/${stranger.ledgerId}/expenses/${september.expenseId}`,
+        payload: september30,
+        headers: await authHeader(app, stranger, clock),
+      });
+      expect([res.statusCode, res.json()]).toEqual([404, { error: 'not_found' }]);
+    });
+
+    it('locks a month at 00:00 Kyiv, not UTC', async () => {
+      // Kyiv is UTC+3 in September: 20:59:59Z is still the 30th there.
+      now = new Date('2026-09-30T20:59:59Z');
+      const late = await post(groceries({ expenseDate: '2026-09-30' }));
+      expect(late.statusCode).toBe(201);
+      expect(
+        (await put(late.json().expenseId, groceries({ expenseDate: '2026-09-30', name: 'edit' }))).statusCode,
+      ).toBe(200);
+
+      // Still the 30th in UTC, but 1 October in Kyiv.
+      now = new Date('2026-09-30T21:00:00Z');
+      expect((await post(groceries({ expenseDate: '2026-09-30' }))).json()).toEqual(refused);
+      expect((await put(late.json().expenseId, groceries({ expenseDate: '2026-09-30' }))).json()).toEqual(refused);
     });
   });
 });

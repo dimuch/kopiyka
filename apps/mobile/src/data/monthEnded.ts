@@ -4,3 +4,8 @@ import { monthName } from '@/format';
 export function monthEndedText(month: string): string {
   return `${monthName(month)} has ended, so it can’t change.`;
 }
+
+/** The expense form's line for an expense of an ended 'YYYY-MM' month (brief 041). */
+export function lockedText(month: string): string {
+  return `${monthName(month)} has ended, so its expenses can’t change.`;
+}

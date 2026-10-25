@@ -11,7 +11,8 @@ export function monthEndedText(month: string): string {
  */
 export function restoreRefusedText(code: string, month: string): string | null {
   if (code === 'month_ended') return `${monthName(month)} has ended, so it can’t be restored.`;
-  // Another member restored it or deleted it meanwhile (brief 046).
+  // Nothing is left to restore: another member restored or deleted it, or the expense's category left the month
+  // (brief 046).
   if (code === 'not_found') return 'Already restored or deleted — nothing to undo.';
   return null;
 }

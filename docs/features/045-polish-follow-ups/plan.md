@@ -38,8 +38,8 @@ less clear than a guard at the button.
     `router.push(href: Href)` exists in expo-router ~57.0.26. The first call pushes. Further calls are ignored until
     the calling screen gains focus again. One hook per screen covers every button on that screen that uses it.
     The focus callback is `useCallback(() => { pushed.current = false; }, [])`, since `useFocusEffect` re-runs when
-    its callback changes. The returned push is wrapped in `useCallback(…, [])` too, so the Budget rows' `.map` gets a
-    stable function.
+    its callback changes. The returned push is wrapped in `useCallback(…, [])` too, so it is one function per screen
+    (the Budget rows still call it from an inline arrow).
   - `apps/mobile/src/theme.ts`: `export function dangerText(colors: Palette): TextStyle` (with
     `import type { TextStyle } from 'react-native'`, which is erased, so `theme.test.ts` still runs in Node). It
     returns `{ fontFamily: fonts.bodyMedium, fontSize: 15, color: colors.danger }`.

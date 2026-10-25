@@ -145,7 +145,7 @@ StyleSheet.create({...})` at the bottom of the file, read with
   Styles with no colour can stay a plain `StyleSheet.create`. Small dynamic
   overrides inline are fine.
 - Works on **iOS and web** (react-native-web). Branch on `Platform.OS`
-  only at the edge (`confirmDelete`, `client.ts`), not throughout screens.
+  only at the edge (`client.ts`, `PhoneColumn`), not throughout screens.
 - Accessibility: interactive elements get `accessibilityRole` and a label;
   inputs get explicit labels; touch targets ≥ 44pt.
 - Performance basics: stable callbacks for list rows, `keyExtractor`, no

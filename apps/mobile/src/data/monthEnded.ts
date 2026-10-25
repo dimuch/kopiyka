@@ -5,9 +5,15 @@ export function monthEndedText(month: string): string {
   return `${monthName(month)} has ended, so it can’t change.`;
 }
 
-/** The Undo bar's text when a restore into a 'YYYY-MM' month is refused for good; null for any other refusal. */
+/**
+ * The Undo bar's text when a restore is refused for good (into a 'YYYY-MM' month that has ended, or with nothing left
+ * to restore); null for a retryable failure.
+ */
 export function restoreRefusedText(code: string, month: string): string | null {
-  return code === 'month_ended' ? `${monthName(month)} has ended, so it can’t be restored.` : null;
+  if (code === 'month_ended') return `${monthName(month)} has ended, so it can’t be restored.`;
+  // Another member restored it or deleted it meanwhile (brief 046).
+  if (code === 'not_found') return 'Already restored or deleted — nothing to undo.';
+  return null;
 }
 
 /** The expense form's line for an expense of an ended 'YYYY-MM' month (brief 041). */

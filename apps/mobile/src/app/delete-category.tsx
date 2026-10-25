@@ -10,7 +10,7 @@ import { CategoryInMonth } from '@/components/CategoryInMonth';
 import { removeFromMonth, restoreToMonth } from '@/data/categories';
 import { notInMonthText } from '@/data/categoryName';
 import { removedMessage, removeWarning } from '@/data/categoryRemove';
-import { monthEndedText } from '@/data/monthEnded';
+import { monthEndedText, restoreRefusedText } from '@/data/monthEnded';
 import { setPendingUndo } from '@/data/undo';
 import { useCategoryTotals } from '@/data/useCategoryTotals';
 import { parseIdParam, parseMonthParam } from '@/linkParams';
@@ -101,6 +101,8 @@ function Confirm({
       setPendingUndo({
         message: removedMessage(displayName, month, expenseCount),
         restore: () => restoreToMonth(ledgerId, categoryId, month),
+        // The restore goes back into the removal month, so a month that ended meanwhile refuses it for good.
+        refusedText: (err) => (err instanceof ApiError ? restoreRefusedText(err.code, month) : null),
       });
       router.dismissTo(toBudget ? { pathname: '/budget', params: { month } } : '/');
     } catch (err) {

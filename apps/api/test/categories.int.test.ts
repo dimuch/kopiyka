@@ -1102,6 +1102,16 @@ describe.skipIf(!(await testDbReachable()))('categories API (MySQL)', () => {
       expect((await restoreTo(eatingOut)).json()).toEqual({ error: 'not_found' });
     });
 
+    it('prefers a category still in that month over one removed from it', async () => {
+      // October has 'x' twice: car's removed row and gym's live one. car has the lower id, so only the live-first
+      // order makes a later month pick gym.
+      const car = await idOf('car');
+      expect((await rename(car, auth, owner.ledgerId, '2026-10', 'x')).statusCode).toBe(204);
+      expect((await removeFrom(car)).statusCode).toBe(204);
+      expect((await rename(await idOf('gym'), auth, owner.ledgerId, '2026-10', 'x')).statusCode).toBe(204);
+      expect((await add(auth, owner.ledgerId, '2026-11', 'x')).json().categoryId).toBe(await idOf('gym'));
+    });
+
     it("makes a new category when the name's category is already in the month under another name", async () => {
       expect((await rename(await idOf('eating_out'))).statusCode).toBe(204); // 'food out' in October
       const res = await add(auth, owner.ledgerId, '2026-10', 'eating out');

@@ -7,7 +7,7 @@ import { useSession } from '@/auth/AuthContext';
 import { AddExpenseButton } from '@/components/AddExpenseButton';
 import { CategoryTile } from '@/components/CategoryTile';
 import { HeaderDivider, useCollapsingSummary } from '@/components/CollapsingSummary';
-import { Icon } from '@/components/Icon';
+import { HomeButton } from '@/components/HomeButton';
 import { LoadError } from '@/components/LoadError';
 import { MonthSwitcher } from '@/components/MonthSwitcher';
 import { NoBudget } from '@/components/NoBudget';
@@ -45,15 +45,7 @@ export default function Expenses() {
     <SafeAreaView style={styles.screen} edges={['top']}>
       <View style={styles.header}>
         <View style={styles.side}>
-          {/* Same action as the Home tab icon: switches tabs, pushes nothing. */}
-          <Pressable
-            accessibilityRole="button"
-            accessibilityLabel="Home"
-            onPress={() => router.navigate('/')}
-            style={styles.iconButton}
-          >
-            <Icon name="home" color={colors.muted} />
-          </Pressable>
+          <HomeButton />
         </View>
         <MonthSwitcher month={month} onChange={setMonth} />
         <View style={[styles.side, styles.sideEnd]}>
@@ -178,7 +170,6 @@ const makeStyles = (colors: Palette) =>
     // Equal-width sides keep the month switcher on the header's true centre; flexBasis 0 matters on web.
     side: { flex: 1, flexBasis: 0, flexDirection: 'row' },
     sideEnd: { justifyContent: 'flex-end' },
-    iconButton: { width: 44, height: 44, alignItems: 'center', justifyContent: 'center', borderRadius: 12 },
     card: {
       backgroundColor: colors.surface,
       borderColor: colors.border,

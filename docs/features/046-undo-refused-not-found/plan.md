@@ -47,7 +47,7 @@ function (see Not doing).
 
 ## Slices
 
-- [ ] 1. Say why an Undo that finds nothing to restore can't be retried (~15 lines)
+- [x] 1. Say why an Undo that finds nothing to restore can't be retried (~15 lines)
   - Files: `apps/mobile/src/data/monthEnded.ts`, `apps/mobile/test/monthEnded.test.ts`. Option B also touches
     `apps/mobile/src/app/delete-category.tsx` and `apps/mobile/src/app/expense.tsx`.
   - Change: add the `not_found` branch and the JSDoc from Contracts, as two early returns in place of today's
@@ -138,4 +138,21 @@ Total ≈ 15 changed lines in 1 commit (option B ≈ 21 in the same commit).
 
 ## Deviations
 
+- None in the code. For the web check, the API on :3000 was reused from the `kopiyka-remove-in-rename` worktree; its
+  `apps/api/src` is identical to the base. The unchanged-refusal stubs ran one per call, because a single 50 s script
+  exceeded the browser tool's time limit.
+
 ## Consolidate
+
+Skipped: the branch adds no new function, hook, component, route or query, only a branch in the existing
+`restoreRefusedText`.
+
+## Verification (2026-10-25)
+
+- Gates green: API 301 passed + 1 skipped (integration ran), mobile 134 passed.
+- Web at 390×844, QA user `claude-qa-046` (deleted afterwards), Metro from a detached worktree outside `.claude`:
+  - Base: a forced 404 after an expense delete and after a category removal showed "Couldn’t undo" + Retry.
+  - Fix: both showed "Already restored or deleted — nothing to undo." on two lines with no button, gone after ~10 s.
+  - Stubbed on an expense delete: `409 month_ended` → "October has ended, so it can’t be restored.", no button;
+    `409 name_taken`, `500 internal` and a network failure → "Couldn’t undo" + Retry, and a real Retry restored it.
+- Left for the user: iPhone (Expo Go), including the VoiceOver announcement.

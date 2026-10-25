@@ -23,6 +23,8 @@ import { CategoryPicker } from '@/components/CategoryPicker';
 import { DateChips } from '@/components/DateChips';
 import { Icon } from '@/components/Icon';
 import { LoadError } from '@/components/LoadError';
+import { expenseLocked, firstOpenDate } from '@/data/expenseLock';
+import { lockedText, restoreRefusedText } from '@/data/monthEnded';
 import { deleteExpense, restoreExpense, saveExpense } from '@/data/expenses';
 import { setPendingUndo } from '@/data/undo';
 import { monthPicker } from '@/data/quick';
@@ -135,6 +137,8 @@ function ExpenseForm({ draft, ledgerId }: { draft: ExpenseDraftData; ledgerId: n
   const { expense } = draft;
   // Kyiv dates, like the NBU rates they're priced at; read the clock once, when the form opens.
   const [today] = useState(() => kyivToday(new Date()));
+  // An ended month's expense opens read-only (brief 041); its stored month names the lock.
+  const locked = !!expense && expenseLocked(expense.expenseDate, today);
 
   const [categoryId, setCategoryId] = useState(draft.categoryId);
   const [date, setDate] = useState(expense?.expenseDate ?? today);
@@ -160,13 +164,13 @@ function ExpenseForm({ draft, ledgerId }: { draft: ExpenseDraftData; ledgerId: n
   const list = useMonthCategories(ledgerId, month);
   const selectedId = categoryId ?? list.firstQuickId;
   const picker = list.status === 'ready' ? monthPicker(list.categories, list.quickIds, selectedId) : null;
-  // A month with no categories has to be set up on the Budget tab first (brief 035); an ended one can't be any more.
+  // A month with no categories has to be set up on the Budget tab first (brief 035). The date can't reach an ended
+  // month unless the form is locked, and a locked form has nothing to fix.
   const noBudget =
-    list.status !== 'ready' || list.categories.length > 0
+    locked || list.status !== 'ready' || list.categories.length > 0
       ? null
-      : month < today.slice(0, 7)
-        ? `${monthName(month)} had no budget, so it can’t take expenses.`
-        : `Set up ${monthName(month)}’s budget first.`;
+      : `Set up ${monthName(month)}’s budget first.`;
+  // Shown on a locked form too: it explains an empty selection, though nothing there can be fixed.
   const notInMonth = !noBudget && picker?.missing ? `That category isn’t in ${monthName(month)}.` : null;
   const categoryAlert = noBudget ?? notInMonth;
 
@@ -234,10 +238,14 @@ function ExpenseForm({ draft, ledgerId }: { draft: ExpenseDraftData; ledgerId: n
       setName('');
       setAmountText('');
     } catch (err) {
+      const code = err instanceof ApiError ? err.code : null;
       showError(
-        err instanceof ApiError && err.code === 'category_not_in_month'
+        code === 'category_not_in_month'
           ? `That category isn’t in ${monthName(body.expenseDate.slice(0, 7))}.`
-          : errorText(err, 'save'),
+          : // The month ended while the form was open.
+            code === 'month_ended'
+            ? lockedText(body.expenseDate.slice(0, 7))
+            : errorText(err, 'save'),
       );
     } finally {
       setBusy(false);
@@ -252,13 +260,20 @@ function ExpenseForm({ draft, ledgerId }: { draft: ExpenseDraftData; ledgerId: n
       await deleteExpense(ledgerId, expense.expenseId);
       // The screen this returns to takes the offer: Category, or Home when opened from a link.
       const { expenseId } = expense;
+      // The stored month: the one the expense is restored into.
+      const storedMonth = expense.expenseDate.slice(0, 7);
       setPendingUndo({
         message: `Deleted “${expense.name || 'Expense'}”`,
         restore: () => restoreExpense(ledgerId, expenseId),
+        refusedText: (err) => (err instanceof ApiError ? restoreRefusedText(err.code, storedMonth) : null),
       });
       leave();
     } catch (err) {
-      showError(errorText(err, 'save'));
+      showError(
+        err instanceof ApiError && err.code === 'month_ended'
+          ? lockedText(expense.expenseDate.slice(0, 7))
+          : errorText(err, 'save'),
+      );
       setBusy(false);
     }
   }
@@ -266,9 +281,11 @@ function ExpenseForm({ draft, ledgerId }: { draft: ExpenseDraftData; ledgerId: n
   return (
     <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={{ flex: 1 }}>
       <ScrollView contentContainerStyle={styles.form} keyboardShouldPersistTaps="handled">
+        {expense && locked ? <Text style={styles.locked}>{lockedText(expense.expenseDate.slice(0, 7))}</Text> : null}
+
         <View style={styles.group}>
           <Text style={styles.label}>Date</Text>
-          <DateChips value={date} today={today} onChange={pickDate} />
+          <DateChips value={date} today={today} min={firstOpenDate(today)} onChange={pickDate} disabled={locked} />
         </View>
 
         <View style={styles.group}>
@@ -279,7 +296,13 @@ function ExpenseForm({ draft, ledgerId }: { draft: ExpenseDraftData; ledgerId: n
             </Text>
           ) : picker ? (
             <>
-              <CategoryPicker quick={picker.quick} more={picker.more} selectedId={selectedId} onPick={pickCategory} />
+              <CategoryPicker
+                quick={picker.quick}
+                more={picker.more}
+                selectedId={selectedId}
+                onPick={pickCategory}
+                disabled={locked}
+              />
               {notInMonth ? (
                 <Text accessibilityRole="alert" style={styles.error}>
                   {notInMonth}
@@ -301,7 +324,8 @@ function ExpenseForm({ draft, ledgerId }: { draft: ExpenseDraftData; ledgerId: n
           <TextInput
             accessibilityLabel="What was it?"
             value={name}
-            onChangeText={(t) => edit(setName, t)}
+            onChangeText={(text) => edit(setName, text)}
+            editable={!locked}
             placeholder="e.g. Delhaize"
             placeholderTextColor={colors.faint}
             maxLength={200}
@@ -310,7 +334,13 @@ function ExpenseForm({ draft, ledgerId }: { draft: ExpenseDraftData; ledgerId: n
         </View>
 
         <View style={styles.group}>
-          <AmountFields entered={entered} amountText={amountText} otherText={otherText} onChange={typeAmount} />
+          <AmountFields
+            entered={entered}
+            amountText={amountText}
+            otherText={otherText}
+            onChange={typeAmount}
+            disabled={locked}
+          />
           <Text style={styles.small}>{rateLabel(rate, date)}</Text>
         </View>
 
@@ -320,29 +350,33 @@ function ExpenseForm({ draft, ledgerId }: { draft: ExpenseDraftData; ledgerId: n
           </Text>
         ) : null}
 
-        <Pressable
-          accessibilityRole="button"
-          // While saving the only child is a spinner, so the name has to be given here.
-          accessibilityLabel={expense ? 'Update' : 'Add'}
-          accessibilityState={{ busy, disabled: list.status !== 'ready' }}
-          disabled={busy || list.status !== 'ready'}
-          onPress={save}
-          style={[styles.primary, (busy || list.status !== 'ready') && { opacity: 0.6 }]}
-        >
-          {busy ? (
-            <ActivityIndicator color={colors.onAccent} />
-          ) : (
-            <>
-              {!expense && <Icon name="plus" color={colors.onAccent} strokeWidth={2.4} />}
-              <Text style={styles.primaryText}>{expense ? 'Update' : 'Add'}</Text>
-            </>
-          )}
-        </Pressable>
+        {locked ? null : (
+          <>
+            <Pressable
+              accessibilityRole="button"
+              // While saving the only child is a spinner, so the name has to be given here.
+              accessibilityLabel={expense ? 'Update' : 'Add'}
+              accessibilityState={{ busy, disabled: list.status !== 'ready' }}
+              disabled={busy || list.status !== 'ready'}
+              onPress={save}
+              style={[styles.primary, (busy || list.status !== 'ready') && { opacity: 0.6 }]}
+            >
+              {busy ? (
+                <ActivityIndicator color={colors.onAccent} />
+              ) : (
+                <>
+                  {!expense && <Icon name="plus" color={colors.onAccent} strokeWidth={2.4} />}
+                  <Text style={styles.primaryText}>{expense ? 'Update' : 'Add'}</Text>
+                </>
+              )}
+            </Pressable>
 
-        {expense && (
-          <Pressable accessibilityRole="button" disabled={busy} onPress={remove} style={styles.delete}>
-            <Text style={styles.deleteText}>Delete expense</Text>
-          </Pressable>
+            {expense && (
+              <Pressable accessibilityRole="button" disabled={busy} onPress={remove} style={styles.delete}>
+                <Text style={styles.deleteText}>Delete expense</Text>
+              </Pressable>
+            )}
+          </>
         )}
 
         {added ? (
@@ -376,6 +410,7 @@ const makeStyles = (colors: Palette) => {
     label: { fontFamily: fonts.bodySemi, fontSize: 13, color: colors.muted },
     input: { ...field, paddingHorizontal: 14, color: colors.text, fontFamily: fonts.body, fontSize: 16 },
     small: { fontFamily: fonts.body, fontSize: 12, color: colors.muted, fontVariant: ['tabular-nums'] },
+    locked: { fontFamily: fonts.bodyMedium, fontSize: 15, color: colors.text },
     error: { fontFamily: fonts.bodyMedium, fontSize: 13, color: colors.over },
     primary: {
       height: 56,

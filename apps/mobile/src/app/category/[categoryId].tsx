@@ -146,7 +146,7 @@ function CategoryBreakdown({ categoryId, month, ended }: { categoryId: number; m
                     <Pressable
                       key={e.expenseId}
                       accessibilityRole="button"
-                      accessibilityHint="Edit this expense"
+                      accessibilityHint={ended ? 'View this expense' : 'Edit this expense'}
                       onPress={() => router.push({ pathname: '/expense', params: { expenseId: e.expenseId } })}
                       style={[styles.item, i < d.items.length - 1 && styles.divider]}
                     >

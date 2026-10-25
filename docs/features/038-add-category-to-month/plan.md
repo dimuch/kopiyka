@@ -274,7 +274,7 @@ app already has, and 040 can follow it.
 
     Typecheck and lint.
 
-- [ ] 6. Offer "Add a category" on the Budget tab, in an empty month and under the list
+- [x] 6. Offer "Add a category" on the Budget tab, in an empty month and under the list
   - Files: `apps/mobile/src/app/(tabs)/budget.tsx`.
   - Change: once the month has loaded and it hasn't ended, one secondary (outlined) button sits after the empty
     state's block and after the list card. It pushes `/add-category` with the month. `NoBudget` is unchanged, so the
@@ -385,6 +385,8 @@ copied styles.
   so the route answers 409.
 - slice 5: the name field has `autoCapitalize="none"`: the seeded names are lower case, and iOS would otherwise
   capitalise the first letter.
+- slice 6 (checked on web): adding a name while its category's Undo bar still shows makes that Undo answer 404, and
+  the bar says "Couldn’t undo"; the category is already back, so nothing is lost.
 
 ## Consolidate
 

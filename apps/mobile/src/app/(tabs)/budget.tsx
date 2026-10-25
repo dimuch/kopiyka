@@ -6,6 +6,7 @@ import { ApiError } from '@/api/client';
 import { useColors, useThemedStyles } from '@/appearance/AppearanceContext';
 import { useSession } from '@/auth/AuthContext';
 import { CategoryTile } from '@/components/CategoryTile';
+import { Icon } from '@/components/Icon';
 import { LoadError } from '@/components/LoadError';
 import { MonthSwitcher } from '@/components/MonthSwitcher';
 import { NoBudget } from '@/components/NoBudget';
@@ -151,6 +152,17 @@ export default function Budget() {
                 </View>
               </>
             )}
+            {!ended && (
+              <Pressable
+                accessibilityRole="button"
+                accessibilityLabel={`Add a category to ${monthName(month)}`}
+                onPress={() => router.push({ pathname: '/add-category', params: { month } })}
+                style={styles.add}
+              >
+                <Icon name="plus" color={colors.accent} size={18} />
+                <Text style={styles.addText}>Add a category</Text>
+              </Pressable>
+            )}
           </>
         )}
       </ScrollView>
@@ -182,4 +194,15 @@ const makeStyles = (colors: Palette) =>
     divider: { borderBottomWidth: 1, borderBottomColor: colors.border },
     rowName: { flex: 1, fontFamily: fonts.bodyMedium, fontSize: 15, color: colors.text },
     rowAmount: { fontFamily: fonts.bodySemi, fontSize: 15, color: colors.text, fontVariant: ['tabular-nums'] },
+    add: {
+      minHeight: 48,
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'center',
+      gap: 8,
+      borderRadius: 18,
+      borderWidth: 1,
+      borderColor: colors.borderStrong,
+    },
+    addText: { fontFamily: fonts.bodySemi, fontSize: 15, color: colors.accent },
   });

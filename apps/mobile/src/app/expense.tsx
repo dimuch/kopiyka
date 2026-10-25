@@ -1,9 +1,8 @@
 import { router, useLocalSearchParams } from 'expo-router';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import {
   AccessibilityInfo,
   ActivityIndicator,
-  Alert,
   KeyboardAvoidingView,
   Platform,
   Pressable,
@@ -46,17 +45,6 @@ function errorText(err: unknown, doing: 'load' | 'save'): string {
     if (err.code === 'internal') return 'Something went wrong on the server. Try again.';
   }
   return `Couldn’t ${doing}. Check your connection and try again.`;
-}
-
-function confirmDelete(name: string): Promise<boolean> {
-  const question = `Delete “${name}”?`;
-  if (Platform.OS === 'web') return Promise.resolve(window.confirm(question));
-  return new Promise((resolve) =>
-    Alert.alert(question, 'You can undo right after.', [
-      { text: 'Cancel', style: 'cancel', onPress: () => resolve(false) },
-      { text: 'Delete', style: 'destructive', onPress: () => resolve(true) },
-    ]),
-  );
 }
 
 function rateLabel(rate: Rate, date: string): string {
@@ -153,6 +141,8 @@ function ExpenseForm({ draft, ledgerId }: { draft: ExpenseDraftData; ledgerId: n
     expense ? (expense.enteredCurrency === 'UAH' ? expense.amountEur : expense.amountUah) : null,
   );
   const [busy, setBusy] = useState(false);
+  // `busy` disables the button only after a re-render; two presses in one tick would both get here.
+  const inFlight = useRef(false);
   const [error, setError] = useState<string | null>(null);
   const [added, setAdded] = useState<string | null>(null);
 
@@ -252,9 +242,10 @@ function ExpenseForm({ draft, ledgerId }: { draft: ExpenseDraftData; ledgerId: n
     }
   }
 
+  // No question first (brief 043): browsers that block confirm() would never delete, and Undo covers a slip.
   async function remove() {
-    // The saved name, not one being edited: that's what the list shows and Undo brings back.
-    if (!expense || !(await confirmDelete(expense.name || 'this expense'))) return;
+    if (!expense || inFlight.current) return;
+    inFlight.current = true;
     setBusy(true);
     try {
       await deleteExpense(ledgerId, expense.expenseId);
@@ -263,6 +254,7 @@ function ExpenseForm({ draft, ledgerId }: { draft: ExpenseDraftData; ledgerId: n
       // The stored month: the one the expense is restored into.
       const storedMonth = expense.expenseDate.slice(0, 7);
       setPendingUndo({
+        // The saved name, not one being edited: that's what the list shows and Undo brings back.
         message: `Deleted “${expense.name || 'Expense'}”`,
         restore: () => restoreExpense(ledgerId, expenseId),
         refusedText: (err) => (err instanceof ApiError ? restoreRefusedText(err.code, storedMonth) : null),
@@ -274,6 +266,7 @@ function ExpenseForm({ draft, ledgerId }: { draft: ExpenseDraftData; ledgerId: n
           ? lockedText(expense.expenseDate.slice(0, 7))
           : errorText(err, 'save'),
       );
+      inFlight.current = false;
       setBusy(false);
     }
   }

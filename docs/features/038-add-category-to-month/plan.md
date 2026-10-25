@@ -245,7 +245,7 @@ app already has, and 040 can follow it.
       - `('month_ended', 'pets', '2027-01')` → `'January has ended, so it can’t change.'`;
       - `'invalid_request'` and `'unknown'` → null.
 
-- [ ] 5. Add the "Add a category" editor for a month
+- [x] 5. Add the "Add a category" editor for a month
   - Files: `apps/mobile/src/app/add-category.tsx` (new), `apps/mobile/src/app/_layout.tsx`.
   - Change: the modal has these parts:
     - Header: Cancel, the title "Add a category", and a spacer, as in `planned-amount.tsx`.
@@ -383,6 +383,8 @@ copied styles.
 
 - slice 3: the "latest first" case names car in September with SQL, not the rename route: September has ended,
   so the route answers 409.
+- slice 5: the name field has `autoCapitalize="none"`: the seeded names are lower case, and iOS would otherwise
+  capitalise the first letter.
 
 ## Consolidate
 

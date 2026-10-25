@@ -18,7 +18,11 @@ describe('restoreRefusedText', () => {
     expect(restoreRefusedText('month_ended', month)).toBe(text);
   });
 
-  it.each(['not_found', 'internal'])('leaves %s to the retryable failure', (code) => {
+  it.each(['2026-09', '2027-01'])('says there is nothing to undo for not_found in %s', (month) => {
+    expect(restoreRefusedText('not_found', month)).toBe('Already restored or deleted — nothing to undo.');
+  });
+
+  it.each(['name_taken', 'internal', 'unknown'])('leaves %s to the retryable failure', (code) => {
     expect(restoreRefusedText(code, '2026-09')).toBeNull();
   });
 });

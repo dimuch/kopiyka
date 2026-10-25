@@ -131,7 +131,7 @@ a moment earlier. The check stays first, as the brief requires.
       - `month lists › won't restore an expense into a month whose list lacks its category`: drop the September half
         (it now fails at POST). Instead, put gym back in October's list and the restore gives 200.
 
-- [ ] 2. Refuse deleting or restoring an expense in an ended month (~70 lines)
+- [x] 2. Refuse deleting or restoring an expense in an ended month (~70 lines)
   - Files: `apps/api/src/expenses/routes.ts`, `apps/api/test/expenses.int.test.ts`
   - Change: add the `deleted` flag to `loadExpense`. DELETE and restore load first (404), then check the stored
     date's month (409), then call `setDeleted` (404 when it changed nothing).

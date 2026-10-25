@@ -137,7 +137,7 @@ export default function Budget() {
                         </View>
                       );
                     }
-                    // Two sibling buttons, not one inside the other: VoiceOver could reach a nested one.
+                    // Two sibling buttons, not one inside the other: VoiceOver couldn't reach a nested one, and web would nest role="button".
                     return (
                       <View
                         key={c.categoryId}

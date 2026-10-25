@@ -39,7 +39,7 @@ justifyContent: 'center', borderRadius: 12 }`. Inside is `<Icon name="home" colo
 
 ## Slices
 
-- [ ] 1. Move the Expenses header's Home button into a shared component (~25 lines)
+- [x] 1. Move the Expenses header's Home button into a shared component (~25 lines)
   - Files: `apps/mobile/src/components/HomeButton.tsx` (new), `apps/mobile/src/app/(tabs)/expenses.tsx`.
   - Change: create `HomeButton` as in Contracts. In `expenses.tsx`, replace the inline `Pressable` and its comment
     with `<HomeButton />`. Drop the imports that are no longer used (`Icon`) and the now-unused `iconButton` style.
@@ -48,7 +48,7 @@ justifyContent: 'center', borderRadius: 12 }`. Inside is `<Icon name="home" colo
   - Tests: none (this is UI, and there is no pure logic). Gates must be green.
   - Verify: run the web check below on the Expenses tab only. The house button is still at the left, and tapping it
     shows Home with no visible change from main.
-- [ ] 2. Add the Home button to the Budget header (~4 lines)
+- [x] 2. Add the Home button to the Budget header (~4 lines)
   - Files: `apps/mobile/src/app/(tabs)/budget.tsx`.
   - Change: `<View style={styles.side} />` → `<View style={styles.side}><HomeButton /></View>`, plus the import. The
     month switcher, "+" and styles are unchanged.
@@ -111,4 +111,22 @@ web on :8081 on `main`, so leave it alone. Use a per-brief user, `claude-qa-047`
 
 ## Deviations
 
+- None.
+
 ## Consolidate
+
+- `HomeButton` (new): EXTRACT, done in slice 1. It is the Expenses header's button moved out, now used by Expenses
+  and Budget. No other twin: `router.navigate('/')` and the `home` icon appear nowhere else in `apps/mobile/src`.
+- The 44×44 button box: LEAVE (see Follow-ups).
+
+## Verification (2026-10-25)
+
+- Gates green on each slice: API 301 passed + 1 skipped (integration ran), mobile 134 passed.
+- Web from a sibling worktree on :8084, user `claude-qa-047` (deleted afterwards):
+  - 390×844: Budget and Expenses each have one role=button "Home" at x=20, y=20, 44×44, icon stroke
+    rgb(91, 100, 112). The month title is centred (152/152 px gaps) on both.
+  - Tapping it on Budget opens `/` with the Home tab selected and no back control.
+  - 375×812: October (with "+") gaps 144/144; September (ended, no "+") 128/128. The house ends at 64 px, before
+    the previous-month arrow (96 / 79.6 px).
+  - Dark appearance: the header looks the same as on Expenses.
+- Left for the user: iPhone (Expo Go), light and dark.

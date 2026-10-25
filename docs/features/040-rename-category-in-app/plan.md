@@ -286,3 +286,13 @@ Estimated total: about 365 diff lines (1: 210, of which about 190 moved; 2: 35; 
   opens on its own month, not `?month=`, so November was reached with its Next month button (as on main).
 
 ## Consolidate
+
+CONSOLIDATE: reused 5 · extracted 2 · left 1
+
+- REUSE: `useCategoryTotals` + `CategoryInMonth`, `normalizeName`/`nameRefusedText`, `monthEndedText`,
+  `parseIdParam`/`parseMonthParam`, and 038's form (lifted into `CategoryNameForm`, slice 1).
+- EXTRACT `closeToBudget(month)` (`src/closeToBudget.ts`, d805894): `leave(month)` was in `add-category.tsx`,
+  `planned-amount.tsx` and the new `rename-category.tsx`.
+- EXTRACT `notInMonthText(name, month)` (`data/categoryName.ts`, 4c6884e): "“x” isn’t in November any more." was in
+  `planned-amount.tsx`, `delete-category.tsx` and `nameRefusedText`.
+- LEAVE the other screens' `leave()` (`delete-category.tsx`, `expense.tsx`): they go back to Home, not the Budget tab.

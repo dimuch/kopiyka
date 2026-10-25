@@ -1,3 +1,4 @@
+import { monthEndedText } from '@/data/monthEnded';
 import { monthName } from '@/format';
 
 // 1–40 characters after trimming, as the API's NameBody (brief 037).
@@ -16,7 +17,7 @@ export function nameRefusedText(code: string, name: string, month: string): stri
     case 'name_taken':
       return `You already have a category called “${name}” in ${monthName(month)}.`;
     case 'month_ended':
-      return `${monthName(month)} has ended, so it can’t change.`;
+      return monthEndedText(month);
     default:
       return null;
   }

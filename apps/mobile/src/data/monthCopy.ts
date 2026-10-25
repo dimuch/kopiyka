@@ -1,3 +1,4 @@
+import { monthEndedText } from '@/data/monthEnded';
 import { monthName, shiftMonth } from '@/format';
 
 /** The Budget tab's text for a refused copy into a 'YYYY-MM' month; null when `code` isn't a copy refusal. */
@@ -8,7 +9,7 @@ export function copyRefusedText(code: string, month: string): string | null {
     case 'no_previous_budget':
       return `${monthName(shiftMonth(month, -1))} has no categories to copy.`;
     case 'month_ended':
-      return `${monthName(month)} has ended, so it can’t change.`;
+      return monthEndedText(month);
     default:
       return null;
   }

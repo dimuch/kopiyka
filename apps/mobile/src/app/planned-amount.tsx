@@ -17,6 +17,7 @@ import { useColors, useThemedStyles } from '@/appearance/AppearanceContext';
 import { useSession } from '@/auth/AuthContext';
 import { CategoryInMonth } from '@/components/CategoryInMonth';
 import { setPlanned } from '@/data/categories';
+import { monthEndedText } from '@/data/monthEnded';
 import { useCategoryTotals } from '@/data/useCategoryTotals';
 import { monthName, normalizePlanned } from '@/format';
 import { parseIdParam, parseMonthParam } from '@/linkParams';
@@ -106,7 +107,7 @@ function Editor({
       setGone(code === 'month_ended' || code === 'not_found');
       showError(
         code === 'month_ended'
-          ? `${monthName(month)} has ended, so it can’t change.`
+          ? monthEndedText(month)
           : code === 'not_found'
             ? `“${category.displayName}” isn’t in ${monthName(month)} any more.`
             : 'Couldn’t save. Check your connection and try again.',

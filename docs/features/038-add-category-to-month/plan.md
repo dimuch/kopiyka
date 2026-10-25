@@ -390,4 +390,11 @@ copied styles.
 
 ## Consolidate
 
-<filled in /kopiyka-hos Phase 3a: CONSOLIDATE line, each reuse/extract, each LEAVE + reason>
+CONSOLIDATE: reused 0 · extracted 1 · left 2
+
+- EXTRACT `monthEndedText(month)` (`data/monthEnded.ts`): "… has ended, so it can’t change." was in `monthCopy.ts`,
+  `categoryName.ts`, `planned-amount.tsx` and `delete-category.tsx`; all four call it now.
+- LEAVE `leave(month)` in `add-category.tsx` and `planned-amount.tsx`: navigation, not pure logic, two copies; the
+  other screens' `leave()` differ. Stays a follow-up.
+- LEAVE the editor's styles copied from `planned-amount.tsx`: 040's rename editor is the planned second caller of a
+  shared name form (Not doing).

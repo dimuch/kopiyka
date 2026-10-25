@@ -9,6 +9,7 @@ import { useSession } from '@/auth/AuthContext';
 import { CategoryInMonth } from '@/components/CategoryInMonth';
 import { removeFromMonth, restoreToMonth } from '@/data/categories';
 import { removedMessage, removeWarning } from '@/data/categoryRemove';
+import { monthEndedText } from '@/data/monthEnded';
 import { setPendingUndo } from '@/data/undo';
 import { useCategoryTotals } from '@/data/useCategoryTotals';
 import { monthName } from '@/format';
@@ -93,7 +94,7 @@ function Confirm({
       const code = err instanceof ApiError ? err.code : null;
       const text =
         code === 'month_ended'
-          ? `${monthName(month)} has ended, so it can’t change.`
+          ? monthEndedText(month)
           : code === 'not_found'
             ? `“${displayName}” isn’t in ${monthName(month)} any more.`
             : 'Couldn’t remove. Check your connection and try again.';

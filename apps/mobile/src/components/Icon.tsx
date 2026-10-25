@@ -9,6 +9,8 @@ const PATHS = {
   swap: ['M7 7h13l-3-3', 'M17 17H4l3 3'],
   close: ['M6 6l12 12', 'M18 6L6 18'],
   check: ['M20 6L9 17l-5-5'],
+  // A pencil.
+  edit: ['M4 20h4L19 9l-4-4L4 16v4z', 'M13.5 6.5l4 4'],
   calendar: [
     'M5 5h14a1 1 0 0 1 1 1v14a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1z',
     'M4 10h16',

@@ -130,23 +130,41 @@ export default function Budget() {
                       </>
                     );
                     // An ended month can't change, so its rows aren't buttons.
-                    return ended ? (
-                      <View key={c.categoryId} style={style}>
-                        {content}
-                      </View>
-                    ) : (
-                      <Pressable
+                    if (ended) {
+                      return (
+                        <View key={c.categoryId} style={style}>
+                          {content}
+                        </View>
+                      );
+                    }
+                    // Two sibling buttons, not one inside the other: VoiceOver could reach a nested one.
+                    return (
+                      <View
                         key={c.categoryId}
-                        accessibilityRole="button"
-                        accessibilityLabel={`${c.displayName}, ${planned} planned`}
-                        accessibilityHint="Sets the planned amount"
-                        onPress={() =>
-                          router.push({ pathname: '/planned-amount', params: { categoryId: c.categoryId, month } })
-                        }
-                        style={style}
+                        style={[styles.openRow, i < data.categories.length - 1 && styles.divider]}
                       >
-                        {content}
-                      </Pressable>
+                        <Pressable
+                          accessibilityRole="button"
+                          accessibilityLabel={`${c.displayName}, ${planned} planned`}
+                          accessibilityHint="Sets the planned amount"
+                          onPress={() =>
+                            router.push({ pathname: '/planned-amount', params: { categoryId: c.categoryId, month } })
+                          }
+                          style={[styles.row, { flex: 1 }]}
+                        >
+                          {content}
+                        </Pressable>
+                        <Pressable
+                          accessibilityRole="button"
+                          accessibilityLabel={`Rename ${c.displayName} in ${monthName(month)}`}
+                          onPress={() =>
+                            router.push({ pathname: '/rename-category', params: { categoryId: c.categoryId, month } })
+                          }
+                          style={styles.rename}
+                        >
+                          <Icon name="edit" color={colors.muted} size={18} />
+                        </Pressable>
+                      </View>
                     );
                   })}
                 </View>
@@ -192,6 +210,8 @@ const makeStyles = (colors: Palette) =>
     },
     row: { flexDirection: 'row', alignItems: 'center', gap: 12, paddingVertical: 12, paddingHorizontal: 16 },
     divider: { borderBottomWidth: 1, borderBottomColor: colors.border },
+    openRow: { flexDirection: 'row', alignItems: 'center' },
+    rename: { width: 44, height: 44, alignItems: 'center', justifyContent: 'center', marginRight: 6 },
     rowName: { flex: 1, fontFamily: fonts.bodyMedium, fontSize: 15, color: colors.text },
     rowAmount: { fontFamily: fonts.bodySemi, fontSize: 15, color: colors.text, fontVariant: ['tabular-nums'] },
     add: {

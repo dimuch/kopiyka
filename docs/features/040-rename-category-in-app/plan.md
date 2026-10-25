@@ -179,7 +179,7 @@ left that copy for 040 to remove.
 
     Then typecheck and lint.
 
-- [ ] 4. Add a rename button to each Budget row outside ended months
+- [x] 4. Add a rename button to each Budget row outside ended months
   - Files: `apps/mobile/src/components/Icon.tsx` (`edit`), `apps/mobile/src/app/(tabs)/budget.tsx`.
   - Change: as in Contracts. About 45 lines. Row styles:
     - ended rows keep `styles.row`;
@@ -281,5 +281,8 @@ Estimated total: about 365 diff lines (1: 210, of which about 190 moved; 2: 35; 
 
 - slice 1: the form's own submit handler is `submit()`, since `save` is now its prop. Web checks reuse QA user
   `claude-qa-038` (ledger 21) instead of a new `claude-qa-040`; its ledger already has a seeded September list.
+- slice 4: the pencil box has `marginRight: 6`, so it doesn't sit on the card's rounded edge. The web check skipped
+  "copy October into November": November already had its own `eating out` row from 038's checks. The Expenses tab
+  opens on its own month, not `?month=`, so November was reached with its Next month button (as on main).
 
 ## Consolidate

@@ -1,6 +1,6 @@
 # Plan: Delete an expense at once, with Undo
 
-Status: draft
+Status: approved <!-- draft → skeptic-approved → approved (by the user) -->
 
 Brief: ./brief.md
 Branch: fix/delete-expense-without-confirm
@@ -24,7 +24,7 @@ delete at once and rely on Undo (brief, Notes).
 - App: no new types, hooks, props or routes.
   - `expense.tsx` loses the module-level `confirmDelete(name): Promise<boolean>`. It has no other callers (checked with
     `rg confirmDelete apps`).
-  - `ExpenseScreen` gains `const inFlight = useRef(false)`.
+  - `ExpenseForm` gains `const inFlight = useRef(false)`.
 - Reuses: the `inFlight` + `busy` shape from `delete-category.tsx` (lines 76–106); `deleteExpense`, `restoreExpense`,
   `setPendingUndo`, `restoreRefusedText`, `lockedText`, `leave`, `showError`, `errorText`, all as they are.
 - New dependencies: none

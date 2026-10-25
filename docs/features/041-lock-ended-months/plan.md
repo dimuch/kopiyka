@@ -191,7 +191,7 @@ a moment earlier. The check stays first, as the brief requires.
     of the generic error (the form names its own month; in the real midnight case it's the same month). Delete
     shows the same line.
 
-- [ ] 5. Explain a refused Undo of an expense in an ended month (~45 lines)
+- [x] 5. Explain a refused Undo of an expense in an ended month (~45 lines)
   - Files: `apps/mobile/src/data/monthEnded.ts`, `apps/mobile/test/monthEnded.test.ts`,
     `apps/mobile/src/data/undo.ts`, `apps/mobile/src/components/UndoToast.tsx`, `apps/mobile/src/app/expense.tsx`
   - Change: `restoreRefusedText`. `useUndoOffer`'s `catch (err)` asks `undo.refusedText?.(err)`. A text gives
@@ -288,7 +288,11 @@ Total ≈ 395 changed lines across 5 commits.
 
 ## Deviations
 
-<filled by the developer during build>
+- slice 4 (web check): the QA ledger had no September list, so the check seeded one with SQL as well as the
+  September expense; without a list the locked form shows no category tiles (a state real data can't reach).
+- slice 5: the refused bar's text gets `paddingRight`/`paddingVertical`, since no button sits to its right. The
+  network-failure case ("Couldn’t undo" + Retry) wasn't run live; its code path only changed by `refusedText`
+  returning null for a non-`ApiError`.
 
 ## Consolidate
 

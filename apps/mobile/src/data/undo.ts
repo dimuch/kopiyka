@@ -10,12 +10,14 @@ export interface PendingUndo {
   message: string;
   /** Brings back what was deleted; rejects when it can't. */
   restore: () => Promise<void>;
+  /** The bar's text when `restore`'s error means it can never work (brief 041); null for a retryable failure. */
+  refusedText?: (err: unknown) => string | null;
 }
 
-export interface UndoOffer {
-  undo: PendingUndo;
-  status: 'offer' | 'restoring' | 'failed';
-}
+/** A refused offer has no Retry: trying again can't help. */
+export type UndoOffer =
+  | { undo: PendingUndo; status: 'offer' | 'restoring' | 'failed' }
+  | { undo: PendingUndo; status: 'refused'; text: string };
 
 let pending: PendingUndo | null = null;
 
@@ -62,9 +64,12 @@ export function useUndoOffer(onRestored: () => void): {
       await undo.restore();
       setOffer((o) => (o?.undo === undo ? null : o));
       onRestored();
-    } catch {
-      setOffer((o) => (o?.undo === undo ? { undo, status: 'failed' } : o));
-      AccessibilityInfo.announceForAccessibility('Couldn’t undo');
+    } catch (err) {
+      const text = undo.refusedText?.(err) ?? null;
+      setOffer((current) =>
+        current?.undo !== undo ? current : text ? { undo, status: 'refused', text } : { undo, status: 'failed' },
+      );
+      AccessibilityInfo.announceForAccessibility(text ?? 'Couldn’t undo');
     }
   }
 

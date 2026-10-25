@@ -112,8 +112,8 @@ function Editor({
       <TextInput
         accessibilityLabel="Category name"
         value={text}
-        onChangeText={(t) => {
-          setText(t);
+        onChangeText={(typed) => {
+          setText(typed);
           setError(null);
         }}
         onSubmitEditing={save}

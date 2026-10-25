@@ -240,8 +240,8 @@ async function findByName(
           ORDER BY c.category_id LIMIT 1`,
         [ledgerId, name, first],
       );
-  const r = byCategory[0];
-  return r ? { categoryId: r.category_id, techName: r.tech_name, sortOrder: r.sort_order } : null;
+  const match = byCategory[0];
+  return match ? { categoryId: match.category_id, techName: match.tech_name, sortOrder: match.sort_order } : null;
 }
 
 /**

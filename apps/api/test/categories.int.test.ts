@@ -1095,7 +1095,7 @@ describe.skipIf(!(await testDbReachable()))('categories API (MySQL)', () => {
       const res = await add(auth, owner.ledgerId, '2026-10', 'eating out');
       expect(res.json()).toMatchObject({ categoryId: eatingOut, plannedEur: '0.00' });
       const october = (await get(owner.ledgerId)).json().categories;
-      expect(october.find((c: { categoryId: number }) => c.categoryId === eatingOut)).toMatchObject({
+      expect(october.find((category: { categoryId: number }) => category.categoryId === eatingOut)).toMatchObject({
         plannedEur: '0.00',
       });
       expect((await expense('GET', spend)).statusCode).toBe(404);

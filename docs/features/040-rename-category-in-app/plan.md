@@ -148,7 +148,7 @@ left that copy for 040 to remove.
     - `('not_found', 'pets', '2026-11', null)` → null.
     - `'invalid_request'` and `'unknown'` → null, with `current` both null and `'rent'`.
 
-- [ ] 3. Add a rename editor for a category in one month
+- [x] 3. Add a rename editor for a category in one month
   - Files:
     - `apps/mobile/src/components/CategoryNameForm.tsx` (the `current` prop: the field's start and the
       `nameRefusedText` arg, and `gone` on `not_found`);

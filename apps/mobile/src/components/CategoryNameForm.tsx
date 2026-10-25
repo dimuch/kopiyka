@@ -6,17 +6,20 @@ import { nameRefusedText, normalizeName } from '@/data/categoryName';
 import { fonts, type Palette } from '@/theme';
 
 /**
- * A category's name field with Save, for adding (brief 038) in a 'YYYY-MM' month: checks 1–40 characters, sends the
- * trimmed name with `save`, and shows a refusal's text.
+ * A category's name field with Save, for adding (brief 038) and renaming (040) in a 'YYYY-MM' month: checks 1–40
+ * characters, sends the trimmed name with `save`, and shows a refusal's text.
  */
 export function CategoryNameForm({
   month,
+  current,
   caption,
   busy,
   setBusy,
   save,
 }: {
   month: string;
+  /** The category's name in the month when renaming (the field starts at it); null when adding. */
+  current: string | null;
   caption: string;
   busy: boolean;
   setBusy: (busy: boolean) => void;
@@ -25,9 +28,9 @@ export function CategoryNameForm({
 }) {
   const colors = useColors();
   const styles = useThemedStyles(makeStyles);
-  const [text, setText] = useState('');
+  const [text, setText] = useState(current ?? '');
   const [error, setError] = useState<string | null>(null);
-  // The month ended meanwhile: saving again can't help.
+  // The month ended, or the renamed category left it, meanwhile: saving again can't help.
   const [gone, setGone] = useState(false);
   // `busy` disables the button only after a re-render; two presses in one tick would both get here.
   const inFlight = useRef(false);
@@ -52,9 +55,9 @@ export function CategoryNameForm({
       await save(name);
     } catch (err) {
       const code = err instanceof ApiError ? err.code : null;
-      setGone(code === 'month_ended');
+      setGone(code === 'month_ended' || (code === 'not_found' && current !== null));
       showError(
-        (code && nameRefusedText(code, name, month, null)) ?? 'Couldn’t save. Check your connection and try again.',
+        (code && nameRefusedText(code, name, month, current)) ?? 'Couldn’t save. Check your connection and try again.',
       );
       inFlight.current = false;
       setBusy(false);

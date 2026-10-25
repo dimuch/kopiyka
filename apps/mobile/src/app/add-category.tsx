@@ -41,6 +41,7 @@ export default function AddCategoryScreen() {
       {month ? (
         <CategoryNameForm
           month={month}
+          current={null}
           caption={`Planned at €0 in ${monthName(month)}`}
           busy={busy}
           setBusy={setBusy}

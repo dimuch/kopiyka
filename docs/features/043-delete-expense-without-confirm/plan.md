@@ -31,7 +31,7 @@ delete at once and rely on Undo (brief, Notes).
 
 ## Slices
 
-- [ ] 1. Delete an expense at once, without asking first
+- [x] 1. Delete an expense at once, without asking first
   - Files: `apps/mobile/src/app/expense.tsx`
   - Change:
     - Remove `confirmDelete` (lines 51–60) and the `Alert` import. `Alert` has no other use: the only other match is the

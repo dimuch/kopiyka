@@ -9,6 +9,8 @@ import { fonts, type Palette } from '@/theme';
 interface Props {
   value: string; // 'YYYY-MM-DD'
   onChange: (date: string) => void;
+  /** The earliest pickable date (brief 041). */
+  min: string;
   max: string;
   label: string;
 }
@@ -29,7 +31,7 @@ interface WebInput {
  * native calendar in a sheet on iOS (the compact picker's own chip says '13 Oct 2026'), and the browser's calendar
  * on web (a visible date input would follow the browser locale).
  */
-export function DateField({ value, onChange, max, label }: Props) {
+export function DateField({ value, onChange, min, max, label }: Props) {
   const colors = useColors();
   const styles = useThemedStyles(makeStyles);
   const { scheme } = useAppearance();
@@ -50,10 +52,15 @@ export function DateField({ value, onChange, max, label }: Props) {
           ref: setInput,
           type: 'date',
           value,
+          min,
           max,
           tabIndex: -1,
           'aria-hidden': true,
-          onChange: (e: { target: { value: string } }) => e.target.value && onChange(e.target.value),
+          // A typed date before `min` is ignored: not every browser enforces the attribute.
+          onChange: (event: { target: { value: string } }) => {
+            const picked = event.target.value;
+            if (picked && picked >= min) onChange(picked);
+          },
           // Under the field, so the browser anchors its calendar there.
           style: { position: 'absolute', inset: 0, opacity: 0, pointerEvents: 'none', colorScheme: scheme },
         })}
@@ -80,6 +87,7 @@ export function DateField({ value, onChange, max, label }: Props) {
                 value={parseDate(value)}
                 mode="date"
                 display="inline"
+                minimumDate={parseDate(min)}
                 maximumDate={parseDate(max)}
                 themeVariant={scheme}
                 accentColor={colors.accent}

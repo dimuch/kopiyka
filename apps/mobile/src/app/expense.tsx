@@ -23,6 +23,7 @@ import { CategoryPicker } from '@/components/CategoryPicker';
 import { DateChips } from '@/components/DateChips';
 import { Icon } from '@/components/Icon';
 import { LoadError } from '@/components/LoadError';
+import { firstOpenDate } from '@/data/expenseLock';
 import { deleteExpense, restoreExpense, saveExpense } from '@/data/expenses';
 import { setPendingUndo } from '@/data/undo';
 import { monthPicker } from '@/data/quick';
@@ -268,7 +269,7 @@ function ExpenseForm({ draft, ledgerId }: { draft: ExpenseDraftData; ledgerId: n
       <ScrollView contentContainerStyle={styles.form} keyboardShouldPersistTaps="handled">
         <View style={styles.group}>
           <Text style={styles.label}>Date</Text>
-          <DateChips value={date} today={today} onChange={pickDate} />
+          <DateChips value={date} today={today} min={firstOpenDate(today)} onChange={pickDate} />
         </View>
 
         <View style={styles.group}>

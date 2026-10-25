@@ -24,7 +24,7 @@ conventions §1 asks for ≥2 before a new module.
 - App: no new types, hooks, components or routes. The header "+" pushes `{ pathname: '/add-category', params: { month } }`,
   the same as the old button. Label: `` `Add a category to ${monthName(month)}` ``, role `button`.
 - Reuses: `MonthSwitcher`, `Icon` (`plus`, default size, `colors.accent`, the same as `AddExpenseButton`), `monthName`. The
-  `side` / `sideEnd` / `iconButton` style values are copied from `expenses.tsx` (two screens, so below the rule of three).
+  `side` / `sideEnd` / `iconButton` style values are copied from `expenses.tsx` (out of scope here: the same box is in `MonthSwitcher`, `AddExpenseButton` and `expenses.tsx`; see Follow-ups).
 - New dependencies: none
 
 ## Slices
@@ -98,8 +98,6 @@ conventions §1 asks for ≥2 before a new module.
 - slice 1 (web check): (f) loading and (g) light mode weren't run live. The "+" shows only when `data` is set,
   and the QA ledger's appearance setting is Dark; the "+" uses `colors.accent`, as the Expenses tab's does.
 
-<filled by the developer during build>
-
 ## Consolidate
 
-<filled in /kopiyka-hos Phase 3a: CONSOLIDATE line, each reuse/extract, each LEAVE + reason>
+CONSOLIDATE: skipped (no new function, hook, component, route or query; one file's JSX and styles).

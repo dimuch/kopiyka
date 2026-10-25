@@ -50,7 +50,7 @@ less clear than a guard at the button.
 
 ## Slices
 
-- [ ] 1. Explain a refused Undo of a category removal in an ended month (~3 lines)
+- [x] 1. Explain a refused Undo of a category removal in an ended month (~3 lines)
   - Files: `apps/mobile/src/app/delete-category.tsx`
   - Change: import `restoreRefusedText` next to `monthEndedText`, and add the `refusedText` line above to
     `setPendingUndo`. A one-line comment says the restore goes into the removal month. Nothing else changes, so other

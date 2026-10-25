@@ -147,6 +147,8 @@ end on the Budget tab, and AC1 says so (see Open questions).
   gets `409 month_ended`, and the bar would offer Retry rather than say "October has ended, so it can’t be
   restored." (expense delete got this in brief 041). This is the same today from the Category screen, so it's out of
   scope here.
+- A fast double tap on a button that pushes a screen (rename's Remove, the row pencil, the ⋯ menu) can push it
+  twice. A shared push-once guard would cover all three.
 
 ## Deviations
 
@@ -157,4 +159,9 @@ end on the Budget tab, and AC1 says so (see Open questions).
 
 ## Consolidate
 
-<filled in /kopiyka-hos Phase 3a>
+CONSOLIDATE: reused 6 · extracted 0 · left 1
+
+- REUSE: `useUndoOffer`/`UndoToast`, `setPendingUndo`, the `/delete-category` confirmation, `removedMessage`,
+  `kyivMonth`, `monthName`.
+- LEAVE the Remove button's `remove`/`removeText` styles, a copy of `expense.tsx`'s `delete`/`deleteText`: two copies
+  in screens, and #57 is editing `expense.tsx`.

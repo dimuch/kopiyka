@@ -54,7 +54,7 @@ describe.skipIf(!(await testDbReachable()))('expenses API (MySQL)', () => {
   beforeAll(async () => {
     await resetSchema();
     db = createDb(TEST_DB_URL!);
-    app = await buildApp({ config, db, now: () => now, fetchRate: (d) => fetchRate(d) });
+    app = await buildApp({ config, db, now: () => now, fetchRate: (date) => fetchRate(date) });
   });
 
   afterAll(async () => {
@@ -588,6 +588,60 @@ describe.skipIf(!(await testDbReachable()))('expenses API (MySQL)', () => {
         headers: await authHeader(app, stranger, clock),
       });
       expect([res.statusCode, res.json()]).toEqual([404, { error: 'not_found' }]);
+    });
+
+    const del = (expenseId: number, headers = auth) =>
+      app.inject({ method: 'DELETE', url: url(`/${expenseId}`), headers });
+    const restore = (expenseId: number, headers = auth) =>
+      app.inject({ method: 'POST', url: url(`/${expenseId}/restore`), headers });
+
+    it('refuses deleting a September expense, writing nothing', async () => {
+      const before = await row(september.expenseId);
+      const res = await del(september.expenseId);
+      expect([res.statusCode, res.json()]).toEqual([409, refused]);
+      expect(await row(september.expenseId)).toEqual(before);
+      expect(before!.deleted_at).toBeNull();
+    });
+
+    it('refuses restoring a deleted September expense', async () => {
+      await inSeptember(() => del(september.expenseId));
+      const before = await row(september.expenseId);
+      expect(before!.deleted_at).not.toBeNull();
+      const res = await restore(september.expenseId);
+      expect([res.statusCode, res.json()]).toEqual([409, refused]);
+      expect(await row(september.expenseId)).toEqual(before);
+    });
+
+    it('answers 404, not month_ended, for unknown or other-ledger ids on delete and restore', async () => {
+      expect((await del(999_999)).json()).toEqual({ error: 'not_found' });
+      expect((await restore(999_999)).json()).toEqual({ error: 'not_found' });
+      const deleted = (await inSeptember(async () => {
+        const created = (await post(groceries({ expenseDate: '2026-09-28' }))).json();
+        await del(created.expenseId);
+        return created;
+      })) as { expenseId: number };
+      const stranger = await makeUser(db, config, 'stranger');
+      const strangerAuth = await authHeader(app, stranger, clock);
+      const strangerUrl = (path: string) => `/api/ledgers/${stranger.ledgerId}/expenses/${path}`;
+      const strangerDelete = await app.inject({
+        method: 'DELETE',
+        url: strangerUrl(`${september.expenseId}`),
+        headers: strangerAuth,
+      });
+      const strangerRestore = await app.inject({
+        method: 'POST',
+        url: strangerUrl(`${deleted.expenseId}/restore`),
+        headers: strangerAuth,
+      });
+      expect([strangerDelete.json(), strangerRestore.json()]).toEqual([{ error: 'not_found' }, { error: 'not_found' }]);
+    });
+
+    it('refuses an Undo just after midnight Kyiv', async () => {
+      now = new Date('2026-09-30T20:59:59Z');
+      const late = (await post(groceries({ expenseDate: '2026-09-30' }))).json();
+      expect((await del(late.expenseId)).statusCode).toBe(204);
+      now = new Date('2026-09-30T21:00:00Z');
+      expect((await restore(late.expenseId)).json()).toEqual(refused);
     });
 
     it('locks a month at 00:00 Kyiv, not UTC', async () => {

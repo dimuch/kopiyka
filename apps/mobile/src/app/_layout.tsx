@@ -32,6 +32,7 @@ function Screens() {
         <Stack.Screen name="expense" options={{ presentation: 'modal' }} />
         <Stack.Screen name="delete-category" options={{ presentation: 'modal' }} />
         <Stack.Screen name="planned-amount" options={{ presentation: 'modal' }} />
+        <Stack.Screen name="add-category" options={{ presentation: 'modal' }} />
       </Stack.Protected>
       <Stack.Protected guard={!signedIn}>
         <Stack.Screen name="login" />

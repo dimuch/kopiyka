@@ -149,6 +149,8 @@ end on the Budget tab, and AC1 says so (see Open questions).
   scope here.
 - A fast double tap on a button that pushes a screen (rename's Remove, the row pencil, the ⋯ menu) can push it
   twice. A shared push-once guard would cover all three.
+- Once #57 merges, extract the danger text style shared by `expense.tsx`, the Category screen's menu and the rename
+  screen's Remove.
 
 ## Deviations
 
@@ -163,5 +165,6 @@ CONSOLIDATE: reused 6 · extracted 0 · left 1
 
 - REUSE: `useUndoOffer`/`UndoToast`, `setPendingUndo`, the `/delete-category` confirmation, `removedMessage`,
   `kyivMonth`, `monthName`.
-- LEAVE the Remove button's `remove`/`removeText` styles, a copy of `expense.tsx`'s `delete`/`deleteText`: two copies
-  in screens, and #57 is editing `expense.tsx`.
+- LEAVE the Remove button's `remove`/`removeText` styles: the danger text style is now in three screens
+  (`expense.tsx` `deleteText`, `category/[categoryId].tsx` `menuDelete`, `rename-category.tsx` `removeText`), but #57
+  is editing `expense.tsx`. Deferred to a follow-up.

@@ -160,7 +160,7 @@ a moment earlier. The check stays first, as the brief requires.
   - Verify (web 390×844, launch configs `api` + `web`): New expense → the browser calendar won't select any day
     before 1 October; September days are disabled. Today and Yesterday still work. `yarn mobile typecheck` + lint.
 
-- [ ] 4. Show an expense of an ended month read-only (~90 lines)
+- [x] 4. Show an expense of an ended month read-only (~90 lines)
   - Files: `apps/mobile/src/data/expenseLock.ts`, `apps/mobile/test/expenseLock.test.ts`,
     `apps/mobile/src/data/monthEnded.ts`, `apps/mobile/test/monthEnded.test.ts` (new),
     `apps/mobile/src/components/DateChips.tsx`, `apps/mobile/src/components/DateField.tsx`,

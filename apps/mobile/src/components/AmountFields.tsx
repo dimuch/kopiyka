@@ -10,10 +10,12 @@ interface Props {
   amountText: string;
   otherText: string;
   onChange: (currency: Currency, text: string) => void;
+  /** Shown but not editable (brief 041). */
+  disabled?: boolean;
 }
 
 /** The UAH and EUR amount inputs with the swap icon between them. */
-export function AmountFields({ entered, amountText, otherText, onChange }: Props) {
+export function AmountFields({ entered, amountText, otherText, onChange, disabled = false }: Props) {
   const colors = useColors();
   const styles = useThemedStyles(makeStyles);
   return (
@@ -21,7 +23,8 @@ export function AmountFields({ entered, amountText, otherText, onChange }: Props
       <AmountField
         currency="UAH"
         value={entered === 'UAH' ? amountText : otherText}
-        onChangeText={(t) => onChange('UAH', t)}
+        onChangeText={(text) => onChange('UAH', text)}
+        editable={!disabled}
       />
       <View style={styles.swap}>
         <Icon name="swap" size={18} color={colors.faint} />
@@ -29,7 +32,8 @@ export function AmountFields({ entered, amountText, otherText, onChange }: Props
       <AmountField
         currency="EUR"
         value={entered === 'EUR' ? amountText : otherText}
-        onChangeText={(t) => onChange('EUR', t)}
+        onChangeText={(text) => onChange('EUR', text)}
+        editable={!disabled}
       />
     </View>
   );
@@ -39,10 +43,12 @@ function AmountField({
   currency,
   value,
   onChangeText,
+  editable,
 }: {
   currency: Currency;
   value: string;
   onChangeText: (text: string) => void;
+  editable: boolean;
 }) {
   const colors = useColors();
   const styles = useThemedStyles(makeStyles);
@@ -55,6 +61,7 @@ function AmountField({
           accessibilityLabel={`Amount in ${currency}`}
           value={value}
           onChangeText={onChangeText}
+          editable={editable}
           keyboardType="decimal-pad"
           placeholder="0.00"
           placeholderTextColor={colors.faint}

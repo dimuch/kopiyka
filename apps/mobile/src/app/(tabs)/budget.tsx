@@ -81,7 +81,21 @@ export default function Budget() {
   return (
     <SafeAreaView style={styles.screen} edges={['top']}>
       <View style={styles.header}>
+        <View style={styles.side} />
         <MonthSwitcher month={month} onChange={(m) => router.setParams({ month: m })} />
+        <View style={[styles.side, styles.sideEnd]}>
+          {/* Like the Expenses tab's "+"; an ended month can't change, and nothing shows before the month loads. */}
+          {data && !ended ? (
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel={`Add a category to ${monthName(month)}`}
+              onPress={() => router.push({ pathname: '/add-category', params: { month } })}
+              style={styles.iconButton}
+            >
+              <Icon name="plus" color={colors.accent} />
+            </Pressable>
+          ) : null}
+        </View>
       </View>
 
       <ScrollView contentContainerStyle={styles.content}>
@@ -170,17 +184,6 @@ export default function Budget() {
                 </View>
               </>
             )}
-            {!ended && (
-              <Pressable
-                accessibilityRole="button"
-                accessibilityLabel={`Add a category to ${monthName(month)}`}
-                onPress={() => router.push({ pathname: '/add-category', params: { month } })}
-                style={styles.add}
-              >
-                <Icon name="plus" color={colors.accent} size={18} />
-                <Text style={styles.addText}>Add a category</Text>
-              </Pressable>
-            )}
           </>
         )}
       </ScrollView>
@@ -191,7 +194,11 @@ export default function Budget() {
 const makeStyles = (colors: Palette) =>
   StyleSheet.create({
     screen: { flex: 1, backgroundColor: colors.bg, paddingHorizontal: 20, paddingTop: 20 },
-    header: { flexDirection: 'row', justifyContent: 'center', paddingBottom: 10 },
+    header: { flexDirection: 'row', alignItems: 'center', paddingBottom: 10 },
+    // Equal-width sides keep the month switcher on the header's true centre; flexBasis 0 matters on web.
+    side: { flex: 1, flexBasis: 0, flexDirection: 'row' },
+    sideEnd: { justifyContent: 'flex-end' },
+    iconButton: { width: 44, height: 44, alignItems: 'center', justifyContent: 'center', borderRadius: 12 },
     content: { gap: 14, paddingTop: 4, paddingBottom: 24 },
     sectionHead: {
       flexDirection: 'row',
@@ -214,15 +221,4 @@ const makeStyles = (colors: Palette) =>
     rename: { width: 44, height: 44, alignItems: 'center', justifyContent: 'center', marginRight: 6 },
     rowName: { flex: 1, fontFamily: fonts.bodyMedium, fontSize: 15, color: colors.text },
     rowAmount: { fontFamily: fonts.bodySemi, fontSize: 15, color: colors.text, fontVariant: ['tabular-nums'] },
-    add: {
-      minHeight: 48,
-      flexDirection: 'row',
-      alignItems: 'center',
-      justifyContent: 'center',
-      gap: 8,
-      borderRadius: 18,
-      borderWidth: 1,
-      borderColor: colors.borderStrong,
-    },
-    addText: { fontFamily: fonts.bodySemi, fontSize: 15, color: colors.accent },
   });

@@ -154,7 +154,7 @@ app already has, and 040 can follow it.
 
 ## Slices
 
-- [ ] 1. Derive a new category's tech_name from its name
+- [x] 1. Derive a new category's tech_name from its name
   - Files: `apps/api/src/categories/monthLists.ts` (`techNameBase`), `apps/api/test/categories.test.ts`.
   - Change: the pure function in Contracts. About 30 lines.
   - Tests: `describe('techNameBase')`, a table:

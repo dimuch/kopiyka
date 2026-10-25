@@ -230,7 +230,7 @@ app already has, and 040 can follow it.
       `techName: 'eating_out_2'` and a new id. October lists both.
     - Slice 2's cases keep passing: none of their names matches a live category outside the month.
 
-- [ ] 4. Add the app's name rules and the add call
+- [x] 4. Add the app's name rules and the add call
   - Files: `apps/mobile/src/data/categoryName.ts` (new), `apps/mobile/src/data/categories.ts` (`addToMonth`),
     `apps/mobile/test/categoryName.test.ts` (new).
   - Change: as in Contracts. About 60 lines.

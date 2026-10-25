@@ -32,7 +32,7 @@ import { useMonthCategories } from '@/data/useMonthCategories';
 import { type Rate, useRate } from '@/data/useRate';
 import { eur, kyivToday, monthName, normalizeAmount, otherAmountText, shortDate, toCents } from '@/format';
 import { parseIdParam } from '@/linkParams';
-import { fonts, type Palette } from '@/theme';
+import { dangerText, fonts, type Palette } from '@/theme';
 
 function errorText(err: unknown, doing: 'load' | 'save'): string {
   if (err instanceof ApiError) {
@@ -416,7 +416,7 @@ const makeStyles = (colors: Palette) => {
     },
     primaryText: { fontFamily: fonts.bodySemi, fontSize: 16, color: colors.onAccent },
     delete: { height: 48, alignItems: 'center', justifyContent: 'center' },
-    deleteText: { fontFamily: fonts.bodyMedium, fontSize: 15, color: colors.danger },
+    deleteText: dangerText(colors),
     added: {
       flexDirection: 'row',
       alignItems: 'center',

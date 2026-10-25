@@ -11,7 +11,7 @@ import { renameInMonth } from '@/data/categories';
 import { useCategoryTotals } from '@/data/useCategoryTotals';
 import { kyivMonth, monthName } from '@/format';
 import { parseIdParam, parseMonthParam } from '@/linkParams';
-import { fonts, type Palette } from '@/theme';
+import { dangerText, fonts, type Palette } from '@/theme';
 
 /** Renames a category in one month only (brief 040): `/rename-category?categoryId=4&month=2026-10`. */
 export default function RenameCategoryScreen() {
@@ -87,5 +87,5 @@ const makeStyles = (colors: Palette) =>
     cancelText: { fontFamily: fonts.bodyMedium, fontSize: 15, color: colors.muted },
     title: { fontFamily: fonts.display, fontSize: 18, color: colors.text },
     remove: { height: 48, alignItems: 'center', justifyContent: 'center' },
-    removeText: { fontFamily: fonts.bodyMedium, fontSize: 15, color: colors.danger },
+    removeText: dangerText(colors),
   });

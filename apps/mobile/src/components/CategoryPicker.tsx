@@ -14,10 +14,12 @@ interface Props {
   more: Category[];
   selectedId: number | null;
   onPick: (category: Category) => void;
+  /** The selection shows, but nothing can be picked (brief 041). */
+  disabled?: boolean;
 }
 
 /** The quick category tiles, plus a sheet with the rest. */
-export function CategoryPicker({ quick, more, selectedId, onPick }: Props) {
+export function CategoryPicker({ quick, more, selectedId, onPick, disabled = false }: Props) {
   const colors = useColors();
   const styles = useThemedStyles(makeStyles);
   const [sheetOpen, setSheetOpen] = useState(false);
@@ -29,7 +31,8 @@ export function CategoryPicker({ quick, more, selectedId, onPick }: Props) {
           <Pressable
             key={c.categoryId}
             accessibilityRole="button"
-            accessibilityState={{ selected: on }}
+            accessibilityState={{ selected: on, disabled }}
+            disabled={disabled}
             onPress={() => onPick(c)}
             style={[styles.cat, on && styles.catOn]}
           >
@@ -44,6 +47,8 @@ export function CategoryPicker({ quick, more, selectedId, onPick }: Props) {
         <Pressable
           accessibilityRole="button"
           accessibilityLabel="More categories"
+          accessibilityState={{ disabled }}
+          disabled={disabled}
           onPress={() => setSheetOpen(true)}
           style={[styles.cat, styles.more]}
         >

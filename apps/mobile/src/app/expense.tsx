@@ -24,7 +24,7 @@ import { DateChips } from '@/components/DateChips';
 import { Icon } from '@/components/Icon';
 import { LoadError } from '@/components/LoadError';
 import { expenseLocked, firstOpenDate } from '@/data/expenseLock';
-import { lockedText } from '@/data/monthEnded';
+import { lockedText, restoreRefusedText } from '@/data/monthEnded';
 import { deleteExpense, restoreExpense, saveExpense } from '@/data/expenses';
 import { setPendingUndo } from '@/data/undo';
 import { monthPicker } from '@/data/quick';
@@ -259,9 +259,12 @@ function ExpenseForm({ draft, ledgerId }: { draft: ExpenseDraftData; ledgerId: n
       await deleteExpense(ledgerId, expense.expenseId);
       // The screen this returns to takes the offer: Category, or Home when opened from a link.
       const { expenseId } = expense;
+      // The stored month: the one the expense is restored into.
+      const storedMonth = expense.expenseDate.slice(0, 7);
       setPendingUndo({
         message: `Deleted “${expense.name || 'Expense'}”`,
         restore: () => restoreExpense(ledgerId, expenseId),
+        refusedText: (err) => (err instanceof ApiError ? restoreRefusedText(err.code, storedMonth) : null),
       });
       leave();
     } catch (err) {

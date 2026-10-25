@@ -5,6 +5,7 @@ import type { AppDeps } from '../app.js';
 import { MONTH_RE, monthEnded, nextMonthStart } from '../dates.js';
 import { AMOUNT_RE } from '../money.js';
 import {
+  addToMonth,
   copyPreviousMonth,
   inMonthList,
   NAME_IN_MONTH,
@@ -41,7 +42,7 @@ export interface CategoryWithTotalsDto extends CategoryDto {
 const CategoryParams = z.object({ categoryId: z.coerce.number().int().positive() });
 /**
  * A required 'YYYY-MM' month: the list's and one category's query (every caller sends it since briefs 030 and 032),
- * and copy's path.
+ * and copy's and add's path.
  */
 const Month = z.object({ month: z.string().regex(MONTH_RE, 'expected YYYY-MM') });
 const MonthParams = CategoryParams.extend(Month.shape);
@@ -191,5 +192,16 @@ export async function categoryRoutes(app: FastifyInstance, { db, now }: AppDeps)
     if (monthEnded(month, now())) return reply.code(409).send({ error: 'month_ended' });
     const result = await copyPreviousMonth(db, req.ledger!.ledgerId, month);
     return result === 'copied' ? reply.code(204).send() : reply.code(409).send({ error: result });
+  });
+
+  // Brief 038. An ended month is read-only, so it's refused before anything is read.
+  app.post('/api/ledgers/:id/months/:month/categories', guards, async (req, reply) => {
+    const { month } = Month.parse(req.params);
+    const { name } = NameBody.parse(req.body);
+    if (monthEnded(month, now())) return reply.code(409).send({ error: 'month_ended' });
+    const added = await addToMonth(db, req.ledger!.ledgerId, month, name);
+    if (added === 'name_taken') return reply.code(400).send({ error: 'name_taken' });
+    const dto: CategoryDto = { ...added, displayName: name, plannedEur: '0.00' };
+    return reply.code(201).send(dto);
   });
 }

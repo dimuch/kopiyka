@@ -24,7 +24,11 @@ function leave() {
 
 export default function DeleteCategoryScreen() {
   const styles = useThemedStyles(makeStyles);
-  const params = useLocalSearchParams<{ categoryId?: string | string[]; month?: string | string[] }>();
+  const params = useLocalSearchParams<{
+    categoryId?: string | string[];
+    month?: string | string[];
+    from?: string | string[];
+  }>();
   const categoryId = parseIdParam(params.categoryId);
   const month = parseMonthParam(params.month);
   const { ledger } = useSession();
@@ -47,7 +51,15 @@ export default function DeleteCategoryScreen() {
 
       <CategoryInMonth totals={totals}>
         {(category, month) => (
-          <Confirm category={category} month={month} ledgerId={ledger.ledgerId} busy={busy} setBusy={setBusy} />
+          <Confirm
+            category={category}
+            month={month}
+            ledgerId={ledger.ledgerId}
+            // Opened from the Budget tab's rename screen (brief 044): the removal goes back there.
+            toBudget={params.from === 'budget'}
+            busy={busy}
+            setBusy={setBusy}
+          />
         )}
       </CategoryInMonth>
     </SafeAreaView>
@@ -63,9 +75,10 @@ function Confirm({
   category,
   month,
   ledgerId,
+  toBudget,
   busy,
   setBusy,
-}: { category: CategoryWithTotals; month: string; ledgerId: number } & Removing) {
+}: { category: CategoryWithTotals; month: string; ledgerId: number; toBudget: boolean } & Removing) {
   const colors = useColors();
   const styles = useThemedStyles(makeStyles);
   const warning = removeWarning(category, month);
@@ -84,12 +97,12 @@ function Confirm({
     const { categoryId, displayName, expenseCount } = category;
     try {
       await removeFromMonth(ledgerId, categoryId, month);
-      // The bar uses the confirmed count; Home takes the offer when it gains focus.
+      // The bar uses the confirmed count; the screen it returns to (Budget or Home) takes the offer when it gains focus.
       setPendingUndo({
         message: removedMessage(displayName, month, expenseCount),
         restore: () => restoreToMonth(ledgerId, categoryId, month),
       });
-      router.dismissTo('/');
+      router.dismissTo(toBudget ? { pathname: '/budget', params: { month } } : '/');
     } catch (err) {
       const code = err instanceof ApiError ? err.code : null;
       const text =

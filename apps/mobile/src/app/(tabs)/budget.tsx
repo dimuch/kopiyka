@@ -10,9 +10,11 @@ import { Icon } from '@/components/Icon';
 import { LoadError } from '@/components/LoadError';
 import { MonthSwitcher } from '@/components/MonthSwitcher';
 import { NoBudget } from '@/components/NoBudget';
+import { UndoToast } from '@/components/UndoToast';
 import { copyPreviousMonth } from '@/data/categories';
 import { copyRefusedText } from '@/data/monthCopy';
 import { plannedCents } from '@/data/monthSummary';
+import { useUndoOffer } from '@/data/undo';
 import { type MonthData, useMonth } from '@/data/useMonth';
 import { useMonthCategories } from '@/data/useMonthCategories';
 import { eur, kyivMonth, monthName, shiftMonth, toCents } from '@/format';
@@ -32,6 +34,8 @@ export default function Budget() {
   // A missing or malformed month opens the current one.
   const month = parseMonthParam(params.month) ?? thisMonth;
   const { data, error, reload } = useMonth(ledger.ledgerId, month);
+  // A removal started from this tab's rename screen comes back here with its Undo (brief 044).
+  const toast = useUndoOffer(reload);
   const previousMonth = shiftMonth(month, -1);
   const previous = useMonthCategories(ledger.ledgerId, previousMonth);
   const ended = month < thisMonth;
@@ -98,7 +102,8 @@ export default function Budget() {
         </View>
       </View>
 
-      <ScrollView contentContainerStyle={styles.content}>
+      {/* Room under the last row, so the Undo bar can't cover it. */}
+      <ScrollView contentContainerStyle={[styles.content, toast.offer && { paddingBottom: 104 }]}>
         {!data ? (
           error ? (
             <LoadError message="Couldn’t load this month. Check your connection and try again." onRetry={reload} />
@@ -187,6 +192,7 @@ export default function Budget() {
           </>
         )}
       </ScrollView>
+      {toast.offer ? <UndoToast offer={toast.offer} onUndo={toast.restore} /> : null}
     </SafeAreaView>
   );
 }

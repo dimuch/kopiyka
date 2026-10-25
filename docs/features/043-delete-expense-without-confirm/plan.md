@@ -74,7 +74,7 @@ delete at once and rely on Undo (brief, Notes).
     - Check C, normal browser: reload without the snippet, delete an expense, and Undo. No dialog appears.
     - `rg -n "confirm\(|Alert\." apps/mobile/src/app/expense.tsx` finds nothing.
     - Gates: `yarn format:check && yarn lint && yarn typecheck && yarn test`.
-- [ ] 2. Drop the removed `confirmDelete` from the conventions' `Platform.OS` example
+- [x] 2. Drop the removed `confirmDelete` from the conventions' `Platform.OS` example
   - Files: `.claude/skills/kopiyka-conventions/SKILL.md` (§5, line 148)
   - Change: change "(`confirmDelete`, `client.ts`)" to "(`client.ts`, `PhoneColumn`)". `PhoneColumn.tsx` is an existing
     web-only edge (`if (Platform.OS !== 'web') return children`). One line. Slice 1 makes the old fact stale, so this

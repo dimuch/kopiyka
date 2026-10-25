@@ -100,6 +100,11 @@ the second consumer appears or `routes.ts` passes ~200 lines.
   matches. Removing from or restoring to an ended month (Kyiv) is refused
   (`409 month_ended`). `categories.deleted_at` only hides categories deleted
   before 028.
+- **An ended month is read-only** (Kyiv, from 00:00 on the 1st of the next
+  month; `monthEnded`): its list, names, planned amounts and expenses refuse
+  changes with `409 month_ended`. An expense can't be added, edited, deleted or
+  restored there, nor moved into or out of it (brief 041). The check comes
+  after the expense's 404 and before any category check or rate fetch.
 - **Errors**: API replies `{ error: 'snake_case_code' }`; Zod errors become
   400 via the global handler; the app maps codes to human text at the screen
   (`errorText`).

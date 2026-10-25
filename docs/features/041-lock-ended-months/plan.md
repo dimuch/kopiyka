@@ -296,7 +296,14 @@ Total ≈ 395 changed lines across 5 commits.
 
 ## Consolidate
 
-<filled in /kopiyka-hos Phase 3a: CONSOLIDATE line, each reuse/extract, each LEAVE + reason>
+CONSOLIDATE: reused 4 · extracted 0 · left 2
+
+- REUSE: `monthEnded` (API), `monthName`/`kyivToday` and 038's `data/monthEnded.ts` module for the new texts, and
+  `PendingUndo`/`UndoToast` for the refused bar.
+- LEAVE the four `monthEnded(… .slice(0, 7), now())` → 409 lines in `expenses/routes.ts`: one line each, the same
+  shape as the category routes'; a helper would hide which date each route checks.
+- LEAVE `firstOpenDate`/`expenseLocked` beside the Category screen's `month < thisMonth`: days against a month's
+  first day vs months; folding them changes units.
 
 ## Revision 1
 

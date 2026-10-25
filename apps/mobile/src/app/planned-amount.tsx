@@ -1,4 +1,4 @@
-import { router, Stack, useLocalSearchParams } from 'expo-router';
+import { Stack, useLocalSearchParams } from 'expo-router';
 import { useRef, useState } from 'react';
 import {
   AccessibilityInfo,
@@ -15,6 +15,7 @@ import { ApiError } from '@/api/client';
 import type { CategoryWithTotals } from '@/api/types';
 import { useColors, useThemedStyles } from '@/appearance/AppearanceContext';
 import { useSession } from '@/auth/AuthContext';
+import { closeToBudget } from '@/closeToBudget';
 import { CategoryInMonth } from '@/components/CategoryInMonth';
 import { setPlanned } from '@/data/categories';
 import { monthEndedText } from '@/data/monthEnded';
@@ -22,12 +23,6 @@ import { useCategoryTotals } from '@/data/useCategoryTotals';
 import { monthName, normalizePlanned } from '@/format';
 import { parseIdParam, parseMonthParam } from '@/linkParams';
 import { fonts, type Palette } from '@/theme';
-
-// Opened straight from a web link there's nothing to go back to, so fall back to the Budget tab on that month.
-function leave(month: string | null) {
-  if (router.canGoBack()) router.back();
-  else router.replace(month ? { pathname: '/budget', params: { month } } : '/budget');
-}
 
 /** Sets one category's planned amount for a month (brief 036): `/planned-amount?categoryId=4&month=2026-10`. */
 export default function PlannedAmountScreen() {
@@ -46,7 +41,12 @@ export default function PlannedAmountScreen() {
       {/* The iOS modal can’t be swiped away while a save is in flight either. */}
       <Stack.Screen options={{ gestureEnabled: !busy }} />
       <View style={styles.header}>
-        <Pressable accessibilityRole="button" disabled={busy} onPress={() => leave(month)} style={styles.cancel}>
+        <Pressable
+          accessibilityRole="button"
+          disabled={busy}
+          onPress={() => closeToBudget(month)}
+          style={styles.cancel}
+        >
           <Text style={styles.cancelText}>Cancel</Text>
         </Pressable>
         <Text style={styles.title}>Planned amount</Text>
@@ -101,7 +101,7 @@ function Editor({
     setError(null);
     try {
       await setPlanned(ledgerId, category.categoryId, month, amount);
-      leave(month);
+      closeToBudget(month);
     } catch (err) {
       const code = err instanceof ApiError ? err.code : null;
       setGone(code === 'month_ended' || code === 'not_found');

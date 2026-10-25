@@ -1,9 +1,10 @@
-import { router, Stack, useLocalSearchParams } from 'expo-router';
+import { Stack, useLocalSearchParams } from 'expo-router';
 import { useState } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useThemedStyles } from '@/appearance/AppearanceContext';
 import { useSession } from '@/auth/AuthContext';
+import { closeToBudget } from '@/closeToBudget';
 import { CategoryInMonth } from '@/components/CategoryInMonth';
 import { CategoryNameForm } from '@/components/CategoryNameForm';
 import { renameInMonth } from '@/data/categories';
@@ -11,12 +12,6 @@ import { useCategoryTotals } from '@/data/useCategoryTotals';
 import { monthName } from '@/format';
 import { parseIdParam, parseMonthParam } from '@/linkParams';
 import { fonts, type Palette } from '@/theme';
-
-// Opened straight from a web link there's nothing to go back to, so fall back to the Budget tab on that month.
-function leave(month: string | null) {
-  if (router.canGoBack()) router.back();
-  else router.replace(month ? { pathname: '/budget', params: { month } } : '/budget');
-}
 
 /** Renames a category in one month only (brief 040): `/rename-category?categoryId=4&month=2026-10`. */
 export default function RenameCategoryScreen() {
@@ -35,7 +30,12 @@ export default function RenameCategoryScreen() {
       {/* The iOS modal can’t be swiped away while a save is in flight either. */}
       <Stack.Screen options={{ gestureEnabled: !busy }} />
       <View style={styles.header}>
-        <Pressable accessibilityRole="button" disabled={busy} onPress={() => leave(month)} style={styles.cancel}>
+        <Pressable
+          accessibilityRole="button"
+          disabled={busy}
+          onPress={() => closeToBudget(month)}
+          style={styles.cancel}
+        >
           <Text style={styles.cancelText}>Cancel</Text>
         </Pressable>
         <Text style={styles.title}>Rename category</Text>
@@ -52,7 +52,7 @@ export default function RenameCategoryScreen() {
             setBusy={setBusy}
             save={async (name) => {
               await renameInMonth(ledger.ledgerId, category.categoryId, month, name);
-              leave(month);
+              closeToBudget(month);
             }}
           />
         )}

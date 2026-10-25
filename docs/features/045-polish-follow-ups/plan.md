@@ -153,4 +153,17 @@ None.
 
 ## Deviations
 
+- Web checks: Metro started from this worktree (under `.claude/worktrees/`) served Expo's "Welcome" page instead
+  of the app, so the checks ran on a detached sibling worktree (`../kopiyka-polish-web`) with each slice's files
+  copied in. The base checks ran there before any change: two clicks in one tick stacked 2 screens on all three
+  buttons, and a forced `409 month_ended` gave "Couldn’t undo" + Retry.
+
 ## Consolidate
+
+CONSOLIDATE: reused 4 · extracted 0 · left 2
+
+- REUSE: `restoreRefusedText`, `ApiError`, `useFocusEffect` + `useCallback` (as in `data/undo.ts`), `fonts`/`Palette`.
+- LEAVE `usePushOnce` vs the screens' `inFlight` refs: those guard an async request until it settles, not a push
+  until focus returns; sharing them would mix two lifetimes. The other `router.push` sites are out of scope (brief).
+- LEAVE `settings.signOutText` (semibold) and `NotionSyncPanel.failed` (14 pt): different styles, not copies of
+  `dangerText`.

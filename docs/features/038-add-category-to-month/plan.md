@@ -386,7 +386,7 @@ copied styles.
 - slice 5: the name field has `autoCapitalize="none"`: the seeded names are lower case, and iOS would otherwise
   capitalise the first letter.
 - slice 6 (checked on web): adding a name while its category's Undo bar still shows makes that Undo answer 404, and
-  the bar says "Couldn’t undo"; the category is already back, so nothing is lost.
+  the bar says "Couldn’t undo"; its removed expenses stay deleted, as the brief says.
 
 ## Consolidate
 

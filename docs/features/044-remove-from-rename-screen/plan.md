@@ -55,7 +55,7 @@ end on the Budget tab, and AC1 says so (see Open questions).
 
 ## Slices
 
-- [ ] 1. Show the Undo bar on the Budget tab after a removal started there
+- [x] 1. Show the Undo bar on the Budget tab after a removal started there
   - Files: `apps/mobile/src/app/delete-category.tsx`, `apps/mobile/src/app/(tabs)/budget.tsx`
   - Change:
     - `delete-category.tsx`: add `from` to the params type. Pass `toBudget: boolean` (`params.from === 'budget'`)

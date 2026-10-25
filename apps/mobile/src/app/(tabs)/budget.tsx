@@ -19,6 +19,7 @@ import { type MonthData, useMonth } from '@/data/useMonth';
 import { useMonthCategories } from '@/data/useMonthCategories';
 import { eur, kyivMonth, monthName, shiftMonth, toCents } from '@/format';
 import { parseMonthParam } from '@/linkParams';
+import { usePushOnce } from '@/pushOnce';
 import { fonts, type Palette } from '@/theme';
 
 /**
@@ -28,6 +29,7 @@ import { fonts, type Palette } from '@/theme';
 export default function Budget() {
   const colors = useColors();
   const styles = useThemedStyles(makeStyles);
+  const pushOnce = usePushOnce();
   const { ledger } = useSession();
   const params = useLocalSearchParams<{ month?: string | string[] }>();
   const [thisMonth] = useState(() => kyivMonth(new Date()));
@@ -177,7 +179,7 @@ export default function Budget() {
                           accessibilityRole="button"
                           accessibilityLabel={`Rename ${c.displayName} in ${monthName(month)}`}
                           onPress={() =>
-                            router.push({ pathname: '/rename-category', params: { categoryId: c.categoryId, month } })
+                            pushOnce({ pathname: '/rename-category', params: { categoryId: c.categoryId, month } })
                           }
                           style={styles.rename}
                         >

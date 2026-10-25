@@ -83,7 +83,7 @@ less clear than a guard at the button.
     October" and the rename screen's "Remove from October". Each shows `font-family: IBMPlexSans_500Medium`, 15px, and
     `rgb(255, 138, 128)` in dark or `rgb(194, 59, 49)` in light, the same as on the base.
 
-- [ ] 3. Open each screen once on a fast double tap (~40 lines)
+- [x] 3. Open each screen once on a fast double tap (~40 lines)
   - Files: `apps/mobile/src/pushOnce.ts` (new), `apps/mobile/src/app/rename-category.tsx`,
     `apps/mobile/src/app/(tabs)/budget.tsx`, `apps/mobile/src/app/category/[categoryId].tsx`.
   - Change:

@@ -1,4 +1,4 @@
-import { router, Stack, useLocalSearchParams } from 'expo-router';
+import { Stack, useLocalSearchParams } from 'expo-router';
 import { useState } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -11,6 +11,7 @@ import { renameInMonth } from '@/data/categories';
 import { useCategoryTotals } from '@/data/useCategoryTotals';
 import { kyivMonth, monthName } from '@/format';
 import { parseIdParam, parseMonthParam } from '@/linkParams';
+import { usePushOnce } from '@/pushOnce';
 import { dangerText, fonts, type Palette } from '@/theme';
 
 /** Renames a category in one month only (brief 040): `/rename-category?categoryId=4&month=2026-10`. */
@@ -25,6 +26,7 @@ export default function RenameCategoryScreen() {
   // A save in flight navigates when it ends, so the user can't leave meanwhile.
   const [busy, setBusy] = useState(false);
   const [thisMonth] = useState(() => kyivMonth(new Date()));
+  const pushOnce = usePushOnce();
 
   return (
     <SafeAreaView style={styles.screen} edges={['top', 'bottom']}>
@@ -62,7 +64,7 @@ export default function RenameCategoryScreen() {
                 accessibilityRole="button"
                 disabled={busy}
                 onPress={() =>
-                  router.push({
+                  pushOnce({
                     pathname: '/delete-category',
                     params: { categoryId: category.categoryId, month, from: 'budget' },
                   })

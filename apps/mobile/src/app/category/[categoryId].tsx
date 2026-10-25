@@ -17,6 +17,7 @@ import { useCategoryTotals } from '@/data/useCategoryTotals';
 import { useMonth } from '@/data/useMonth';
 import { dayLabel, eur, kyivMonth, monthLabel, monthName, toCents, uah } from '@/format';
 import { parseIdParam, parseMonthParam } from '@/linkParams';
+import { usePushOnce } from '@/pushOnce';
 import { dangerText, fonts, type Palette } from '@/theme';
 
 // Opened straight from a web link there's nothing to go back to, so fall back to Expenses (current month).
@@ -72,6 +73,7 @@ function CategoryBreakdown({ categoryId, month, ended }: { categoryId: number; m
   // Not on a category the month lacks: Add would preselect it. Nor in an ended month, which is read-only (brief 028).
   const showAdd = !ended && (!data || !!category);
   const [menuOpen, setMenuOpen] = useState(false);
+  const pushOnce = usePushOnce();
 
   return (
     <SafeAreaView style={styles.screen} edges={['top']}>
@@ -170,7 +172,7 @@ function CategoryBreakdown({ categoryId, month, ended }: { categoryId: number; m
           onClose={() => setMenuOpen(false)}
           onRemove={() => {
             setMenuOpen(false);
-            router.push({ pathname: '/delete-category', params: { categoryId, month } });
+            pushOnce({ pathname: '/delete-category', params: { categoryId, month } });
           }}
         />
       )}

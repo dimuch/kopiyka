@@ -30,3 +30,11 @@ export async function setPlanned(ledgerId: number, categoryId: number, month: st
 export async function addToMonth(ledgerId: number, month: string, name: string): Promise<void> {
   await api(`/api/ledgers/${ledgerId}/months/${month}/categories`, { method: 'POST', body: { name } });
 }
+
+/** Renames a category in a 'YYYY-MM' month only (brief 037); `name` is already trimmed. Screens reload on focus. */
+export async function renameInMonth(ledgerId: number, categoryId: number, month: string, name: string): Promise<void> {
+  await api(`/api/ledgers/${ledgerId}/categories/${categoryId}/months/${month}/name`, {
+    method: 'PUT',
+    body: { name },
+  });
+}

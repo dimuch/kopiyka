@@ -53,7 +53,9 @@ export function CategoryNameForm({
     } catch (err) {
       const code = err instanceof ApiError ? err.code : null;
       setGone(code === 'month_ended');
-      showError((code && nameRefusedText(code, name, month)) ?? 'Couldn’t save. Check your connection and try again.');
+      showError(
+        (code && nameRefusedText(code, name, month, null)) ?? 'Couldn’t save. Check your connection and try again.',
+      );
       inFlight.current = false;
       setBusy(false);
     }

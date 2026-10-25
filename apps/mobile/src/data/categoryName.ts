@@ -11,13 +11,18 @@ export function normalizeName(text: string): string | null {
   return length >= 1 && length <= MAX_NAME ? name : null;
 }
 
-/** The text for a refused name in a 'YYYY-MM' month; null when `code` isn't a name refusal. */
-export function nameRefusedText(code: string, name: string, month: string): string | null {
+/**
+ * The text for a refused name in a 'YYYY-MM' month; null when `code` isn't a name refusal. `name` is the typed name;
+ * `current` is the category's name in the month when renaming, null when adding (adding has no not_found).
+ */
+export function nameRefusedText(code: string, name: string, month: string, current: string | null): string | null {
   switch (code) {
     case 'name_taken':
       return `You already have a category called “${name}” in ${monthName(month)}.`;
     case 'month_ended':
       return monthEndedText(month);
+    case 'not_found':
+      return current === null ? null : `“${current}” isn’t in ${monthName(month)} any more.`;
     default:
       return null;
   }

@@ -29,7 +29,7 @@ conventions §1 asks for ≥2 before a new module.
 
 ## Slices
 
-- [ ] 1. Add a category from the Budget tab's header
+- [x] 1. Add a category from the Budget tab's header
   - Files: `apps/mobile/src/app/(tabs)/budget.tsx`
   - Change:
     - Header style becomes `{ flexDirection: 'row', alignItems: 'center', paddingBottom: 10 }`. Its children are
@@ -94,6 +94,9 @@ conventions §1 asks for ≥2 before a new module.
   `AddExpenseButton`'s callers onto it.
 
 ## Deviations
+
+- slice 1 (web check): (f) loading and (g) light mode weren't run live. The "+" shows only when `data` is set,
+  and the QA ledger's appearance setting is Dark; the "+" uses `colors.accent`, as the Expenses tab's does.
 
 <filled by the developer during build>
 

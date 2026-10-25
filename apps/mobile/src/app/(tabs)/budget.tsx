@@ -6,6 +6,7 @@ import { ApiError } from '@/api/client';
 import { useColors, useThemedStyles } from '@/appearance/AppearanceContext';
 import { useSession } from '@/auth/AuthContext';
 import { CategoryTile } from '@/components/CategoryTile';
+import { HomeButton } from '@/components/HomeButton';
 import { Icon } from '@/components/Icon';
 import { LoadError } from '@/components/LoadError';
 import { MonthSwitcher } from '@/components/MonthSwitcher';
@@ -87,7 +88,9 @@ export default function Budget() {
   return (
     <SafeAreaView style={styles.screen} edges={['top']}>
       <View style={styles.header}>
-        <View style={styles.side} />
+        <View style={styles.side}>
+          <HomeButton />
+        </View>
         <MonthSwitcher month={month} onChange={(m) => router.setParams({ month: m })} />
         <View style={[styles.side, styles.sideEnd]}>
           {/* Like the Expenses tab's "+"; an ended month can't change, and nothing shows before the month loads. */}

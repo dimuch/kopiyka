@@ -92,7 +92,7 @@ a moment earlier. The check stays first, as the brief requires.
 
 ## Slices
 
-- [ ] 1. Refuse adding or editing an expense in an ended month (~150 lines)
+- [x] 1. Refuse adding or editing an expense in an ended month (~150 lines)
   - Files: `apps/api/src/expenses/routes.ts`, `apps/api/test/expenses.int.test.ts`
   - Change: import `monthEnded`. POST checks `input.expenseDate.slice(0, 7)` before `checkCategory`. PUT checks
     `current.expenseDate` and `input.expenseDate` after the 404. Add a why-comment like the category routes'

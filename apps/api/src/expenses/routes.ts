@@ -2,7 +2,7 @@ import type { FastifyInstance, FastifyReply, FastifyRequest } from 'fastify';
 import type { ResultSetHeader, RowDataPacket } from 'mysql2/promise';
 import { z } from 'zod';
 import type { AppDeps } from '../app.js';
-import { MONTH_RE, nextMonthStart } from '../dates.js';
+import { MONTH_RE, monthEnded, nextMonthStart } from '../dates.js';
 import { inMonthList } from '../categories/monthLists.js';
 import { AMOUNT_RE, centsToString, convert, e4ToString, rateToE4, toCents } from '../money.js';
 import { getEurUahRate, isAfterRateHorizon, RateDate, rateUnavailableReason } from '../rates/service.js';
@@ -135,8 +135,10 @@ export async function expenseRoutes(app: FastifyInstance, deps: AppDeps): Promis
     return expense;
   });
 
+  // An ended month is read-only (briefs 028, 041), so it's refused before anything is read or priced.
   app.post('/api/ledgers/:id/expenses', guards, async (req, reply) => {
     const input = ExpenseBody.parse(req.body);
+    if (monthEnded(input.expenseDate.slice(0, 7), now())) return reply.code(409).send({ error: 'month_ended' });
     if (!(await checkCategory(req, reply, input.categoryId, input.expenseDate))) return reply;
     const priced = await price(req, reply, input);
     if (!priced) return reply;
@@ -167,6 +169,11 @@ export async function expenseRoutes(app: FastifyInstance, deps: AppDeps): Promis
     const input = ExpenseBody.parse(req.body);
     const current = await loadExpense(req.ledger!.ledgerId, expenseId);
     if (!current) return reply.code(404).send({ error: 'not_found' });
+    // Both ends: an expense can neither change inside an ended month nor move into or out of one.
+    const at = now();
+    if (monthEnded(current.expenseDate.slice(0, 7), at) || monthEnded(input.expenseDate.slice(0, 7), at)) {
+      return reply.code(409).send({ error: 'month_ended' });
+    }
     if (!(await checkCategory(req, reply, input.categoryId, input.expenseDate))) return reply;
     const priced = await price(req, reply, input);
     if (!priced) return reply;

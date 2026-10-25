@@ -146,7 +146,7 @@ a moment earlier. The check stays first, as the brief requires.
     - Existing tests (`DELETE and restore`, the guards table) are October-only and stay unchanged. They prove 204,
       200 and the 404s still work.
 
-- [ ] 3. Keep a new expense's date out of ended months (~40 lines)
+- [x] 3. Keep a new expense's date out of ended months (~40 lines)
   - Files: `apps/mobile/src/data/expenseLock.ts` (new), `apps/mobile/test/expenseLock.test.ts` (new),
     `apps/mobile/src/components/DateField.tsx`, `apps/mobile/src/components/DateChips.tsx`,
     `apps/mobile/src/app/expense.tsx`

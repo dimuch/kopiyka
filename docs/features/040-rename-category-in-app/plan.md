@@ -132,7 +132,7 @@ left that copy for 040 to remove.
     - a new name returns to the Budget tab with it listed;
     - `?month=<last month>` gives the ended text, and Save disappears.
 
-- [ ] 2. Add the app's rename call and the "no longer in the month" text
+- [x] 2. Add the app's rename call and the "no longer in the month" text
   - Files:
     - `apps/mobile/src/data/categories.ts` (`renameInMonth`);
     - `apps/mobile/src/data/categoryName.ts` (the `current` param, `not_found`);

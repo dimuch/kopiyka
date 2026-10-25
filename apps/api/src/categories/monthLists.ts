@@ -1,6 +1,6 @@
 // Brief 028, 033: a month's list is exactly its own rows in category_months; nothing carries over. Brief 036: a
 // month's planned amounts live in category_budgets. Brief 038: a category is added to a month by name.
-import type { PoolConnection, RowDataPacket } from 'mysql2/promise';
+import type { PoolConnection, ResultSetHeader, RowDataPacket } from 'mysql2/promise';
 import { nextMonthStart, previousMonthStart } from '../dates.js';
 import { type Db, withTransaction } from '../db.js';
 
@@ -201,6 +201,59 @@ export async function renameInMonth(
       [name, categoryId, first],
     );
     return 'renamed';
+  });
+}
+
+/** A category added to a month: the DTO's fields besides the name and €0. */
+export interface AddedCategory {
+  categoryId: number;
+  techName: string;
+  sortOrder: number;
+}
+
+/**
+ * Adds a category called `name` (trimmed) to a 'YYYY-MM' month at €0 (brief 038), created at the end of the
+ * ledger's order. 'name_taken', writing nothing, when a category in the month has the name.
+ */
+export async function addToMonth(
+  db: Db,
+  ledgerId: number,
+  month: string,
+  name: string,
+): Promise<AddedCategory | 'name_taken'> {
+  const first = `${month}-01`;
+  return withTransaction(db, async (conn) => {
+    await lockLedger(conn, ledgerId);
+    // Ids are positive, so 0 excludes no category.
+    if (await nameTaken(conn, ledgerId, first, name, 0)) return 'name_taken';
+
+    // Deleted categories count for both: their tech_names stay taken (brief 014) and their order stays theirs.
+    const [[order]] = await conn.query<RowDataPacket[]>(
+      'SELECT COALESCE(MAX(sort_order), 0) + 10 AS next FROM categories WHERE ledger_id = ?',
+      [ledgerId],
+    );
+    const sortOrder = Number(order!.next);
+    const base = techNameBase(name);
+    let techName = base;
+    // Compared under the column's own collation, the one its unique index uses.
+    for (let suffix = 2; ; suffix++) {
+      const [rows] = await conn.query<RowDataPacket[]>(
+        'SELECT 1 FROM categories WHERE ledger_id = ? AND tech_name = ? LIMIT 1',
+        [ledgerId, techName],
+      );
+      if (!rows.length) break;
+      techName = `${base}_${suffix}`;
+    }
+    const [created] = await conn.query<ResultSetHeader>(
+      'INSERT INTO categories (ledger_id, tech_name, display_name, sort_order) VALUES (?, ?, ?, ?)',
+      [ledgerId, techName, name, sortOrder],
+    );
+    await conn.query('INSERT INTO category_months (category_id, list_month, display_name) VALUES (?, ?, ?)', [
+      created.insertId,
+      first,
+      name,
+    ]);
+    return { categoryId: created.insertId, techName, sortOrder };
   });
 }
 

@@ -205,7 +205,7 @@ app already has, and 040 can follow it.
     - **"needs a session and a ledger of mine"**: no headers → 401. The stranger's ledger → 404, and nothing is
       added to it.
 
-- [ ] 3. Reuse the category a name already has, bringing a removed one back at €0
+- [x] 3. Reuse the category a name already has, bringing a removed one back at €0
   - Files: `apps/api/src/categories/monthLists.ts` (`findByName`, step 4), `apps/api/test/categories.int.test.ts`.
   - Change: as in Contracts. About 100 lines, about 65 of them tests.
   - Tests, in `add to a month`:
@@ -381,7 +381,8 @@ copied styles.
 
 ## Deviations
 
-<filled by the developer during build>
+- slice 3: the "latest first" case names car in September with SQL, not the rename route: September has ended,
+  so the route answers 409.
 
 ## Consolidate
 

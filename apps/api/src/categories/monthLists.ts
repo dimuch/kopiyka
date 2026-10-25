@@ -212,7 +212,42 @@ export interface AddedCategory {
 }
 
 /**
- * Adds a category called `name` (trimmed) to a 'YYYY-MM' month at €0 (brief 038), created at the end of the
+ * The ledger's live category called `name` that isn't in the month (first day) already (brief 038): the month's own
+ * removed row first, then the latest month's row (a live one before a removed one), then categories.display_name.
+ * That last one also matches a category renamed in every month, whose display_name is still the old name.
+ */
+async function findByName(
+  conn: PoolConnection,
+  ledgerId: number,
+  first: string,
+  name: string,
+): Promise<AddedCategory | null> {
+  // inMonthList's own `m` shadows this query's; its `c` is this query's category, as meant.
+  const [byRow] = await conn.query<RowDataPacket[]>(
+    `SELECT c.category_id, c.tech_name, c.sort_order
+       FROM category_months m JOIN categories c ON c.category_id = m.category_id
+      WHERE c.ledger_id = ? AND c.deleted_at IS NULL AND ${ROW_NAME} = ? AND NOT ${inMonthList('?')}
+      ORDER BY m.list_month = ? DESC, m.list_month DESC, m.deleted_at IS NOT NULL, m.category_id
+      LIMIT 1`,
+    [ledgerId, name, first, first],
+  );
+  const [byCategory] = byRow.length
+    ? [byRow]
+    : await conn.query<RowDataPacket[]>(
+        `SELECT c.category_id, c.tech_name, c.sort_order FROM categories c
+          WHERE c.ledger_id = ? AND c.deleted_at IS NULL AND c.display_name COLLATE utf8mb4_0900_ai_ci = ?
+            AND NOT ${inMonthList('?')}
+          ORDER BY c.category_id LIMIT 1`,
+        [ledgerId, name, first],
+      );
+  const r = byCategory[0];
+  return r ? { categoryId: r.category_id, techName: r.tech_name, sortOrder: r.sort_order } : null;
+}
+
+/**
+ * Adds a category called `name` (trimmed) to a 'YYYY-MM' month at €0 (brief 038). It reuses the ledger's category
+ * with that name that isn't in the month already (see findByName), so its history stays one category; a removed row
+ * comes back, and the expenses removed with it stay deleted. Without a match it creates a category at the end of the
  * ledger's order. 'name_taken', writing nothing, when a category in the month has the name.
  */
 export async function addToMonth(
@@ -226,6 +261,21 @@ export async function addToMonth(
     await lockLedger(conn, ledgerId);
     // Ids are positive, so 0 excludes no category.
     if (await nameTaken(conn, ledgerId, first, name, 0)) return 'name_taken';
+
+    const found = await findByName(conn, ledgerId, first, name);
+    if (found) {
+      await conn.query('DELETE FROM category_budgets WHERE category_id = ? AND budget_month = ?', [
+        found.categoryId,
+        first,
+      ]);
+      // No live row can exist: findByName skips categories already in the month.
+      await conn.query(
+        `INSERT INTO category_months (category_id, list_month, display_name) VALUES (?, ?, ?)
+         ON DUPLICATE KEY UPDATE deleted_at = NULL, display_name = ?`,
+        [found.categoryId, first, name, name],
+      );
+      return found;
+    }
 
     // Deleted categories count for both: their tech_names stay taken (brief 014) and their order stays theirs.
     const [[order]] = await conn.query<RowDataPacket[]>(

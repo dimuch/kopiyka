@@ -1052,6 +1052,64 @@ describe.skipIf(!(await testDbReachable()))('categories API (MySQL)', () => {
       expect(await listOf('2026-09')).toHaveLength(15);
     });
 
+    it('reuses the category a name has in any month, latest first', async () => {
+      const eatingOut = await idOf('eating_out');
+      const res = await add(auth, owner.ledgerId, '2026-11', 'Eating Out');
+      expect(res.statusCode).toBe(201);
+      expect(res.json()).toEqual({
+        categoryId: eatingOut,
+        techName: 'eating_out',
+        displayName: 'Eating Out',
+        sortOrder: 80,
+        plannedEur: '0.00',
+      });
+      expect(await listOf('2026-11')).toEqual(['eating_out']);
+
+      // Both are called 'sport' somewhere; October is later than September (ended, so named in SQL).
+      await db.query("UPDATE category_months SET display_name = 'sport' WHERE category_id = ? AND list_month = ?", [
+        await idOf('car'),
+        '2026-09-01',
+      ]);
+      expect((await rename(await idOf('gym'), auth, owner.ledgerId, '2026-10', 'sport')).statusCode).toBe(204);
+      expect((await add(auth, owner.ledgerId, '2026-11', 'sport')).json().categoryId).toBe(await idOf('gym'));
+
+      // A category with no month rows is found by its own name.
+      const gift = await idOf('gift');
+      await db.query('DELETE FROM category_months WHERE category_id = ?', [gift]);
+      expect((await add(auth, owner.ledgerId, '2026-11', 'GIFT')).json().categoryId).toBe(gift);
+
+      expect(await categoryCount()).toBe(15);
+    });
+
+    it('brings back a category removed from the month at €0, its expenses still deleted', async () => {
+      const eatingOut = await idOf('eating_out');
+      expect((await plan(eatingOut, auth, owner.ledgerId, '2026-10', '50.00')).statusCode).toBe(204);
+      const spend = await addSpend('eating_out', '2026-10-03', '15.00');
+      expect((await removeFrom(eatingOut)).statusCode).toBe(204);
+      // gym is a candidate too: out of October, and November's only 'eating out'. Without the month's own row
+      // first, gym's later row would win.
+      expect((await removeFrom(await idOf('gym'))).statusCode).toBe(204);
+      await storeMonthList(db, owner.ledgerId, '2026-11', ['eating_out']);
+      expect((await rename(await idOf('gym'), auth, owner.ledgerId, '2026-11', 'eating out')).statusCode).toBe(204);
+
+      const res = await add(auth, owner.ledgerId, '2026-10', 'eating out');
+      expect(res.json()).toMatchObject({ categoryId: eatingOut, plannedEur: '0.00' });
+      const october = (await get(owner.ledgerId)).json().categories;
+      expect(october.find((c: { categoryId: number }) => c.categoryId === eatingOut)).toMatchObject({
+        plannedEur: '0.00',
+      });
+      expect((await expense('GET', spend)).statusCode).toBe(404);
+      expect((await restoreTo(eatingOut)).json()).toEqual({ error: 'not_found' });
+    });
+
+    it("makes a new category when the name's category is already in the month under another name", async () => {
+      expect((await rename(await idOf('eating_out'))).statusCode).toBe(204); // 'food out' in October
+      const res = await add(auth, owner.ledgerId, '2026-10', 'eating out');
+      expect(res.json()).toMatchObject({ techName: 'eating_out_2', displayName: 'eating out' });
+      expect(res.json().categoryId).not.toBe(await idOf('eating_out'));
+      expect(await listOf('2026-10')).toEqual(expect.arrayContaining(['eating_out', 'eating_out_2']));
+    });
+
     it('needs a session and a ledger of mine', async () => {
       expect((await add({})).statusCode).toBe(401);
       const stranger = await makeUser(db, config, 'stranger');

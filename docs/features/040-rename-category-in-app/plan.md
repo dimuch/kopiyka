@@ -115,7 +115,7 @@ left that copy for 040 to remove.
 
 ## Slices
 
-- [ ] 1. Move the add-category name form into a shared component
+- [x] 1. Move the add-category name form into a shared component
   - Files: `apps/mobile/src/components/CategoryNameForm.tsx` (new), `apps/mobile/src/app/add-category.tsx`.
   - Change: a mechanical move. In slice 1 the props are `{ month, caption, busy, setBusy, save }`, and the field
     starts at `''`.
@@ -278,5 +278,8 @@ Estimated total: about 365 diff lines (1: 210, of which about 190 moved; 2: 35; 
 - Conventions §3: 037's follow-up note "names are per month" still stands. This plan doesn't change any stated fact.
 
 ## Deviations
+
+- slice 1: the form's own submit handler is `submit()`, since `save` is now its prop. Web checks reuse QA user
+  `claude-qa-038` (ledger 21) instead of a new `claude-qa-040`; its ledger already has a seeded September list.
 
 ## Consolidate

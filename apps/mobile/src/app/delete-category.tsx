@@ -8,11 +8,11 @@ import { useColors, useThemedStyles } from '@/appearance/AppearanceContext';
 import { useSession } from '@/auth/AuthContext';
 import { CategoryInMonth } from '@/components/CategoryInMonth';
 import { removeFromMonth, restoreToMonth } from '@/data/categories';
+import { notInMonthText } from '@/data/categoryName';
 import { removedMessage, removeWarning } from '@/data/categoryRemove';
 import { monthEndedText } from '@/data/monthEnded';
 import { setPendingUndo } from '@/data/undo';
 import { useCategoryTotals } from '@/data/useCategoryTotals';
-import { monthName } from '@/format';
 import { parseIdParam, parseMonthParam } from '@/linkParams';
 import { fonts, type Palette } from '@/theme';
 
@@ -96,7 +96,7 @@ function Confirm({
         code === 'month_ended'
           ? monthEndedText(month)
           : code === 'not_found'
-            ? `“${displayName}” isn’t in ${monthName(month)} any more.`
+            ? notInMonthText(displayName, month)
             : 'Couldn’t remove. Check your connection and try again.';
       setGone(code === 'month_ended' || code === 'not_found');
       // The alert role covers web; VoiceOver needs an explicit announcement.

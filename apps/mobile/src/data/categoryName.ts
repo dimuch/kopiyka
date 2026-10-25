@@ -11,6 +11,11 @@ export function normalizeName(text: string): string | null {
   return length >= 1 && length <= MAX_NAME ? name : null;
 }
 
+/** What a screen says when a category, by its name in a 'YYYY-MM' month, has left that month meanwhile (404). */
+export function notInMonthText(name: string, month: string): string {
+  return `“${name}” isn’t in ${monthName(month)} any more.`;
+}
+
 /**
  * The text for a refused name in a 'YYYY-MM' month; null when `code` isn't a name refusal. `name` is the typed name;
  * `current` is the category's name in the month when renaming, null when adding (adding has no not_found).
@@ -22,7 +27,7 @@ export function nameRefusedText(code: string, name: string, month: string, curre
     case 'month_ended':
       return monthEndedText(month);
     case 'not_found':
-      return current === null ? null : `“${current}” isn’t in ${monthName(month)} any more.`;
+      return current === null ? null : notInMonthText(current, month);
     default:
       return null;
   }

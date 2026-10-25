@@ -17,7 +17,8 @@ export function CategoryTile({ techName, label, size = 40 }: { techName: string;
       }}
     >
       <Text style={{ fontFamily: fonts.display, fontSize: size * 0.43, color: tile.fg }}>
-        {label.charAt(0).toUpperCase()}
+        {/* By code point: an emoji is two UTF-16 units. */}
+        {[...label][0]?.toUpperCase()}
       </Text>
     </View>
   );

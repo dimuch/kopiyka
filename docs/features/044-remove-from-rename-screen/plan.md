@@ -73,7 +73,7 @@ end on the Budget tab, and AC1 says so (see Open questions).
       and Undo works.
     - (c) After (b), open the Budget tab: no stale bar.
     - (d) Light and dark appearance.
-- [ ] 2. Remove a category from its rename screen
+- [x] 2. Remove a category from its rename screen
   - Files: `apps/mobile/src/components/CategoryNameForm.tsx`, `apps/mobile/src/app/rename-category.tsx`
   - Change:
     - `CategoryNameForm`: add the `children` prop. Render it after the Save `Pressable` inside the existing
@@ -150,7 +150,10 @@ end on the Budget tab, and AC1 says so (see Open questions).
 
 ## Deviations
 
-<filled by the developer during build>
+- slice 2 (web check): (g) wasn't repeated after slice 2; `delete-category.tsx` didn't change in slice 2, and slice
+  1's (b) ran on the same code. A scripted check that clicked the rename screen's button hidden under the
+  confirmation stacked extra confirmations; `dismissTo` still closed them all. A real tap only reaches the top
+  screen, but a fast double tap on Remove could push two (the row pencil and the ⋯ menu can too): see Follow-ups.
 
 ## Consolidate
 

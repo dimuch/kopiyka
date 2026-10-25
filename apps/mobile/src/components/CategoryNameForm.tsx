@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react';
+import { type ReactNode, useRef, useState } from 'react';
 import { AccessibilityInfo, ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, TextInput } from 'react-native';
 import { ApiError } from '@/api/client';
 import { useColors, useThemedStyles } from '@/appearance/AppearanceContext';
@@ -16,6 +16,7 @@ export function CategoryNameForm({
   busy,
   setBusy,
   save,
+  children,
 }: {
   month: string;
   /** The category's name in the month when renaming (the field starts at it); null when adding. */
@@ -25,6 +26,8 @@ export function CategoryNameForm({
   setBusy: (busy: boolean) => void;
   /** Sends the checked name and leaves on success; rejects (an ApiError with a code) when refused. */
   save: (name: string) => Promise<void>;
+  /** Under Save while saving can still help: the rename screen's Remove (brief 044). */
+  children?: ReactNode;
 }) {
   const colors = useColors();
   const styles = useThemedStyles(makeStyles);
@@ -91,17 +94,20 @@ export function CategoryNameForm({
       ) : null}
 
       {gone ? null : (
-        <Pressable
-          accessibilityRole="button"
-          // While saving the only child is a spinner, so the name has to be given here.
-          accessibilityLabel="Save"
-          accessibilityState={{ busy }}
-          disabled={busy}
-          onPress={submit}
-          style={[styles.primary, busy && { opacity: 0.6 }]}
-        >
-          {busy ? <ActivityIndicator color={colors.onAccent} /> : <Text style={styles.primaryText}>Save</Text>}
-        </Pressable>
+        <>
+          <Pressable
+            accessibilityRole="button"
+            // While saving the only child is a spinner, so the name has to be given here.
+            accessibilityLabel="Save"
+            accessibilityState={{ busy }}
+            disabled={busy}
+            onPress={submit}
+            style={[styles.primary, busy && { opacity: 0.6 }]}
+          >
+            {busy ? <ActivityIndicator color={colors.onAccent} /> : <Text style={styles.primaryText}>Save</Text>}
+          </Pressable>
+          {children}
+        </>
       )}
     </ScrollView>
   );

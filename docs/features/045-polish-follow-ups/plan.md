@@ -71,7 +71,7 @@ less clear than a guard at the button.
     - Clean up: reload the page, then `fetch` POST the category's `…/months/2026-10/restore` with
       `credentials: 'include'`.
 
-- [ ] 2. Share the danger text style of Delete and Remove buttons (~12 lines)
+- [x] 2. Share the danger text style of Delete and Remove buttons (~12 lines)
   - Files: `apps/mobile/src/theme.ts`, `apps/mobile/src/app/expense.tsx` (`deleteText`),
     `apps/mobile/src/app/category/[categoryId].tsx` (`menuDelete`), `apps/mobile/src/app/rename-category.tsx`
     (`removeText`).

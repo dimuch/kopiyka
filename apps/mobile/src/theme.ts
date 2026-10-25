@@ -1,3 +1,4 @@
+import type { TextStyle } from 'react-native';
 import type { Scheme } from '@/appearance/preference';
 
 // Colors and type from the "Budget App Screens" design canvas.
@@ -59,6 +60,11 @@ export const fonts = {
   bodyMedium: 'IBMPlexSans_500Medium',
   bodySemi: 'IBMPlexSans_600SemiBold',
 };
+
+/** The text of a button that deletes or removes something (expense form, Category menu, rename screen). */
+export function dangerText(colors: Palette): TextStyle {
+  return { fontFamily: fonts.bodyMedium, fontSize: 15, color: colors.danger };
+}
 
 // Tile hues per category, as on the canvas; anything new gets a stable hue from its name.
 const HUES: Record<string, number> = {

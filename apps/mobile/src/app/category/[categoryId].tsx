@@ -17,7 +17,7 @@ import { useCategoryTotals } from '@/data/useCategoryTotals';
 import { useMonth } from '@/data/useMonth';
 import { dayLabel, eur, kyivMonth, monthLabel, monthName, toCents, uah } from '@/format';
 import { parseIdParam, parseMonthParam } from '@/linkParams';
-import { fonts, type Palette } from '@/theme';
+import { dangerText, fonts, type Palette } from '@/theme';
 
 // Opened straight from a web link there's nothing to go back to, so fall back to Expenses (current month).
 function goBack() {
@@ -240,7 +240,7 @@ const makeStyles = (colors: Palette) =>
       paddingVertical: 4,
     },
     menuItem: { minHeight: 44, justifyContent: 'center', paddingHorizontal: 16 },
-    menuDelete: { fontFamily: fonts.bodyMedium, fontSize: 15, color: colors.danger },
+    menuDelete: dangerText(colors),
     back: { height: 44, flexDirection: 'row', alignItems: 'center', gap: 4, marginLeft: -8, paddingHorizontal: 8 },
     backText: { fontFamily: fonts.bodyMedium, fontSize: 15, color: colors.muted },
     titleRow: { flexDirection: 'row', alignItems: 'center', gap: 14 },

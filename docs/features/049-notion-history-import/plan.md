@@ -146,7 +146,7 @@ such an expense were ever restored, `createRow` re-finds its row by Kopiyka ID (
   - Verify: on the laptop, `yarn api import-history --save /tmp/notion-2026.json` (the user runs it; it needs the
     real token). It writes ~15 rows per month Jan–Oct, and groceries rows carry an `actual`.
 
-- [ ] 3. Map Notion's rows to kopiyka's Jan–Oct months and categories (~110)
+- [x] 3. Map Notion's rows to kopiyka's Jan–Oct months and categories (~110)
   - Files: `apps/api/src/notion/history.ts` (historyMonth, historyCategory, wantedMonths), `apps/api/test/notionHistory.test.ts`
   - Tests: `historyMonth` table: 1→`2026-01`, 6→`2026-06`, 9→`2026-09`, 10→`2026-10`, 11/12/null→null.
     `historyCategory` table: gift/gifts/`' Gifts '`→`{gift,'gifts'}`; car parking/parking→`{parking,'parking'}`;

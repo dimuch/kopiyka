@@ -131,7 +131,7 @@ such an expense were ever restored, `createRow` re-finds its row by Kopiyka ID (
 
 ## Slices
 
-- [ ] 1. Read each Notion Expenses row's Actual Amount (~30 lines)
+- [x] 1. Read each Notion Expenses row's Actual Amount (~30 lines)
   - Files: `apps/api/src/notion/client.ts`, `apps/api/test/fakeNotion.ts`, `apps/api/test/notionClient.test.ts`,
     `apps/api/test/notionTotals.test.ts`
   - Change: `ExpensesTemplate.actualCents`; `allRows` reads `'Actual Amount'`; the fake returns it.

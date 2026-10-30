@@ -41,6 +41,8 @@ export interface ExpensesTemplate {
   month: number | null;
   /** Budget in cents; null when empty. */
   budgetCents: bigint | null;
+  /** Actual Amount in cents; null when empty. */
+  actualCents: bigint | null;
   /** Type select option name; null when empty. */
   type: string | null;
 }
@@ -274,6 +276,7 @@ export function notionClient(
           Category: { title: Array<{ plain_text: string }> };
           Month?: { select: { name: string } | null };
           Budget?: { number: number | null };
+          'Actual Amount'?: { number: number | null };
           Type?: { select: { name: string } | null };
         };
       };
@@ -291,6 +294,7 @@ export function notionClient(
             category: r.properties.Category.title.map((t) => t.plain_text).join(''),
             month: month || null,
             budgetCents: notionCents(r.properties.Budget?.number),
+            actualCents: notionCents(r.properties['Actual Amount']?.number),
             type: r.properties.Type?.select?.name ?? null,
           });
         }

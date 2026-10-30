@@ -308,6 +308,16 @@ such an expense were ever restored, `createRow` re-finds its row by Kopiyka ID (
 
 ## Consolidate
 
+- REUSE `centsToString` in the CLI instead of a one-line `euros` alias of it.
+- LEAVE `ledgerOwner` (historyImport) vs `lockLedger` (monthLists): same row lock, but the import also needs the
+  owner (Totals' `created_by`) and a dry-run read without the lock.
+- LEAVE the category INSERT vs `addToMonth`: that one de-duplicates tech_names with a suffix and refuses ended
+  months; the import needs the exact tech_name (Notion match) and works on ended months.
+- LEAVE the `Total` INSERT vs the expenses route: `price` is tied to the request (date horizon, 503 reply); the
+  import shares the pieces it uses (`getEurUahRate`, `convert`, `rateToE4`, `e4ToString`).
+- LEAVE `loadMonth`'s name fallback (`COALESCE(NULLIF(m.display_name, ''), c.display_name)`) vs monthLists'
+  private `ROW_NAME`: exporting it for one more caller couples the import to monthLists' collation detail.
+
 ## Revision 1
 
 Skeptic (approve with edits): slice 6's first test now starts from a ledger with no categories and checks the

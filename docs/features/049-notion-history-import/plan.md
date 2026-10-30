@@ -174,7 +174,7 @@ such an expense were ever restored, `createRow` re-finds its row by Kopiyka ID (
   - Verify: laptop `yarn api import-history --ledger 1 --snapshot /tmp/notion-2026.json` prints Jan–Oct, with
     October showing 42 expenses deleted.
 
-- [ ] 6. Write a month of the Notion history import (~170: ~70 code, ~100 tests)
+- [x] 6. Write a month of the Notion history import (~170: ~70 code, ~100 tests)
   - Files: `apps/api/src/notion/historyImport.ts` (importMonth), `apps/api/test/notionHistory.int.test.ts`
   - Tests (stub `fetchRate` 50.0; `importAll(snapshot)` loops `wantedMonths` → `importMonth`):
     - "builds each month's list, plans and one Total per non-zero category on a ledger with no categories" (after

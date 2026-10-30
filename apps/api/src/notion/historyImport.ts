@@ -1,10 +1,12 @@
 // Brief 049. Brings one January–October month of the ledger to what Notion's Expenses table says: its category list
 // and names, planned amounts, and one `Total` expense per category for Notion's Actual Amount. A month is read,
 // diffed (planMonth) and, outside a dry run, written as one unit; the app's month lock doesn't apply here.
-import type { PoolConnection, RowDataPacket } from 'mysql2/promise';
+import type { PoolConnection, ResultSetHeader, RowDataPacket } from 'mysql2/promise';
+import type { AppDeps } from '../app.js';
 import { nextMonthStart } from '../dates.js';
-import type { Db } from '../db.js';
-import { toCents } from '../money.js';
+import { type Db, withTransaction } from '../db.js';
+import { centsToString, convert, e4ToString, rateToE4, toCents } from '../money.js';
+import { getEurUahRate } from '../rates/service.js';
 import type { WantedMonth } from './history.js';
 
 /** The name of the one expense that holds a category-month's spent amount from Notion. */
@@ -133,4 +135,89 @@ async function ledgerOwner(q: Db | PoolConnection, ledgerId: number, lock: boole
 export async function previewMonth(db: Db, ledgerId: number, wanted: WantedMonth): Promise<MonthPlan> {
   await ledgerOwner(db, ledgerId, false);
   return planMonth(await loadMonth(db, ledgerId, wanted.month, false), wanted);
+}
+
+/**
+ * Brings the month to Notion's numbers in one transaction and returns what it changed. Ended months too: the app's
+ * month lock guards people, not this import. Deleted expenses are soft-deleted, as the app does.
+ */
+export async function importMonth(
+  { db, fetchRate, now }: Pick<AppDeps, 'db' | 'fetchRate' | 'now'>,
+  ledgerId: number,
+  wanted: WantedMonth,
+): Promise<MonthPlan> {
+  const first = `${wanted.month}-01`;
+  // Before the transaction: nothing else may use the pool while it holds locks (withTransaction).
+  const rateE4 = rateToE4((await getEurUahRate(db, fetchRate, first)).eurUah);
+  return withTransaction(db, async (conn) => {
+    const at = now();
+    const owner = await ledgerOwner(conn, ledgerId, true); // the row lock every list change takes
+    const state = await loadMonth(conn, ledgerId, wanted.month, true);
+    const plan = planMonth(state, wanted);
+    const ids = new Map(state.categories);
+    const idOf = (techName: string) => {
+      const id = ids.get(techName);
+      if (id === undefined) throw new Error(`No category ${techName}`);
+      return id;
+    };
+
+    for (const { techName, name } of plan.created) {
+      const [res] = await conn.query<ResultSetHeader>(
+        `INSERT INTO categories (ledger_id, tech_name, display_name, sort_order)
+         SELECT ?, ?, ?, COALESCE(MAX(sort_order), 0) + 10 FROM categories WHERE ledger_id = ?`,
+        [ledgerId, techName, name, ledgerId],
+      );
+      ids.set(techName, res.insertId);
+    }
+    for (const { categoryId } of plan.removed) {
+      await conn.query('UPDATE category_months SET deleted_at = ? WHERE category_id = ? AND list_month = ?', [
+        at,
+        categoryId,
+        first,
+      ]);
+    }
+    for (const { techName, name } of plan.listed) {
+      await conn.query(
+        `INSERT INTO category_months (category_id, list_month, display_name) VALUES (?, ?, ?)
+         ON DUPLICATE KEY UPDATE deleted_at = NULL, display_name = VALUES(display_name)`,
+        [idOf(techName), first, name],
+      );
+    }
+    for (const { techName, toCents: cents } of plan.planned) {
+      await conn.query(
+        `INSERT INTO category_budgets (category_id, budget_month, planned_eur) VALUES (?, ?, ?)
+         ON DUPLICATE KEY UPDATE planned_eur = VALUES(planned_eur)`,
+        [idOf(techName), first, centsToString(cents)],
+      );
+    }
+    const deleted = [...plan.removed, ...plan.totals].flatMap((c) => c.expenseIds);
+    if (deleted.length) {
+      await conn.query(
+        `UPDATE expenses SET deleted_at = ?, updated_at = updated_at -- not an edit; keep ON UPDATE from firing
+          WHERE expense_id IN (?)`,
+        [at, deleted],
+      );
+    }
+    for (const { techName, toCents: cents } of plan.totals) {
+      if (cents === 0n) continue;
+      const { eurCents, uahCents } = convert(cents, 'EUR', rateE4);
+      await conn.query(
+        `INSERT INTO expenses (category_id, expense_date, name, amount_eur, amount_uah, eur_uah_rate,
+                               entered_currency, created_by, created_at, updated_at)
+         VALUES (?, ?, ?, ?, ?, ?, 'EUR', ?, ?, ?)`,
+        [
+          idOf(techName),
+          first,
+          TOTAL,
+          centsToString(eurCents),
+          centsToString(uahCents),
+          e4ToString(rateE4),
+          owner,
+          at,
+          at,
+        ],
+      );
+    }
+    return plan;
+  });
 }

@@ -162,7 +162,7 @@ such an expense were ever restored, `createRow` re-finds its row by Kopiyka ID (
     give one totals entry with every id and their sum as `fromCents`. A single `Total` with a different amount, date,
     name or UAH entry is replaced. Actual 0 with live expenses deletes them all with `toCents` 0n. A list row not in
     Notion is removed with its expense ids. A row named `gift` wanted as `gifts` is listed with `from: 'gift'`.
-- [ ] 5. Dry-run the history import from a snapshot or Notion (~160)
+- [x] 5. Dry-run the history import from a snapshot or Notion (~160)
   - Files: `apps/api/src/notion/historyImport.ts` (loadMonth, previewMonth), `apps/api/scripts/import-history.ts`
     (`--ledger`, `--snapshot`, printing), `apps/api/test/notionHistory.int.test.ts` (new; `dump()` helper selecting
     `categories`, `category_months`, `category_budgets`, `expenses`, `exchange_rates`, `notion_counted_expenses`,
@@ -302,6 +302,9 @@ such an expense were ever restored, `createRow` re-finds its row by Kopiyka ID (
 
 - slice 2: laptop `--save` not verified yet: Notion answers 401 to the laptop's `NOTION_TOKEN` (expired or
   revoked); the user renews it, then the save is run before slice 8's laptop import.
+- slice 5: verified on the laptop with a snapshot built from the same Notion rows read through the Notion
+  connector (the token is down): Jan–Oct listed, `credit`/`school` created in July, `gift → gifts` in October,
+  `expenses deleted: 42`. Bad flags and an unreadable source print a message instead of a stack trace.
 
 ## Consolidate
 

@@ -1,6 +1,10 @@
 // Brief 049. Brings one January–October month of the ledger to what Notion's Expenses table says: its category list
 // and names, planned amounts, and one `Total` expense per category for Notion's Actual Amount. A month is read,
 // diffed (planMonth) and, outside a dry run, written as one unit; the app's month lock doesn't apply here.
+import type { PoolConnection, RowDataPacket } from 'mysql2/promise';
+import { nextMonthStart } from '../dates.js';
+import type { Db } from '../db.js';
+import { toCents } from '../money.js';
 import type { WantedMonth } from './history.js';
 
 /** The name of the one expense that holds a category-month's spent amount from Notion. */
@@ -71,4 +75,62 @@ export function planMonth(state: MonthState, wanted: WantedMonth): MonthPlan {
     plan.removed.push({ categoryId, name: row.name, expenseIds: expensesOf(categoryId).map((e) => e.expenseId) });
   }
   return plan;
+}
+
+/** Reads a 'YYYY-MM' month of the ledger; `lock` takes the month's expenses FOR UPDATE (inside a transaction). */
+async function loadMonth(q: Db | PoolConnection, ledgerId: number, month: string, lock: boolean): Promise<MonthState> {
+  const first = `${month}-01`;
+  const [categories] = await q.query<RowDataPacket[]>(
+    'SELECT category_id, tech_name FROM categories WHERE ledger_id = ? AND deleted_at IS NULL',
+    [ledgerId],
+  );
+  const [list] = await q.query<RowDataPacket[]>(
+    `SELECT c.category_id, c.tech_name, m.display_name AS row_name,
+            COALESCE(NULLIF(m.display_name, ''), c.display_name) AS name
+       FROM category_months m JOIN categories c ON c.category_id = m.category_id
+      WHERE c.ledger_id = ? AND c.deleted_at IS NULL AND m.list_month = ? AND m.deleted_at IS NULL`,
+    [ledgerId, first],
+  );
+  const [planned] = await q.query<RowDataPacket[]>(
+    `SELECT b.category_id, b.planned_eur FROM category_budgets b JOIN categories c ON c.category_id = b.category_id
+      WHERE c.ledger_id = ? AND b.budget_month = ?`,
+    [ledgerId, first],
+  );
+  const [expenses] = await q.query<RowDataPacket[]>(
+    `SELECT e.expense_id, e.category_id, e.name, e.expense_date, e.entered_currency, e.amount_eur
+       FROM expenses e JOIN categories c ON c.category_id = e.category_id
+      WHERE c.ledger_id = ? AND c.deleted_at IS NULL AND e.deleted_at IS NULL
+        AND e.expense_date >= ? AND e.expense_date < ?
+      ORDER BY e.expense_id${lock ? ' FOR UPDATE' : ''}`,
+    [ledgerId, first, nextMonthStart(month)],
+  );
+  return {
+    categories: new Map(categories.map((r) => [r.tech_name as string, r.category_id as number])),
+    list: new Map(list.map((r) => [r.category_id, { techName: r.tech_name, rowName: r.row_name, name: r.name }])),
+    planned: new Map(planned.map((r) => [r.category_id as number, toCents(r.planned_eur)])),
+    expenses: expenses.map((r) => ({
+      expenseId: Number(r.expense_id),
+      categoryId: r.category_id,
+      name: r.name,
+      date: r.expense_date,
+      currency: r.entered_currency,
+      eurCents: toCents(r.amount_eur),
+    })),
+  };
+}
+
+async function ledgerOwner(q: Db | PoolConnection, ledgerId: number, lock: boolean): Promise<number> {
+  const [rows] = await q.query<RowDataPacket[]>(
+    `SELECT owner_user_id FROM ledgers WHERE ledger_id = ?${lock ? ' FOR UPDATE' : ''}`,
+    [ledgerId],
+  );
+  const [ledger] = rows;
+  if (!ledger) throw new Error(`No ledger ${ledgerId}`);
+  return ledger.owner_user_id;
+}
+
+/** What importing the month would change; writes nothing. Throws for an unknown ledger. */
+export async function previewMonth(db: Db, ledgerId: number, wanted: WantedMonth): Promise<MonthPlan> {
+  await ledgerOwner(db, ledgerId, false);
+  return planMonth(await loadMonth(db, ledgerId, wanted.month, false), wanted);
 }

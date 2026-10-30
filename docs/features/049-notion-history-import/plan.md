@@ -195,7 +195,7 @@ such an expense were ever restored, `createRow` re-finds its row by Kopiyka ID (
       expense and budgets are unchanged, and there is no Dec list.
     - "writes each month on its own": `fetchRate` throws for March. Jan and Feb are written, March is unchanged, and
       the call rejects.
-- [ ] 7. Keep imported months out of the Notion sync and add `--apply` (~75)
+- [x] 7. Keep imported months out of the Notion sync and add `--apply` (~75)
   - Files: `apps/api/src/notion/groceries.ts` (`wanted`), `apps/api/src/notion/historyImport.ts` (counted insert,
     grocery-record delete), `apps/api/scripts/import-history.ts` (`--apply`), `apps/api/test/notionGroceries.int.test.ts`,
     `apps/api/test/notionHistory.int.test.ts`

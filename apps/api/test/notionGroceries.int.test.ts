@@ -109,6 +109,16 @@ describe.skipIf(!(await testDbReachable()))('Notion groceries records (MySQL)', 
     });
   });
 
+  it("doesn't send a grocery Notion's totals already count", async () => {
+    const total = await addExpense('Total', '2026-09-01');
+    await db.query('INSERT INTO notion_counted_expenses (expense_id) VALUES (?)', [total]);
+    const other = await addExpense('Delhaize', '2026-09-02');
+
+    expect(planGroceries(await loadGroceries(db, scope())).map((c) => [c.kind, c.expense.expenseId])).toEqual([
+      ['create', other],
+    ]);
+  });
+
   it('leaves trashed rows alone, and restores one whose grocery came back', async () => {
     const gone = await addExpense('gone', '2026-10-01', { deleted: true });
     await record(gone, 'gone', '2026-10-01', 'b1', true);

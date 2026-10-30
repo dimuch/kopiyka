@@ -53,7 +53,7 @@ describe('notionNames', () => {
 
 describe('latestTemplate', () => {
   const row = (category: string, month: number | null, budgetCents: bigint | null = null, type: string | null = null) =>
-    ({ category, month, budgetCents, type }) satisfies ExpensesTemplate;
+    ({ category, month, budgetCents, actualCents: null, type }) satisfies ExpensesTemplate;
 
   it("picks the category's row with the latest Month", () => {
     const sept = row('clothes', 9, 20000n, 'B');

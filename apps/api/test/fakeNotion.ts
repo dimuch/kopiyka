@@ -133,6 +133,7 @@ export function fakeExpenses(): FakeExpenses {
         category: r.category,
         month: Number(r.month.slice(5, 7)),
         budgetCents: r.budgetCents ?? null,
+        actualCents: r.actualCents,
         type: r.type ?? null,
       }));
     },

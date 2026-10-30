@@ -155,7 +155,7 @@ such an expense were ever restored, `createRow` re-finds its row by Kopiyka ID (
     dropped; empty budget/actual → 0n; months sorted, a month without rows absent; `gift`+`gifts` in one month throws
     naming both.
 
-- [ ] 4. Work out what importing a month from Notion changes (~170: ~85 code, ~85 tests)
+- [x] 4. Work out what importing a month from Notion changes (~170: ~85 code, ~85 tests)
   - Files: `apps/api/src/notion/historyImport.ts` (types, planMonth), `apps/api/test/notionHistoryImport.test.ts`
   - Tests (`planMonth` table): an empty month gives created (missing category), listed (from null), planned only
     where ≠ 0, and totals only where actual > 0. A matching month gives an empty plan. Several expenses in a category

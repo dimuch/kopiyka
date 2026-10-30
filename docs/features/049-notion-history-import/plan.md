@@ -311,8 +311,14 @@ such an expense were ever restored, `createRow` re-finds its row by Kopiyka ID (
   connector (the token is down): Jan–Oct listed, `credit`/`school` created in July, `gift → gifts` in October,
   `expenses deleted: 42`. Bad flags and an unreadable source print a message instead of a stack trace.
 
-- slice 8: the laptop import (Verify) waits for a working `NOTION_TOKEN` for `--save`/the Notion source; see
-  the Gate B report for what ran instead (found in review).
+- slice 8: the laptop import ran on 2026-10-30 from the snapshot built from the Notion connector (the token still
+  gets 401), after checking nothing was unsent (0 groceries, 0 totals). `--apply` into ledger 1: Jan–Oct written,
+  `credit`/`school` created in July, October's 42 expenses replaced. Each month's spent and planned sums equal the
+  snapshot's Actual/Budget sums (e.g. Oct 12178.00 / 6000.00); a second `--apply` printed `no change` for every month;
+  the groceries plan and uncounted list are empty. The pre-import backup failed (mysqldump needs
+  `--set-gtid-purged=OFF` for this user) and the import still ran; the 11 dropped `notion_grocery_rows` links are
+  recoverable from Notion's Kopiyka ID column. Still open: `--save` with a renewed token, and the Budget-tab
+  spot-check in the app by the user.
 
 ## Consolidate
 

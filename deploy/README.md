@@ -234,6 +234,15 @@ November, after October's last expense.
 
 - [ ] `https://kopiyka.englishplus.com.ua` on the laptop and the iPhone: log in, add an expense, reload, it's there.
 - [ ] `curl -sI http://kopiyka.englishplus.com.ua` → `301`, `Location: https://…`; the browser shows a valid cert.
+- [ ] The app page is checked on every load and the bundle is cached for good (this also catches headers that the
+      droplet's own `nginx.conf` might add or drop):
+
+      ```bash
+      curl -sI https://kopiyka.englishplus.com.ua/budget | grep -i cache-control      # → no-cache
+      curl -sI "https://kopiyka.englishplus.com.ua$(curl -s https://kopiyka.englishplus.com.ua/ | grep -o '/_expo/static/[^"]*' | head -1)" | grep -i cache-control
+                                                                                       # → …, immutable
+      ```
+
 - [ ] `sudo ss -ltnp | grep :3100` shows `127.0.0.1:3100` only; from the laptop `curl -m 5 http://165.22.31.51:3100/api/health` fails.
 - [ ] `readlink /opt/kopiyka/current` ends in the deployed commit's first 7 characters.
 - [ ] The key-limit checks in step 7 gave the expected answers.

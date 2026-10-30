@@ -2,8 +2,9 @@
 //
 //   yarn api import-history --save <file>
 //     saves the Expenses table to a snapshot file (needs NOTION_TOKEN and the data source ids);
-//   yarn api import-history --ledger <id> [--snapshot <file>]
-//     prints what importing each month into the ledger would change, from the file or else from Notion. Writes nothing.
+//   yarn api import-history --ledger <id> [--snapshot <file>] [--apply]
+//     prints what importing each month into the ledger would change, from the file or else from Notion; with --apply
+//     it writes them, one month at a time. Running it again takes Notion's current numbers, ended months included.
 import { readFile, writeFile } from 'node:fs/promises';
 import { parseArgs } from 'node:util';
 import { loadConfig } from '../src/config.js';
@@ -11,14 +12,20 @@ import { createDb } from '../src/db.js';
 import { centsToString } from '../src/money.js';
 import { notionClient } from '../src/notion/client.js';
 import { Snapshot, toSnapshot, type WantedMonth, wantedMonths } from '../src/notion/history.js';
-import { type MonthPlan, previewMonth, TOTAL } from '../src/notion/historyImport.js';
+import { importMonth, type MonthPlan, previewMonth, TOTAL } from '../src/notion/historyImport.js';
+import { nbuFetcher } from '../src/rates/nbu.js';
 
 const usage =
-  'Usage: yarn api import-history --save <file>\n       yarn api import-history --ledger <id> [--snapshot <file>]';
+  'Usage: yarn api import-history --save <file>\n       yarn api import-history --ledger <id> [--snapshot <file>] [--apply]';
 const needsNotion =
   'Set NOTION_TOKEN, NOTION_GROCERIES_DATA_SOURCE_ID, NOTION_EXPENSES_DATA_SOURCE_ID and NOTION_NETTO_DATA_SOURCE_ID';
 
-const options = { save: { type: 'string' }, ledger: { type: 'string' }, snapshot: { type: 'string' } } as const;
+const options = {
+  save: { type: 'string' },
+  ledger: { type: 'string' },
+  snapshot: { type: 'string' },
+  apply: { type: 'boolean', default: false },
+} as const;
 let values: ReturnType<typeof parseArgs<{ options: typeof options }>>['values'];
 try {
   ({ values } = parseArgs({ options }));
@@ -27,7 +34,8 @@ try {
   process.exit(1);
 }
 const ledgerId = Number(values.ledger);
-const savePath = values.ledger === undefined && values.snapshot === undefined ? values.save : undefined;
+const savePath =
+  values.ledger === undefined && values.snapshot === undefined && !values.apply ? values.save : undefined;
 if (savePath === undefined && !(values.save === undefined && Number.isInteger(ledgerId) && ledgerId > 0)) {
   console.error(usage);
   process.exit(1);
@@ -90,13 +98,24 @@ function describe(plan: MonthPlan, wanted: WantedMonth): string[] {
 }
 
 const db = createDb(config.databaseUrl);
+const written: string[] = [];
 try {
   for (const wanted of wantedMonths(snapshot)) {
-    console.log(describe(await previewMonth(db, ledgerId, wanted), wanted).join('\n'));
+    const plan = values.apply
+      ? await importMonth({ db, fetchRate: nbuFetcher(), now: () => new Date() }, ledgerId, wanted)
+      : await previewMonth(db, ledgerId, wanted);
+    if (values.apply) written.push(wanted.month);
+    console.log(describe(plan, wanted).join('\n'));
   }
-  console.log('Dry run: nothing was written. Run again with --apply to write.');
+  console.log(
+    values.apply
+      ? `Imported ${written.length} months.`
+      : 'Dry run: nothing was written. Run again with --apply to write.',
+  );
 } catch (err) {
   console.error((err as Error).message);
+  if (values.apply)
+    console.error(written.length ? `Written before it stopped: ${written.join(', ')}.` : 'Nothing was written.');
   process.exitCode = 1;
 } finally {
   await db.end();

@@ -4,7 +4,9 @@ import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest';
 import { buildApp } from '../src/app.js';
 import { createDb, type Db } from '../src/db.js';
 import { type Snapshot, wantedMonths } from '../src/notion/history.js';
+import { loadGroceries, planGroceries } from '../src/notion/groceries.js';
 import { importMonth, previewMonth } from '../src/notion/historyImport.js';
+import { loadUncounted, startTotals } from '../src/notion/totals.js';
 import type { RateFetcher } from '../src/rates/nbu.js';
 import {
   authHeader,
@@ -302,5 +304,27 @@ describe.skipIf(!(await testDbReachable()))('Notion history import (MySQL)', () 
       expect((await api('expenses?month=2026-02')).expenses).toHaveLength(1);
       expect(await api('categories?month=2026-03')).toEqual(before);
     });
+  });
+
+  it('leaves the sync nothing to send for imported months', async () => {
+    const scope = { ledgerId: owner.ledgerId, year: 2026 };
+    const synced = await addExpense('groceries', '2026-10-03', '40.00', 'Delhaize');
+    await db.query(
+      `INSERT INTO notion_grocery_rows (expense_id, notion_page_id, sent_name, sent_amount_eur, sent_date)
+       VALUES (?, ?, 'Delhaize', '40.00', '2026-10-03')`,
+      [synced, 'a1'.padEnd(32, '0')],
+    );
+    const unsynced = await addExpense('groceries', '2026-10-04', '12.00', 'Lidl');
+    await addExpense('fun', '2026-10-05', '20.00');
+    await startTotals(db, scope, now); // the fun expense above is counted
+    await addExpense('fun', '2026-10-06', '7.00'); // and this one isn't yet
+    expect(planGroceries(await loadGroceries(db, scope)).map((c) => c.expense.expenseId)).toEqual([unsynced]);
+
+    await importAll({ rows: [row('groceries', 10, '1800.00', '1400.00'), row('fun', 10, '200.00', '267.00')] });
+
+    expect(planGroceries(await loadGroceries(db, scope))).toEqual([]);
+    expect(await loadUncounted(db, scope)).toEqual([]);
+    const [records] = await db.query<RowDataPacket[]>('SELECT * FROM notion_grocery_rows');
+    expect(records).toEqual([]);
   });
 });

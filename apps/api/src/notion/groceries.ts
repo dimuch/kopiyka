@@ -54,8 +54,10 @@ export function yearBounds(year: number): [string, string] {
  */
 export async function loadGroceries(db: Db, scope: NotionScope): Promise<GroceryState[]> {
   const [from, to] = yearBounds(scope.year);
+  // A counted grocery is a month's Total from Notion (brief 049): Notion's Actual Amount already holds it.
   const wanted = `(e.deleted_at IS NULL AND c.deleted_at IS NULL AND c.tech_name = 'groceries'
-                   AND e.expense_date >= ? AND e.expense_date < ?)`;
+                   AND e.expense_date >= ? AND e.expense_date < ?
+                   AND NOT EXISTS (SELECT 1 FROM notion_counted_expenses n WHERE n.expense_id = e.expense_id))`;
   const [rows] = await db.query<RowDataPacket[]>(
     `SELECT e.expense_id, e.name, e.amount_eur, e.expense_date, ${wanted} AS wanted,
             r.notion_page_id, r.sent_name, r.sent_amount_eur, r.sent_date, r.in_trash

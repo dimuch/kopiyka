@@ -197,11 +197,13 @@ export async function importMonth(
           WHERE expense_id IN (?)`,
         [at, deleted],
       );
+      // Their Notion Groceries rows are Notion's history: forgetting them keeps the sync from trashing the rows.
+      await conn.query('DELETE FROM notion_grocery_rows WHERE expense_id IN (?)', [deleted]);
     }
     for (const { techName, toCents: cents } of plan.totals) {
       if (cents === 0n) continue;
       const { eurCents, uahCents } = convert(cents, 'EUR', rateE4);
-      await conn.query(
+      const [res] = await conn.query<ResultSetHeader>(
         `INSERT INTO expenses (category_id, expense_date, name, amount_eur, amount_uah, eur_uah_rate,
                                entered_currency, created_by, created_at, updated_at)
          VALUES (?, ?, ?, ?, ?, ?, 'EUR', ?, ?, ?)`,
@@ -217,6 +219,8 @@ export async function importMonth(
           at,
         ],
       );
+      // Notion's Actual Amount is where this Total came from, so neither sync may send it back.
+      await conn.query('INSERT INTO notion_counted_expenses (expense_id) VALUES (?)', [res.insertId]);
     }
     return plan;
   });

@@ -32,7 +32,8 @@ such an expense were ever restored, `createRow` re-finds its row by Kopiyka ID (
     (ignores it), `test/fakeNotion.ts` `fakeExpenses().allRows` (returns `r.actualCents`), `notionTotals.test.ts`
     `row()` helper.
   - `loadGroceries` (`notion/groceries.ts`): `wanted` additionally requires
-    `NOT EXISTS (SELECT 1 FROM notion_counted_expenses n WHERE n.expense_id = e.expense_id)`. No grocery is in that table on the base (`startTotals` and `addToRow` skip `groceries`). One change on base:
+    `NOT EXISTS (SELECT 1 FROM notion_counted_expenses n WHERE n.expense_id = e.expense_id)`. No grocery is in that
+    table on the base (`startTotals` and `addToRow` skip `groceries`). One change on base:
     a counted non-grocery expense later moved to groceries is no longer sent as a grocery row (Notion's totals already
     count it; found in review).
 - Snapshot file (`notion/history.ts`, Zod), one schema for writing and reading:

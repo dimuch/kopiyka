@@ -216,8 +216,10 @@ October 2026 imported from Notion's Expenses table (brief 049): each month's cat
    It prints `1 dimuch` and ledger `1`. If the import stops halfway, empty `ledger_members`, `ledgers` and `users`
    (in that order) and run it again.
 
-3. **History snapshot.** On the laptop (it has `NOTION_TOKEN` and the data source ids), save Notion's Expenses table
-   and copy it over:
+3. **History snapshot.** First, while the laptop still syncs, Home → Sync to Notion until
+   `GET /api/ledgers/1/notion/status` shows `unsent: 0`: the import replaces October's expenses with Notion's
+   numbers, so anything Notion hasn't received would be lost. Then, on the laptop (it has `NOTION_TOKEN` and the
+   data source ids), save Notion's Expenses table and copy it over:
 
    ```bash
    yarn api import-history --save ./notion-2026.json
@@ -235,8 +237,8 @@ October 2026 imported from Notion's Expenses table (brief 049): each month's cat
    sudo shred -u /tmp/notion-2026-kopiyka.json
    ```
 
-   On the empty ledger the dry run lists every month from `2026-01` to `2026-10` with every category as `new
-category` (`credit` and `school` in July), its planned amounts and `spent: … → Total …`. `--apply` prints the
+   On the empty ledger the dry run lists every month from `2026-01` to `2026-10` with every category as
+   `new category` (`credit` and `school` in July), its planned amounts and `spent: … → Total …`. `--apply` prints the
    same, month by month, then `Imported 10 months.` It needs the NBU for each month's rate; if it stops, it names the
    months already written: run it again, as written months then print `no change`. Without `--snapshot`, production
    answers `Set NOTION_TOKEN, …, or pass --snapshot <file>.`
@@ -247,8 +249,8 @@ category` (`credit` and `school` in July), its planned amounts and `spent: … �
 **Notion changed a past month?** Repeat steps 3 and 4. Each month takes Notion's current numbers, ended months
 included; unchanged months print `no change`. Months from November on are never touched.
 
-**The laptop** imports the same way: `yarn api import-history --ledger 1` (dry run, straight from Notion), then with
-`--apply`. That replaces every January–October expense on the laptop with the month's `Total`s, and the laptop's
+**The laptop** imports the same way, after the same sync to `unsent: 0`: `yarn api import-history --ledger 1` (dry
+run, straight from Notion), then with `--apply`. That replaces every January–October expense on the laptop with the month's `Total`s, and the laptop's
 Notion sync leaves them alone. From November, remove `NOTION_LEDGER_ID` and `NOTION_YEAR` from the laptop's
 `apps/api/.env` (that turns its sync off) and keep `NOTION_TOKEN` and the data source ids for `--save`.
 

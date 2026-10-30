@@ -216,10 +216,10 @@ October 2026 imported from Notion's Expenses table (brief 049): each month's cat
    It prints `1 dimuch` and ledger `1`. If the import stops halfway, empty `ledger_members`, `ledgers` and `users`
    (in that order) and run it again.
 
-3. **History snapshot.** First, while the laptop still syncs, Home → Sync to Notion until
-   `GET /api/ledgers/1/notion/status` shows `unsent: 0`: the import replaces October's expenses with Notion's
-   numbers, so anything Notion hasn't received would be lost. Then, on the laptop (it has `NOTION_TOKEN` and the
-   data source ids), save Notion's Expenses table and copy it over:
+3. **History snapshot.** The laptop's sync is off (below), so Notion is the only record of Jan–October: anything
+   typed into the laptop app since then isn't in Notion and won't be imported. If its sync is on again, first Home →
+   Sync to Notion until `GET /api/ledgers/1/notion/status` shows `unsent: 0`. Then, on the laptop (it has
+   `NOTION_TOKEN` and the data source ids), save Notion's Expenses table and copy it over:
 
    ```bash
    yarn api import-history --save ./notion-2026.json
@@ -249,11 +249,11 @@ October 2026 imported from Notion's Expenses table (brief 049): each month's cat
 **Notion changed a past month?** Repeat steps 3 and 4. Each month takes Notion's current numbers, ended months
 included; unchanged months print `no change`. Months from November on are never touched.
 
-**The laptop** imports the same way, after the same sync to `unsent: 0`: `yarn api import-history --ledger 1` (dry
-run, straight from Notion), then with `--apply`. That replaces every January–October expense on the laptop with
-the month's `Total`s, and the laptop's Notion sync leaves them alone. From November, remove `NOTION_LEDGER_ID` and
-`NOTION_YEAR` from the laptop's `apps/api/.env` (that turns its sync off) and keep `NOTION_TOKEN` and the data
-source ids for `--save`.
+**The laptop** imports the same way: `yarn api import-history --ledger 1` (dry run, straight from Notion), then with
+`--apply`. That replaces every January–October expense on the laptop with the month's `Total`s. The laptop's sync
+is off since the history import (30 October 2026): `NOTION_LEDGER_ID` and `NOTION_YEAR` are out of its
+`apps/api/.env`, so Home shows no Sync to Notion panel. `NOTION_TOKEN` and the data source ids stay, for `--save`
+only. Turning sync back on (both lines back, restart the API) needs a sync to `unsent: 0` before the next import.
 
 ## After the first deploy
 

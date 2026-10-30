@@ -27,6 +27,10 @@ There is no signup: users are created only with the admin script above.
 
 ### Notion sync
 
+Off since 30 October 2026: the 2026 history was imported from Notion (brief 049) and November on lives in kopiyka
+only. Production never had it; on the laptop `NOTION_LEDGER_ID` and `NOTION_YEAR` are out of `apps/api/.env`, so
+Home shows no Sync to Notion panel. The rest of this section is how it worked, and turns it back on.
+
 Expenses of one ledger and year sync to the Notion Budget tables: each grocery as its own row in the Groceries table
 (briefs 020–021), and every other category's new spending added to its Actual Amount in the Expenses table (022).
 A category with no row in a month gets one, with Budget and Type copied from its latest row; a month without a page in

@@ -58,6 +58,12 @@ Set up once per database, in this order: `yarn api migrate`, then the two starti
   yarn api notion-start --totals
   ```
 
+The 2026 history goes the other way, once: `yarn api import-history` copies January–October from the Expenses table
+into a ledger (brief 049): each month's categories, planned amounts and one `Total` expense per category, replacing
+that month's expenses. `--save <file>` saves the table to a snapshot (production has no Notion access and imports
+the file), `--ledger <id> [--snapshot <file>]` prints what would change, and `--apply` writes it. Running it again
+takes Notion's current numbers, ended months included. Steps: `deploy/README.md`, "Starting from the laptop's ledger".
+
 `POST /api/ledgers/:id/notion/sync` sends what's new (signed in, for the configured ledger); `GET
 /api/ledgers/:id/notion/status` shows how many expenses are unsent and when the last clean sync finished. Sync once
 more before changing `NOTION_YEAR`, and change it together with all three data source ids of that year's page. Category totals

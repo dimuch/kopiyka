@@ -205,7 +205,7 @@ such an expense were ever restored, `createRow` re-finds its row by Kopiyka ID (
     expense, and `notion-start --totals` state via `startTotals`. After the import of Oct (groceries + fun),
     `planGroceries(await loadGroceries(db, scope))` is `[]` and `loadUncounted(db, scope)` is `[]`.
   - Verify: `--apply` without `--ledger` exits 1 with usage.
-- [ ] 8. Document the Notion history import (~80)
+- [x] 8. Document the Notion history import (~80)
   - Files: `deploy/README.md` (new section "Importing the 2026 history from Notion"), `README.md` (a short
     `import-history` paragraph under "Notion sync").
   - Change: the runbook covers four steps. First, the laptop runs `--save`. Second, `scp` the file to `do:/tmp/` and

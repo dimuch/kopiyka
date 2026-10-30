@@ -73,8 +73,6 @@ if (!snapshot) {
   process.exit(1);
 }
 
-const euros = (cents: bigint) => centsToString(cents);
-
 /** The month's changes as lines a person can check against Notion. */
 function describe(plan: MonthPlan, wanted: WantedMonth): string[] {
   const names = new Map(wanted.categories.map((c) => [c.techName, c.name]));
@@ -83,11 +81,13 @@ function describe(plan: MonthPlan, wanted: WantedMonth): string[] {
     ...plan.created.map((c) => `  new category: ${c.name}`),
     ...plan.listed.map((l) => `  list: ${l.from === null ? `+ ${l.name}` : `${l.from} → ${l.name}`}`),
     ...plan.removed.map((r) => `  list: − ${r.name} (${r.expenseIds.length} expenses deleted)`),
-    ...plan.planned.map((p) => `  planned: ${name(p.techName)} ${euros(p.fromCents)} → ${euros(p.toCents)}`),
+    ...plan.planned.map(
+      (p) => `  planned: ${name(p.techName)} ${centsToString(p.fromCents)} → ${centsToString(p.toCents)}`,
+    ),
     ...plan.totals.map(
       (t) =>
-        `  spent: ${name(t.techName)} ${euros(t.fromCents)} (${t.expenseIds.length} expenses) → ` +
-        (t.toCents ? `${TOTAL} ${euros(t.toCents)}` : 'none'),
+        `  spent: ${name(t.techName)} ${centsToString(t.fromCents)} (${t.expenseIds.length} expenses) → ` +
+        (t.toCents ? `${TOTAL} ${centsToString(t.toCents)}` : 'none'),
     ),
   ];
   const deleted =

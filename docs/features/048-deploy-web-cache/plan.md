@@ -54,7 +54,7 @@ Alternative considered: `expires epoch` / `expires max`. It lost because `expire
 
 ## Slices
 
-- [ ] 1. Make browsers revalidate the web app after every deploy (~16 lines)
+- [x] 1. Make browsers revalidate the web app after every deploy (~16 lines)
   - Files: `deploy/kopiyka.englishplus.com.ua.conf`, `deploy/README.md`
   - Change: add the two locations above. Add one line to "After the first deploy":
     `curl -sI https://kopiyka.englishplus.com.ua/budget | grep -i cache-control` → `no-cache`, and
@@ -62,7 +62,7 @@ Alternative considered: `expires epoch` / `expires max`. It lost because `expire
     → `immutable`. Only this check can see the droplet's own `nginx.conf`.
   - Verify: run the local harness below once against the base vhost (`git show origin/main:deploy/…conf`) and once
     against the new one. Record the results in the PR test plan.
-- [ ] 2. Check the droplet's MySQL time zone before setup (~12 lines)
+- [x] 2. Check the droplet's MySQL time zone before setup (~12 lines)
   - Files: `deploy/README.md` (step 1)
   - Change: add `sudo mysql -e 'SELECT @@global.time_zone, @@system_time_zone, NOW(), UTC_TIMESTAMP()'` to step 1's
     checks. Expected: `SYSTEM` + `UTC` (the system clock is UTC) or `+00:00`, and `NOW()` = `UTC_TIMESTAMP()`.
@@ -73,7 +73,7 @@ Alternative considered: `expires epoch` / `expires max`. It lost because `expire
       connections) and re-run the check. Otherwise stop and decide.
   - Verify: `yarn format:check`. The query was run on the laptop's MySQL and works (it answered `SYSTEM`, `CET`,
     `NOW() ≠ UTC_TIMESTAMP()`, so the check does tell the two cases apart).
-- [ ] 3. Expect October's category count after the ledger import, not 15 (~6 lines)
+- [x] 3. Expect October's category count after the ledger import, not 15 (~6 lines)
   - Files: `deploy/README.md` ("Starting from the laptop's ledger", steps 2–3)
   - Change: step 2 (laptop) runs
     `mysql -h 127.0.0.1 -u kopiyka -p kopiyka -e "SELECT COUNT(*) FROM category_months m JOIN categories c USING (category_id) WHERE c.ledger_id = 1 AND m.list_month = '2026-10-01' AND m.deleted_at IS NULL"`
@@ -179,4 +179,22 @@ files).
 
 ## Deviations
 
+- brew installed nginx 1.31.8, not 1.31.6; the directives behave the same.
+
 ## Consolidate
+
+Skipped: docs and nginx config only, no new function, hook, component, route or query.
+
+## Verification (2026-10-30)
+
+- Gates green on each slice: API 301 passed + 1 skipped (integration ran), mobile 134 passed.
+- Local nginx 1.31.8 (brew) serving a real `expo export -p web` from a sibling worktree outside `.claude` (one
+  `entry-<hash>.js`, contains "Sync to Notion"); vhost copy differs only in listen, cert/include and root lines.
+  `nginx -t` ok for base and new.
+  - Base: `/`, `/index.html`, `/budget?month=2026-11` → 200 HTML without Cache-Control; 304 without it; bundle
+    without it; a missing bundle → 200 HTML (fallback).
+  - New: the three pages → 200 HTML `no-cache`; the 304 keeps `no-cache`; bundle →
+    `public, max-age=31536000, immutable`; missing bundle → 404 without the header; favicon unchanged; `/api/health`
+    proxies (xff=127.0.0.1); `:8080` → 301 https.
+  - Root missing: base 500, new 404 (as the runbook says).
+- Slice 3 count query on the laptop DB: 15.

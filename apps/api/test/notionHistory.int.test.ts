@@ -1,12 +1,17 @@
+import type { FastifyInstance } from 'fastify';
 import type { ResultSetHeader, RowDataPacket } from 'mysql2/promise';
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest';
+import { buildApp } from '../src/app.js';
 import { createDb, type Db } from '../src/db.js';
 import { type Snapshot, wantedMonths } from '../src/notion/history.js';
-import { previewMonth } from '../src/notion/historyImport.js';
+import { importMonth, previewMonth } from '../src/notion/historyImport.js';
+import type { RateFetcher } from '../src/rates/nbu.js';
 import {
+  authHeader,
   clearData,
   makeUser,
   resetSchema,
+  storeMonthList,
   TEST_DB_URL,
   testConfig,
   testDbReachable,
@@ -15,8 +20,38 @@ import {
 
 describe.skipIf(!(await testDbReachable()))('Notion history import (MySQL)', () => {
   const config = testConfig();
+  let now = new Date('2026-10-30T10:00:00Z');
   let db: Db;
+  let app: FastifyInstance;
   let owner: TestUser;
+  let fetchRate: RateFetcher;
+
+  /** Imports every January–October month of the snapshot, oldest first. */
+  async function importAll(snapshot: Snapshot) {
+    const plans = [];
+    for (const wanted of wantedMonths(snapshot)) {
+      plans.push(await importMonth({ db, fetchRate, now: () => now }, owner.ledgerId, wanted));
+    }
+    return plans;
+  }
+
+  // A TOTP code logs in once per step, so a test logs in once per clock.
+  let auth: { at: Date; header: { authorization: string } } | null = null;
+  async function api(path: string) {
+    if (auth?.at !== now) auth = { at: now, header: await authHeader(app, owner, now) };
+    const res = await app.inject({
+      method: 'GET',
+      url: `/api/ledgers/${owner.ledgerId}/${path}`,
+      headers: auth.header,
+    });
+    expect(res.statusCode).toBe(200);
+    return res.json();
+  }
+
+  const isLive = async (expenseId: number) => {
+    const [rows] = await db.query<RowDataPacket[]>('SELECT deleted_at FROM expenses WHERE expense_id = ?', [expenseId]);
+    return rows[0]!.deleted_at === null;
+  };
 
   async function categoryId(techName: string): Promise<number> {
     const [rows] = await db.query<RowDataPacket[]>(
@@ -62,15 +97,20 @@ describe.skipIf(!(await testDbReachable()))('Notion history import (MySQL)', () 
   beforeAll(async () => {
     await resetSchema();
     db = createDb(TEST_DB_URL!);
+    app = await buildApp({ config, db, now: () => now, fetchRate: (date) => fetchRate(date) });
   });
 
   afterAll(async () => {
+    await app?.close();
     await db?.end();
   });
 
   beforeEach(async () => {
     await clearData(db);
     owner = await makeUser(db, config, 'owner');
+    now = new Date('2026-10-30T10:00:00Z');
+    auth = null;
+    fetchRate = async () => 50;
   });
 
   it("a dry run reports each month's changes and writes nothing", async () => {
@@ -107,5 +147,160 @@ describe.skipIf(!(await testDbReachable()))('Notion history import (MySQL)', () 
 
   it('an unknown ledger throws', async () => {
     await expect(previewMonth(db, 999_999, { month: '2026-01', categories: [] })).rejects.toThrow('No ledger 999999');
+  });
+
+  describe('importMonth', () => {
+    const january = [
+      row('rent', 1, '1515.00', '1515.00'),
+      row('car parking', 1, '260.00', '280.00'),
+      row('gifts', 1, '500.00', '293.00'),
+      row('fun', 1, '200.00', '0.00'),
+      row('Sviat', 1, '200.00', null),
+    ];
+
+    it("builds each month's list, plans and one Total per non-zero category on a ledger with no categories", async () => {
+      // Production starts with the account only.
+      await db.query('DELETE m FROM category_months m JOIN categories c USING (category_id) WHERE c.ledger_id = ?', [
+        owner.ledgerId,
+      ]);
+      await db.query('DELETE FROM categories WHERE ledger_id = ?', [owner.ledgerId]);
+
+      await importAll({
+        rows: [...january, row('credit', 7, '0.00', '1360.00'), row('rent', 7, '1515.00', '1515.00')],
+      });
+
+      const [created] = await db.query<RowDataPacket[]>(
+        'SELECT tech_name, display_name, sort_order FROM categories WHERE ledger_id = ? ORDER BY sort_order',
+        [owner.ledgerId],
+      );
+      expect(created.map((c) => [c.tech_name, c.display_name, c.sort_order])).toEqual([
+        ['rent', 'rent', 10],
+        ['parking', 'parking', 20],
+        ['gift', 'gifts', 30],
+        ['fun', 'fun', 40],
+        ['sviat', 'Sviat', 50],
+        ['credit', 'credit', 60],
+      ]);
+      const { categories } = await api('categories?month=2026-01');
+      expect(categories.map((c: { displayName: string; plannedEur: string }) => [c.displayName, c.plannedEur])).toEqual(
+        [
+          ['rent', '1515.00'],
+          ['parking', '260.00'],
+          ['gifts', '500.00'],
+          ['fun', '200.00'],
+          ['Sviat', '200.00'],
+        ],
+      );
+      const { expenses } = await api('expenses?month=2026-01');
+      expect(expenses).toHaveLength(3); // fun and Sviat spent nothing
+      for (const e of expenses) {
+        expect(e).toMatchObject({
+          name: 'Total',
+          expenseDate: '2026-01-01',
+          enteredCurrency: 'EUR',
+          createdBy: owner.userId,
+        });
+      }
+      const sum = expenses.reduce(
+        (cents: number, e: { amountEur: string }) => cents + Math.round(Number(e.amountEur) * 100),
+        0,
+      );
+      expect(sum).toBe(1515_00 + 280_00 + 293_00);
+      expect(expenses.find((e: { amountEur: string }) => e.amountEur === '293.00')).toMatchObject({
+        amountUah: '14650.00',
+        eurUahRate: '50.0000',
+      });
+      const july = await api('categories?month=2026-07');
+      expect(july.categories.map((c: { displayName: string }) => c.displayName)).toEqual(['rent', 'credit']);
+    });
+
+    it("replaces a category's app expenses with the Total and drops categories Notion's month lacks", async () => {
+      const fun = [
+        await addExpense('fun', '2026-10-04', '10.00'),
+        await addExpense('fun', '2026-10-12', '24.53'),
+        await addExpense('fun', '2026-10-20', '30.00'),
+      ];
+      const gym = await addExpense('gym', '2026-10-02', '280.00');
+      const september = await addExpense('fun', '2026-09-30', '5.00');
+
+      await importAll({ rows: [row('fun', 10, '200.00', '267.00'), row('rent', 10, '1515.00', '1515.00')] });
+
+      for (const id of [...fun, gym]) expect(await isLive(id)).toBe(false);
+      expect(await isLive(september)).toBe(true);
+      const { expenses } = await api('expenses?month=2026-10');
+      expect(expenses.map((e: { name: string; amountEur: string }) => [e.name, e.amountEur]).sort()).toEqual([
+        ['Total', '1515.00'],
+        ['Total', '267.00'],
+      ]);
+      const { categories } = await api('categories?month=2026-10');
+      expect(categories.map((c: { displayName: string }) => c.displayName)).toEqual(['rent', 'fun']);
+    });
+
+    it('a second run with the same snapshot changes nothing', async () => {
+      await addExpense('fun', '2026-10-04', '10.00');
+      const snapshot = { rows: [...january, row('fun', 10, '200.00', '267.00'), row('gift', 10, '150.00', '66.00')] };
+      await importAll(snapshot);
+      const before = await dump();
+
+      const plans = await importAll(snapshot);
+
+      for (const plan of plans) {
+        expect(plan).toEqual({ month: plan.month, created: [], listed: [], removed: [], planned: [], totals: [] });
+      }
+      expect(await dump()).toEqual(before);
+    });
+
+    it('a changed October amount updates October after it has ended', async () => {
+      await importAll({ rows: [...january, row('personal', 10, '300.00', '4080.00')] });
+      const januaryBefore = await api('expenses?month=2026-01');
+      now = new Date('2026-11-05T10:00:00Z');
+
+      await importAll({ rows: [...january, row('personal', 10, '350.00', '4100.00')] });
+
+      const { expenses } = await api('expenses?month=2026-10');
+      expect(expenses.map((e: { name: string; amountEur: string }) => [e.name, e.amountEur])).toEqual([
+        ['Total', '4100.00'],
+      ]);
+      const { categories } = await api('categories?month=2026-10');
+      expect(categories.map((c: { displayName: string; plannedEur: string }) => [c.displayName, c.plannedEur])).toEqual(
+        [['personal', '350.00']],
+      );
+      expect(await api('expenses?month=2026-01')).toEqual(januaryBefore);
+    });
+
+    it('leaves November alone', async () => {
+      await storeMonthList(db, owner.ledgerId, '2026-11', []);
+      const november = await addExpense('fun', '2026-11-02', '12.00');
+      await db.query(
+        `INSERT INTO category_budgets (category_id, budget_month, planned_eur) VALUES (?, '2026-11-01', 99)`,
+        [await categoryId('fun')],
+      );
+      const novemberBefore = (await api('categories?month=2026-11')).categories;
+
+      await importAll({ rows: [...january, row('fun', 11, '1.00', '1.00'), row('rent', 12, '1.00', '1.00')] });
+
+      expect((await api('categories?month=2026-11')).categories).toEqual(novemberBefore);
+      expect(await isLive(november)).toBe(true);
+      const [december] = await db.query<RowDataPacket[]>(
+        "SELECT 1 FROM category_months WHERE list_month = '2026-12-01'",
+      );
+      expect(december).toEqual([]);
+    });
+
+    it('writes each month on its own', async () => {
+      fetchRate = async (date) => {
+        if (date.startsWith('2026-03')) throw new Error('NBU is down');
+        return 50;
+      };
+      const before = await api('categories?month=2026-03');
+
+      await expect(
+        importAll({ rows: [...january, row('rent', 2, '1515.00', '1515.00'), row('rent', 3, '1515.00', '1515.00')] }),
+      ).rejects.toThrow();
+
+      expect((await api('expenses?month=2026-01')).expenses).toHaveLength(3);
+      expect((await api('expenses?month=2026-02')).expenses).toHaveLength(1);
+      expect(await api('categories?month=2026-03')).toEqual(before);
+    });
   });
 });

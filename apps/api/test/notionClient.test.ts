@@ -241,19 +241,26 @@ describe('notionClient', () => {
     });
 
     it('reads every live row of the table, page by page', async () => {
-      const templateRow = (category: string, month: string | null, budget: number | null, type: string | null) => ({
+      const templateRow = (
+        category: string,
+        month: string | null,
+        budget: number | null,
+        type: string | null,
+        actual: number | null = null,
+      ) => ({
         id: '2d2203e3e5e5811eaf85e0821e42c511',
         in_trash: false,
         properties: {
           Category: { title: [{ plain_text: category }] },
           Month: { select: month === null ? null : { name: month } },
           Budget: { number: budget },
+          'Actual Amount': { number: actual },
           Type: { select: type === null ? null : { name: type } },
         },
       });
       const { expenses, requests } = setup(
         json({
-          results: [templateRow('clothes', 'Sept', 200, 'X'), templateRow('fun', null, 23.5, null)],
+          results: [templateRow('clothes', 'Sept', 200, 'X', 374), templateRow('fun', null, 23.5, null, 23.5)],
           has_more: true,
           next_cursor: 'c2',
         }),
@@ -264,14 +271,38 @@ describe('notionClient', () => {
         }),
       );
       expect(await expenses.allRows()).toEqual([
-        { category: 'clothes', month: 9, budgetCents: 20000n, type: 'X' },
-        { category: 'fun', month: null, budgetCents: 2350n, type: null },
-        { category: 'gym', month: 10, budgetCents: null, type: null },
+        { category: 'clothes', month: 9, budgetCents: 20000n, actualCents: 37400n, type: 'X' },
+        { category: 'fun', month: null, budgetCents: 2350n, actualCents: 2350n, type: null },
+        { category: 'gym', month: 10, budgetCents: null, actualCents: null, type: null },
       ]);
       expect(requests.map((r) => [r.url, r.method, r.body])).toEqual([
         [`https://api.notion.com/v1/data_sources/${expensesDs}/query`, 'POST', { page_size: 100 }],
         [`https://api.notion.com/v1/data_sources/${expensesDs}/query`, 'POST', { page_size: 100, start_cursor: 'c2' }],
       ]);
+    });
+
+    it("maps the Month select's names to 1–12", async () => {
+      const names = [
+        'Jan',
+        'Feb',
+        'Mar',
+        'Apr',
+        'May',
+        'June',
+        'July',
+        'Aug',
+        'Sept',
+        'Oct',
+        'Nov',
+        'Dec',
+        'September',
+      ];
+      const row = (name: string) => ({
+        id: '2d2203e3e5e5811eaf85e0821e42c511',
+        properties: { Category: { title: [{ plain_text: 'fun' }] }, Month: { select: { name } } },
+      });
+      const { expenses } = setup(json({ results: names.map(row), has_more: false, next_cursor: null }));
+      expect((await expenses.allRows()).map((r) => r.month)).toEqual([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, null]);
     });
 
     it('creates a row linked to the month, with Budget and Type only when given', async () => {

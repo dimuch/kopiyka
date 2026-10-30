@@ -54,7 +54,8 @@ export function yearBounds(year: number): [string, string] {
  */
 export async function loadGroceries(db: Db, scope: NotionScope): Promise<GroceryState[]> {
   const [from, to] = yearBounds(scope.year);
-  // A counted grocery is a month's Total from Notion (brief 049): Notion's Actual Amount already holds it.
+  // A counted expense is already in Notion's Actual Amount: a month's Total from Notion (brief 049), or an expense
+  // counted by the totals sync and later moved to groceries. Sending it as a grocery row would count it twice.
   const wanted = `(e.deleted_at IS NULL AND c.deleted_at IS NULL AND c.tech_name = 'groceries'
                    AND e.expense_date >= ? AND e.expense_date < ?
                    AND NOT EXISTS (SELECT 1 FROM notion_counted_expenses n WHERE n.expense_id = e.expense_id))`;

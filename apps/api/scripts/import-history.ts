@@ -49,9 +49,14 @@ if (savePath !== undefined) {
     console.error(`${needsNotion}.`);
     process.exit(1);
   }
-  const snapshot = toSnapshot(await expenses.allRows());
-  await writeFile(savePath, `${JSON.stringify(snapshot, null, 2)}\n`, { mode: 0o600 });
-  console.log(`Saved ${snapshot.rows.length} rows to ${savePath}.`);
+  try {
+    const snapshot = toSnapshot(await expenses.allRows());
+    await writeFile(savePath, `${JSON.stringify(snapshot, null, 2)}\n`, { mode: 0o600 });
+    console.log(`Saved ${snapshot.rows.length} rows to ${savePath}.`);
+  } catch (err) {
+    console.error(`Couldn't save the history: ${(err as Error).message}`);
+    process.exit(1);
+  }
   process.exit(0);
 }
 
@@ -98,12 +103,11 @@ function describe(plan: MonthPlan, wanted: WantedMonth): string[] {
 }
 
 const db = createDb(config.databaseUrl);
+const deps = { db, fetchRate: nbuFetcher(), now: () => new Date() };
 const written: string[] = [];
 try {
   for (const wanted of wantedMonths(snapshot)) {
-    const plan = values.apply
-      ? await importMonth({ db, fetchRate: nbuFetcher(), now: () => new Date() }, ledgerId, wanted)
-      : await previewMonth(db, ledgerId, wanted);
+    const plan = values.apply ? await importMonth(deps, ledgerId, wanted) : await previewMonth(db, ledgerId, wanted);
     if (values.apply) written.push(wanted.month);
     console.log(describe(plan, wanted).join('\n'));
   }

@@ -46,11 +46,18 @@ so piped `sudo` commands don't prompt twice at once.
    /usr/bin/time --version || sudo apt-get install -y time
    sudo sshd -T | grep -Ei '^(allowusers|allowgroups|denyusers|denygroups)'   # kopiyka must be allowed
    sudo ufw status; systemctl is-active fail2ban
+   sudo mysql -e 'SELECT @@global.time_zone, @@system_time_zone, NOW(), UTC_TIMESTAMP()'
    ```
 
    GitHub-hosted runners connect from changing IPs, so port 22 must be open to any source: check `ufw`, the droplet's
    DigitalOcean cloud firewall (Networking → Firewalls) and fail2ban. If node isn't `/usr/bin/node`, `kopiyka.service`
    and `deploy.sh`'s `PATH` need changing first.
+
+   MySQL must keep UTC: the API reads every DATETIME as UTC (`apps/api/src/db.ts`), and the `created_at`/`updated_at`
+   defaults use the server's clock. Expected: `SYSTEM` with `UTC` (or `+00:00`), and `NOW()` equal to
+   `UTC_TIMESTAMP()`. If not, remember this MySQL is shared: check the other sites don't rely on the current zone, then
+   run `sudo mysql -e "SET PERSIST time_zone = '+00:00'"` (survives restarts, applies to new connections) and repeat
+   the check. If they do rely on it, stop and decide.
 
 2. **DNS.** In DigitalOcean → Networking → Domains → `englishplus.com.ua`, add `A kopiyka → 165.22.31.51` (TTL 3600),
    then `dig +short kopiyka.englishplus.com.ua` must print `165.22.31.51`.

@@ -214,7 +214,12 @@ November, after October's last expense.
    scp ./kopiyka-ledger.sql do:/tmp/ && rm ./kopiyka-ledger.sql
    ```
 
-   mysqldump may print "SELECT command denied … masking policies" per table; that's harmless.
+   mysqldump may print "SELECT command denied … masking policies" per table; that's harmless. Note how many
+   categories October's list has; the import check in step 3 expects that number:
+
+   ```bash
+   mysql -h 127.0.0.1 -u kopiyka -p kopiyka -e "SELECT COUNT(*) FROM category_months m JOIN categories c USING (category_id) WHERE c.ledger_id = 1 AND m.list_month = '2026-10-01' AND m.deleted_at IS NULL"
+   ```
 
 3. **Import** into the migrated, still empty database (after the first deploy; no user created in step 10):
 
@@ -223,8 +228,9 @@ November, after October's last expense.
    mysql -h 127.0.0.1 -u kopiyka -p kopiyka -e 'SELECT user_id, username FROM users; SELECT COUNT(*) FROM categories'
    ```
 
-   It prints `1 dimuch` and `15`. If the import stops halfway, empty the six tables (`DELETE FROM` in the order
-   `category_budgets`, `category_months`, `categories`, `ledger_members`, `ledgers`, `users`) and run it again.
+   It prints `1 dimuch` and the category count from step 2. If the import stops halfway, empty the six tables
+   (`DELETE FROM` in the order `category_budgets`, `category_months`, `categories`, `ledger_members`, `ledgers`,
+   `users`) and run it again.
 
 4. **Notion starting point.** With the `NOTION_*` lines in `api.env` (`NOTION_LEDGER_ID=1`), run once, the way
    step 10 runs `create-user.js`:

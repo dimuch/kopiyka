@@ -32,8 +32,9 @@ such an expense were ever restored, `createRow` re-finds its row by Kopiyka ID (
     (ignores it), `test/fakeNotion.ts` `fakeExpenses().allRows` (returns `r.actualCents`), `notionTotals.test.ts`
     `row()` helper.
   - `loadGroceries` (`notion/groceries.ts`): `wanted` additionally requires
-    `NOT EXISTS (SELECT 1 FROM notion_counted_expenses n WHERE n.expense_id = e.expense_id)`. No grocery is in that
-    table on the base (`startTotals` and `addToRow` skip `groceries`), so existing behaviour is unchanged.
+    `NOT EXISTS (SELECT 1 FROM notion_counted_expenses n WHERE n.expense_id = e.expense_id)`. No grocery is in that table on the base (`startTotals` and `addToRow` skip `groceries`). One change on base:
+    a counted non-grocery expense later moved to groceries is no longer sent as a grocery row (Notion's totals already
+    count it; found in review).
 - Snapshot file (`notion/history.ts`, Zod), one schema for writing and reading:
   ```ts
   const Amount = z.string().regex(AMOUNT_RE); // decimal string ≥ 0, '4080.00'
@@ -293,6 +294,10 @@ such an expense were ever restored, `createRow` re-finds its row by Kopiyka ID (
 
 ## Follow-ups
 
+- The import matches tech_names and names exactly, while `categories` (tech_name) and month names compare
+  accent- and case-insensitively in MySQL: a Notion name differing only by an accent would fail at `--apply`
+  (ER_DUP_ENTRY, month rolled back) instead of showing in the dry run. Theoretical for today's data (review nit).
+
 - `deploy/README.md` "One-time setup" step 1 and "Starting from the laptop's ledger" step 4 still describe
   `NOTION_*` in production. The brief says production never gets them.
 - The Add-expense quick row orders categories by their latest `created_at`. Right after an import, every imported
@@ -305,6 +310,9 @@ such an expense were ever restored, `createRow` re-finds its row by Kopiyka ID (
 - slice 5: verified on the laptop with a snapshot built from the same Notion rows read through the Notion
   connector (the token is down): Jan–Oct listed, `credit`/`school` created in July, `gift → gifts` in October,
   `expenses deleted: 42`. Bad flags and an unreadable source print a message instead of a stack trace.
+
+- slice 8: the laptop import (Verify) waits for a working `NOTION_TOKEN` for `--save`/the Notion source; see
+  the Gate B report for what ran instead (found in review).
 
 ## Consolidate
 

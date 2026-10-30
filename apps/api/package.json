@@ -10,6 +10,7 @@
     "migrate": "tsx --env-file-if-exists=.env scripts/migrate.ts",
     "create-user": "tsx --env-file-if-exists=.env scripts/create-user.ts",
     "notion-start": "tsx --env-file-if-exists=.env scripts/notion-start.ts",
+    "import-history": "tsx --env-file-if-exists=.env scripts/import-history.ts",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
     "test:watch": "vitest",

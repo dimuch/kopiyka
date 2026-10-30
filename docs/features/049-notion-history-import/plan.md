@@ -138,7 +138,7 @@ such an expense were ever restored, `createRow` re-finds its row by Kopiyka ID (
   - Tests: `notionClient.test.ts` › "reads every live row of the table, page by page" expects `actualCents` (number,
     23.5 → 2350n, empty → null). A new case, "maps the Month select's names to 1–12", covers Jan, Feb, Mar, Apr,
     May, June, July, Aug, Sept, Oct, Nov, Dec → 1…12 and `'September'` → null.
-- [ ] 2. Save Notion's Expenses rows to a snapshot with `yarn api import-history --save` (~120)
+- [x] 2. Save Notion's Expenses rows to a snapshot with `yarn api import-history --save` (~120)
   - Files: `apps/api/src/notion/history.ts` (Snapshot, toSnapshot), `apps/api/scripts/import-history.ts` (`--save`
     only), `apps/api/package.json`, `apps/api/test/notionHistory.test.ts`
   - Tests: `toSnapshot` (cents → `'4080.00'`, null kept, month kept; a negative amount throws); the result passes
@@ -299,6 +299,9 @@ such an expense were ever restored, `createRow` re-finds its row by Kopiyka ID (
   category ties at the import time until new expenses are added.
 
 ## Deviations
+
+- slice 2: laptop `--save` not verified yet: Notion answers 401 to the laptop's `NOTION_TOKEN` (expired or
+  revoked); the user renews it, then the save is run before slice 8's laptop import.
 
 ## Consolidate
 

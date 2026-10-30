@@ -289,6 +289,23 @@ describe.skipIf(!(await testDbReachable()))('Notion history import (MySQL)', () 
       expect(december).toEqual([]);
     });
 
+    it('rolls a month back when one of its writes fails', async () => {
+      // A category deleted before brief 028 keeps its tech_name, so creating `school` again hits the unique key.
+      await db.query(
+        "INSERT INTO categories (ledger_id, tech_name, display_name, deleted_at) VALUES (?, 'school', 'school', ?)",
+        [owner.ledgerId, now],
+      );
+      const before = await dump();
+
+      await expect(
+        importAll({ rows: [row('credit', 7, '0.00', '1360.00'), row('school', 7, '0.00', '1500.00')] }),
+      ).rejects.toMatchObject({ code: 'ER_DUP_ENTRY' });
+
+      const { exchange_rates: _rates, ...after } = await dump(); // the rate is fetched before the transaction
+      const { exchange_rates: _before, ...unchanged } = before;
+      expect(after).toEqual(unchanged);
+    });
+
     it('writes each month on its own', async () => {
       fetchRate = async (date) => {
         if (date.startsWith('2026-03')) throw new Error('NBU is down');

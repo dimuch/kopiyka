@@ -12,15 +12,17 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { ApiError } from '@/api/client';
+import type { IncomeItem } from '@/api/types';
 import { useColors, useThemedStyles } from '@/appearance/AppearanceContext';
 import { useSession } from '@/auth/AuthContext';
 import { AmountField } from '@/components/AmountFields';
 import { LoadError } from '@/components/LoadError';
 import { normalizeName } from '@/data/categoryName';
-import { addIncome } from '@/data/income';
+import { addIncome, updateIncome } from '@/data/income';
 import { monthEndedText } from '@/data/monthEnded';
+import { useIncome } from '@/data/useIncome';
 import { monthName, normalizeAmount } from '@/format';
-import { parseMonthParam } from '@/linkParams';
+import { parseIdParam, parseMonthParam } from '@/linkParams';
 import { fonts, type Palette } from '@/theme';
 
 /**
@@ -32,11 +34,23 @@ function leave(month: string | null): void {
   else router.replace(month ? { pathname: '/income', params: { month } } : '/income');
 }
 
-/** Adds an income item to a month (brief 059): `/income-item?month=2026-11`. */
+/** What the screen says when an item has left its month (deleted meanwhile, or a link to another one). */
+function notListedText(month: string): string {
+  return `This income item isn’t in ${monthName(month)} any more.`;
+}
+
+/**
+ * Adds an income item to a month (brief 059), `/income-item?month=2026-11`, or edits one (brief 061),
+ * `&incomeId=4`.
+ */
 export default function IncomeItemScreen() {
   const styles = useThemedStyles(makeStyles);
-  const params = useLocalSearchParams<{ month?: string | string[] }>();
+  const { ledger } = useSession();
+  const params = useLocalSearchParams<{ month?: string | string[]; incomeId?: string | string[] }>();
   const month = parseMonthParam(params.month);
+  // Present but malformed (`?incomeId=` included) is a bad link, not the add screen.
+  const editing = params.incomeId !== undefined;
+  const incomeId = editing ? parseIdParam(params.incomeId) : null;
   // A save in flight navigates when it ends, so the user can't leave meanwhile.
   const [busy, setBusy] = useState(false);
 
@@ -48,29 +62,92 @@ export default function IncomeItemScreen() {
         <Pressable accessibilityRole="button" disabled={busy} onPress={() => leave(month)} style={styles.cancel}>
           <Text style={styles.cancelText}>Cancel</Text>
         </Pressable>
-        <Text style={styles.title}>Add income</Text>
+        <Text style={styles.title}>{editing ? 'Edit income' : 'Add income'}</Text>
         <View style={{ width: 52 }} />
       </View>
 
-      {month ? (
-        <IncomeForm month={month} busy={busy} setBusy={setBusy} />
-      ) : (
+      {!month || (editing && !incomeId) ? (
         <View style={styles.body}>
           <LoadError message="That link isn’t valid." />
         </View>
+      ) : incomeId ? (
+        <EditLoader month={month} incomeId={incomeId} busy={busy} setBusy={setBusy} />
+      ) : (
+        <IncomeForm
+          month={month}
+          initial={null}
+          save={(title, amount) => addIncome(ledger.ledgerId, month, title, amount)}
+          busy={busy}
+          setBusy={setBusy}
+        />
       )}
     </SafeAreaView>
   );
 }
 
-function IncomeForm({ month, busy, setBusy }: { month: string; busy: boolean; setBusy: (busy: boolean) => void }) {
+interface Saving {
+  busy: boolean;
+  setBusy: (busy: boolean) => void;
+}
+
+/** Finds the item in its month's list, which the tab already loads, and opens the form on it. */
+function EditLoader({ month, incomeId, busy, setBusy }: { month: string; incomeId: number } & Saving) {
   const colors = useColors();
   const styles = useThemedStyles(makeStyles);
   const { ledger } = useSession();
-  const [title, setTitle] = useState('');
-  const [amountText, setAmountText] = useState('');
+  const { items, error, reload } = useIncome(ledger.ledgerId, month);
+  if (!items) {
+    return (
+      <View style={styles.body}>
+        {error ? (
+          <LoadError
+            message={`Couldn’t load ${monthName(month)}’s income. Check your connection and try again.`}
+            onRetry={reload}
+          />
+        ) : (
+          <ActivityIndicator color={colors.accent} />
+        )}
+      </View>
+    );
+  }
+  const item = items.find((candidate) => candidate.incomeId === incomeId);
+  if (!item) {
+    return (
+      <View style={styles.body}>
+        <LoadError message={notListedText(month)} />
+      </View>
+    );
+  }
+  return (
+    <IncomeForm
+      key={incomeId}
+      month={month}
+      initial={item}
+      save={(title, amount) => updateIncome(ledger.ledgerId, incomeId, title, amount)}
+      busy={busy}
+      setBusy={setBusy}
+    />
+  );
+}
+
+function IncomeForm({
+  month,
+  initial,
+  save: send,
+  busy,
+  setBusy,
+}: {
+  month: string;
+  /** The item being edited; null when adding. */
+  initial: IncomeItem | null;
+  save: (title: string, amount: string) => Promise<void>;
+} & Saving) {
+  const colors = useColors();
+  const styles = useThemedStyles(makeStyles);
+  const [title, setTitle] = useState(initial?.title ?? '');
+  const [amountText, setAmountText] = useState(initial?.amountEur ?? '');
   const [error, setError] = useState<string | null>(null);
-  // The month ended meanwhile: saving again can't help.
+  // The month ended, or the item left it meanwhile: saving again can't help.
   const [gone, setGone] = useState(false);
   // `busy` disables the button only after a re-render; two presses in one tick would both get here.
   const inFlight = useRef(false);
@@ -103,12 +180,18 @@ function IncomeForm({ month, busy, setBusy }: { month: string; busy: boolean; se
     setBusy(true);
     setError(null);
     try {
-      await addIncome(ledger.ledgerId, month, name, amount);
+      await send(name, amount);
       leave(month);
     } catch (err) {
-      const ended = err instanceof ApiError && err.code === 'month_ended';
-      setGone(ended);
-      showError(ended ? monthEndedText(month) : 'Couldn’t save. Check your connection and try again.');
+      const code = err instanceof ApiError ? err.code : null;
+      setGone(code === 'month_ended' || code === 'not_found');
+      showError(
+        code === 'month_ended'
+          ? monthEndedText(month)
+          : code === 'not_found'
+            ? notListedText(month)
+            : 'Couldn’t save. Check your connection and try again.',
+      );
       inFlight.current = false;
       setBusy(false);
     }

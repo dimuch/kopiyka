@@ -4,3 +4,8 @@ import { api } from '@/api/client';
 export async function addIncome(ledgerId: number, month: string, title: string, amount: string): Promise<void> {
   await api(`/api/ledgers/${ledgerId}/months/${month}/income`, { method: 'POST', body: { title, amount } });
 }
+
+/** Changes any member's income item (brief 061); who added it stays. */
+export async function updateIncome(ledgerId: number, incomeId: number, title: string, amount: string): Promise<void> {
+  await api(`/api/ledgers/${ledgerId}/income/${incomeId}`, { method: 'PUT', body: { title, amount } });
+}

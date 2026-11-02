@@ -185,7 +185,7 @@ size and harder to read. Both are destructive only if rows exist, which they don
   - Verify (dev DB): `yarn api create-user --username claude-qa-052 --email claude-qa-052@example.test --join dimuch`,
     then `DELETE FROM ledger_members WHERE user_id = <id>`, then log in on web → the no-ledger screen. Sign out →
     Login. Cleanup is at the end of Part 1.
-- [ ] 1.5 Move off a ledger the user has lost (~25)
+- [x] 1.5 Move off a ledger the user has lost (~25)
   - Files: `apps/mobile/src/api/client.ts`, `AuthContext.tsx`
   - Change: `setLedgerGoneHandler`. `AuthContext` registers it next to the 401 handler. It reloads (`fetchMe` →
     `setState`) and ignores a failed reload, since the next request tries again.

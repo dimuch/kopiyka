@@ -1,6 +1,14 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from 'react';
-import { api, clientKind, deviceId, loadToken, saveToken, setUnauthorizedHandler } from '@/api/client';
+import {
+  api,
+  clientKind,
+  deviceId,
+  loadToken,
+  saveToken,
+  setLedgerGoneHandler,
+  setUnauthorizedHandler,
+} from '@/api/client';
 import type { Ledger, User } from '@/api/types';
 import { choiceKey, pickLedger } from './ledgerChoice';
 
@@ -38,6 +46,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setUnauthorizedHandler(() => {
       void saveToken(null);
       setState({ status: 'signedOut' });
+    });
+    // Reload the ledgers: the app opens the stored choice if it's still there, else another ledger or no-ledger.
+    // A failed reload is ignored; the next request tries again. No 'loading' in between, so screens stay mounted.
+    setLedgerGoneHandler(() => {
+      fetchMe().then(setState, () => {});
     });
     (async () => {
       await loadToken();

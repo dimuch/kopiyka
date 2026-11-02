@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { AccessibilityInfo, Pressable, StyleSheet, Text, View } from 'react-native';
 import { useAppearance, useThemedStyles } from '@/appearance/AppearanceContext';
 import { useSession } from '@/auth/AuthContext';
@@ -13,8 +13,12 @@ export default function Settings() {
   const { user, ledger, ledgers, logout, openLedger } = useSession();
   const [switching, setSwitching] = useState(false);
   const [switchFailed, setSwitchFailed] = useState(false);
+  // `switching` disables the picker only after a re-render; two taps in one tick would both get here.
+  const inFlight = useRef(false);
 
   async function switchTo(ledgerId: number) {
+    if (inFlight.current) return;
+    inFlight.current = true;
     setSwitching(true);
     setSwitchFailed(false);
     try {
@@ -24,6 +28,7 @@ export default function Settings() {
       // role="alert" covers web; VoiceOver needs an explicit announcement.
       AccessibilityInfo.announceForAccessibility(SWITCH_FAILED);
     } finally {
+      inFlight.current = false;
       setSwitching(false);
     }
   }
@@ -89,7 +94,7 @@ const makeStyles = (colors: Palette) =>
     },
     initial: { fontFamily: fonts.display, fontSize: 17, color: colors.accent },
     section: { marginTop: 24, gap: 8 },
-    error: { fontFamily: fonts.body, fontSize: 14, color: colors.muted },
+    error: { fontFamily: fonts.bodyMedium, fontSize: 14, color: colors.over },
     caption: { fontFamily: fonts.body, fontSize: 12, color: colors.muted },
     username: { fontFamily: fonts.bodySemi, fontSize: 16, color: colors.text },
     // Shaped like the login button, outlined so it doesn't read as the screen's main action;

@@ -1,14 +1,18 @@
 import { useRef, useState } from 'react';
 import { AccessibilityInfo, Pressable, StyleSheet, Text, View } from 'react-native';
-import { useAppearance, useThemedStyles } from '@/appearance/AppearanceContext';
+import { useAppearance, useColors, useThemedStyles } from '@/appearance/AppearanceContext';
 import { useSession } from '@/auth/AuthContext';
 import { AppearancePicker } from '@/components/AppearancePicker';
+import { Icon } from '@/components/Icon';
 import { LedgerPicker } from '@/components/LedgerPicker';
 import { PlaceholderPage } from '@/components/PlaceholderPage';
+import { usePushOnce } from '@/pushOnce';
 import { fonts, type Palette } from '@/theme';
 
 export default function Settings() {
+  const colors = useColors();
   const styles = useThemedStyles(makeStyles);
+  const pushOnce = usePushOnce();
   const { preference, setPreference } = useAppearance();
   const { user, ledger, ledgers, logout, openLedger } = useSession();
   const [switching, setSwitching] = useState(false);
@@ -57,6 +61,11 @@ export default function Settings() {
           )}
         </View>
       )}
+      {/* On its own, always shown: with one ledger there's no Ledger section to put it in. */}
+      <Pressable accessibilityRole="button" onPress={() => pushOnce('/members')} style={styles.members}>
+        <Text style={styles.membersText}>Members</Text>
+        <Icon name="forward" color={colors.muted} />
+      </Pressable>
       <View style={styles.section}>
         <Text style={styles.caption}>Appearance</Text>
         <AppearancePicker value={preference} onChange={setPreference} />
@@ -94,6 +103,21 @@ const makeStyles = (colors: Palette) =>
     },
     initial: { fontFamily: fonts.display, fontSize: 17, color: colors.accent },
     section: { marginTop: 24, gap: 8 },
+    members: {
+      marginTop: 24,
+      minHeight: 44,
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      borderRadius: 18,
+      borderWidth: 1,
+      borderColor: colors.border,
+      backgroundColor: colors.surface,
+      paddingVertical: 10,
+      paddingLeft: 18,
+      paddingRight: 12,
+    },
+    membersText: { fontFamily: fonts.bodyMedium, fontSize: 15, color: colors.text },
     error: { fontFamily: fonts.bodyMedium, fontSize: 14, color: colors.over },
     caption: { fontFamily: fonts.body, fontSize: 12, color: colors.muted },
     username: { fontFamily: fonts.bodySemi, fontSize: 16, color: colors.text },

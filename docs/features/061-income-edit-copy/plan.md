@@ -181,7 +181,7 @@ open. Gates run before every commit, with `DATABASE_URL_TEST` exported so the AP
       and February now has items. 'Couldn’t check February’s income. …' shows with Retry, and Copy doesn't. Unblock it
       and press Retry: Copy shows.
 
-- [ ] 5. Show this month's income first on Home (~25) — added before the PR at the user's request (mini Gate A)
+- [x] 5. Show this month's income first on Home (~25) — added before the PR at the user's request (mini Gate A)
   - Files: `app/(tabs)/index.tsx`.
   - Change:
     - Home calls `useIncome(ledger.ledgerId, month)` for its current Kyiv month (it reloads on focus, like the tab).
@@ -265,6 +265,11 @@ Estimated total: about 250 changed lines. Every slice stays under 150.
   an item, so it showed no empty card.
 - Light mode wasn't seen on web (the QA user's theme stays dark, as in 059). The one new style (`delete`) takes its
   colour from `dangerText(colors)`.
+- Slice 5: "Not set" was checked with the November request stubbed to return no items, not on a second ledger. A
+  failed income request after a load keeps the last total, by `useIncome`'s design (a failed refetch keeps the items),
+  so "—" with "Income, not available" only shows when the first load fails; on web the stubbed failure kept €5,581
+  with Budget, Expenses and Statistics unchanged, and the real request brought it back. The first-load failure path
+  wasn't exercised.
 
 ## Consolidate
 

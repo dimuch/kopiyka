@@ -4,7 +4,10 @@ import { monthName } from '@/format';
 // 1–40 characters after trimming, as the API's NameBody (brief 037).
 const MAX_NAME = 40;
 
-/** The trimmed name when it has 1 to 40 characters (code points, as the API counts them), else null. */
+/**
+ * The trimmed name when it has 1 to 40 characters (code points, as the API counts them), else null. `normalizeLabel`
+ * (data/ledgerLabel.ts) counts the same way.
+ */
 export function normalizeName(text: string): string | null {
   const name = text.trim();
   const length = [...name].length;

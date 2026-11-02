@@ -2,10 +2,10 @@ import type { FastifyInstance } from 'fastify';
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest';
 import { createUserJoiningLedger } from '../src/admin.js';
 import { buildApp } from '../src/app.js';
-import { addMember } from '../src/ledgers/members.js';
 import { base32Decode } from '../src/auth/totp.js';
 import type { Config } from '../src/config.js';
 import { createDb, type Db } from '../src/db.js';
+import { addMember } from '../src/ledgers/members.js';
 import {
   authHeader,
   clearData,
@@ -304,6 +304,7 @@ describe.skipIf(!(await testDbReachable()))('a member of a shared ledger (MySQL)
 
     it('leaving drops the label', async () => {
       await label(memberAuth, { label: 'Flat' });
+      expect(await labels(memberAuth)).toEqual(['Flat']);
       const left = await app.inject({
         method: 'DELETE',
         url: ledgerUrl(`/members/${olena.userId}`),

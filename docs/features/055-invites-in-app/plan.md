@@ -178,7 +178,7 @@ The slices, in order:
     - A revokes B → the row goes, with one DELETE. B's `/api/invites` is `[]`.
     - A invites B again. Expire it with SQL: `UPDATE ledger_invites SET expires_at = created_at WHERE invite_id = <id>`.
       A taps Revoke → "claude-qa-055b’s invite has already expired or been answered." and the row goes.
-- [ ] 3. Keep the signed-in user's pending invites in one place for the app (~125)
+- [x] 3. Keep the signed-in user's pending invites in one place for the app (~125)
   - Files: `apps/mobile/src/api/types.ts`, `apps/mobile/src/data/invites.tsx` (new),
     `apps/mobile/src/auth/AuthContext.tsx`, `apps/mobile/src/app/_layout.tsx`
   - Change: `Invite`, the provider and hook per Contracts, the `openLedger` guard, and the root-layout mount.

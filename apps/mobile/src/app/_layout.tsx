@@ -12,6 +12,7 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { AppearanceProvider, useAppearance, useColors } from '@/appearance/AppearanceContext';
 import { AuthProvider, useAuth } from '@/auth/AuthContext';
 import { PhoneColumn } from '@/components/PhoneColumn';
+import { InvitesProvider } from '@/data/invites';
 
 function Screens() {
   const { state } = useAuth();
@@ -65,7 +66,9 @@ function Root() {
       <PhoneColumn>
         <AuthProvider>
           <StatusBar style={scheme === 'dark' ? 'light' : 'dark'} />
-          <Screens />
+          <InvitesProvider>
+            <Screens />
+          </InvitesProvider>
         </AuthProvider>
       </PhoneColumn>
     </SafeAreaProvider>

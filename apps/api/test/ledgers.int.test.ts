@@ -49,8 +49,8 @@ describe.skipIf(!(await testDbReachable()))('GET /api/ledgers (MySQL)', () => {
     expect(res.json()).toEqual({
       user: { userId: ivanka.userId, username: 'ivanka' },
       ledgers: [
-        { ledgerId: ivanka.ledgerId, name: 'Home', role: 'owner' },
-        { ledgerId: sviat.ledgerId, name: 'Home', role: 'member' },
+        { ledgerId: ivanka.ledgerId, name: 'Home', role: 'owner', owner: 'ivanka' },
+        { ledgerId: sviat.ledgerId, name: 'Home', role: 'member', owner: 'sviat' },
       ],
     });
   });

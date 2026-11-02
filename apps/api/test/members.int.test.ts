@@ -65,8 +65,12 @@ describe.skipIf(!(await testDbReachable()))('a member of a shared ledger (MySQL)
     const ledgers = async (headers: { authorization: string }) =>
       (await app.inject({ method: 'GET', url: '/api/ledgers', headers })).json().ledgers;
 
-    expect(await ledgers(memberAuth)).toEqual([{ ledgerId: dimuch.ledgerId, name: 'Home', role: 'member' }]);
-    expect(await ledgers(ownerAuth)).toEqual([{ ledgerId: dimuch.ledgerId, name: 'Home', role: 'owner' }]);
+    expect(await ledgers(memberAuth)).toEqual([
+      { ledgerId: dimuch.ledgerId, name: 'Home', role: 'member', owner: 'dimuch' },
+    ]);
+    expect(await ledgers(ownerAuth)).toEqual([
+      { ledgerId: dimuch.ledgerId, name: 'Home', role: 'owner', owner: 'dimuch' },
+    ]);
   });
 
   it('reads and writes categories, months and expenses like the owner', async () => {

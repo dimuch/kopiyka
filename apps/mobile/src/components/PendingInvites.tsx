@@ -38,9 +38,10 @@ export function PendingInvites({
               <Pressable
                 accessibilityRole="button"
                 accessibilityLabel={`Decline invite from ${from}`}
+                accessibilityState={{ disabled: busy }}
                 disabled={busy}
                 onPress={() => onDecline(invite)}
-                style={styles.decline}
+                style={[styles.decline, busy && { opacity: 0.6 }]}
               >
                 <Text style={styles.declineText}>Decline</Text>
               </Pressable>

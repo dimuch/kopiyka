@@ -1,18 +1,19 @@
 import * as SecureStore from 'expo-secure-store';
 import { Platform } from 'react-native';
+import { nativeApiUrl } from '@/api/baseUrl';
 
 const isWeb = Platform.OS === 'web';
 
 // Web: the session cookie only travels to the same site, so the API is always
 // reached on the page's own host: port 3000 in development, the same origin in
 // production (nginx serves the app and proxies /api).
-// Native: the simulator reaches the Mac on localhost; a real iPhone needs the
-// Mac's LAN address in EXPO_PUBLIC_API_URL (apps/mobile/.env).
+// Native: see nativeApiUrl. Expo inlines EXPO_PUBLIC_API_URL at build time
+// only when it's written out in full, so it's read here.
 function apiUrl(): string {
   if (isWeb) {
     return __DEV__ ? `${window.location.protocol}//${window.location.hostname}:3000` : '';
   }
-  return process.env.EXPO_PUBLIC_API_URL ?? 'http://localhost:3000';
+  return nativeApiUrl(process.env.EXPO_PUBLIC_API_URL, __DEV__);
 }
 
 const API_URL = apiUrl();

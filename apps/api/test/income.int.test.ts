@@ -258,7 +258,9 @@ describe.skipIf(!(await testDbReachable()))('income items (MySQL)', () => {
       const salary = await storeItem(owner.ledgerId, owner, '2026-10', 'Salary', '2500.00');
       const freelance = await storeItem(owner.ledgerId, member, '2026-10', 'Freelance', '300.00');
       expect((await remove(salary, memberAuth)).statusCode).toBe(204);
-      expect((await list('2026-10')).json().items.map((i: { incomeId: number }) => i.incomeId)).toEqual([freelance]);
+      expect((await list('2026-10')).json().items.map((item: { incomeId: number }) => item.incomeId)).toEqual([
+        freelance,
+      ]);
 
       const again = await remove(salary, memberAuth);
       expect(again.statusCode).toBe(404);
@@ -335,7 +337,7 @@ describe.skipIf(!(await testDbReachable()))('income items (MySQL)', () => {
 
       await storeItem(owner.ledgerId, owner, '2026-10', 'Salary', '2500.00');
       expect((await copy('2026-11')).statusCode).toBe(204);
-      expect((await list('2026-11')).json().items.map((i: { title: string }) => i.title)).toEqual(['Salary']);
+      expect((await list('2026-11')).json().items.map((item: { title: string }) => item.title)).toEqual(['Salary']);
     });
 
     it('refuses an ended month and a malformed one', async () => {
@@ -358,7 +360,7 @@ describe.skipIf(!(await testDbReachable()))('income items (MySQL)', () => {
     it('copies once when two members copy at the same time', async () => {
       await storeItem(owner.ledgerId, owner, '2026-10', 'Salary', '2500.00');
       await storeItem(owner.ledgerId, member, '2026-10', 'Freelance', '300.00');
-      const codes = (await Promise.all([copy('2026-11'), copy('2026-11', memberAuth)])).map((r) => r.statusCode);
+      const codes = (await Promise.all([copy('2026-11'), copy('2026-11', memberAuth)])).map((res) => res.statusCode);
       expect(codes.sort()).toEqual([204, 409]);
       expect((await list('2026-11')).json().items).toHaveLength(2);
     });

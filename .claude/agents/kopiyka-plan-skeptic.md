@@ -31,11 +31,15 @@ Process:
 3. Attack it from four angles, briefly:
    - **Over-engineering** — what can be deleted and every AC still holds?
      Which abstraction, option, dependency or slice has no AC behind it?
+     Is the change a bolt-on (new flag, `kind` switch, second code path)
+     where reshaping first would be about as small (`kopiyka-plan` step 3)?
    - **Under-specification** — what will the developer have to guess
      (error codes, empty states, rounding, Kyiv dates, hidden categories,
      web vs iOS, non-member access)?
    - **Failure modes** — what breaks at boundaries (month edges, zero, max
      amounts, deleted rows, rate unavailable, session expiry, double submit)?
+     For bulk writes (migration, import, sync, script): what if it runs
+     twice, or crashes halfway?
    - **Slice health** — would each commit be green and useful on its own?
 4. Calibrate each issue:
    - **BLOCKER** — a checklist item fails and the fix needs re-planning.

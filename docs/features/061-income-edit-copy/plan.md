@@ -102,7 +102,7 @@ Today is 2026-11-02, so October is ended and November is open. Ledger #35 has th
 Some checks need more rows, seeded with raw SQL on the dev DB: an October item, and a row deleted while its form is
 open. Gates run before every commit, with `DATABASE_URL_TEST` exported so the API integration tests run.
 
-- [ ] 1. Save income with Return or Enter, like the planned amount (~8)
+- [x] 1. Save income with Return or Enter, like the planned amount (~8)
   - Files: `components/AmountFields.tsx`, `app/income-item.tsx`.
   - Change:
     - `AmountField` gets the optional `onSubmitEditing` and passes it to its `TextInput`.

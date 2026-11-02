@@ -124,6 +124,7 @@ function IncomeForm({ month, busy, setBusy }: { month: string; busy: boolean; se
           accessibilityLabel="Title"
           value={title}
           onChangeText={(text) => edit(setTitle, text)}
+          onSubmitEditing={save}
           editable={!locked}
           autoFocus
           placeholder="e.g. Salary"
@@ -136,6 +137,7 @@ function IncomeForm({ month, busy, setBusy }: { month: string; busy: boolean; se
         currency="EUR"
         value={amountText}
         onChangeText={(text) => edit(setAmountText, text)}
+        onSubmitEditing={save}
         editable={!locked}
       />
 

@@ -44,11 +44,14 @@ export function AmountField({
   value,
   onChangeText,
   editable,
+  onSubmitEditing,
 }: {
   currency: Currency;
   value: string;
   onChangeText: (text: string) => void;
   editable: boolean;
+  /** Return or Enter in the field; the expense form leaves it unset. */
+  onSubmitEditing?: () => void;
 }) {
   const colors = useColors();
   const styles = useThemedStyles(makeStyles);
@@ -61,6 +64,7 @@ export function AmountField({
           accessibilityLabel={`Amount in ${currency}`}
           value={value}
           onChangeText={onChangeText}
+          onSubmitEditing={onSubmitEditing}
           editable={editable}
           keyboardType="decimal-pad"
           placeholder="0.00"

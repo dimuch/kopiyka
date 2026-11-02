@@ -189,7 +189,7 @@ The slices, in order:
     - The value is `useMemo`'d, as in `AuthContext`.
   - Verify: typecheck and lint. Slice 4 is the first caller. There's no pure logic to unit-test, the same as
     `useMembers`. On web, signing in as B makes one GET `/api/invites` (the provider's load on the new user).
-- [ ] 4. Show pending invites on Home and the no-ledger screen with Accept and Decline (~135)
+- [x] 4. Show pending invites on Home and the no-ledger screen with Accept and Decline (~135)
   - Files: `apps/mobile/src/components/PendingInvites.tsx` (new), `apps/mobile/src/app/(tabs)/index.tsx`,
     `apps/mobile/src/app/(tabs)/_layout.tsx`, `apps/mobile/src/app/no-ledger.tsx`
   - Change:

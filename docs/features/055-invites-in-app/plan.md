@@ -319,10 +319,25 @@ the ~400 target; see Open questions for the split.
 
 - Settings still says "Coming soon." (`PlaceholderPage`) above real settings (052's follow-up). It reads oddly
   next to invites.
+- Three "load, tag with what it's for, reload" data sources now exist (`useMonth`, `useMembers`, `InvitesProvider`);
+  a `/kopiyka-hos-refactoring` brief could give them one shape if a fourth appears.
 
 ## Deviations
 
 ## Consolidate
+
+CONSOLIDATE: reused 0 · extracted 0 · left 5
+
+- LEAVE the `InvitesProvider`'s tagged load state vs `useMembers` / `useMonth`: the same "tag state with what it's
+  for" idea, but a context loading on user change vs hooks loading on screen focus. A shared hook would change when
+  each loads; that's a refactor brief, not this pass (Follow-ups).
+- LEAVE `PendingInvites`' Accept pill vs `members.tsx`' `ConfirmPanel` confirm pill: two copies, accent vs danger
+  fill.
+- LEAVE `InviteForm`'s input style vs `login.tsx`'s: two copies, different height and size.
+- LEAVE the `inFlight` ref + busy + announce in `PendingList`, `InviteForm` and the provider: each maps its own
+  outcomes to its own text (per-screen by convention, as in 053).
+- LEAVE `revokeInvite` / `inviteMember` beside `removeMember` in `data/members.ts`: one `api()` call each, already in
+  one module.
 
 ## Revision 1
 

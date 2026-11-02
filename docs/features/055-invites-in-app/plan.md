@@ -229,7 +229,7 @@ The slices, in order:
        A fetch stub failing `/api/invites` on no-ledger → the load error with Retry.
     6. Light and dark at a glance. iPhone (Expo Go) at Gate B: steps 1 and 5, plus two invite cards on Home (A and D
        both invite B; Home doesn't scroll, so the grid must still fit).
-- [ ] 5. Badge the Settings tab with the invite count and list the invites in Settings (~30)
+- [x] 5. Badge the Settings tab with the invite count and list the invites in Settings (~30)
   - Files: `apps/mobile/src/app/(tabs)/_layout.tsx`, `apps/mobile/src/app/(tabs)/settings.tsx`
   - Change:
     - Tab layout:

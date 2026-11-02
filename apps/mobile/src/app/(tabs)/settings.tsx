@@ -5,7 +5,9 @@ import { useSession } from '@/auth/AuthContext';
 import { AppearancePicker } from '@/components/AppearancePicker';
 import { Icon } from '@/components/Icon';
 import { LedgerPicker } from '@/components/LedgerPicker';
+import { PendingInvites } from '@/components/PendingInvites';
 import { PlaceholderPage } from '@/components/PlaceholderPage';
+import { useInvites } from '@/data/invites';
 import { usePushOnce } from '@/pushOnce';
 import { fonts, outlinedDangerButton, outlinedDangerText, type Palette } from '@/theme';
 
@@ -15,6 +17,7 @@ export default function Settings() {
   const pushOnce = usePushOnce();
   const { preference, setPreference } = useAppearance();
   const { user, ledger, ledgers, logout, openLedger } = useSession();
+  const invites = useInvites();
   const [switching, setSwitching] = useState(false);
   const [switchFailed, setSwitchFailed] = useState(false);
   // `switching` disables the picker only after a re-render; two taps in one tick would both get here.
@@ -50,6 +53,15 @@ export default function Settings() {
           </Text>
         </View>
       </View>
+      {/* Under the account card, so the tab's invite badge leads straight to them. */}
+      <PendingInvites
+        invites={invites.invites ?? []}
+        busyId={invites.busyId}
+        failure={invites.failure}
+        onAccept={invites.accept}
+        onDecline={invites.decline}
+        style={styles.section}
+      />
       {ledgers.length > 1 && (
         <View style={styles.section}>
           <Text style={styles.caption}>Ledger</Text>

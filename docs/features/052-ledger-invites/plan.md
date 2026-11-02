@@ -177,7 +177,7 @@ size and harder to read. Both are destructive only if rows exist, which they don
   - Tests: `ledgerChoice.test.ts` table: stored `'7'` among `[3, 7]` → 7; stored `'9'` (gone) → 3; `null` → 3;
     `'7abc'` → 3; `[]` → null; `choiceKey(12)` → `'kopiyka.ledger.12'`. Verify: web at phone width; dimuch (one
     ledger) opens as before.
-- [ ] 1.4 Show a plain screen to a user who is in no ledger (~80)
+- [x] 1.4 Show a plain screen to a user who is in no ledger (~80)
   - Files: `AuthContext.tsx`, `apps/mobile/src/app/no-ledger.tsx` (new), `apps/mobile/src/app/_layout.tsx`
   - Change: `fetchMe` returns `{ status: 'noLedger', user }` instead of throwing. The screen shows "You’re not in any
     ledger", "Signed in as <username>." and the same Sign out button as Settings ("Sign out" matches the app; the

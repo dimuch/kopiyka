@@ -7,6 +7,8 @@ import { choiceKey, pickLedger } from './ledgerChoice';
 type AuthState =
   | { status: 'loading' }
   | { status: 'signedOut' }
+  // Signed in but in no ledger (removed or left, or created with --join and then removed).
+  | { status: 'noLedger'; user: User }
   | { status: 'signedIn'; user: User; ledger: Ledger; ledgers: Ledger[] };
 
 interface AuthApi {
@@ -19,13 +21,13 @@ interface AuthApi {
 
 const AuthContext = createContext<AuthApi | null>(null);
 
-/** The user's ledgers, opening the one chosen on this device while they're still in it, else the first. */
+/** The user's ledgers, opening the one chosen on this device while they're still in it, else the first; none → noLedger. */
 async function fetchMe(): Promise<AuthState> {
   const me = await api<{ user: User; ledgers: Ledger[] }>('/api/ledgers');
   // A failed read (storage unavailable) counts as no choice.
   const stored = await AsyncStorage.getItem(choiceKey(me.user.userId)).catch(() => null);
   const ledger = pickLedger(me.ledgers, stored);
-  if (!ledger) throw new Error('This user has no ledger');
+  if (!ledger) return { status: 'noLedger', user: me.user };
   return { status: 'signedIn', user: me.user, ledger, ledgers: me.ledgers };
 }
 

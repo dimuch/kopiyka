@@ -196,8 +196,11 @@ so piped `sudo` commands don't prompt twice at once.
     ```bash
     sudo systemd-run --pty --wait --collect -p User=kopiyka -p EnvironmentFile=/etc/kopiyka/api.env \
       -p WorkingDirectory=/opt/kopiyka/current/apps/api \
-      /usr/bin/node dist/scripts/create-user.js --username <name> --email <email> [--ledger <name>]
+      /usr/bin/node dist/scripts/create-user.js --username <name> --email <email> [--ledger <name> | --join <owner>]
     ```
+
+    With `--join <owner>` the new user gets no ledger of their own and becomes a member of the one ledger `<owner>`
+    owns, e.g. a second person in `dimuch`'s budget.
 
 ## Starting from the laptop's ledger
 

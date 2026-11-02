@@ -19,6 +19,10 @@ export const darkColors = {
   /** Selected chips and the "Added" note. */
   accentTint: '#16233A',
   accentLine: '#2B4470',
+  /** The open ledger in Settings' picker. */
+  activeTint: '#132A1C',
+  activeLine: '#24543A',
+  active: '#6FD08C',
   /** Toast and sheet items, a step above `surface`. */
   surfaceRaised: '#22262D',
   borderStrongest: '#3A404A',
@@ -46,6 +50,9 @@ export const lightColors: Palette = {
   danger: '#C23B31',
   accentTint: '#E4EEFF',
   accentLine: '#A9C6F5',
+  activeTint: '#E3F4E8',
+  activeLine: '#9DD5AE',
+  active: '#1B7A3D',
   surfaceRaised: '#FFFFFF',
   borderStrongest: '#B9C0CA',
   faint: '#8B939E',

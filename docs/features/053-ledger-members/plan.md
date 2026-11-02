@@ -132,7 +132,7 @@ to keep correct.
       `[404, { error: 'not_found' }]`.
     - `userId=abc` → 400. No session → 401. The stranger deleting olena from dimuch's ledger →
       `[404, { error: 'ledger_not_found' }]`, and olena is still listed.
-- [ ] 2.3 Show the open ledger in green in the Settings picker (~30)
+- [x] 2.3 Show the open ledger in green in the Settings picker (~30)
   - Files: `apps/mobile/src/theme.ts`, `apps/mobile/src/components/LedgerPicker.tsx`, `apps/mobile/test/theme.test.ts`
   - Change: add `active`, `activeTint`, `activeLine` to both palettes (values and contrast in Contracts, with a
     one-line comment: "the open ledger in Settings' picker"). `LedgerPicker`'s `optionOn` uses `activeTint`/

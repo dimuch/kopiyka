@@ -60,13 +60,11 @@ See Open questions.
     - `export type StackRoutes = readonly { name: string; params?: object; state?: { index?: number; routes: readonly { name: string; params?: object }[] } }[]`
     - `export function readTabs(routes: StackRoutes, fallback: TabName): { active: TabName; params: Partial<Record<TabName, Record<string, string>>> }`
       - It finds the `(tabs)` route in the root stack's routes.
-      - `active` is its focused tab. It is `fallback` when there's no `(tabs)` route, the route has no nested state
-        or no `index`, or the focused name isn't in `TABS`.
+      - `active` is its focused tab; a missing `index` means the first route, as in `TabRouter` (see Deviations). It
+        is `fallback` when there's no `(tabs)` route, the route has no nested state, or the focused name isn't in
+        `TABS`.
       - `params` holds each tab route's current params, string values only. Route params come from URLs and
         `setParams({ month })`, so they're strings. With no `(tabs)` route, `params` is `{}`.
-      - Falling back on a missing `index` is deliberate. A `(tabs)` navigator that has rendered always has a full
-        state with `index`. A partial state only exists before it mounts, and there a guess from `routes` could
-        highlight the wrong tab.
   - `components/TabBar.tsx` (new): `export function TabBar({ fallback }: { fallback: TabName })`.
     - **State:** reads `useNavigationState((s) => s.routes)` from `expo-router/react-navigation` (the stable routes
       array of the navigator holding the page, i.e. the root `Stack`), passes it to `readTabs`, and takes the count
@@ -129,7 +127,7 @@ See Open questions.
     - A non-string param value is dropped.
     - `[category]` (no `(tabs)`) → the fallback, `params` `{}`
     - `(tabs)` with no `state` → the fallback
-    - a nested state with no `index` → the fallback
+    - a nested state with no `index` → its first route (changed in slice 5, see Deviations)
     - an unknown tab name → the fallback
 - [x] 4. Show the tab bar on category detail
   - Files: `apps/mobile/src/components/TabBar.tsx` (new), `apps/mobile/src/app/category/[categoryId].tsx`

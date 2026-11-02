@@ -97,17 +97,17 @@ The part of each original 020 AC that this brief owns is given in brackets.
 
 - **Notion side.** An internal integration (token in `apps/api/.env`, e.g. `NOTION_TOKEN`) with the databases shared to
   it, and their ids in config. 021 needs the token; this part doesn't.
-- **Groceries table.** Database `2d2203e3e5e581c7b1f9de3dadf6dd2c`, data source
-  `collection://2d2203e3-e5e5-819d-8823-000be6f1bad0`, October view `?v=2d2203e3e5e5810bb582000cfca2f581`.
+- **Groceries table.** Database `0000000000004000800000000000000a`, data source
+  `collection://00000000-0000-4000-8000-000000000001`, October view `?v=0000000000004000800000000000000b`.
   Properties: Name (title), Amount (number, euro), Date (date), Month (select, January–December), My Share (number),
   Other Share (formula).
 - **The 11 adopted grocery rows** (kopiyka expense id → Notion page id, filled on 2026-10-10):
-  57 → `2d2203e3e5e581e99c53c4ff0d748207`, 60 → `2d2203e3e5e58173a301f4c19bc4ff8d`,
-  61 → `2d2203e3e5e581f29d57fdab6c662e99`, 76 → `2d2203e3e5e5817288dbc1ccb8327ed1`,
-  63 → `2d2203e3e5e581ce87d2f993d7e85438`, 64 → `2d2203e3e5e58143a3fce814931ee14e`,
-  65 → `2d2203e3e5e581368f96fbe5ba7f2175`, 66 → `2d2203e3e5e58165aa2ecaa6f4ab7efc`,
-  68 → `2d2203e3e5e5813f9389d84ecacd46d5`, 42 → `2d2203e3e5e581da993fe7eec97e5832`,
-  71 → `2d2203e3e5e58187ac89e6dc0793435f`. On 2026-10-13 these were exactly the dev DB's live 2026 groceries in
+  57 → `00000000000040008000000000000004`, 60 → `00000000000040008000000000000005`,
+  61 → `0000000000004000800000000000000c`, 76 → `0000000000004000800000000000000d`,
+  63 → `0000000000004000800000000000000e`, 64 → `0000000000004000800000000000000f`,
+  65 → `00000000000040008000000000000010`, 66 → `00000000000040008000000000000011`,
+  68 → `00000000000040008000000000000012`, 42 → `00000000000040008000000000000013`,
+  71 → `00000000000040008000000000000014`. On 2026-10-13 these were exactly the dev DB's live 2026 groceries in
   ledger 1.
 - **Interaction with category delete (013, 018).** Deleting the groceries category deletes its expenses, so they count
   as unsent (the next sync, from 021 on, trashes their rows). Restoring the category brings them back. Categories are

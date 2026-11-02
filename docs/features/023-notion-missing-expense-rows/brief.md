@@ -51,14 +51,14 @@ The original 020 AC numbers are in brackets.
 
 ## Notes
 
-- **Expenses table.** Database `2d2203e3e5e5814faa96f9f8eba7d440`, data source
-  `collection://2d2203e3-e5e5-8154-8e58-000b356e2d71`.
+- **Expenses table.** Database `00000000000040008000000000000015`, data source
+  `collection://00000000-0000-4000-8000-000000000002`.
   - **Properties.** Category (title), Budget (number), Actual Amount (number, euro), Note (text), Type (select), Month
     (select: Jan, Feb, Mar, Apr, May, June, July, Aug, Sept, Oct, Nov, Dec), B to Netto / E to Netto (relations),
     Spent (rollup).
-  - **October view filters.** Month = Oct, and `B to Netto` / `E to Netto` contain `2d2203e3e5e581c8ab4bf9cd93251846`.
-- **Netto table.** Data source `collection://2d2203e3-e5e5-8153-8e48-000b2762daa5`, one page per month with a `Month`
-  select (January … December). 2026 pages exist for all 12 months (October: `2d2203e3e5e581c8ab4bf9cd93251846`).
+  - **October view filters.** Month = Oct, and `B to Netto` / `E to Netto` contain `00000000000040008000000000000006`.
+- **Netto table.** Data source `collection://00000000-0000-4000-8000-000000000003`, one page per month with a `Month`
+  select (January … December). 2026 pages exist for all 12 months (October: `00000000000040008000000000000006`).
   Its `Expenses` / `Budget` relations are the other side of `E to Netto` / `B to Netto`.
 - **Name matching** works as in 022: lower case, `_` read as a space, alias kopiyka `utilities` ↔ Notion `utilites`.
   Categories are matched by `tech_name`, so renaming one (014) doesn't break sync.

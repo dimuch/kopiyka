@@ -43,9 +43,9 @@ set, in `apps/api/.env`:
 NOTION_LEDGER_ID=1
 NOTION_YEAR=2026
 NOTION_TOKEN=ntn_...                                                 # the integration's secret; never commit it
-NOTION_GROCERIES_DATA_SOURCE_ID=2d2203e3-e5e5-819d-8823-000be6f1bad0  # the UUID in each table's collection:// URL
-NOTION_EXPENSES_DATA_SOURCE_ID=2d2203e3-e5e5-8154-8e58-000b356e2d71   # category totals; leave both out to sync
-NOTION_NETTO_DATA_SOURCE_ID=2d2203e3-e5e5-8153-8e48-000b2762daa5      # groceries only
+NOTION_GROCERIES_DATA_SOURCE_ID=00000000-0000-4000-8000-000000000001  # the UUID in each table's collection:// URL
+NOTION_EXPENSES_DATA_SOURCE_ID=00000000-0000-4000-8000-000000000002   # category totals; leave both out to sync
+NOTION_NETTO_DATA_SOURCE_ID=00000000-0000-4000-8000-000000000003      # groceries only
 ```
 
 Set up once per database, in this order: `yarn api migrate`, then the two starting points below, then sync.

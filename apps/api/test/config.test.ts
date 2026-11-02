@@ -27,9 +27,9 @@ describe('loadConfig', () => {
   });
 
   it('reads the Notion API settings in two pairs, the second needing the first', () => {
-    const ds = '2d2203e3-e5e5-819d-8823-000be6f1bad0';
-    const expenses = '2d2203e3-e5e5-8154-8e58-000b356e2d71';
-    const netto = '2d2203e3-e5e5-8153-8e48-000b2762daa5';
+    const ds = '00000000-0000-4000-8000-000000000001';
+    const expenses = '00000000-0000-4000-8000-000000000002';
+    const netto = '00000000-0000-4000-8000-000000000003';
     const groceries = { NOTION_TOKEN: 'ntn_x', NOTION_GROCERIES_DATA_SOURCE_ID: ds };
     expect(loadConfig(base).notionApi).toBeNull();
     expect(loadConfig({ ...base, ...groceries }).notionApi).toEqual({

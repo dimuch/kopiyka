@@ -251,7 +251,7 @@ Alternatives considered:
     };
     ```
 
-  - **Budget ’26 values:** Expenses `2d2203e3-e5e5-8154-8e58-000b356e2d71`, Netto `2d2203e3-e5e5-8153-8e48-000b2762daa5`.
+  - **Budget ’26 values:** Expenses `00000000-0000-4000-8000-000000000002`, Netto `00000000-0000-4000-8000-000000000003`.
   - With only the 021 pair set, the API starts and syncs groceries as before.
 - **AppDeps** (`app.ts`, slice 6): `notionExpenses?: ExpensesTable`, commented "absent when the Expenses table isn't
   configured; tests pass a fake". `server.ts` builds one client and passes `notionGroceries: client.groceries` and

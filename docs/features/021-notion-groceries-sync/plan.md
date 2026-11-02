@@ -157,7 +157,7 @@ Alternative considered: `@notionhq/client` (1.5 MB, no runtime deps). It loses b
   - `NOTION_TOKEN`: `z.string().min(1).optional()`.
   - `NOTION_GROCERIES_DATA_SOURCE_ID`:
     `z.string().regex(/^[0-9a-f]{8}-?([0-9a-f]{4}-?){3}[0-9a-f]{12}$/i).optional()`. It's the UUID from
-    `collection://…`, so for Budget ’26 it's `2d2203e3-e5e5-819d-8823-000be6f1bad0`.
+    `collection://…`, so for Budget ’26 it's `00000000-0000-4000-8000-000000000001`.
   - The two are set together, otherwise `loadConfig` throws
     "set NOTION_TOKEN and NOTION_GROCERIES_DATA_SOURCE_ID together".
   - `Config.notionApi: { token: string; groceriesDataSourceId: string } | null`, and `testConfig()` sets
@@ -322,7 +322,7 @@ Build-time step, at Gate B: the real-Notion check (AC 9a). It writes to Notion t
 user approves it.
 
 1. The user creates the integration, shares Budget ’26 with it, and adds `NOTION_TOKEN` and
-   `NOTION_GROCERIES_DATA_SOURCE_ID=2d2203e3-e5e5-819d-8823-000be6f1bad0` to `apps/api/.env`.
+   `NOTION_GROCERIES_DATA_SOURCE_ID=00000000-0000-4000-8000-000000000001` to `apps/api/.env`.
 2. Read the Groceries October view through the Notion MCP (read only) and keep it as a baseline.
 3. Signed in as `dimuch` on the web build, `fetch('/api/ledgers/1/notion/status')` should give `unsent: 0`.
 4. Add a 2026-10 grocery, then run `fetch('/api/ledgers/1/notion/sync', { method: 'POST' })`. Expect

@@ -51,7 +51,7 @@ proves it too tight, moving the build to the GitHub runner is the fallback (foll
 - [ ] Given DNS and the bootstrap are done, `https://kopiyka.englishplus.com.ua` loads the web app and a user can log in
       and add an expense.
 - [ ] `http://` redirects to `https://`; the cert is valid and `certbot renew --dry-run` passes.
-- [ ] A new A record `kopiyka` → 165.22.31.51 exists in the `englishplus.com.ua` zone (bootstrap step).
+- [ ] A new A record `kopiyka` → <droplet IP> exists in the `englishplus.com.ua` zone (bootstrap step).
 - [ ] The API listens on 127.0.0.1 only; it is not reachable from outside except through nginx `/api`.
 - [ ] Running the Deploy workflow on `main` ships that commit: gates on GitHub, build on the droplet, migrate,
       restart, health check. A failed gate, install or build deploys nothing (live release untouched); a failed health check fails the

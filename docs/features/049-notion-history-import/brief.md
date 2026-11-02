@@ -5,7 +5,7 @@ Type: feature
 ## Why
 
 Until November 2026 the shared budget lived in Notion: the "Expenses" table of "Budget ’26" (data source
-`collection://2d2203e3-e5e5-8154-8e58-000b356e2d71`) has one row per category per month with `Budget` and
+`collection://00000000-0000-4000-8000-000000000002`) has one row per category per month with `Budget` and
 `Actual Amount`. Kopiyka only has October, and only the expenses typed into the app. To see the year in the app, the
 history January–October 2026 has to come from Notion, first into the laptop's database and then into production
 (which starts empty apart from the account). Notion stays the source of truth for those months: when October's
@@ -74,7 +74,7 @@ into one ledger:
 ## Notes
 
 - Today the laptop has ledger 1 with October only: 15 categories, 42 live expenses (€1,831.69), no planned amounts.
-  Notion's October differs a lot (e.g. personal €4,080 vs €103), so October is overwritten from Notion as decided.
+  Notion's October differs a lot (one category by thousands of euros), so October is overwritten from Notion as decided.
 - Notion amounts are whole euros. Month select values: Jan, Feb, Mar, Apr, May, June, July, Aug, Sept, Oct.
 - `utilites` is already an alias in `apps/api/src/notion/totals.ts`; the existing Notion client and config can be
   reused for the read.

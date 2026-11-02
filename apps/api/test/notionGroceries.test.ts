@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { type GroceryState, planGroceries } from '../src/notion/groceries.js';
 
 const sent = {
-  pageId: '2d2203e3e5e581e99c53c4ff0d748207',
+  pageId: '00000000000040008000000000000004',
   name: 'Delhaize',
   amountEur: '29.10',
   date: '2026-10-01',

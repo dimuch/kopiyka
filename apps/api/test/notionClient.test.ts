@@ -2,9 +2,9 @@ import { describe, expect, it } from 'vitest';
 import { NotionError, notionClient } from '../src/notion/client.js';
 
 const token = 'ntn_secret_test_token';
-const ds = '2d2203e3-e5e5-819d-8823-000be6f1bad0';
-const expensesDs = '2d2203e3-e5e5-8154-8e58-000b356e2d71';
-const nettoDs = '2d2203e3-e5e5-8153-8e48-000b2762daa5';
+const ds = '00000000-0000-4000-8000-000000000001';
+const expensesDs = '00000000-0000-4000-8000-000000000002';
+const nettoDs = '00000000-0000-4000-8000-000000000003';
 const row = { expenseId: 57, name: 'Delhaize', amountEur: '29.10', date: '2026-10-01' };
 
 /** A client whose fetch answers from a queue and records every request and every sleep. */
@@ -39,8 +39,8 @@ const json = (body: unknown, status = 200, headers: Record<string, string> = {})
 
 describe('notionClient', () => {
   it('creates a row in the Groceries data source', async () => {
-    const { client, requests } = setup(json({ id: '2D2203E3-E5E5-81E9-9C53-C4FF0D748207' }));
-    expect(await client.create(row)).toBe('2d2203e3e5e581e99c53c4ff0d748207');
+    const { client, requests } = setup(json({ id: '00000000-0000-4000-8000-000000000004' }));
+    expect(await client.create(row)).toBe('00000000000040008000000000000004');
     expect(requests).toEqual([
       {
         url: 'https://api.notion.com/v1/pages',
@@ -82,7 +82,7 @@ describe('notionClient', () => {
 
   it('finds the live row with a Kopiyka ID', async () => {
     const trashed = { id: 'aaaa', in_trash: true };
-    const live = { id: '2D2203E3-E5E5-8173-A301-F4C19BC4FF8D', in_trash: false };
+    const live = { id: '00000000-0000-4000-8000-000000000005', in_trash: false };
     const { client, requests } = setup(
       json({ results: [] }),
       json({ results: [trashed] }),
@@ -90,7 +90,7 @@ describe('notionClient', () => {
     );
     expect(await client.find(57)).toBeNull();
     expect(await client.find(57)).toBeNull();
-    expect(await client.find(57)).toBe('2d2203e3e5e58173a301f4c19bc4ff8d');
+    expect(await client.find(57)).toBe('00000000000040008000000000000005');
     expect(requests[0]).toMatchObject({
       url: `https://api.notion.com/v1/data_sources/${ds}/query`,
       method: 'POST',
@@ -157,7 +157,7 @@ describe('notionClient', () => {
   });
 
   describe('Expenses table', () => {
-    const OCTOBER = '2d2203e3e5e581c8ab4bf9cd93251846';
+    const OCTOBER = '00000000000040008000000000000006';
     const expensesRow = (id: string, category: string, inTrash = false) => ({
       id,
       in_trash: inTrash,
@@ -166,17 +166,17 @@ describe('notionClient', () => {
 
     it("lists a month's rows: those linked to the month's Netto page", async () => {
       const { expenses, requests } = setup(
-        json({ results: [{ id: '2d2203e3-e5e5-81c8-ab4b-f9cd93251846', in_trash: false }] }),
+        json({ results: [{ id: '00000000-0000-4000-8000-000000000006', in_trash: false }] }),
         json({
           results: [
-            expensesRow('2D2203E3-E5E5-811E-AF85-E0821E42C511', 'clothes'),
-            expensesRow('2d2203e3e5e581deb784c6fa0f836c28', 'fun', true),
+            expensesRow('00000000-0000-4000-8000-000000000007', 'clothes'),
+            expensesRow('00000000000040008000000000000008', 'fun', true),
           ],
         }),
       );
       expect(await expenses.monthRows('2026-10')).toEqual({
         nettoPageId: OCTOBER,
-        rows: [{ pageId: '2d2203e3e5e5811eaf85e0821e42c511', category: 'clothes' }],
+        rows: [{ pageId: '00000000000040008000000000000007', category: 'clothes' }],
       });
       expect(requests.map((r) => [r.url, r.method, r.body])).toEqual([
         [
@@ -248,7 +248,7 @@ describe('notionClient', () => {
         type: string | null,
         actual: number | null = null,
       ) => ({
-        id: '2d2203e3e5e5811eaf85e0821e42c511',
+        id: '00000000000040008000000000000007',
         in_trash: false,
         properties: {
           Category: { title: [{ plain_text: category }] },
@@ -298,7 +298,7 @@ describe('notionClient', () => {
         'September',
       ];
       const row = (name: string) => ({
-        id: '2d2203e3e5e5811eaf85e0821e42c511',
+        id: '00000000000040008000000000000007',
         properties: { Category: { title: [{ plain_text: 'fun' }] }, Month: { select: { name } } },
       });
       const { expenses } = setup(json({ results: names.map(row), has_more: false, next_cursor: null }));
@@ -307,13 +307,13 @@ describe('notionClient', () => {
 
     it('creates a row linked to the month, with Budget and Type only when given', async () => {
       const { expenses, requests } = setup(
-        json({ id: '2D2203E3-E5E5-811E-AF85-E0821E42C511' }),
-        json({ id: '2d2203e3e5e5811eaf85e0821e42c512' }),
+        json({ id: '00000000-0000-4000-8000-000000000007' }),
+        json({ id: '00000000000040008000000000000009' }),
         json({}),
       );
       const base = { category: 'clothes', month: '2026-10', nettoPageId: OCTOBER };
       expect(await expenses.createRow({ ...base, budgetCents: 20000n, type: 'Fixed' })).toBe(
-        '2d2203e3e5e5811eaf85e0821e42c511',
+        '00000000000040008000000000000007',
       );
       expect(
         await expenses.createRow({
@@ -323,7 +323,7 @@ describe('notionClient', () => {
           budgetCents: null,
           type: null,
         }),
-      ).toBe('2d2203e3e5e5811eaf85e0821e42c512');
+      ).toBe('00000000000040008000000000000009');
       await expect(expenses.createRow({ ...base, budgetCents: null, type: null })).rejects.toMatchObject({
         code: 'bad_response',
       });

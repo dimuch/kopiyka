@@ -65,9 +65,9 @@ The original 020 AC numbers are in brackets.
 
 ## Notes
 
-- **Expenses table.** Database `2d2203e3e5e5814faa96f9f8eba7d440`, data source
-  `collection://2d2203e3-e5e5-8154-8e58-000b356e2d71`, October view `?v=2d2203e3e5e581a8ab6a000c65292213`.
-  - **View filters.** Month = Oct, and `B to Netto` / `E to Netto` contain `2d2203e3e5e581c8ab4bf9cd93251846`.
+- **Expenses table.** Database `00000000000040008000000000000015`, data source
+  `collection://00000000-0000-4000-8000-000000000002`, October view `?v=00000000000040008000000000000016`.
+  - **View filters.** Month = Oct, and `B to Netto` / `E to Netto` contain `00000000000040008000000000000006`.
   - **Properties.** Category (title), Budget (number), Actual Amount (number, euro), Note (text), Type (select), Month
     (select: Jan, Feb, Mar, Apr, May, June, July, Aug, Sept, Oct, Nov, Dec), B to Netto / E to Netto (relations),
     Spent (rollup).
@@ -76,8 +76,8 @@ The original 020 AC numbers are in brackets.
   car 10, gift 0, Sviat 0, gym 280.
 - **Kopiyka's October totals then.** personal 102.96, parking 11.00, clothes 653.47, fun 64.53, eating out 23.33,
   medication 56.00, utilities 57.96, car 10.00, gym 280.00.
-- **Netto table.** Data source `collection://2d2203e3-e5e5-8153-8e48-000b2762daa5`, one page per month with a `Month`
-  select (January … December). 2026 pages exist for all 12 months (October: `2d2203e3e5e581c8ab4bf9cd93251846`).
+- **Netto table.** Data source `collection://00000000-0000-4000-8000-000000000003`, one page per month with a `Month`
+  select (January … December). 2026 pages exist for all 12 months (October: `00000000000040008000000000000006`).
   Its `Expenses` / `Budget` relations are the other side of `E to Netto` / `B to Netto`.
 - **Rounding.** Rounding each sync to whole euros can drift from kopiyka's exact totals by a few euros over a month
   (e.g. three syncs of €0.40 add 0 each). The user accepted this on 2026-10-13. The planner may propose rounding the

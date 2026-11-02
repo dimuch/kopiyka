@@ -1,6 +1,6 @@
 // One-time setup for Notion sync. Run once per database, one flag at a time:
 //
-//   yarn api notion-start --adopt 57=2d2203e3e5e581e99c53c4ff0d748207,60=2d2203e3...   (brief 020)
+//   yarn api notion-start --adopt 57=00000000000040008000000000000004,60=00000000...   (brief 020)
 //     records the grocery rows already in the Notion Groceries table, so the first sync doesn't send them again;
 //   yarn api notion-start --totals                                                     (brief 022)
 //     counts every expense already typed into the Expenses table's Actual Amount by hand, so they're never added again.

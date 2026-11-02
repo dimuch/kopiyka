@@ -16,7 +16,7 @@ turns `AddExpenseButton` from the floating button into a "+" icon button. It the
 Expenses and on category detail. The slice keeps its two callers and its `categoryId` prop.
 
 **JS `Tabs` from `expo-router/js-tabs`, not `NativeTabs`.** Checked against the installed expo-router 57.0.24 (read in
-`/Users/dmytro.kostylov/home/kopiyka/node_modules/expo-router`):
+`~/home/kopiyka/node_modules/expo-router`):
 
 - On web, `NativeTabs` (`expo-router/unstable-native-tabs` → `build/native-tabs/NativeTabsView.web.js`) renders a Radix
   tab list that shows only each tab's `title` text, with no icons. `assets/native-tabs.module.css` pins it at the top of

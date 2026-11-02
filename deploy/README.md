@@ -33,7 +33,7 @@ After changing one, re-run its install line below (step 6 or 8), always with `ng
 
 ## One-time setup
 
-Run on the droplet as `uppr` (sudo) unless a step says otherwise, after this folder is on `main`. Run `sudo -v` first,
+Run on the droplet as `<admin>` (sudo) unless a step says otherwise, after this folder is on `main`. Run `sudo -v` first,
 so piped `sudo` commands don't prompt twice at once.
 
 1. **Checks.** Each must hold, or stop and decide:
@@ -59,8 +59,8 @@ so piped `sudo` commands don't prompt twice at once.
    run `sudo mysql -e "SET PERSIST time_zone = '+00:00'"` (survives restarts, applies to new connections) and repeat
    the check. If they do rely on it, stop and decide.
 
-2. **DNS.** In DigitalOcean → Networking → Domains → `englishplus.com.ua`, add `A kopiyka → 165.22.31.51` (TTL 3600),
-   then `dig +short kopiyka.englishplus.com.ua` must print `165.22.31.51`.
+2. **DNS.** In DigitalOcean → Networking → Domains → `englishplus.com.ua`, add `A kopiyka → <droplet IP>` (TTL 3600),
+   then `dig +short kopiyka.englishplus.com.ua` must print `<droplet IP>`.
 
 3. **Database.** kopiyka gets its own MySQL user with rights on its own database only, so a leaked `DATABASE_URL`
    can't reach the other sites' data. A hex password needs no URL encoding:
@@ -307,7 +307,7 @@ Each path shows the six security headers. `/`, `/index.html` and `/budget` show 
                                                                                    # → …, immutable
   ```
 
-- [ ] `sudo ss -ltnp | grep :3100` shows `127.0.0.1:3100` only; from the laptop `curl -m 5 http://165.22.31.51:3100/api/health` fails.
+- [ ] `sudo ss -ltnp | grep :3100` shows `127.0.0.1:3100` only; from the laptop `curl -m 5 http://<droplet IP>:3100/api/health` fails.
 - [ ] `readlink /opt/kopiyka/current` ends in the deployed commit's first 7 characters.
 - [ ] The key-limit checks in step 7 gave the expected answers.
 - [ ] The other sites return 200 before, during and after a deploy.

@@ -66,8 +66,8 @@ The original 020 AC numbers are in brackets.
 - **Notion side.** An internal integration, its token in `apps/api/.env` (e.g. `NOTION_TOKEN`), with the Budget ’26
   page shared to it. The user creates it and shares the page before this part's real-Notion check. Sharing the page
   also covers the Expenses and Netto tables that 022 and 023 need.
-- **Groceries table.** Database `2d2203e3e5e581c7b1f9de3dadf6dd2c`, data source
-  `collection://2d2203e3-e5e5-819d-8823-000be6f1bad0`, October view `?v=2d2203e3e5e5810bb582000cfca2f581`.
+- **Groceries table.** Database `0000000000004000800000000000000a`, data source
+  `collection://00000000-0000-4000-8000-000000000001`, October view `?v=0000000000004000800000000000000b`.
   Properties: Name (title), Amount (number, euro), Date (date), Month (select, January–December), My Share (number),
   Other Share (formula), Kopiyka ID (number, added in 020).
 - **Notion API**, checked 2026-10-13 on developers.notion.com. Details are in 020's plan, "Split of brief 020".

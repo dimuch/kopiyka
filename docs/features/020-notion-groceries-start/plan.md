@@ -273,11 +273,11 @@ Delhaize 12.00: the first sync will create its row`), then `Unsent: N`.
 Build-time steps (no commits). The user approves them at Gate A, because they write to Notion and to the dev DB:
 
 1. **Notion column, after slice 4.** Through the Notion MCP: read the Groceries October view, add a number property
-   "Kopiyka ID" to data source `2d2203e3-e5e5-819d-8823-000be6f1bad0`, and set it on the 11 adopted pages to their
+   "Kopiyka ID" to data source `00000000-0000-4000-8000-000000000001`, and set it on the 11 adopted pages to their
    expense ids (Notes). Then read the view again and compare it with the first read: Name, Amount, Date and Month must
    be unchanged.
 2. **Dev DB adoption.** Add `NOTION_LEDGER_ID=1` and `NOTION_YEAR=2026` to `apps/api/.env`, then run:
-   `yarn api notion-start --adopt 57=2d2203e3e5e581e99c53c4ff0d748207,60=2d2203e3e5e58173a301f4c19bc4ff8d,61=2d2203e3e5e581f29d57fdab6c662e99,76=2d2203e3e5e5817288dbc1ccb8327ed1,63=2d2203e3e5e581ce87d2f993d7e85438,64=2d2203e3e5e58143a3fce814931ee14e,65=2d2203e3e5e581368f96fbe5ba7f2175,66=2d2203e3e5e58165aa2ecaa6f4ab7efc,68=2d2203e3e5e5813f9389d84ecacd46d5,42=2d2203e3e5e581da993fe7eec97e5832,71=2d2203e3e5e58187ac89e6dc0793435f`.
+   `yarn api notion-start --adopt 57=00000000000040008000000000000004,60=00000000000040008000000000000005,61=0000000000004000800000000000000c,76=0000000000004000800000000000000d,63=0000000000004000800000000000000e,64=0000000000004000800000000000000f,65=00000000000040008000000000000010,66=00000000000040008000000000000011,68=00000000000040008000000000000012,42=00000000000040008000000000000013,71=00000000000040008000000000000014`.
    Expect `Recorded 11 rows.`, no unrecorded groceries, and `Unsent: 0`. Then, signed in as `dimuch` on the web build,
    `fetch('/api/ledgers/1/notion/status')` should answer `{ unsent: 0 }`. On 2026-10-13 the dev DB's ledger 1 had
    exactly these 11 live 2026 groceries: ids 42, 57, 60, 61, 63, 64, 65, 66, 68, 71, 76.

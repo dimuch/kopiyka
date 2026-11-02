@@ -10,7 +10,7 @@ import { Icon } from '@/components/Icon';
 import { LoadError } from '@/components/LoadError';
 import { removeMember } from '@/data/members';
 import { useMembers } from '@/data/useMembers';
-import { dangerText, fonts, type Palette } from '@/theme';
+import { dangerText, fonts, outlinedDangerButton, outlinedDangerText, type Palette } from '@/theme';
 
 // Opened straight from a web link there's nothing to go back to, so fall back to Settings.
 function goBack() {
@@ -282,17 +282,8 @@ const makeStyles = (colors: Palette) =>
     role: { fontFamily: fonts.body, fontSize: 13, color: colors.muted },
     remove: { minHeight: 44, minWidth: 44, justifyContent: 'center', paddingHorizontal: 4 },
     removeText: dangerText(colors),
-    // Outlined like Settings' Sign out, so it doesn't read as the screen's main action.
-    leave: {
-      height: 48,
-      borderRadius: 24,
-      borderWidth: 1,
-      borderColor: colors.borderStrong,
-      backgroundColor: colors.surface,
-      alignItems: 'center',
-      justifyContent: 'center',
-    },
-    leaveText: { fontFamily: fonts.bodySemi, fontSize: 15, color: colors.danger },
+    leave: outlinedDangerButton(colors),
+    leaveText: outlinedDangerText(colors),
     panel: {
       gap: 8,
       padding: 14,

@@ -1,4 +1,4 @@
-import type { TextStyle } from 'react-native';
+import type { TextStyle, ViewStyle } from 'react-native';
 import type { Scheme } from '@/appearance/preference';
 
 // Colors and type from the "Budget App Screens" design canvas.
@@ -71,6 +71,26 @@ export const fonts = {
 /** The text of a button that deletes or removes something (expense form, Category menu, rename screen). */
 export function dangerText(colors: Palette): TextStyle {
   return { fontFamily: fonts.bodyMedium, fontSize: 15, color: colors.danger };
+}
+
+/**
+ * A destructive button that isn't the screen's main action (Sign out, Leave ledger): shaped like the login button,
+ * outlined. Its text is `outlinedDangerText`.
+ */
+export function outlinedDangerButton(colors: Palette): ViewStyle {
+  return {
+    height: 48,
+    borderRadius: 24,
+    borderWidth: 1,
+    borderColor: colors.borderStrong,
+    backgroundColor: colors.surface,
+    alignItems: 'center',
+    justifyContent: 'center',
+  };
+}
+
+export function outlinedDangerText(colors: Palette): TextStyle {
+  return { fontFamily: fonts.bodySemi, fontSize: 15, color: colors.danger };
 }
 
 // Tile hues per category, as on the canvas; anything new gets a stable hue from its name.

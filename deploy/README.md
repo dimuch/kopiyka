@@ -271,6 +271,28 @@ is off since the history import (30 October 2026): `NOTION_LEDGER_ID` and `NOTIO
 `apps/api/.env`, so Home shows no Sync to Notion panel. `NOTION_TOKEN` and the data source ids stay, for `--save`
 only. Turning sync back on (both lines back, restart the API) needs a sync to `unsent: 0` before the next import.
 
+## After changing the vhost
+
+Step 8's install without certbot, then a check that every kind of answer carries the security headers and no nginx
+version (`Server: nginx` only):
+
+```bash
+sudo -u kopiyka git -C /opt/kopiyka/repo.git fetch -q origin +refs/heads/main:refs/heads/main
+sudo -u kopiyka git -C /opt/kopiyka/repo.git show main:deploy/kopiyka.englishplus.com.ua.conf |
+  sudo tee /etc/nginx/sites-available/kopiyka.englishplus.com.ua.conf >/dev/null
+sudo nginx -t && sudo systemctl reload nginx
+
+site=https://kopiyka.englishplus.com.ua
+bundle=$(curl -s "$site/" | grep -o '/_expo/static/[^"]*' | head -1)
+for path in / /index.html /budget "$bundle" /api/health; do
+  echo "== $path"
+  curl -sI "$site$path" | grep -iE '^(server|strict-transport|content-security|x-frame|x-content-type|referrer-policy|permissions-policy|cache-control):'
+done
+```
+
+Each path shows the six security headers. `/`, `/index.html` and `/budget` show `Cache-Control: no-cache`, the bundle
+`…, immutable`, and `/api/health` none.
+
 ## After the first deploy
 
 - [ ] `https://kopiyka.englishplus.com.ua` on the laptop and the iPhone: log in, add an expense, reload, it's there.

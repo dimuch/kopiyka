@@ -107,7 +107,7 @@ Facts checked on the Base:
     - `undefined` in dev gives `http://localhost:3000`.
     - `http://localhost:3000` in dev is returned unchanged.
   - Verify: `yarn mobile typecheck`/`lint`. The web build starts as before (web never calls `nativeApiUrl`).
-- [ ] 5. Send security headers from nginx on every HTTPS response
+- [x] 5. Send security headers from nginx on every HTTPS response
   - Files: `deploy/kopiyka.englishplus.com.ua.conf`, `deploy/README.md`
   - Change in the conf:
     - Add the `map` and the server-level headers (contract above), plus `server_tokens off` in both server blocks.

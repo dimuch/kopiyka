@@ -81,7 +81,7 @@ the brief wants those unchanged. A second function also keeps the old path uncha
     - "refuses an owner of several ledgers": `INSERT INTO ledgers (name, owner_user_id)` a second ledger for
       dimuch. Expect `owns_several_ledgers` and no new user or membership.
 
-- [ ] 2. Prove a joined member uses the shared ledger like its owner (~90 lines)
+- [x] 2. Prove a joined member uses the shared ledger like its owner (~90 lines)
   - Files: `apps/api/test/members.int.test.ts` (new)
   - Change: test only. It builds the app with clock `2026-10-06T10:00:00Z` and a stubbed
     `fetchRate: async () => 50.483`. A local `joinUser(db, config, 'olena', 'dimuch'): Promise<TestUser>` decodes the

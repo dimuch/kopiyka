@@ -33,9 +33,9 @@ export default function CategoryScreen() {
   const [thisMonth] = useState(() => kyivMonth(new Date()));
   const categoryId = parseIdParam(params.categoryId);
   const month = parseMonthParam(params.month || thisMonth);
-  const colors = useColors();
+  const styles = useThemedStyles(makeStyles);
   return (
-    <View style={{ flex: 1, backgroundColor: colors.bg }}>
+    <View style={styles.page}>
       {/* Checked before anything loads, so a bad link fetches nothing. */}
       {categoryId !== null && month !== null ? (
         <CategoryBreakdown categoryId={categoryId} month={month} ended={month < thisMonth} />
@@ -224,6 +224,7 @@ function NotInMonth({ categoryId, month }: { categoryId: number; month: string }
 
 const makeStyles = (colors: Palette) =>
   StyleSheet.create({
+    page: { flex: 1, backgroundColor: colors.bg },
     screen: { flex: 1, backgroundColor: colors.bg, paddingHorizontal: 20, paddingTop: 20 },
     header: {
       flexDirection: 'row',

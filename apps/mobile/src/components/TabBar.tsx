@@ -39,7 +39,8 @@ export function TabBar({ fallback }: { fallback: TabName }) {
         return (
           <Pressable
             key={tab.name}
-            // Same roles and names as the library bar: iOS reads "Settings, 1 invite, tab, 6 of 6".
+            // Same roles and names as the library bar: iOS reads "Settings, 1 invite, tab, 6 of 6". The aria props, not
+            // accessibility*, because react-native-web only renders aria-label and aria-selected from these.
             role={Platform.select({ ios: 'button', default: 'tab' })}
             aria-selected={focused}
             aria-label={Platform.OS === 'ios' ? `${label}, tab, ${position + 1} of ${TABS.length}` : label}

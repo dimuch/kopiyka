@@ -69,7 +69,7 @@ Facts checked on the Base:
 
 ## Slices
 
-- [ ] 1. Upgrade zod to 4.6.7 to fix its memory exhaustion advisory
+- [x] 1. Upgrade zod to 4.6.7 to fix its memory exhaustion advisory
   - Files: `apps/api/package.json`, `yarn.lock`
   - Change: `yarn workspace @kopiyka/api add zod@^4.6.7`, then `yarn dedupe zod` in the same commit. `yarn add` never
     rewrites the shared lock entry `"zod@npm:^3.25.0 || ^4.0.0, zod@npm:^4.6.5"` (used by `eslint-plugin-react-hooks`),

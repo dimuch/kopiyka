@@ -269,7 +269,7 @@ knows its delta, so computing "after" before writing is smaller.
     - 409 `month_ended` for a September item (raw SQL), unchanged;
     - 401;
     - non-member 404.
-- [ ] 1.4 Let any member delete an income item (~75)
+- [x] 1.4 Let any member delete an income item (~75)
   - Files: `income/routes.ts` (DELETE), the test file.
   - Tests:
     - a member deletes the owner's item → 204, and it's gone from the list;

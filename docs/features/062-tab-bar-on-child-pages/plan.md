@@ -153,7 +153,7 @@ See Open questions.
     - **Badge:** with a pending invite, the Settings badge shows. On iOS VoiceOver reads "Settings, 1 invite, tab,
       6 of 6".
     - **Swipe-back:** iOS swipe-back still returns to Expenses.
-- [ ] 5. Show the tab bar on the expense form
+- [x] 5. Show the tab bar on the expense form
   - Files: `apps/mobile/src/app/expense.tsx`
   - Change: `ExpenseScreen` wraps the `SafeAreaView` in a `flex: 1` view, followed by `<TabBar fallback="index" />`.
     The `SafeAreaView`'s `edges` become `['top']`, because the bar pads the bottom inset.

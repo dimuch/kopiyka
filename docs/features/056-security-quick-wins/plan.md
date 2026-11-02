@@ -88,7 +88,7 @@ Facts checked on the Base:
       `'[object Object]'`).
     - The existing `admin.int.test.ts`, `migrations.int.test.ts` and `notionTotals.int.test.ts` cover `VALUES ?` and
       must still pass.
-- [ ] 3. Accept only known table aliases in liveInvite
+- [x] 3. Accept only known table aliases in liveInvite
   - Files: `apps/api/src/invites/live.ts`, `apps/api/test/liveInvite.test.ts` (new)
   - Change: `table: 'i' | 'ledger_invites'`, and the JSDoc says why, as `inMonthList` does.
   - Tests: `liveInvite('i')` returns the exact condition string. The second line is

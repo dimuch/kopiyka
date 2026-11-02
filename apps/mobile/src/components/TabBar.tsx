@@ -31,7 +31,7 @@ export function TabBar({ fallback }: { fallback: TabName }) {
 
   return (
     <View role="tablist" style={[styles.bar, { height: BAR_HEIGHT + insets.bottom, paddingBottom: insets.bottom }]}>
-      {TABS.map((tab, i) => {
+      {TABS.map((tab, position) => {
         const focused = tab.name === active;
         const { badge, label } = tabBadge(tab, count);
         const tabParams = params[tab.name];
@@ -42,7 +42,7 @@ export function TabBar({ fallback }: { fallback: TabName }) {
             // Same roles and names as the library bar: iOS reads "Settings, 1 invite, tab, 6 of 6".
             role={Platform.select({ ios: 'button', default: 'tab' })}
             aria-selected={focused}
-            aria-label={Platform.OS === 'ios' ? `${label}, tab, ${i + 1} of ${TABS.length}` : label}
+            aria-label={Platform.OS === 'ios' ? `${label}, tab, ${position + 1} of ${TABS.length}` : label}
             onPress={() => router.dismissTo(tabParams ? { pathname: tab.href, params: tabParams } : tab.href)}
             style={styles.item}
           >

@@ -238,6 +238,16 @@ See Open questions.
 
 ## Consolidate
 
+CONSOLIDATE: reused 0 · extracted 0 · left 1.
+
+- `TABS` and `tabBadge`: shared by both bars since slice 1, so there's no copy left.
+- `readTabs`, `isTab`, `StackRoutes`: no twin in `src/` (no other code reads navigation state).
+- `TabBar`: two callers (category detail, expense form); the library bar is the only lookalike, and it can't be
+  reused above the tab navigator.
+- LEAVE: `invites?.length ?? 0` in `(tabs)/_layout.tsx` and `TabBar` — two copies of a one-liner, outside screens'
+  logic.
+- Also renamed two single-letter names the short-name check found (`i`, `s`).
+
 ## Revision 1
 
 Skeptic REVISE, round 1:

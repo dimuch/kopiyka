@@ -233,4 +233,23 @@ Estimated total: about 225 changed lines. Every slice stays under 150.
 
 ## Deviations
 
+- Slice 3: Save and Delete go through one `run(action, failed)` in `IncomeForm` (in flight, busy, leave, refusal
+  text) instead of two copies of the save body; same behaviour, so it stays in the slice.
+- Slice 4: "October shows no Copy" was checked on September instead, with an August item seeded: by then October had
+  an item, so it showed no empty card.
+- Light mode wasn't seen on web (the QA user's theme stays dark, as in 059). The one new style (`delete`) takes its
+  colour from `dangerText(colors)`.
+
 ## Consolidate
+
+Pass over `origin/main...HEAD`. Reused 10 · extracted 1 · left 4.
+
+- REUSE: `useIncome` (also for the edit loader and the previous month), `copyRefusedText`, `EmptyMonth`'s `action`
+  and `note`, `AmountField`, `dangerText`, `monthEndedText`, `parseIdParam`, `usePushOnce`, `shiftMonth`, `LoadError`.
+- EXTRACT (inside the slice): `run()` in `IncomeForm`, shared by Save and Delete.
+- Copy flow vs Budget's — LEAVE: the second copy; extract on a third (Follow-ups).
+- `notListedText` vs `notInMonthText` (`data/categoryName.ts`) — LEAVE: a different noun and no name to quote; one
+  caller each.
+- `EditLoader` vs `CategoryInMonth`'s loading states — LEAVE: different data (a list lookup vs one category's
+  totals); merging them would add a generic loader for two callers.
+- The Delete button style vs the expense form's — LEAVE: styles are per screen by convention.

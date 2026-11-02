@@ -286,7 +286,7 @@ site=https://kopiyka.englishplus.com.ua
 bundle=$(curl -s "$site/" | grep -o '/_expo/static/[^"]*' | head -1)
 for path in / /index.html /budget "$bundle" /api/health; do
   echo "== $path"
-  curl -sI "$site$path" | grep -iE '^(server|strict-transport|content-security|x-frame|x-content-type|referrer-policy|permissions-policy|cache-control):'
+  curl -sI "$site$path" | grep -iE '^(server|strict-transport-security|content-security-policy|x-frame-options|x-content-type-options|referrer-policy|permissions-policy|cache-control):'
 done
 ```
 

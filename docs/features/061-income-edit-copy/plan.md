@@ -150,7 +150,7 @@ open. Gates run before every commit, with `DATABASE_URL_TEST` exported so the AP
     - In December, delete the only item: the empty card shows. Re-add it with "+" for slice 4.
     - The October item's link: Delete shows the ended line, and Delete disappears.
     - The item deleted by SQL first: Delete shows the not-listed line.
-- [ ] 4. Copy last month's income on an empty Income tab (~85)
+- [x] 4. Copy last month's income on an empty Income tab (~85)
   - Files: `data/income.ts` (`copyPreviousIncome`), `data/monthCopy.ts`, `test/monthCopy.test.ts`,
     `app/(tabs)/income.tsx`.
   - Change:

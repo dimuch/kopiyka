@@ -14,3 +14,8 @@ export async function updateIncome(ledgerId: number, incomeId: number, title: st
 export async function deleteIncome(ledgerId: number, incomeId: number): Promise<void> {
   await api(`/api/ledgers/${ledgerId}/income/${incomeId}`, { method: 'DELETE' });
 }
+
+/** Fills a 'YYYY-MM' month with no income from the month before it, titles and amounts (brief 061). */
+export async function copyPreviousIncome(ledgerId: number, month: string): Promise<void> {
+  await api(`/api/ledgers/${ledgerId}/months/${month}/income/copy`, { method: 'POST' });
+}

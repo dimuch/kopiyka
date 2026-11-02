@@ -20,4 +20,20 @@ export async function ledgerRoutes(app: FastifyInstance, { db }: AppDeps): Promi
       ledgers: rows.map((r) => ({ ledgerId: r.ledger_id, name: r.name, role: r.role, owner: r.owner })),
     };
   });
+
+  // Only the owner sees who's in the ledger. The check is inline: this is the one route that is owner-only
+  // throughout, so a `requireOwner` preHandler would have one caller (054's invite routes bring it).
+  app.get('/api/ledgers/:id/members', { preHandler: [app.requireAuth, app.requireLedger] }, async (req, reply) => {
+    if (req.ledger!.role !== 'owner') return reply.code(403).send({ error: 'owner_only' });
+    const [rows] = await db.query<RowDataPacket[]>(
+      // ENUM sorts by index: owner first.
+      `SELECT m.user_id, u.username, m.role
+         FROM ledger_members m
+         JOIN users u ON u.user_id = m.user_id
+        WHERE m.ledger_id = ?
+        ORDER BY m.role, m.joined_at, m.user_id`,
+      [req.ledger!.ledgerId],
+    );
+    return { members: rows.map((r) => ({ userId: r.user_id, username: r.username, role: r.role })) };
+  });
 }

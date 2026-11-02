@@ -28,6 +28,15 @@ export interface PendingInvite {
   username: string;
 }
 
+/** An invite to the signed-in user, live for an hour after it's sent. */
+export interface Invite {
+  inviteId: number;
+  ledgerId: number;
+  /** Every ledger is named "Home"; `owner` tells them apart. */
+  ledgerName: string;
+  owner: string;
+}
+
 export interface LedgerMembers {
   members: Member[];
   invites: PendingInvite[];

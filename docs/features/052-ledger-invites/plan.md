@@ -168,7 +168,7 @@ size and harder to read. Both are destructive only if rows exist, which they don
     app opens the stored choice or the first").
   - Tests: the existing `toEqual`s gain `owner` (`'ivanka'`/`'sviat'` in ledgers.int; `'dimuch'` for both views in
     #65's "lists only the joined ledger as member…").
-- [ ] 1.3 Open the ledger chosen on this device (~90)
+- [x] 1.3 Open the ledger chosen on this device (~90)
   - Files: `apps/mobile/src/auth/ledgerChoice.ts` (new), `apps/mobile/test/ledgerChoice.test.ts` (new),
     `apps/mobile/src/api/types.ts`, `apps/mobile/src/auth/AuthContext.tsx`
   - Change: `pickLedger`/`choiceKey`. `fetchMe` reads `AsyncStorage.getItem(choiceKey(user.userId))` (a read

@@ -124,7 +124,7 @@ refreshes (the same idea as `notionHistory.int.test.ts:40`).
 `rows()` returns only `SELECT status, status_changed_at FROM ledger_invites ORDER BY invite_id`, so every assertion
 on it is an exact `toEqual` (e.g. `[{ status: 'revoked', status_changed_at: clock }]`), not `toMatchObject`.
 
-- [ ] 1. Check the ledger owner with a shared preHandler (~15)
+- [x] 1. Check the ledger owner with a shared preHandler (~15)
   - Files: `apps/api/src/ledgers/access.ts`, `apps/api/src/ledgers/routes.ts`
   - Change: `export async function requireOwner(req, reply)`, with a one-line JSDoc that says it runs after
     `requireLedger`. The member list uses `preHandler: [app.requireAuth, app.requireLedger, requireOwner]` and drops its

@@ -252,6 +252,7 @@ describe.skipIf(!(await testDbReachable()))('ledger invites (MySQL)', () => {
         name: 'Home',
         role: 'member',
         owner: 'dimuch',
+        label: null,
       });
       expect((await send(olena, 'GET', `/api/ledgers/${dimuch.ledgerId}/categories?month=2026-10`))[0]).toBe(200);
       const [, list] = await send(dimuch, 'GET', `/api/ledgers/${dimuch.ledgerId}/members`);

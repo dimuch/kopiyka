@@ -1,14 +1,23 @@
 import { router } from 'expo-router';
 import { useRef, useState } from 'react';
-import { AccessibilityInfo, ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import {
+  AccessibilityInfo,
+  ActivityIndicator,
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  View,
+} from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { ApiError } from '@/api/client';
-import type { Ledger, Member } from '@/api/types';
+import type { Ledger, Member, PendingInvite } from '@/api/types';
 import { useColors, useThemedStyles } from '@/appearance/AppearanceContext';
 import { useSession } from '@/auth/AuthContext';
 import { Icon } from '@/components/Icon';
 import { LoadError } from '@/components/LoadError';
-import { removeMember } from '@/data/members';
+import { inviteMember, removeMember } from '@/data/members';
 import { useMembers } from '@/data/useMembers';
 import { dangerText, fonts, outlinedDangerButton, outlinedDangerText, type Palette } from '@/theme';
 
@@ -18,7 +27,10 @@ function goBack() {
   else router.replace('/settings');
 }
 
-/** The open ledger's members for its owner, who can remove them; a member sees only the ledger and Leave. */
+/**
+ * The open ledger's members for its owner, who can remove them and invite people; a member sees only the ledger and
+ * Leave.
+ */
 export default function MembersScreen() {
   const colors = useColors();
   const styles = useThemedStyles(makeStyles);
@@ -138,7 +150,104 @@ function OwnerMembers({ ledgerId }: { ledgerId: number }) {
           );
         })}
       </View>
+      <PendingList invites={data.invites} />
+      <InviteForm ledgerId={ledgerId} onInvited={reload} />
     </>
+  );
+}
+
+/** The ledger's live invites; nothing while there are none. */
+function PendingList({ invites }: { invites: PendingInvite[] }) {
+  const styles = useThemedStyles(makeStyles);
+  if (!invites.length) return null;
+  return (
+    <View style={styles.section}>
+      <Text style={styles.caption}>Invited</Text>
+      <View style={styles.list}>
+        {invites.map((invite, index) => (
+          <View key={invite.inviteId} style={[styles.row, index > 0 && styles.divider]}>
+            <View style={styles.line}>
+              <View style={styles.who}>
+                <Text numberOfLines={1} style={styles.name}>
+                  {invite.username}
+                </Text>
+              </View>
+            </View>
+          </View>
+        ))}
+      </View>
+    </View>
+  );
+}
+
+function InviteForm({ ledgerId, onInvited }: { ledgerId: number; onInvited: () => void }) {
+  const colors = useColors();
+  const styles = useThemedStyles(makeStyles);
+  const [username, setUsername] = useState('');
+  const [busy, setBusy] = useState(false);
+  const [failure, setFailure] = useState<string | null>(null);
+  // `busy` disables the button only after a re-render; two taps in one tick would both get here.
+  const inFlight = useRef(false);
+  const name = username.trim();
+
+  async function invite() {
+    if (inFlight.current || !name) return;
+    inFlight.current = true;
+    setBusy(true);
+    setFailure(null);
+    try {
+      const invited = await inviteMember(ledgerId, name);
+      setUsername('');
+      AccessibilityInfo.announceForAccessibility(`Invited ${invited.username}.`);
+      onInvited();
+    } catch (err) {
+      // One answer for an unknown user, a member and someone already invited: the API doesn't say which.
+      const text =
+        err instanceof ApiError && err.code === 'cannot_invite'
+          ? `Can’t invite ${name}. Check the spelling; they may already be in this ledger or invited to it.`
+          : 'Couldn’t invite. Check your connection and try again.';
+      // role="alert" covers web; VoiceOver needs an explicit announcement.
+      setFailure(text);
+      AccessibilityInfo.announceForAccessibility(text);
+    } finally {
+      inFlight.current = false;
+      setBusy(false);
+    }
+  }
+
+  return (
+    <View style={styles.section}>
+      <Text style={styles.caption}>Invite by username</Text>
+      <TextInput
+        accessibilityLabel="Username to invite"
+        value={username}
+        onChangeText={setUsername}
+        autoCapitalize="none"
+        autoCorrect={false}
+        maxLength={64}
+        returnKeyType="send"
+        onSubmitEditing={invite}
+        editable={!busy}
+        style={styles.input}
+        placeholderTextColor={colors.muted}
+      />
+      <Text style={styles.caption}>They’ll see it in the app for an hour.</Text>
+      {failure ? (
+        <Text accessibilityRole="alert" style={styles.failure}>
+          {failure}
+        </Text>
+      ) : null}
+      <Pressable
+        accessibilityRole="button"
+        accessibilityState={{ disabled: busy || !name, busy }}
+        disabled={busy || !name}
+        onPress={invite}
+        style={[styles.invite, (busy || !name) && { opacity: 0.5 }]}
+      >
+        {busy && <ActivityIndicator size="small" color={colors.onAccent} />}
+        <Text style={styles.inviteText}>Invite</Text>
+      </Pressable>
+    </View>
   );
 }
 
@@ -308,4 +417,26 @@ const makeStyles = (colors: Palette) =>
       backgroundColor: colors.danger,
     },
     confirmText: { fontFamily: fonts.bodySemi, fontSize: 15, color: colors.onAccent },
+    section: { gap: 8 },
+    input: {
+      height: 48,
+      borderRadius: 14,
+      borderWidth: 1,
+      borderColor: colors.borderStrong,
+      backgroundColor: colors.surface,
+      color: colors.text,
+      paddingHorizontal: 14,
+      fontFamily: fonts.bodyMedium,
+      fontSize: 16,
+    },
+    invite: {
+      height: 48,
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'center',
+      gap: 8,
+      borderRadius: 24,
+      backgroundColor: colors.accent,
+    },
+    inviteText: { fontFamily: fonts.bodySemi, fontSize: 15, color: colors.onAccent },
   });

@@ -142,7 +142,7 @@ QA setup, used by every Verify below (per `kopiyka-local-qa`):
 
 The slices, in order:
 
-- [ ] 1. Invite someone by username from the Members screen (~120)
+- [x] 1. Invite someone by username from the Members screen (~120)
   - Files: `apps/mobile/src/api/types.ts`, `apps/mobile/src/data/members.ts`, `apps/mobile/src/data/useMembers.ts`
     (JSDoc: "members and pending invites"), `apps/mobile/src/app/members.tsx`
   - Change: `PendingInvite`, `LedgerMembers.invites`, `inviteMember`.

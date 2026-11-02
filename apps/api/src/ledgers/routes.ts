@@ -6,7 +6,7 @@ import { requireOwner } from './access.js';
 
 const MemberParams = z.object({ userId: z.coerce.number().int().positive() });
 
-export async function ledgerRoutes(app: FastifyInstance, { db }: AppDeps): Promise<void> {
+export async function ledgerRoutes(app: FastifyInstance, { db, now }: AppDeps): Promise<void> {
   // The ledgers the user belongs to, oldest membership first, each with its owner's username (every ledger is
   // named "Home"); the app opens the one chosen on the device, or the first.
   app.get('/api/ledgers', { preHandler: app.requireAuth }, async (req) => {
@@ -25,7 +25,7 @@ export async function ledgerRoutes(app: FastifyInstance, { db }: AppDeps): Promi
     };
   });
 
-  // Only the owner sees who's in the ledger.
+  // Only the owner sees who's in the ledger, and who's invited to it.
   app.get(
     '/api/ledgers/:id/members',
     { preHandler: [app.requireAuth, app.requireLedger, requireOwner] },
@@ -39,7 +39,19 @@ export async function ledgerRoutes(app: FastifyInstance, { db }: AppDeps): Promi
         ORDER BY m.role, m.joined_at, m.user_id`,
         [req.ledger!.ledgerId],
       );
-      return { members: rows.map((row) => ({ userId: row.user_id, username: row.username, role: row.role })) };
+      // Live pending invites only: used and expired ones are history.
+      const [invites] = await db.query<RowDataPacket[]>(
+        `SELECT i.invite_id, u.username
+         FROM ledger_invites i
+         JOIN users u ON u.user_id = i.invitee_user_id
+        WHERE i.ledger_id = ? AND i.status = 'pending' AND i.expires_at > ?
+        ORDER BY i.created_at, i.invite_id`,
+        [req.ledger!.ledgerId, now()],
+      );
+      return {
+        members: rows.map((row) => ({ userId: row.user_id, username: row.username, role: row.role })),
+        invites: invites.map((row) => ({ inviteId: row.invite_id, username: row.username })),
+      };
     },
   );
 

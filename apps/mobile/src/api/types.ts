@@ -22,8 +22,15 @@ export interface Member {
   role: 'owner' | 'member';
 }
 
+/** Someone invited to the open ledger, as its owner sees them; the invite is live for an hour. */
+export interface PendingInvite {
+  inviteId: number;
+  username: string;
+}
+
 export interface LedgerMembers {
   members: Member[];
+  invites: PendingInvite[];
 }
 
 export interface Category {

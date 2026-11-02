@@ -55,6 +55,21 @@ describe.skipIf(!(await testDbReachable()))('GET /api/ledgers (MySQL)', () => {
     });
   });
 
+  it("answers ledger_not_found for a ledger that doesn't exist and for someone else's", async () => {
+    const ivanka = await makeUser(db, config, 'ivanka');
+    const stranger = await makeUser(db, config, 'stranger');
+    const headers = await authHeader(app, ivanka, clock);
+
+    for (const ledgerId of [999999, stranger.ledgerId]) {
+      const res = await app.inject({
+        method: 'GET',
+        url: `/api/ledgers/${ledgerId}/categories?month=2026-10`,
+        headers,
+      });
+      expect([res.statusCode, res.json()]).toEqual([404, { error: 'ledger_not_found' }]);
+    }
+  });
+
   it('needs a session', async () => {
     expect((await app.inject({ method: 'GET', url: '/api/ledgers' })).statusCode).toBe(401);
   });

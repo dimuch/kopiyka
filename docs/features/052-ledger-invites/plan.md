@@ -153,7 +153,7 @@ size and harder to read. Both are destructive only if rows exist, which they don
 
 ### Part 1: switch between ledgers (this brief, if the split is approved)
 
-- [ ] 1.1 Answer ledger_not_found when the user isn't in the ledger (~20)
+- [x] 1.1 Answer ledger_not_found when the user isn't in the ledger (~20)
   - Files: `apps/api/src/ledgers/access.ts`, `apps/api/test/expenses.int.test.ts`, `apps/api/test/notion.int.test.ts`,
     `apps/api/test/ledgers.int.test.ts`
   - Change: the code in `requireLedger`, and its JSDoc (the app uses the code to move off a lost ledger).

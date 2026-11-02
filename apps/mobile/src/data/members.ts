@@ -15,3 +15,8 @@ export async function inviteMember(ledgerId: number, username: string): Promise<
 export async function revokeInvite(ledgerId: number, inviteId: number): Promise<void> {
   await api(`/api/ledgers/${ledgerId}/invites/${inviteId}`, { method: 'DELETE' });
 }
+
+/** Sets the caller's own label for the ledger (brief 056); '' clears it. */
+export async function setLedgerLabel(ledgerId: number, label: string): Promise<void> {
+  await api(`/api/ledgers/${ledgerId}/label`, { method: 'PUT', body: { label } });
+}

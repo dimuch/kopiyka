@@ -138,8 +138,8 @@ the second consumer appears or `routes.ts` passes ~200 lines.
 
 - **Expo moves fast — don't trust memory.** Before using an Expo/RN API,
   check `apps/mobile/package.json` and the versioned docs
-  (`https://docs.expo.dev/versions/v57.0.0/`), or `expo-router` /
-  `expo-native-ui` skills. Add Expo/React Native packages with `npx expo install` (run in
+  (`https://docs.expo.dev/versions/v57.0.0/`), or the `expo-router`
+  skill. Add Expo/React Native packages with `npx expo install` (run in
   `apps/mobile`) for SDK-matched versions. Dev tools the monorepo
   already uses (vitest, eslint, typescript) go in with
   `yarn workspace <name> add -D <pkg>@<same range>` so there's one version.

@@ -226,7 +226,7 @@ Promise<Refusal | { month: string; amountCents: bigint }>`. It still locks first
       `over_income`, and the stored planned sum is '60.00'.
       - Prove-It: with `lockLedger` dropped from `setPlanned`, more than three get through. The developer runs this
         once and records it in Deviations.
-- [ ] 4. Refuse an Undo of a removal that would plan above income (~75)
+- [x] 4. Refuse an Undo of a removal that would plan above income (~75)
   - Files: `categories/monthLists.ts` (`restoreToMonth`), `categories/routes.ts` (restore maps `OverIncome`),
     `categories.int.test.ts`.
   - Tests, in November, in the same describe:

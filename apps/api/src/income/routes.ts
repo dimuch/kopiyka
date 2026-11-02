@@ -17,6 +17,7 @@ export interface IncomeItemDto {
 }
 
 const MonthParams = z.object({ month: z.string().regex(MONTH_RE, 'expected YYYY-MM') });
+const IncomeParams = z.object({ incomeId: z.coerce.number().int().positive() });
 // 1–40 characters after trimming, like category names. Money crosses the wire as decimal strings.
 const IncomeBody = z.object({
   title: z.string().trim().min(1).max(40),
@@ -63,5 +64,31 @@ export async function incomeRoutes(app: FastifyInstance, { db, now }: AppDeps): 
     });
     const dto: IncomeItemDto = { incomeId, title, amountEur, addedBy: req.auth!.username };
     return reply.code(201).send(dto);
+  });
+
+  // Any member edits any item; who added it stays. An item in an ended month is read-only.
+  app.put('/api/ledgers/:id/income/:incomeId', guards, async (req, reply) => {
+    const { incomeId } = IncomeParams.parse(req.params);
+    const { title, amount } = IncomeBody.parse(req.body);
+    const ledgerId = req.ledger!.ledgerId;
+    const result = await withTransaction(db, async (conn) => {
+      await lockLedger(conn, ledgerId);
+      const [rows] = await conn.query<RowDataPacket[]>(
+        'SELECT income_month FROM income_items WHERE income_id = ? AND ledger_id = ?',
+        [incomeId, ledgerId],
+      );
+      const item = rows[0];
+      if (!item) return 'not_found';
+      if (monthEnded(item.income_month.slice(0, 7), now())) return 'month_ended';
+      await conn.query('UPDATE income_items SET title = ?, amount_eur = ? WHERE income_id = ?', [
+        title,
+        centsToString(toCents(amount)),
+        incomeId,
+      ]);
+      return 'edited';
+    });
+    if (result === 'not_found') return reply.code(404).send({ error: 'not_found' });
+    if (result === 'month_ended') return reply.code(409).send({ error: 'month_ended' });
+    return reply.code(204).send();
   });
 }

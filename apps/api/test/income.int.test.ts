@@ -1,5 +1,5 @@
 import type { FastifyInstance } from 'fastify';
-import type { RowDataPacket } from 'mysql2/promise';
+import type { ResultSetHeader, RowDataPacket } from 'mysql2/promise';
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest';
 import { buildApp } from '../src/app.js';
 import { createDb, type Db } from '../src/db.js';
@@ -25,12 +25,28 @@ describe.skipIf(!(await testDbReachable()))('income items (MySQL)', () => {
   let auth: { authorization: string };
   let memberAuth: { authorization: string };
 
-  /** Stores an item with raw SQL, as `adder` in `ledgerId`. */
-  async function storeItem(ledgerId: number, adder: TestUser, month: string, title: string, amount: string) {
-    await db.query(
+  /** Stores an item with raw SQL, as `adder` in `ledgerId`; returns its id. */
+  async function storeItem(
+    ledgerId: number,
+    adder: TestUser,
+    month: string,
+    title: string,
+    amount: string,
+  ): Promise<number> {
+    const [res] = await db.query<ResultSetHeader>(
       'INSERT INTO income_items (ledger_id, income_month, title, amount_eur, created_by) VALUES (?, ?, ?, ?, ?)',
       [ledgerId, `${month}-01`, title, amount, adder.userId],
     );
+    return res.insertId;
+  }
+
+  /** The stored row of an item, or undefined once it's gone. */
+  async function storedItem(incomeId: number): Promise<RowDataPacket | undefined> {
+    const [rows] = await db.query<RowDataPacket[]>(
+      'SELECT title, amount_eur, created_by FROM income_items WHERE income_id = ?',
+      [incomeId],
+    );
+    return rows[0];
   }
 
   const list = (month: string, headers: Record<string, string> = auth, ledgerId = owner.ledgerId) =>
@@ -38,6 +54,13 @@ describe.skipIf(!(await testDbReachable()))('income items (MySQL)', () => {
 
   const add = (month: string, payload: object, headers: Record<string, string> = auth, ledgerId = owner.ledgerId) =>
     app.inject({ method: 'POST', url: `/api/ledgers/${ledgerId}/months/${month}/income`, payload, headers });
+
+  const edit = (
+    incomeId: number | string,
+    payload: object,
+    headers: Record<string, string> = auth,
+    ledgerId = owner.ledgerId,
+  ) => app.inject({ method: 'PUT', url: `/api/ledgers/${ledgerId}/income/${incomeId}`, payload, headers });
 
   async function itemCount(): Promise<number> {
     const [rows] = await db.query<RowDataPacket[]>('SELECT COUNT(*) AS n FROM income_items');
@@ -162,6 +185,65 @@ describe.skipIf(!(await testDbReachable()))('income items (MySQL)', () => {
       expect((await add('2026-10', { title: 'Salary', amount: '1' }, {})).statusCode).toBe(401);
       expect((await add('2026-10', { title: 'Salary', amount: '1' }, auth, stranger.ledgerId)).statusCode).toBe(404);
       expect(await itemCount()).toBe(0);
+    });
+  });
+
+  describe('PUT /api/ledgers/:id/income/:incomeId', () => {
+    it("lets a member edit the owner's item, keeping who added it", async () => {
+      const salary = await storeItem(owner.ledgerId, owner, '2026-10', 'Salary', '2500.00');
+      const res = await edit(salary, { title: ' Main job ', amount: '2600.1' }, memberAuth);
+      expect(res.statusCode).toBe(204);
+      expect((await list('2026-10')).json().items).toEqual([
+        { incomeId: salary, title: 'Main job', amountEur: '2600.10', addedBy: 'dimuch' },
+      ]);
+    });
+
+    it('refuses an invalid body and leaves the item unchanged', async () => {
+      const salary = await storeItem(owner.ledgerId, owner, '2026-10', 'Salary', '2500.00');
+      for (const body of INVALID_BODIES) {
+        const res = await edit(salary, body);
+        expect(res.statusCode, JSON.stringify(body)).toBe(400);
+        expect(res.json().error).toBe('invalid_request');
+      }
+      expect(await storedItem(salary)).toEqual({ title: 'Salary', amount_eur: '2500.00', created_by: owner.userId });
+    });
+
+    it("answers 404 for an unknown, deleted or other ledger's item", async () => {
+      const stranger = await makeUser(db, config, 'stranger');
+      const theirs = await storeItem(stranger.ledgerId, stranger, '2026-10', 'Salary', '9000.00');
+      const deleted = await storeItem(owner.ledgerId, owner, '2026-10', 'Old', '1.00');
+      await db.query('DELETE FROM income_items WHERE income_id = ?', [deleted]);
+      for (const id of [999_999, theirs, deleted]) {
+        const res = await edit(id, { title: 'Mine now', amount: '1' });
+        expect(res.statusCode, String(id)).toBe(404);
+        expect(res.json()).toEqual({ error: 'not_found' });
+      }
+      expect(await storedItem(theirs)).toEqual({ title: 'Salary', amount_eur: '9000.00', created_by: stranger.userId });
+    });
+
+    it('rejects a non-numeric item id', async () => {
+      expect((await edit('abc', { title: 'Salary', amount: '1' })).statusCode).toBe(400);
+    });
+
+    it('refuses an item in an ended month and leaves it unchanged', async () => {
+      const september = await storeItem(owner.ledgerId, owner, '2026-09', 'Salary', '2500.00');
+      const res = await edit(september, { title: 'Salary', amount: '1' });
+      expect(res.statusCode).toBe(409);
+      expect(res.json()).toEqual({ error: 'month_ended' });
+      expect(await storedItem(september)).toEqual({
+        title: 'Salary',
+        amount_eur: '2500.00',
+        created_by: owner.userId,
+      });
+    });
+
+    it('needs a session and a ledger of your own', async () => {
+      const salary = await storeItem(owner.ledgerId, owner, '2026-10', 'Salary', '2500.00');
+      const stranger = await makeUser(db, config, 'stranger');
+      const strangerAuth = await authHeader(app, stranger, clock);
+      expect((await edit(salary, { title: 'X', amount: '1' }, {})).statusCode).toBe(401);
+      expect((await edit(salary, { title: 'X', amount: '1' }, strangerAuth)).statusCode).toBe(404);
+      expect(await storedItem(salary)).toEqual({ title: 'Salary', amount_eur: '2500.00', created_by: owner.userId });
     });
   });
 });

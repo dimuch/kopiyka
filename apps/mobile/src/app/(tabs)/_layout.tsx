@@ -1,17 +1,9 @@
 import { Tabs } from 'expo-router/js-tabs';
 import { Platform } from 'react-native';
 import { useColors } from '@/appearance/AppearanceContext';
-import { Icon, type IconName } from '@/components/Icon';
+import { Icon } from '@/components/Icon';
 import { useInvites } from '@/data/invites';
-
-const TABS: { name: string; title: string; icon: IconName }[] = [
-  { name: 'index', title: 'Home', icon: 'home' },
-  { name: 'budget', title: 'Budget', icon: 'budget' },
-  { name: 'income', title: 'Income', icon: 'income' },
-  { name: 'expenses', title: 'Expenses', icon: 'expenses' },
-  { name: 'statistics', title: 'Statistics', icon: 'stats' },
-  { name: 'settings', title: 'Settings', icon: 'settings' },
-];
+import { TABS, tabBadge } from '@/tabs';
 
 export default function TabsLayout() {
   const colors = useColors();
@@ -31,10 +23,7 @@ export default function TabsLayout() {
       }}
     >
       {TABS.map((tab) => {
-        // Settings carries the count of pending invites, which it lists. Screen readers don't read the badge, so
-        // the tab's name says it too.
-        const badge = tab.name === 'settings' && count > 0 ? count : undefined;
-        const label = badge ? `${tab.title}, ${badge} ${badge === 1 ? 'invite' : 'invites'}` : tab.title;
+        const { badge, label } = tabBadge(tab, count);
         return (
           <Tabs.Screen
             key={tab.name}

@@ -3,7 +3,7 @@ import type { PoolConnection, ResultSetHeader, RowDataPacket } from 'mysql2/prom
 import { z } from 'zod';
 import type { AppDeps } from '../app.js';
 import { lockLedger } from '../categories/monthLists.js';
-import { MONTH_RE, monthEnded } from '../dates.js';
+import { MONTH_RE, monthEnded, previousMonthStart } from '../dates.js';
 import { withTransaction } from '../db.js';
 import { AMOUNT_RE, centsToString, toCents } from '../money.js';
 
@@ -116,5 +116,31 @@ export async function incomeRoutes(app: FastifyInstance, { db, now }: AppDeps): 
       return null;
     });
     return refused ? sendRefusal(reply, refused) : reply.code(204).send();
+  });
+
+  // Fills a month with no income from the month before it: titles and amounts, since income usually repeats.
+  app.post('/api/ledgers/:id/months/:month/income/copy', guards, async (req, reply) => {
+    const { month } = MonthParams.parse(req.params);
+    if (monthEnded(month, now())) return reply.code(409).send({ error: 'month_ended' });
+    const ledgerId = req.ledger!.ledgerId;
+    const first = `${month}-01`;
+    const result = await withTransaction(db, async (conn) => {
+      await lockLedger(conn, ledgerId);
+      const [existing] = await conn.query<RowDataPacket[]>(
+        'SELECT 1 FROM income_items WHERE ledger_id = ? AND income_month = ? LIMIT 1',
+        [ledgerId, first],
+      );
+      if (existing.length) return 'income_exists';
+      const [copied] = await conn.query<ResultSetHeader>(
+        `INSERT INTO income_items (ledger_id, income_month, title, amount_eur, created_by)
+         SELECT ledger_id, ?, title, amount_eur, ?
+           FROM income_items
+          WHERE ledger_id = ? AND income_month = ?
+          ORDER BY income_id`,
+        [first, req.auth!.userId, ledgerId, previousMonthStart(month)],
+      );
+      return copied.affectedRows ? 'copied' : 'no_previous_income';
+    });
+    return result === 'copied' ? reply.code(204).send() : reply.code(409).send({ error: result });
   });
 }

@@ -65,6 +65,9 @@ describe.skipIf(!(await testDbReachable()))('income items (MySQL)', () => {
   const remove = (incomeId: number | string, headers: Record<string, string> = auth, ledgerId = owner.ledgerId) =>
     app.inject({ method: 'DELETE', url: `/api/ledgers/${ledgerId}/income/${incomeId}`, headers });
 
+  const copy = (month: string, headers: Record<string, string> = auth, ledgerId = owner.ledgerId) =>
+    app.inject({ method: 'POST', url: `/api/ledgers/${ledgerId}/months/${month}/income/copy`, headers });
+
   async function itemCount(): Promise<number> {
     const [rows] = await db.query<RowDataPacket[]>('SELECT COUNT(*) AS n FROM income_items');
     return rows[0]!.n;
@@ -290,6 +293,74 @@ describe.skipIf(!(await testDbReachable()))('income items (MySQL)', () => {
       expect((await remove(salary, {})).statusCode).toBe(401);
       expect((await remove(salary, strangerAuth)).statusCode).toBe(404);
       expect(await storedItem(salary)).toBeDefined();
+    });
+  });
+
+  describe('POST /api/ledgers/:id/months/:month/income/copy', () => {
+    it("copies last month's titles and amounts in order, as added by whoever copied", async () => {
+      await storeItem(owner.ledgerId, owner, '2026-10', 'Salary', '2500.00');
+      await storeItem(owner.ledgerId, member, '2026-10', 'Freelance', '300.00');
+      const october = (await list('2026-10')).json().items;
+
+      expect((await copy('2026-11', memberAuth)).statusCode).toBe(204);
+      expect((await list('2026-11')).json().items).toEqual([
+        { incomeId: expect.any(Number), title: 'Salary', amountEur: '2500.00', addedBy: 'olena' },
+        { incomeId: expect.any(Number), title: 'Freelance', amountEur: '300.00', addedBy: 'olena' },
+      ]);
+      expect((await list('2026-10')).json().items).toEqual(october);
+    });
+
+    it('refuses a month that already has income, writing nothing', async () => {
+      await storeItem(owner.ledgerId, owner, '2026-10', 'Salary', '2500.00');
+      await storeItem(owner.ledgerId, owner, '2026-11', 'Bonus', '100.00');
+      const res = await copy('2026-11');
+      expect(res.statusCode).toBe(409);
+      expect(res.json()).toEqual({ error: 'income_exists' });
+      expect(await itemCount()).toBe(2);
+    });
+
+    it('refuses when last month has no income', async () => {
+      const res = await copy('2026-11');
+      expect(res.statusCode).toBe(409);
+      expect(res.json()).toEqual({ error: 'no_previous_income' });
+      expect(await itemCount()).toBe(0);
+    });
+
+    it("never copies another ledger's income", async () => {
+      const stranger = await makeUser(db, config, 'stranger');
+      await storeItem(stranger.ledgerId, stranger, '2026-10', 'Their salary', '9000.00');
+      const refused = await copy('2026-11');
+      expect(refused.statusCode).toBe(409);
+      expect(refused.json()).toEqual({ error: 'no_previous_income' });
+
+      await storeItem(owner.ledgerId, owner, '2026-10', 'Salary', '2500.00');
+      expect((await copy('2026-11')).statusCode).toBe(204);
+      expect((await list('2026-11')).json().items.map((i: { title: string }) => i.title)).toEqual(['Salary']);
+    });
+
+    it('refuses an ended month and a malformed one', async () => {
+      await storeItem(owner.ledgerId, owner, '2026-08', 'Salary', '2500.00');
+      const ended = await copy('2026-09');
+      expect(ended.statusCode).toBe(409);
+      expect(ended.json()).toEqual({ error: 'month_ended' });
+      expect((await copy('2026-13')).statusCode).toBe(400);
+      expect(await itemCount()).toBe(1);
+    });
+
+    it('needs a session and a ledger of your own', async () => {
+      const stranger = await makeUser(db, config, 'stranger');
+      await storeItem(owner.ledgerId, owner, '2026-10', 'Salary', '2500.00');
+      expect((await copy('2026-11', {})).statusCode).toBe(401);
+      expect((await copy('2026-11', auth, stranger.ledgerId)).statusCode).toBe(404);
+      expect(await itemCount()).toBe(1);
+    });
+
+    it('copies once when two members copy at the same time', async () => {
+      await storeItem(owner.ledgerId, owner, '2026-10', 'Salary', '2500.00');
+      await storeItem(owner.ledgerId, member, '2026-10', 'Freelance', '300.00');
+      const codes = (await Promise.all([copy('2026-11'), copy('2026-11', memberAuth)])).map((r) => r.statusCode);
+      expect(codes.sort()).toEqual([204, 409]);
+      expect((await list('2026-11')).json().items).toHaveLength(2);
     });
   });
 });

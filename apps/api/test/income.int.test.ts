@@ -1,0 +1,99 @@
+import type { FastifyInstance } from 'fastify';
+import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest';
+import { buildApp } from '../src/app.js';
+import { createDb, type Db } from '../src/db.js';
+import { addMember } from '../src/ledgers/members.js';
+import {
+  authHeader,
+  clearData,
+  makeUser,
+  resetSchema,
+  TEST_DB_URL,
+  testConfig,
+  testDbReachable,
+  type TestUser,
+} from './helpers.js';
+
+describe.skipIf(!(await testDbReachable()))('income items (MySQL)', () => {
+  const config = testConfig();
+  const clock = new Date('2026-10-06T10:00:00Z');
+  let db: Db;
+  let app: FastifyInstance;
+  let owner: TestUser;
+  let member: TestUser;
+  let auth: { authorization: string };
+
+  /** Stores an item with raw SQL, as `adder` in `ledgerId`. */
+  async function storeItem(ledgerId: number, adder: TestUser, month: string, title: string, amount: string) {
+    await db.query(
+      'INSERT INTO income_items (ledger_id, income_month, title, amount_eur, created_by) VALUES (?, ?, ?, ?, ?)',
+      [ledgerId, `${month}-01`, title, amount, adder.userId],
+    );
+  }
+
+  const list = (month: string, headers: Record<string, string> = auth, ledgerId = owner.ledgerId) =>
+    app.inject({ method: 'GET', url: `/api/ledgers/${ledgerId}/months/${month}/income`, headers });
+
+  beforeAll(async () => {
+    await resetSchema();
+    db = createDb(TEST_DB_URL!);
+    app = await buildApp({ config, db, now: () => clock, fetchRate: async () => 50.483 });
+  });
+
+  afterAll(async () => {
+    await app?.close();
+    await db?.end();
+  });
+
+  beforeEach(async () => {
+    await clearData(db);
+    owner = await makeUser(db, config, 'dimuch');
+    member = await makeUser(db, config, 'olena');
+    await addMember(db, owner.ledgerId, member.userId);
+    auth = await authHeader(app, owner, clock);
+  });
+
+  describe('GET /api/ledgers/:id/months/:month/income', () => {
+    it("lists the month's items oldest first, each with who added it", async () => {
+      await storeItem(owner.ledgerId, owner, '2026-10', 'Salary', '2500.00');
+      await storeItem(owner.ledgerId, member, '2026-10', 'Freelance', '300.50');
+      await storeItem(owner.ledgerId, owner, '2026-11', 'Bonus', '100.00');
+
+      const res = await list('2026-10');
+      expect(res.statusCode).toBe(200);
+      expect(res.json().items).toEqual([
+        { incomeId: expect.any(Number), title: 'Salary', amountEur: '2500.00', addedBy: 'dimuch' },
+        { incomeId: expect.any(Number), title: 'Freelance', amountEur: '300.50', addedBy: 'olena' },
+      ]);
+    });
+
+    it('answers an empty list for a month with no items', async () => {
+      const res = await list('2026-10');
+      expect(res.statusCode).toBe(200);
+      expect(res.json()).toEqual({ items: [] });
+    });
+
+    it("never shows another ledger's items", async () => {
+      const stranger = await makeUser(db, config, 'stranger');
+      await storeItem(stranger.ledgerId, stranger, '2026-10', 'Salary', '9000.00');
+      expect((await list('2026-10')).json()).toEqual({ items: [] });
+    });
+
+    it('rejects a malformed month', async () => {
+      const res = await list('2026-13');
+      expect(res.statusCode).toBe(400);
+      expect(res.json().error).toBe('invalid_request');
+    });
+
+    it('needs a session', async () => {
+      expect((await list('2026-10', {})).statusCode).toBe(401);
+    });
+
+    it("answers 404 for someone else's ledger", async () => {
+      const stranger = await makeUser(db, config, 'stranger');
+      const res = await list('2026-10', auth, stranger.ledgerId);
+      expect(res.statusCode).toBe(404);
+      expect(res.json().error).toBe('ledger_not_found');
+    });
+  });
+});

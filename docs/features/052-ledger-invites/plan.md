@@ -203,7 +203,7 @@ size and harder to read. Both are destructive only if rows exist, which they don
     Today a copy refusal in ledger A would hide Copy for the same month in ledger B after a switch (AC6).
   - Verify: typecheck/lint, plus 1.7's check (the panel shows on ledger 1, the Notion ledger in dev, after switching
     back to it).
-- [ ] 1.7 Pick the ledger in Settings when the user is in more than one (~110)
+- [x] 1.7 Pick the ledger in Settings when the user is in more than one (~110)
   - Files: `apps/mobile/src/components/LedgerPicker.tsx` (new), `apps/mobile/src/app/(tabs)/settings.tsx`
   - Change: a "Ledger" section, shown only when `ledgers.length > 1`. It is a radiogroup of rows with the name plus
     "Yours" (role owner) or "<owner>’s", e.g. `accessibilityLabel` "Home, dimuch’s", with 44pt rows. Selecting a row

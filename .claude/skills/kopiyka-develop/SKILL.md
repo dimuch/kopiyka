@@ -29,7 +29,9 @@ For each unticked slice, in order:
    — only the one(s) this slice needs.
 2. **Test first where logic lives** (`test-driven-development`): for pure
    logic and routes, write the failing test(s) named in the slice, run
-   them, see them fail for the right reason.
+   them, see them fail for the right reason. Where an honest automated test
+   is impractical (layout, native-only behaviour), don't write a hollow one —
+   the slice's manual check is the evidence.
 3. **Implement the minimum** that makes them pass and meets the slice.
    Copy the shape of the nearest sibling (route, hook, component) rather
    than inventing a new one.
@@ -53,7 +55,11 @@ For each unticked slice, in order:
    - could this be simpler or shorter with the same behaviour? If yes,
      simplify now (`code-simplification`);
    - does new code re-implement an existing helper? Call the existing one
-     (search per `.claude/skills/kopiyka-refactoring/SKILL.md` §8).
+     (search per `.claude/skills/kopiyka-refactoring/SKILL.md` §8);
+   - would each new test still pass if the code under test returned
+     nothing (`undefined`, `[]`, `0`, an empty 200)? Then it proves nothing —
+     assert the exact value the caller sees;
+   - does a new guard hide a cause instead of fixing it (conventions §1)?
 7. **Commit** — stage only this slice's files plus the ticked checkbox in
    `plan.md`:
    ```bash
@@ -86,8 +92,17 @@ The plan was approved; changing it silently breaks that approval.
 - A gate fails and the cause isn't obvious after one look → follow
   `debugging-and-error-recovery` (reproduce, isolate, root cause). No
   shotgun edits.
-- Same slice fails its gates after 3 real attempts → stop and report what
-  was tried; don't weaken a test, rule or type to get green.
+- **Two fixes failed the same gate → attack the premise.** Before a third
+  attempt, write in one sentence the assumption both fixes shared ("the
+  rate is cached per date", "focus reload runs once"), then check it
+  against the code, data or a log line. Usually it's false; fix from the
+  corrected premise. Still failing after that → stop and report what was
+  tried and the premise you checked; don't weaken a test, rule or type to
+  get green.
+- **Repetitive mechanical edits** (the same change at ~5+ sites): do one by
+  hand, then script the rest (a codemod or `sed` script kept in the system
+  temp dir, not the repo), and check the scripted result matches the
+  hand-made one before committing.
 - Integration tests skipped because MySQL isn't reachable → say so
   explicitly; route slices are not verified until they run (CI will run
   them; mark the slice "verified in CI" only after it has).
@@ -99,4 +114,6 @@ The plan was approved; changing it silently breaks that approval.
 - `any`, `!`, `eslint-disable`, `skip`, or a loosened assertion added to
   make a gate pass.
 - A new helper/abstraction with one caller that the plan didn't ask for.
+- `?.`, `?? 0` or `try/catch` added right where the error showed up, with
+  no answer to "why was it missing?".
 - "Verified" in a report without the command or check that verified it.

@@ -49,7 +49,10 @@ brief/plan → review anyway, mark spec compliance `UNVERIFIED`.
    - **Correctness**: edge cases (empty, zero, max, month/date boundaries,
      Kyiv midnight, rounding half-up, deleted/hidden categories), async
      races (unmounted setState, stale focus reloads, double submit),
-     error paths mapped to user text.
+     error paths mapped to user text. Bulk writes (migrations, imports,
+     syncs, scripts): run twice or after a crash halfway — same end state?
+     A fix that guards the symptom instead of the cause (conventions §1) is
+     Important.
    - **Invariants & security**: cents/strings for money, ledger guard +
      `ledger_id` scoping, non-member 404, parameterised SQL only, Zod at
      the boundary, no secrets/codes/tokens in logs, cookie/CORS untouched
@@ -66,7 +69,10 @@ brief/plan → review anyway, mark spec compliance `UNVERIFIED`.
      `## Consolidate` still hold.
    - **Tests**: required cases from conventions §6 present; tests assert
      behaviour with exact values; no network; fixed clock; no snapshots;
-     UI checks listed for UI-only behaviour.
+     UI checks listed for UI-only behaviour. For each new test, ask: would
+     it still pass if the code returned nothing (`undefined`, `[]`, `0`, an
+     empty 200), or if the key line were deleted? Yes → Important: the test
+     doesn't pin the behaviour its name claims.
    - **App specifics**: four states for async UI, web + iOS paths,
      accessibility labels/roles, React Compiler rules respected, list
      keys, no falsy `&&` rendering of numbers/strings in JSX

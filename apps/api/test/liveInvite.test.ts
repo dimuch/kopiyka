@@ -7,8 +7,9 @@ describe('liveInvite', () => {
     expect(liveInvite('ledger_invites')).toBe("ledger_invites.status = 'pending' AND ledger_invites.expires_at > ?");
   });
 
+  // The check is the typecheck: `yarn typecheck` fails if the directive below stops being needed.
   it('takes only the aliases its callers use, since the name goes into SQL as is', () => {
     // @ts-expect-error -- only the aliases its callers use reach SQL
-    expect(liveInvite('users')).toContain('users.status');
+    liveInvite('users');
   });
 });

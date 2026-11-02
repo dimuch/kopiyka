@@ -2,6 +2,7 @@ import { Tabs } from 'expo-router/js-tabs';
 import { Platform } from 'react-native';
 import { useColors } from '@/appearance/AppearanceContext';
 import { Icon, type IconName } from '@/components/Icon';
+import { useInvites } from '@/data/invites';
 
 const TABS: { name: string; title: string; icon: IconName }[] = [
   { name: 'index', title: 'Home', icon: 'home' },
@@ -13,8 +14,11 @@ const TABS: { name: string; title: string; icon: IconName }[] = [
 
 export default function TabsLayout() {
   const colors = useColors();
+  const { reload } = useInvites();
   return (
     <Tabs
+      // Every tab tap (and the return from a pushed screen) checks for new invites; there's no polling.
+      screenListeners={{ focus: reload }}
       screenOptions={{
         headerShown: false,
         tabBarShowLabel: false,

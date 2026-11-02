@@ -107,7 +107,7 @@ to keep correct.
 
 ## Slices
 
-- [ ] 2.1 List a ledger's members for its owner (~65)
+- [x] 2.1 List a ledger's members for its owner (~65)
   - Files: `apps/api/src/ledgers/routes.ts`, `apps/api/test/members.int.test.ts`
   - Change: the GET route per Contracts, with the inline owner check and a comment on why it isn't `requireOwner` yet.
   - Tests (in the existing suite; dimuch owns the ledger, olena joined): "lists the members for the owner": dimuch

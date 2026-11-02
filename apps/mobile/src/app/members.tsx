@@ -48,8 +48,8 @@ export default function MembersScreen() {
           <Text accessibilityRole="header" style={styles.title}>
             Members
           </Text>
-          {/* Every ledger is named "Home", so the owner tells them apart, as in the Settings picker. */}
-          <Text style={styles.caption}>{`${ledger.owner}’s ${ledger.name}`}</Text>
+          {/* The user's own label, else the owner tells "Home"s apart, as in the Settings picker. */}
+          <Text style={styles.caption}>{ledger.label ?? `${ledger.owner}’s ${ledger.name}`}</Text>
         </View>
         {ledger.role === 'owner' ? <OwnerMembers ledgerId={ledger.ledgerId} /> : <MemberLeave ledger={ledger} />}
       </ScrollView>

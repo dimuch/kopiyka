@@ -139,7 +139,7 @@ The slices, in order:
     - A stranger (`makeUser`) → 404 `ledger_not_found`. A ledger id that doesn't exist → 404 `ledger_not_found`.
     - Leaving drops the label: olena sets one and leaves (DELETE `ledgerUrl(`/members/${olena.userId}`)` with `memberAuth`). `addMember` puts her back, and GET
       shows `label: null`.
-- [ ] 3. Show your own ledger label in the picker, on Home and on Members (~20)
+- [x] 3. Show your own ledger label in the picker, on Home and on Members (~20)
   - Files: `apps/mobile/src/api/types.ts`, `apps/mobile/test/ledgerChoice.test.ts` (fixture gains `label: null`),
     `apps/mobile/src/components/LedgerPicker.tsx`, `apps/mobile/src/app/(tabs)/index.tsx`,
     `apps/mobile/src/app/members.tsx`

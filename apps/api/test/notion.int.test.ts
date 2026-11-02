@@ -109,7 +109,7 @@ describe.skipIf(!(await testDbReachable()))('Notion sync status (MySQL)', () => 
     expect((await status(owner.ledgerId, {})).statusCode).toBe(401);
     const stranger = await makeUser(db, config, 'stranger');
     const foreign = await status(stranger.ledgerId);
-    expect([foreign.statusCode, foreign.json()]).toEqual([404, { error: 'not_found' }]);
+    expect([foreign.statusCode, foreign.json()]).toEqual([404, { error: 'ledger_not_found' }]);
     expect((await status('abc')).json()).toMatchObject({ error: 'invalid_request' });
   });
 
@@ -252,7 +252,7 @@ describe.skipIf(!(await testDbReachable()))('Notion sync status (MySQL)', () => 
       expect((await sync(owner.ledgerId, {})).statusCode).toBe(401);
       const stranger = await makeUser(db, config, 'stranger');
       const foreign = await sync(stranger.ledgerId);
-      expect([foreign.statusCode, foreign.json()]).toEqual([404, { error: 'not_found' }]);
+      expect([foreign.statusCode, foreign.json()]).toEqual([404, { error: 'ledger_not_found' }]);
       expect((await sync('abc')).json()).toMatchObject({ error: 'invalid_request' });
     });
   });

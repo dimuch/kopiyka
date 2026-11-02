@@ -13,14 +13,15 @@ const notConfigured = (err: unknown) =>
 
 /**
  * The ledger's Notion sync status, reloaded whenever the screen comes into focus, and the Sync action. A refetch keeps
- * the last status on screen; `unconfigured` sticks once the API says so, since status can answer while sync can't.
+ * the last status on screen; `unconfigured` sticks for the ledger once the API says so, since status can answer while sync can't.
  */
 export function useNotionSync(ledgerId: number) {
   const [version, setVersion] = useState(0);
   const [loaded, setLoaded] = useState<{ ledgerId: number; notion: NotionStatus } | null>(null);
-  const [failed, setFailed] = useState<number | null>(null);
-  // Not tagged with ledgerId like `loaded`: a session has one ledger, and signing out unmounts Home.
-  const [unconfigured, setUnconfigured] = useState(false);
+  // Tagged with the ledger (and the attempt), like `loaded`, so switching ledgers clears them without an effect.
+  const [failed, setFailed] = useState<string | null>(null);
+  const [unconfigured, setUnconfigured] = useState<number | null>(null);
+  const isUnconfigured = unconfigured === ledgerId;
   const [syncing, setSyncing] = useState(false);
   const [outcome, setOutcome] = useState<SyncOutcome | null>(null);
   // Set before the first re-render, so a fast double tap can't send two syncs.
@@ -28,19 +29,19 @@ export function useNotionSync(ledgerId: number) {
 
   useFocusEffect(
     useCallback(() => {
-      if (unconfigured) return;
+      if (isUnconfigured) return;
       let live = true;
       api<NotionStatus>(`/api/ledgers/${ledgerId}/notion/status`)
         .then((notion) => live && setLoaded({ ledgerId, notion }))
         .catch((err: unknown) => {
           if (!live) return;
-          if (notConfigured(err)) setUnconfigured(true);
-          else setFailed(version);
+          if (notConfigured(err)) setUnconfigured(ledgerId);
+          else setFailed(`${ledgerId}/${version}`);
         });
       return () => {
         live = false;
       };
-    }, [ledgerId, version, unconfigured]),
+    }, [ledgerId, version, isUnconfigured]),
   );
 
   const reload = useCallback(() => setVersion((v) => v + 1), []);
@@ -56,7 +57,7 @@ export function useNotionSync(ledgerId: number) {
         setOutcome({ kind: 'result', result });
       } catch (err) {
         if (notConfigured(err)) {
-          setUnconfigured(true);
+          setUnconfigured(ledgerId);
           hidden = true;
         } else {
           setOutcome({ kind: 'refused', code: err instanceof ApiError ? err.code : 'network' });
@@ -69,11 +70,11 @@ export function useNotionSync(ledgerId: number) {
     })();
   }, [ledgerId]);
 
-  const state: NotionSyncState = unconfigured
+  const state: NotionSyncState = isUnconfigured
     ? { status: 'unconfigured' }
     : loaded?.ledgerId === ledgerId
       ? { status: 'ready', notion: loaded.notion }
-      : failed === version
+      : failed === `${ledgerId}/${version}`
         ? { status: 'failed' }
         : { status: 'loading' };
   return { state, syncing, outcome, sync, reload };

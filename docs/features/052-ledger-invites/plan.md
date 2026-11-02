@@ -194,7 +194,7 @@ size and harder to read. Both are destructive only if rows exist, which they don
     `INSERT INTO ledger_members (ledger_id, user_id, role) VALUES (1, <id>, 'member')`), choose ledger 1 (slice 1.7, or set `localStorage['kopiyka.ledger.<id>']='1'`
     first). `DELETE` that membership, then tap Budget → it shows claude-qa-052's own ledger. Delete the last
     membership → the no-ledger screen.
-- [ ] 1.6 Keep Notion's and Budget's answers to the ledger they came from (~20)
+- [x] 1.6 Keep Notion's and Budget's answers to the ledger they came from (~20)
   - Files: `apps/mobile/src/data/useNotionSync.ts`, `apps/mobile/src/app/(tabs)/budget.tsx`
   - Change: `unconfigured` becomes `useState<number | null>` holding the ledger id, compared to `ledgerId`. Today
     it would stay hidden after switching to the ledger Notion syncs. Update the "a session has one ledger" comment.

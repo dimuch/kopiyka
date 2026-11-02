@@ -4,7 +4,7 @@ import { api } from '@/api/client';
 import type { LedgerMembers } from '@/api/types';
 
 /**
- * The ledger's members (owner only), reloaded whenever the screen comes into focus.
+ * The ledger's members and pending invites (owner only), reloaded whenever the screen comes into focus.
  * `data` is null until this ledger's members have loaded; a failed refetch keeps it and sets `error`.
  */
 export function useMembers(ledgerId: number) {

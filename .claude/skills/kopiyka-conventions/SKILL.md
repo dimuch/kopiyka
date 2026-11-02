@@ -181,6 +181,10 @@ StyleSheet.create({...})` at the bottom of the file, read with
   test plan.
 - Bug fix → a test that fails before the fix (Prove-It), for API code and
   app pure logic alike.
+- Re-runnable code (§1): a stub that throws mid-run tests the `catch` and
+  rollback path, not a crash — a killed process runs neither. Prove crash
+  safety by seeding the half-written state a crash would leave, then
+  asserting a re-run ends in the same state as one clean run.
 - No snapshot tests; assert behaviour, not implementation.
 
 ## 7. Quality gates (run before every commit)
@@ -223,7 +227,7 @@ State it in the plan and the PR.
 | When touching                          | Load                          | Mind the conflict                                                                                                                                                                           |
 | -------------------------------------- | ----------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Fastify routes, hooks, plugins, errors | `fastify-best-practices`      | keep Zod `.parse` (not TypeBox/JSON Schema), Vitest (not `node:test`), `mysql2` pool (not `@fastify/mysql`), `tsx` (not strip-types)                                                        |
-| Vitest tests (API, app)                | `vitest`                      | written for Vitest 5; the repo runs 4.x — check config defaults (e.g. `clearMocks`)                                                                                                         |
+| Vitest tests (API, app)                | `vitest`                      | written for Vitest 5.1 (beta); the repo runs 4.x — check config defaults (e.g. `clearMocks`); no 5.1-only `--since-last-run` / `--last-failed`, run `yarn test`                             |
 | Screens, layouts, navigation, params   | `expo-router`                 | iOS-only features (NativeTabs, Link.Preview, glass) need a web fallback; colors from `theme.ts`; its `expo-native-ui` / `expo-animation` pointers aren't installed — use the versioned docs |
 | Data loading in the app                | `expo-data-fetching`          | keep `api<T>()` + hooks; no TanStack Query/SWR/NetInfo unless a brief asks; its four-states rule applies                                                                                    |
 | RN performance, lists, re-renders      | `vercel-react-native-skills`  | skip Reanimated/gesture-handler/FlashList/expo-image rules unless planned; `rendering-no-falsy-and` is a must                                                                               |

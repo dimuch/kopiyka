@@ -4,3 +4,18 @@ import { api } from '@/api/client';
 export async function addIncome(ledgerId: number, month: string, title: string, amount: string): Promise<void> {
   await api(`/api/ledgers/${ledgerId}/months/${month}/income`, { method: 'POST', body: { title, amount } });
 }
+
+/** Changes any member's income item (brief 061); who added it stays. */
+export async function updateIncome(ledgerId: number, incomeId: number, title: string, amount: string): Promise<void> {
+  await api(`/api/ledgers/${ledgerId}/income/${incomeId}`, { method: 'PUT', body: { title, amount } });
+}
+
+/** Deletes any member's income item at once (brief 061); there's no Undo. */
+export async function deleteIncome(ledgerId: number, incomeId: number): Promise<void> {
+  await api(`/api/ledgers/${ledgerId}/income/${incomeId}`, { method: 'DELETE' });
+}
+
+/** Fills a 'YYYY-MM' month with no income from the month before it, titles and amounts (brief 061). */
+export async function copyPreviousIncome(ledgerId: number, month: string): Promise<void> {
+  await api(`/api/ledgers/${ledgerId}/months/${month}/income/copy`, { method: 'POST' });
+}

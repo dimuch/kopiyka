@@ -20,11 +20,15 @@ fill a new month without typing it all again.
 - **Copy last month:** a month with no income items can be filled from the previous month's items. Unlike the Budget
   copy, titles **and amounts** are kept, since income usually repeats.
 - Ended months can't change, the same as planned amounts.
+- **Home:** an Income card comes first in Home's grid, before Budget. It shows this month's income total, or "Not set"
+  when no member has added any, and opens the Income tab. (Added before the PR, 2026-11-02.)
 
 ## Acceptance criteria
 
 - [ ] App (web 390×844): the Income tab edits and deletes items and copies last month's items into an empty month.
-- [ ] iPhone (Expo Go): editing, deleting and copying on the Income tab work.
+- [ ] App (web 390×844): Home's first card is Income, with this month's total or "Not set", and it opens the Income
+      tab.
+- [ ] iPhone (Expo Go): editing, deleting and copying on the Income tab work, and the Home grid fits.
 - [ ] `yarn format:check && yarn lint && yarn typecheck && yarn test` green, integration tests ran.
 
 ## Out of scope

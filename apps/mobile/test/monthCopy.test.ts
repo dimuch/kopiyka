@@ -8,6 +8,8 @@ describe('copyRefusedText', () => {
     ['month_ended', '2026-11', 'November has ended, so it can’t change.'],
     ['month_ended', '2027-01', 'January has ended, so it can’t change.'],
     ['no_previous_budget', '2027-01', 'December has no categories to copy.'],
+    ['income_exists', '2026-11', 'November already has income.'],
+    ['no_previous_income', '2027-01', 'December has no income to copy.'],
   ])('explains %s for %s', (code, month, text) => {
     expect(copyRefusedText(code, month)).toBe(text);
   });

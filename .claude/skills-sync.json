@@ -1,0 +1,25 @@
+{
+  "mode": "branch",
+  "authority": ".claude/skills/kopiyka-conventions/SKILL.md",
+  "vendored": {
+    "lockFile": "skills-lock.json",
+    "skillsDir": ".claude/skills",
+    "stripSections": ["Submitting Feedback"],
+    "forbidPatterns": ["submit-expo-feedback"]
+  },
+  "adapt": {
+    "sources": ["ub-mode", "agent-skills"],
+    "targets": [".claude/skills/kopiyka-*/**", ".claude/agents/*.md"],
+    "commitStyle": "Start the body with 'From <source>:' and say which upstream idea was adapted and why it fits kopiyka."
+  },
+  "references": [
+    "incremental-implementation",
+    "test-driven-development",
+    "debugging-and-error-recovery",
+    "security-and-hardening",
+    "source-driven-development",
+    "code-simplification"
+  ],
+  "discover": { "keywords": ["expo", "react native", "fastify", "vitest", "mysql"] },
+  "initialBaseline": { "ub-mode": "3da62bf", "agent-skills": "aeac41d" }
+}

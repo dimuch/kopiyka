@@ -1,7 +1,9 @@
 import { router, useLocalSearchParams } from 'expo-router';
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { ApiError } from '@/api/client';
+import type { IncomeItem } from '@/api/types';
 import { useColors, useThemedStyles } from '@/appearance/AppearanceContext';
 import { useSession } from '@/auth/AuthContext';
 import { EmptyMonth } from '@/components/EmptyMonth';
@@ -9,9 +11,11 @@ import { HomeButton } from '@/components/HomeButton';
 import { Icon } from '@/components/Icon';
 import { LoadError } from '@/components/LoadError';
 import { MonthSwitcher } from '@/components/MonthSwitcher';
+import { copyPreviousIncome } from '@/data/income';
+import { copyRefusedText } from '@/data/monthCopy';
 import { incomeCents } from '@/data/monthSummary';
 import { useIncome } from '@/data/useIncome';
-import { eur, kyivMonth, monthName, toCents } from '@/format';
+import { eur, kyivMonth, monthName, shiftMonth, toCents } from '@/format';
 import { parseMonthParam } from '@/linkParams';
 import { usePushOnce } from '@/pushOnce';
 import { fonts, type Palette } from '@/theme';
@@ -31,6 +35,51 @@ export default function Income() {
   const month = parseMonthParam(params.month) ?? thisMonth;
   const { items, error, reload } = useIncome(ledger.ledgerId, month);
   const ended = month < thisMonth;
+  const previousMonth = shiftMonth(month, -1);
+  const previous = useIncome(ledger.ledgerId, previousMonth);
+
+  // Budget's copy flow (brief 035), for income (brief 061).
+  const [busy, setBusy] = useState(false);
+  // Tagged with their ledger and month, so switching either clears them without an effect.
+  const shown = `${ledger.ledgerId}/${month}`;
+  const [refused, setRefused] = useState<{ shown: string; text: string } | null>(null);
+  const [failed, setFailed] = useState<string | null>(null);
+  // The empty list loaded before a successful copy: useIncome keeps it until the reload lands, so without this Copy
+  // would flash back.
+  const [copiedOver, setCopiedOver] = useState<IncomeItem[] | null>(null);
+  // `busy` disables the button only after a re-render; two presses in one tick would both get here.
+  const inFlight = useRef(false);
+
+  async function copy() {
+    if (inFlight.current) return;
+    inFlight.current = true;
+    setBusy(true);
+    setFailed(null);
+    const before = items;
+    try {
+      await copyPreviousIncome(ledger.ledgerId, month);
+      setCopiedOver(before);
+      reload();
+    } catch (err) {
+      const text = err instanceof ApiError ? copyRefusedText(err.code, month) : null;
+      if (text) {
+        setRefused({ shown, text });
+        // An income_exists brings the list in; a no_previous_income refreshes the previous month.
+        reload();
+        previous.reload();
+      } else {
+        setFailed(shown);
+      }
+    } finally {
+      // The screen stays mounted, so a later copy into another month must work.
+      inFlight.current = false;
+      setBusy(false);
+    }
+  }
+
+  const refusal = refused?.shown === shown ? refused.text : null;
+  const canCopy = !ended && !!previous.items?.length && !refusal && items !== copiedOver;
+  const note = refusal ?? (failed === shown ? 'Couldn’t copy. Check your connection and try again.' : null);
 
   return (
     <SafeAreaView style={styles.screen} edges={['top']}>
@@ -68,7 +117,21 @@ export default function Income() {
           <>
             {error && <LoadError message="Couldn’t refresh. Check your connection and try again." onRetry={reload} />}
             {items.length === 0 ? (
-              <EmptyMonth text={`No income for ${monthName(month)} yet`} />
+              <>
+                <EmptyMonth
+                  text={`No income for ${monthName(month)} yet`}
+                  action={
+                    canCopy ? { label: `Copy ${monthName(previousMonth)}’s income`, onPress: copy, busy } : undefined
+                  }
+                  note={note}
+                />
+                {!ended && !previous.items && previous.error && (
+                  <LoadError
+                    message={`Couldn’t check ${monthName(previousMonth)}’s income. Check your connection and try again.`}
+                    onRetry={previous.reload}
+                  />
+                )}
+              </>
             ) : (
               <>
                 <View style={styles.sectionHead}>
@@ -78,20 +141,36 @@ export default function Income() {
                 <View style={styles.listCard}>
                   {items.map((item, index) => {
                     const amount = eur(toCents(item.amountEur));
-                    return (
-                      // One stop for screen readers instead of three.
-                      <View
-                        key={item.incomeId}
-                        accessible
-                        accessibilityLabel={`${item.title}, ${amount}, added by ${item.addedBy}`}
-                        style={[styles.row, index < items.length - 1 && styles.divider]}
-                      >
+                    const label = `${item.title}, ${amount}, added by ${item.addedBy}`;
+                    const style = [styles.row, index < items.length - 1 && styles.divider];
+                    const content = (
+                      <>
                         <View style={styles.rowText}>
                           <Text style={styles.rowName}>{item.title}</Text>
                           <Text style={styles.small}>Added by {item.addedBy}</Text>
                         </View>
                         <Text style={styles.rowAmount}>{amount}</Text>
+                      </>
+                    );
+                    // An ended month can't change, so its rows aren't buttons; either way, one stop for screen
+                    // readers instead of three.
+                    return ended ? (
+                      <View key={item.incomeId} accessible accessibilityLabel={label} style={style}>
+                        {content}
                       </View>
+                    ) : (
+                      <Pressable
+                        key={item.incomeId}
+                        accessibilityRole="button"
+                        accessibilityLabel={label}
+                        accessibilityHint="Edits the item"
+                        onPress={() =>
+                          pushOnce({ pathname: '/income-item', params: { month, incomeId: item.incomeId } })
+                        }
+                        style={style}
+                      >
+                        {content}
+                      </Pressable>
                     );
                   })}
                 </View>

@@ -62,6 +62,9 @@ describe.skipIf(!(await testDbReachable()))('income items (MySQL)', () => {
     ledgerId = owner.ledgerId,
   ) => app.inject({ method: 'PUT', url: `/api/ledgers/${ledgerId}/income/${incomeId}`, payload, headers });
 
+  const remove = (incomeId: number | string, headers: Record<string, string> = auth, ledgerId = owner.ledgerId) =>
+    app.inject({ method: 'DELETE', url: `/api/ledgers/${ledgerId}/income/${incomeId}`, headers });
+
   async function itemCount(): Promise<number> {
     const [rows] = await db.query<RowDataPacket[]>('SELECT COUNT(*) AS n FROM income_items');
     return rows[0]!.n;
@@ -244,6 +247,49 @@ describe.skipIf(!(await testDbReachable()))('income items (MySQL)', () => {
       expect((await edit(salary, { title: 'X', amount: '1' }, {})).statusCode).toBe(401);
       expect((await edit(salary, { title: 'X', amount: '1' }, strangerAuth)).statusCode).toBe(404);
       expect(await storedItem(salary)).toEqual({ title: 'Salary', amount_eur: '2500.00', created_by: owner.userId });
+    });
+  });
+
+  describe('DELETE /api/ledgers/:id/income/:incomeId', () => {
+    it("lets a member delete the owner's item; a second delete finds nothing", async () => {
+      const salary = await storeItem(owner.ledgerId, owner, '2026-10', 'Salary', '2500.00');
+      const freelance = await storeItem(owner.ledgerId, member, '2026-10', 'Freelance', '300.00');
+      expect((await remove(salary, memberAuth)).statusCode).toBe(204);
+      expect((await list('2026-10')).json().items.map((i: { incomeId: number }) => i.incomeId)).toEqual([freelance]);
+
+      const again = await remove(salary, memberAuth);
+      expect(again.statusCode).toBe(404);
+      expect(again.json()).toEqual({ error: 'not_found' });
+    });
+
+    it('rejects a non-numeric item id', async () => {
+      expect((await remove('abc')).statusCode).toBe(400);
+    });
+
+    it("answers 404 for another ledger's item and keeps it", async () => {
+      const stranger = await makeUser(db, config, 'stranger');
+      const theirs = await storeItem(stranger.ledgerId, stranger, '2026-10', 'Salary', '9000.00');
+      const res = await remove(theirs);
+      expect(res.statusCode).toBe(404);
+      expect(res.json()).toEqual({ error: 'not_found' });
+      expect(await storedItem(theirs)).toBeDefined();
+    });
+
+    it('refuses an item in an ended month and keeps it', async () => {
+      const september = await storeItem(owner.ledgerId, owner, '2026-09', 'Salary', '2500.00');
+      const res = await remove(september);
+      expect(res.statusCode).toBe(409);
+      expect(res.json()).toEqual({ error: 'month_ended' });
+      expect(await storedItem(september)).toBeDefined();
+    });
+
+    it('needs a session and a ledger of your own', async () => {
+      const salary = await storeItem(owner.ledgerId, owner, '2026-10', 'Salary', '2500.00');
+      const stranger = await makeUser(db, config, 'stranger');
+      const strangerAuth = await authHeader(app, stranger, clock);
+      expect((await remove(salary, {})).statusCode).toBe(401);
+      expect((await remove(salary, strangerAuth)).statusCode).toBe(404);
+      expect(await storedItem(salary)).toBeDefined();
     });
   });
 });

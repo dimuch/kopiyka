@@ -169,7 +169,7 @@ The slices, in order:
   - Change: rename the styles `invite`/`inviteText` to `primary`/`primaryText` (as in `CategoryNameForm`) and update
     InviteForm's two uses. This is mechanical and behaviour-preserving; slice 4's Save is the second user.
   - Verify: typecheck and lint; on web the Invite button looks unchanged.
-- [ ] 4. Edit your ledger label on the Members screen (~125)
+- [x] 4. Edit your ledger label on the Members screen (~125)
   - Files: `apps/mobile/src/data/ledgerLabel.ts` (new), `apps/mobile/test/ledgerLabel.test.ts` (new),
     `apps/mobile/src/data/members.ts`, `apps/mobile/src/app/members.tsx`, `apps/mobile/src/auth/AuthContext.tsx`
     (JSDoc only)

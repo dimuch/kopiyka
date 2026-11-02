@@ -185,3 +185,8 @@ Facts checked on the Base:
 ## Deviations
 
 ## Consolidate
+
+- `nativeApiUrl` (only new function): no twin. The web branch of `apiUrl()` is a different rule (same origin) and stays in `client.ts`. LEAVE.
+- `liveInvite` narrowed, `db.ts` option, tests: no new logic to share.
+
+CONSOLIDATE: reused 0 · extracted 0 · left 1 (no twin)

@@ -152,7 +152,7 @@ to keep correct.
   - Change: `Member`, `LedgerMembers`, and `useMembers` per Contracts.
   - Verify: typecheck and lint. 2.5 is the first caller. The hook has no pure logic to unit-test, the same as
     `useMonth`.
-- [ ] 2.5 Show the ledger's members on a screen opened from Settings (~135)
+- [x] 2.5 Show the ledger's members on a screen opened from Settings (~135)
   - Files: `apps/mobile/src/app/members.tsx` (new), `apps/mobile/src/app/_layout.tsx`,
     `apps/mobile/src/app/(tabs)/settings.tsx`
   - Change, Settings: the "Ledger" section is unchanged (only with 2+ ledgers). Below it (with one ledger: below the

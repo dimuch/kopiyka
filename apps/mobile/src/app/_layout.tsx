@@ -30,6 +30,7 @@ function Screens() {
       <Stack.Protected guard={signedIn}>
         <Stack.Screen name="(tabs)" />
         <Stack.Screen name="category/[categoryId]" />
+        <Stack.Screen name="members" />
         <Stack.Screen name="expense" options={{ presentation: 'modal' }} />
         <Stack.Screen name="delete-category" options={{ presentation: 'modal' }} />
         <Stack.Screen name="planned-amount" options={{ presentation: 'modal' }} />

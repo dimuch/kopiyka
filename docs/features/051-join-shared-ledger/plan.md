@@ -66,7 +66,7 @@ the brief wants those unchanged. A second function also keeps the old path uncha
 
 ## Slices
 
-- [ ] 1. Add a function that creates a user as a member of another user's ledger (~140 lines)
+- [x] 1. Add a function that creates a user as a member of another user's ledger (~140 lines)
   - Files: `apps/api/src/ledgers/members.ts` (new), `apps/api/src/admin.ts`, `apps/api/test/admin.int.test.ts` (new)
   - Change: add `addMember` and `createUserJoiningLedger` as in Contracts. Update the `admin.ts` JSDoc: the script
     is still the only caller of the `create*` functions, and `addMember` is the seam for 052.

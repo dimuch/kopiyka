@@ -176,7 +176,7 @@ run.
     - two November items seeded by different users show oldest first, each with "Added by …", and the total;
     - the switcher moves to October and December (empty → "No income for December yet") and updates `?month=`;
     - stopping `api` and switching month shows Retry, and restarting plus Retry loads.
-- [ ] 4. Add an income item in a modal opened by link (~190)
+- [x] 4. Add an income item in a modal opened by link (~190)
   - Files: `app/income-item.tsx` (new), `app/_layout.tsx` (`Stack.Screen name="income-item"`, modal),
     `data/income.ts` (new: `addIncome`), `components/AmountFields.tsx` (export `AmountField`).
   - Change: the screen is a header (Cancel disabled while busy, "Add income", spacer) plus

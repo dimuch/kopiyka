@@ -417,7 +417,7 @@ describe.skipIf(!(await testDbReachable()))('expenses API (MySQL)', () => {
     it("answers 404 for a ledger the user isn't a member of", async () => {
       const stranger = await makeUser(db, config, 'stranger');
       const res = await call(stranger.ledgerId, expenseId, auth);
-      expect([res.statusCode, res.json()]).toEqual([404, { error: 'not_found' }]);
+      expect([res.statusCode, res.json()]).toEqual([404, { error: 'ledger_not_found' }]);
     });
 
     it.skipIf(!byId)('answers 400 for a non-numeric expense id', async () => {

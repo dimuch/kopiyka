@@ -165,7 +165,7 @@ The slices, in order:
     - As C, Members shows no form and no "Invited" (unchanged).
     - In B's profile, `fetch('/api/invites', { credentials: 'include' })` lists A's invite.
     - Light and dark at a glance.
-- [ ] 2. Revoke a pending invite from the Members screen (~50)
+- [x] 2. Revoke a pending invite from the Members screen (~50)
   - Files: `apps/mobile/src/data/members.ts`, `apps/mobile/src/app/members.tsx`
   - Change: `revokeInvite`. `PendingList` rows get "Revoke" (`dangerText`, ≥ 44pt, label "Revoke invite to
     `<username>`"). It is one tap, with no second tap (see Open questions). All Revokes are disabled while busy.

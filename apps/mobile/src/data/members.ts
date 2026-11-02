@@ -10,3 +10,8 @@ export async function removeMember(ledgerId: number, userId: number): Promise<vo
 export async function inviteMember(ledgerId: number, username: string): Promise<PendingInvite> {
   return api<PendingInvite>(`/api/ledgers/${ledgerId}/invites`, { method: 'POST', body: { username } });
 }
+
+/** Withdraws a pending invite (owner). */
+export async function revokeInvite(ledgerId: number, inviteId: number): Promise<void> {
+  await api(`/api/ledgers/${ledgerId}/invites/${inviteId}`, { method: 'DELETE' });
+}

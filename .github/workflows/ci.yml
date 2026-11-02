@@ -27,8 +27,8 @@ jobs:
     env:
       DATABASE_URL_TEST: mysql://root:root@127.0.0.1:3306/kopiyka_test
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
         with:
           node-version-file: .nvmrc
       - run: corepack enable

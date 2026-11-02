@@ -113,7 +113,7 @@ the brief wants those unchanged. A second function also keeps the old path uncha
     - The several-ledgers message has only test coverage (slice 1) plus reading the switch, because the dev DB
       doesn't have that data.
 
-- [ ] 4. Document create-user --join for local and production use (~10 lines)
+- [x] 4. Document create-user --join for local and production use (~10 lines)
   - Files: `README.md` (one comment line under Local setup), `deploy/README.md` (step 10: add
     `[--join <owner>]` to the command and add one sentence: with `--join` the user becomes a member of that user's
     only ledger instead of getting their own)

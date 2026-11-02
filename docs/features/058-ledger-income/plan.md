@@ -235,7 +235,7 @@ knows its delta, so computing "after" before writing is smaller.
 
 ### Part 1: income items API (this branch)
 
-- [ ] 1.1 List a month's income items (~120)
+- [x] 1.1 List a month's income items (~120)
   - Files: `apps/api/migrations/012_income_items.sql`, `apps/api/src/income/routes.ts`, `apps/api/src/app.ts`,
     `apps/api/test/helpers.ts`, `apps/api/test/income.int.test.ts`.
   - Change: the migration, `IncomeItemDto`, `toDto`, and the GET (Contracts).

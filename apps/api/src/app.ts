@@ -5,6 +5,7 @@ import { ZodError } from 'zod';
 import { authRoutes } from './auth/routes.js';
 import { categoryRoutes } from './categories/routes.js';
 import { expenseRoutes } from './expenses/routes.js';
+import { incomeRoutes } from './income/routes.js';
 import { inviteRoutes } from './invites/routes.js';
 import type { Config } from './config.js';
 import type { Db } from './db.js';
@@ -78,6 +79,7 @@ export async function buildApp(deps: AppDeps): Promise<FastifyInstance> {
   await ledgerRoutes(app, deps);
   await inviteRoutes(app, deps);
   await categoryRoutes(app, deps);
+  await incomeRoutes(app, deps);
   await rateRoutes(app, deps);
   await expenseRoutes(app, deps);
   await notionRoutes(app, deps);

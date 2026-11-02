@@ -17,7 +17,8 @@ import { useColors, useThemedStyles } from '@/appearance/AppearanceContext';
 import { useSession } from '@/auth/AuthContext';
 import { Icon } from '@/components/Icon';
 import { LoadError } from '@/components/LoadError';
-import { inviteMember, removeMember, revokeInvite } from '@/data/members';
+import { normalizeLabel } from '@/data/ledgerLabel';
+import { inviteMember, removeMember, revokeInvite, setLedgerLabel } from '@/data/members';
 import { useMembers } from '@/data/useMembers';
 import { dangerText, fonts, outlinedDangerButton, outlinedDangerText, type Palette } from '@/theme';
 
@@ -28,8 +29,8 @@ function goBack() {
 }
 
 /**
- * The open ledger's members for its owner, who can remove them and invite people; a member sees only the ledger and
- * Leave.
+ * Everyone sets their own label for the open ledger at the top. Below, its owner sees the members, can remove them and
+ * invite people; a member sees only Leave.
  */
 export default function MembersScreen() {
   const colors = useColors();
@@ -43,7 +44,8 @@ export default function MembersScreen() {
           <Text style={styles.backText}>Back</Text>
         </Pressable>
       </View>
-      <ScrollView contentContainerStyle={styles.content}>
+      {/* One tap on Save or Invite works on iPhone with the keyboard up. */}
+      <ScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
         <View style={{ gap: 2 }}>
           <Text accessibilityRole="header" style={styles.title}>
             Members
@@ -51,9 +53,92 @@ export default function MembersScreen() {
           {/* The user's own label, else the owner tells "Home"s apart, as in the Settings picker. */}
           <Text style={styles.caption}>{ledger.label ?? `${ledger.owner}’s ${ledger.name}`}</Text>
         </View>
+        {/* Keyed by ledger, so the field resets if the ledger-gone handler swaps it. */}
+        <LabelForm key={ledger.ledgerId} ledger={ledger} />
         {ledger.role === 'owner' ? <OwnerMembers ledgerId={ledger.ledgerId} /> : <MemberLeave ledger={ledger} />}
       </ScrollView>
     </SafeAreaView>
+  );
+}
+
+/** The user's own label for this ledger: only they see it, in place of "Home". Empty brings back the usual name. */
+function LabelForm({ ledger }: { ledger: Ledger }) {
+  const colors = useColors();
+  const styles = useThemedStyles(makeStyles);
+  const { openLedger } = useSession();
+  const [text, setText] = useState(ledger.label ?? '');
+  const [busy, setBusy] = useState(false);
+  const [failure, setFailure] = useState<string | null>(null);
+  // `busy` disables the button only after a re-render; two taps in one tick would both get here.
+  const inFlight = useRef(false);
+  const unchanged = text.trim() === (ledger.label ?? '');
+
+  function fail(message: string) {
+    // role="alert" covers web; VoiceOver needs an explicit announcement.
+    setFailure(message);
+    AccessibilityInfo.announceForAccessibility(message);
+  }
+
+  async function save() {
+    if (inFlight.current) return;
+    const label = normalizeLabel(text);
+    if (label === null) return fail('A label can have up to 40 characters.');
+    inFlight.current = true;
+    setBusy(true);
+    setFailure(null);
+    try {
+      try {
+        await setLedgerLabel(ledger.ledgerId, label);
+      } catch (err) {
+        // Removed meanwhile: the ledger-gone handler is already moving them, as after Leave.
+        if (err instanceof ApiError && err.code === 'ledger_not_found') return router.dismissTo('/');
+        return fail('Couldn’t save. Check your connection and try again.');
+      }
+      setText(label);
+      // Reloads the ledgers, so the picker, Home and this caption show it; the open ledger stays open.
+      try {
+        await openLedger(ledger.ledgerId);
+        AccessibilityInfo.announceForAccessibility('Label saved.');
+      } catch {
+        fail('Saved, but couldn’t refresh. Reopen the app to see it everywhere.');
+      }
+    } finally {
+      inFlight.current = false;
+      setBusy(false);
+    }
+  }
+
+  return (
+    <View style={styles.section}>
+      <Text style={styles.caption}>Your label</Text>
+      <TextInput
+        accessibilityLabel="Your label"
+        value={text}
+        onChangeText={setText}
+        placeholder={ledger.name}
+        placeholderTextColor={colors.faint}
+        returnKeyType="done"
+        onSubmitEditing={() => !unchanged && save()}
+        editable={!busy}
+        style={styles.input}
+      />
+      <Text style={styles.caption}>Only you see it. Leave it empty for the usual name.</Text>
+      {failure ? (
+        <Text accessibilityRole="alert" style={styles.failure}>
+          {failure}
+        </Text>
+      ) : null}
+      <Pressable
+        accessibilityRole="button"
+        accessibilityState={{ disabled: busy || unchanged, busy }}
+        disabled={busy || unchanged}
+        onPress={save}
+        style={[styles.primary, (busy || unchanged) && { opacity: 0.5 }]}
+      >
+        {busy && <ActivityIndicator size="small" color={colors.onAccent} />}
+        <Text style={styles.primaryText}>Save</Text>
+      </Pressable>
+    </View>
   );
 }
 

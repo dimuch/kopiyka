@@ -25,7 +25,7 @@ interface AuthApi {
   logout: () => Promise<void>;
   /**
    * Remembers the ledger on this device and opens it (or the fallback if it's gone); rejects if reloading fails. Also
-   * from no-ledger, after accepting an invite.
+   * from no-ledger, after accepting an invite, and on the open ledger after a label change, to reload the ledgers.
    */
   openLedger: (ledgerId: number) => Promise<void>;
 }

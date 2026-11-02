@@ -181,6 +181,10 @@ StyleSheet.create({...})` at the bottom of the file, read with
   test plan.
 - Bug fix → a test that fails before the fix (Prove-It), for API code and
   app pure logic alike.
+- Re-runnable code (§1): a stub that throws mid-run tests the `catch` and
+  rollback path, not a crash — a killed process runs neither. Prove crash
+  safety by seeding the half-written state a crash would leave, then
+  asserting a re-run ends in the same state as one clean run.
 - No snapshot tests; assert behaviour, not implementation.
 
 ## 7. Quality gates (run before every commit)

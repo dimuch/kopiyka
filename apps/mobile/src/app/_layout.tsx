@@ -32,7 +32,7 @@ function Screens() {
         <Stack.Screen name="(tabs)" />
         <Stack.Screen name="category/[categoryId]" />
         <Stack.Screen name="members" />
-        <Stack.Screen name="expense" options={{ presentation: 'modal' }} />
+        <Stack.Screen name="expense" />
         <Stack.Screen name="delete-category" options={{ presentation: 'modal' }} />
         <Stack.Screen name="planned-amount" options={{ presentation: 'modal' }} />
         <Stack.Screen name="add-category" options={{ presentation: 'modal' }} />

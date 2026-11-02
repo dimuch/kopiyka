@@ -110,7 +110,7 @@ See Open questions.
     - Settings with 2 → "Settings, 2 invites"
     - Budget with 3 → no badge, "Budget"
   - Verify: web 390×844, the bar is unchanged (6 icons, active tint, Settings badge with a pending invite).
-- [ ] 2. Rename the expense form's Cancel to Back and open it as a page
+- [x] 2. Rename the expense form's Cancel to Back and open it as a page
   - Files: `apps/mobile/src/app/expense.tsx`, `apps/mobile/src/app/_layout.tsx`
   - Change: the label "Cancel" becomes "Back", and the style keys `cancel`/`cancelText` become `back`/`backText`.
     Remove `options={{ presentation: 'modal' }}` from `expense`. `leave()` is unchanged.

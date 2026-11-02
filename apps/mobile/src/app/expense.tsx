@@ -72,8 +72,8 @@ export default function ExpenseScreen() {
   return (
     <SafeAreaView style={styles.screen} edges={['top', 'bottom']}>
       <View style={styles.header}>
-        <Pressable accessibilityRole="button" onPress={leave} style={styles.cancel}>
-          <Text style={styles.cancelText}>Cancel</Text>
+        <Pressable accessibilityRole="button" onPress={leave} style={styles.back}>
+          <Text style={styles.backText}>Back</Text>
         </Pressable>
         <Text style={styles.title}>{editing ? 'Edit expense' : 'New expense'}</Text>
         <View style={{ width: 52 }} />
@@ -111,8 +111,8 @@ function LoadFailed({ message, onRetry }: { message: string; onRetry?: () => voi
   return (
     <View>
       <LoadError message={message} onRetry={onRetry} />
-      <Pressable accessibilityRole="button" onPress={leave} style={styles.cancel}>
-        <Text style={styles.cancelText}>Back</Text>
+      <Pressable accessibilityRole="button" onPress={leave} style={styles.back}>
+        <Text style={styles.backText}>Back</Text>
       </Pressable>
     </View>
   );
@@ -395,8 +395,8 @@ const makeStyles = (colors: Palette) => {
   return StyleSheet.create({
     screen: { flex: 1, backgroundColor: colors.bg, paddingHorizontal: 20, paddingTop: 8 },
     header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 },
-    cancel: { height: 44, justifyContent: 'center' },
-    cancelText: { fontFamily: fonts.bodyMedium, fontSize: 15, color: colors.muted },
+    back: { height: 44, justifyContent: 'center' },
+    backText: { fontFamily: fonts.bodyMedium, fontSize: 15, color: colors.muted },
     title: { fontFamily: fonts.display, fontSize: 18, color: colors.text },
     form: { gap: 22, paddingBottom: 40 },
     group: { gap: 8 },

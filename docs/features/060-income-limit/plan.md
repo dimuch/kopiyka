@@ -172,7 +172,7 @@ Promise<Refusal | { month: string; amountCents: bigint }>`. It still locks first
 
     Also run typecheck and lint.
 
-- [ ] 2. Add the over-income rule's arithmetic (~90)
+- [x] 2. Add the over-income rule's arithmetic (~90)
   - Files: `apps/api/src/income/limit.ts` (`INCOME_RULE_START`, `MonthTotals`, `OverIncome`, `overIncomeBy`,
     `overIncomeError`), `apps/api/test/incomeLimit.test.ts`.
   - Tests, a table in `money.test.ts` style. Each comment gives the sum; the pair is (planned, income):

@@ -30,3 +30,8 @@ export function ledgerAccess(app: FastifyInstance, { db }: AppDeps): void {
     req.ledger = { ledgerId: id, role: row.role };
   });
 }
+
+/** A preHandler run after `requireLedger`: only the ledger's owner gets through, anyone else gets 403 `owner_only`. */
+export async function requireOwner(req: FastifyRequest, reply: FastifyReply): Promise<void> {
+  if (req.ledger!.role !== 'owner') return reply.code(403).send({ error: 'owner_only' });
+}

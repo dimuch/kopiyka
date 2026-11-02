@@ -37,9 +37,11 @@ describe.skipIf(!(await testDbReachable()))('the API pool (MySQL)', () => {
 
   it('compares an object bound in WHERE as a string', async () => {
     await makeUser(db, config, 'dimuch');
+    // Only a string comparison finds this user; expanded, the condition would match dimuch or nobody.
+    const named = await makeUser(db, config, '[object Object]');
     const [rows] = await db.query<RowDataPacket[]>('SELECT user_id FROM users WHERE username = ?', [
       { username: 'dimuch' },
     ]);
-    expect(rows).toEqual([]);
+    expect(rows.map((row) => row.user_id)).toEqual([named.userId]);
   });
 });

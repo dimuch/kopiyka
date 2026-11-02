@@ -77,7 +77,7 @@ Facts checked on the Base:
     gate.
   - Tests: the full gates (every route parses with Zod). Then `yarn npm audit --all --recursive` lists no zod advisory
     with `@kopiyka/api` as a dependent. `@expo/cli`'s zod 3.25.76 stays: it's dev tooling and out of scope.
-- [ ] 2. Make the API pool stringify objects bound to placeholders
+- [x] 2. Make the API pool stringify objects bound to placeholders
   - Files: `apps/api/src/db.ts`, `apps/api/test/db.int.test.ts` (new)
   - Change: add `stringifyObjects: true` to `createPool`, with a why-comment (an object reaching `?` must never become
     SQL).

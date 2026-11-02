@@ -10,6 +10,9 @@ export function createDb(databaseUrl: string): Db {
     timezone: 'Z',
     dateStrings: ['DATE'],
     decimalNumbers: false,
+    // An object bound to `?` becomes a quoted string, never `key = val` SQL (mysql2 expands it after SET). Arrays,
+    // Dates and Buffers are formatted as before.
+    stringifyObjects: true,
   });
 }
 

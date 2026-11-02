@@ -67,8 +67,8 @@ const makeStyles = (colors: Palette) =>
       justifyContent: 'space-between',
       gap: 12,
     },
-    optionOn: { backgroundColor: colors.accentTint, borderWidth: 1, borderColor: colors.accentLine },
+    optionOn: { backgroundColor: colors.activeTint, borderWidth: 1, borderColor: colors.activeLine },
     name: { fontFamily: fonts.bodyMedium, fontSize: 15, color: colors.text },
     whose: { flexShrink: 1, fontFamily: fonts.body, fontSize: 14, color: colors.muted },
-    textOn: { fontFamily: fonts.bodySemi, color: colors.accent },
+    textOn: { fontFamily: fonts.bodySemi, color: colors.active },
   });

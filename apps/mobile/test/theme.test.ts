@@ -24,3 +24,12 @@ describe('warnBg', () => {
     }
   });
 });
+
+describe('active', () => {
+  it.each([
+    ['dark', darkColors],
+    ['light', lightColors],
+  ])("keeps the open ledger's text readable in the %s theme", (_, colors) => {
+    expect(contrast(colors.active, colors.activeTint)).toBeGreaterThanOrEqual(4.5);
+  });
+});

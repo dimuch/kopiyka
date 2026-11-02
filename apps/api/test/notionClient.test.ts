@@ -39,8 +39,8 @@ const json = (body: unknown, status = 200, headers: Record<string, string> = {})
 
 describe('notionClient', () => {
   it('creates a row in the Groceries data source', async () => {
-    const { client, requests } = setup(json({ id: '00000000-0000-4000-8000-000000000004' }));
-    expect(await client.create(row)).toBe('00000000000040008000000000000004');
+    const { client, requests } = setup(json({ id: 'ABCDEF00-0000-4000-8000-000000000004' }));
+    expect(await client.create(row)).toBe('abcdef00000040008000000000000004');
     expect(requests).toEqual([
       {
         url: 'https://api.notion.com/v1/pages',
@@ -82,7 +82,7 @@ describe('notionClient', () => {
 
   it('finds the live row with a Kopiyka ID', async () => {
     const trashed = { id: 'aaaa', in_trash: true };
-    const live = { id: '00000000-0000-4000-8000-000000000005', in_trash: false };
+    const live = { id: 'ABCDEF00-0000-4000-8000-000000000005', in_trash: false };
     const { client, requests } = setup(
       json({ results: [] }),
       json({ results: [trashed] }),
@@ -90,7 +90,7 @@ describe('notionClient', () => {
     );
     expect(await client.find(57)).toBeNull();
     expect(await client.find(57)).toBeNull();
-    expect(await client.find(57)).toBe('00000000000040008000000000000005');
+    expect(await client.find(57)).toBe('abcdef00000040008000000000000005');
     expect(requests[0]).toMatchObject({
       url: `https://api.notion.com/v1/data_sources/${ds}/query`,
       method: 'POST',
@@ -169,14 +169,14 @@ describe('notionClient', () => {
         json({ results: [{ id: '00000000-0000-4000-8000-000000000006', in_trash: false }] }),
         json({
           results: [
-            expensesRow('00000000-0000-4000-8000-000000000007', 'clothes'),
+            expensesRow('ABCDEF00-0000-4000-8000-000000000007', 'clothes'),
             expensesRow('00000000000040008000000000000008', 'fun', true),
           ],
         }),
       );
       expect(await expenses.monthRows('2026-10')).toEqual({
         nettoPageId: OCTOBER,
-        rows: [{ pageId: '00000000000040008000000000000007', category: 'clothes' }],
+        rows: [{ pageId: 'abcdef00000040008000000000000007', category: 'clothes' }],
       });
       expect(requests.map((r) => [r.url, r.method, r.body])).toEqual([
         [
@@ -248,7 +248,7 @@ describe('notionClient', () => {
         type: string | null,
         actual: number | null = null,
       ) => ({
-        id: '00000000000040008000000000000007',
+        id: 'abcdef00000040008000000000000007',
         in_trash: false,
         properties: {
           Category: { title: [{ plain_text: category }] },
@@ -298,7 +298,7 @@ describe('notionClient', () => {
         'September',
       ];
       const row = (name: string) => ({
-        id: '00000000000040008000000000000007',
+        id: 'abcdef00000040008000000000000007',
         properties: { Category: { title: [{ plain_text: 'fun' }] }, Month: { select: { name } } },
       });
       const { expenses } = setup(json({ results: names.map(row), has_more: false, next_cursor: null }));
@@ -307,13 +307,13 @@ describe('notionClient', () => {
 
     it('creates a row linked to the month, with Budget and Type only when given', async () => {
       const { expenses, requests } = setup(
-        json({ id: '00000000-0000-4000-8000-000000000007' }),
+        json({ id: 'ABCDEF00-0000-4000-8000-000000000007' }),
         json({ id: '00000000000040008000000000000009' }),
         json({}),
       );
       const base = { category: 'clothes', month: '2026-10', nettoPageId: OCTOBER };
       expect(await expenses.createRow({ ...base, budgetCents: 20000n, type: 'Fixed' })).toBe(
-        '00000000000040008000000000000007',
+        'abcdef00000040008000000000000007',
       );
       expect(
         await expenses.createRow({

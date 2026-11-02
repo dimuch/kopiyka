@@ -354,14 +354,14 @@ describe.skipIf(!(await testDbReachable()))('Notion groceries records (MySQL)', 
       const c = await addExpense('Melkbus', '2026-10-03');
 
       await adoptGroceries(db, scope(), [
-        { expenseId: a, pageId: '00000000-0000-4000-8000-000000000004' },
+        { expenseId: a, pageId: 'ABCDEF00-0000-4000-8000-000000000004' },
         { expenseId: b, pageId: page(2) },
       ]);
 
       expect(await recorded()).toEqual([
         {
           expense_id: a,
-          notion_page_id: '00000000000040008000000000000004',
+          notion_page_id: 'abcdef00000040008000000000000004',
           sent_name: 'Delhaize',
           sent_amount_eur: '10.00',
           sent_date: '2026-10-01',

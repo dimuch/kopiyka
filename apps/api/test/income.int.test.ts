@@ -415,6 +415,8 @@ describe.skipIf(!(await testDbReachable()))('income items (MySQL)', () => {
     });
 
     it('refuses an edit that cuts income below planned, writing nothing', async () => {
+      // Another ledger's November income doesn't count here.
+      await storeItem(member.ledgerId, member, '2026-11', 'Their salary', '1000.00');
       const refused = await edit(itemA, { title: 'Salary', amount: '59.99' });
       expect([refused.statusCode, refused.json()]).toEqual([409, { error: 'over_income', overEur: '0.01' }]);
       expect(await storedItem(itemA)).toEqual({ title: 'Salary', amount_eur: '60.00', created_by: owner.userId });
@@ -430,6 +432,16 @@ describe.skipIf(!(await testDbReachable()))('income items (MySQL)', () => {
       expect(await storedItem(itemB)).toBeDefined();
 
       await storePlan('rent', '60.00');
+      // Another ledger's November plan doesn't count here either.
+      await storeMonthList(db, member.ledgerId, '2026-11', []);
+      const [[theirRent]] = await db.query<RowDataPacket[]>(
+        "SELECT category_id FROM categories WHERE ledger_id = ? AND tech_name = 'rent'",
+        [member.ledgerId],
+      );
+      await db.query(
+        "INSERT INTO category_budgets (category_id, budget_month, planned_eur) VALUES (?, '2026-11-01', '500.00')",
+        [theirRent!.category_id],
+      );
       expect((await remove(itemB, memberAuth)).statusCode).toBe(204);
     });
 

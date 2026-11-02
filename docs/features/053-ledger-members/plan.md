@@ -147,7 +147,7 @@ to keep correct.
       secret only in the session scratchpad.
     - As claude-qa-053b: Settings' picker shows the open ledger's row with a green fill, border and text. Switching
       moves the green to the other row. The Appearance picker's selected option is still blue. iPhone at Gate B.
-- [ ] 2.4 Load a ledger's members in the app (~50)
+- [x] 2.4 Load a ledger's members in the app (~50)
   - Files: `apps/mobile/src/api/types.ts`, `apps/mobile/src/data/useMembers.ts` (new)
   - Change: `Member`, `LedgerMembers`, and `useMembers` per Contracts.
   - Verify: typecheck and lint. 2.5 is the first caller. The hook has no pure logic to unit-test, the same as

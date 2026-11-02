@@ -284,6 +284,16 @@ None found while planning.
 
 ## Consolidate
 
+CONSOLIDATE: reused 0 · extracted 0 · left 4
+
+- LEAVE `normalizeLabel` vs `normalizeName` (`data/categoryName.ts`): the same code-point count and 40 limit, but a
+  label may be empty (it clears) and a name may not. Two copies, and each comment names the other so they don't
+  drift.
+- LEAVE `LabelForm` vs `InviteForm` in `members.tsx`: the same field-plus-button shape with the `inFlight` guard, but
+  each maps its own outcomes to its own texts (per-screen by convention). They share the styles since slice 3a.
+- LEAVE the PUT label route's `[requireAuth, requireLedger]` guard list: the repo's usual inline form.
+- LEAVE `setLedgerLabel` beside the other one-call helpers in `data/members.ts`.
+
 ## Revision 1
 
 The skeptic approved with edits (2026-11-02):

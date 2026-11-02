@@ -4,6 +4,7 @@ import { z } from 'zod';
 import type { AppDeps } from '../app.js';
 import { withTransaction } from '../db.js';
 import { requireOwner } from '../ledgers/access.js';
+import { addMember } from '../ledgers/members.js';
 
 /** An invite can be used for an hour after it's sent (decided in brief 054). */
 const INVITE_TTL_MS = 60 * 60_000;
@@ -88,6 +89,33 @@ export async function inviteRoutes(app: FastifyInstance, { db, now }: AppDeps): 
       [at, inviteId, req.auth!.userId, at],
     );
     if (res.affectedRows === 0) return reply.code(404).send({ error: 'not_found' });
+    return reply.code(204).send();
+  });
+
+  // The invitee joins as a member. The row lock makes two accepts at once (or an accept racing a revoke) take turns,
+  // and the second finds the invite no longer pending. Inviting a member is refused, so addMember can't hit an
+  // existing membership; if it ever did, the 500 rolls the accept back.
+  app.post('/api/invites/:inviteId/accept', { preHandler: app.requireAuth }, async (req, reply) => {
+    const { inviteId } = InviteParams.parse(req.params);
+    const userId = req.auth!.userId;
+    const at = now();
+    const accepted = await withTransaction(db, async (conn) => {
+      const [rows] = await conn.query<RowDataPacket[]>(
+        `SELECT ledger_id FROM ledger_invites
+          WHERE invite_id = ? AND invitee_user_id = ? AND status = 'pending' AND expires_at > ?
+          FOR UPDATE`,
+        [inviteId, userId, at],
+      );
+      const found = rows[0];
+      if (!found) return false;
+      await conn.query("UPDATE ledger_invites SET status = 'accepted', status_changed_at = ? WHERE invite_id = ?", [
+        at,
+        inviteId,
+      ]);
+      await addMember(conn, found.ledger_id, userId);
+      return true;
+    });
+    if (!accepted) return reply.code(404).send({ error: 'not_found' });
     return reply.code(204).send();
   });
 }

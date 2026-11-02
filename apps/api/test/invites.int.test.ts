@@ -229,4 +229,82 @@ describe.skipIf(!(await testDbReachable()))('ledger invites (MySQL)', () => {
       expect((await decline(null, 1))[0]).toBe(401);
     });
   });
+
+  describe('accepting', () => {
+    const accept = (user: TestUser | null, inviteId: number | string) =>
+      send(user, 'POST', `/api/invites/${inviteId}/accept`);
+    const ledgersOf = async (user: TestUser) => (await send(user, 'GET', '/api/ledgers'))[1].ledgers;
+    const membershipRows = async () => {
+      const [found] = await db.query<RowDataPacket[]>(
+        'SELECT role FROM ledger_members WHERE ledger_id = ? AND user_id = ?',
+        [dimuch.ledgerId, olena.userId],
+      );
+      return found.length;
+    };
+
+    it('the owner invites olena; she sees it, accepts, and is a member', async () => {
+      const [, { inviteId }] = await invite(dimuch, 'olena');
+      expect((await send(olena, 'GET', '/api/invites'))[1].invites).toHaveLength(1);
+      expect(await accept(olena, inviteId)).toEqual([204]);
+
+      expect(await ledgersOf(olena)).toContainEqual({
+        ledgerId: dimuch.ledgerId,
+        name: 'Home',
+        role: 'member',
+        owner: 'dimuch',
+      });
+      expect((await send(olena, 'GET', `/api/ledgers/${dimuch.ledgerId}/categories?month=2026-10`))[0]).toBe(200);
+      const [, list] = await send(dimuch, 'GET', `/api/ledgers/${dimuch.ledgerId}/members`);
+      expect(list.members).toContainEqual({ userId: olena.userId, username: 'olena', role: 'member' });
+      expect(list.invites).toEqual([]);
+      expect(await rows()).toEqual([{ status: 'accepted', status_changed_at: clock }]);
+    });
+
+    it('accepts only once, also when two accepts arrive at once', async () => {
+      const [, first] = await invite(dimuch, 'olena');
+      await accept(olena, first.inviteId);
+      expect(await accept(olena, first.inviteId)).toEqual([404, { error: 'not_found' }]);
+
+      expect(await send(olena, 'DELETE', `/api/ledgers/${dimuch.ledgerId}/members/${olena.userId}`)).toEqual([204]);
+      const [, second] = await invite(dimuch, 'olena');
+      const results = await Promise.all([accept(olena, second.inviteId), accept(olena, second.inviteId)]);
+      expect(results.map(([status]) => status).sort()).toEqual([204, 404]);
+      expect(await membershipRows()).toBe(1);
+    });
+
+    it('only the invitee accepts', async () => {
+      const [, { inviteId }] = await invite(dimuch, 'olena');
+      expect(await accept(sam, inviteId)).toEqual([404, { error: 'not_found' }]);
+      expect(await rows()).toEqual([{ status: 'pending', status_changed_at: null }]);
+    });
+
+    it('accepts until its hour is up', async () => {
+      const [, { inviteId }] = await invite(dimuch, 'olena');
+      await later(59);
+      expect(await accept(olena, inviteId)).toEqual([204]);
+    });
+
+    it('not after its hour', async () => {
+      const [, { inviteId }] = await invite(dimuch, 'olena');
+      await later(60);
+      expect(await accept(olena, inviteId)).toEqual([404, { error: 'not_found' }]);
+      expect(await rows()).toEqual([{ status: 'pending', status_changed_at: null }]);
+      expect((await ledgersOf(olena)).map((ledger: { owner: string }) => ledger.owner)).toEqual(['olena']);
+    });
+
+    it("a revoked or declined invite can't be accepted", async () => {
+      const [, revoked] = await invite(dimuch, 'olena');
+      await send(dimuch, 'DELETE', `/api/ledgers/${dimuch.ledgerId}/invites/${revoked.inviteId}`);
+      expect(await accept(olena, revoked.inviteId)).toEqual([404, { error: 'not_found' }]);
+      const [, declined] = await invite(dimuch, 'olena');
+      await send(olena, 'DELETE', `/api/invites/${declined.inviteId}`);
+      expect(await accept(olena, declined.inviteId)).toEqual([404, { error: 'not_found' }]);
+      expect(await membershipRows()).toBe(0);
+    });
+
+    it('rejects a bad id and needs a session', async () => {
+      expect((await accept(olena, 'abc'))[0]).toBe(400);
+      expect((await accept(null, 1))[0]).toBe(401);
+    });
+  });
 });

@@ -99,7 +99,7 @@ the brief wants those unchanged. A second function also keeps the old path uncha
         `createdBy: olena.userId`, and dimuch's `GET …/expenses?month=2026-10` contains it.
       - Olena's `DELETE` of an expense dimuch added returns 204.
 
-- [ ] 3. Let create-user join an existing ledger with --join (~45 lines)
+- [x] 3. Let create-user join an existing ledger with --join (~45 lines)
   - Files: `apps/api/scripts/create-user.ts`
   - Change: the CLI contract above. Update the header comment and the usage line.
   - Verify (local dev DB, `apps/api/.env`). Each command's output must match:

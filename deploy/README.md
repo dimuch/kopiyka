@@ -259,8 +259,9 @@ October 2026 imported from Notion's Expenses table (brief 049): each month's cat
    months already written: run it again, as written months then print `no change`. Without `--snapshot`, production
    answers `Set NOTION_TOKEN, …, or pass --snapshot <file>.`
 
-5. **November.** Log in at `https://kopiyka.englishplus.com.ua` with your usual authenticator code. Budget tab →
-   November → **Copy October's categories**, then set the planned amounts.
+5. **November.** Log in at `https://kopiyka.englishplus.com.ua` with your usual authenticator code. Income tab →
+   November → add the household's income. Then Budget tab → November → **Copy October's categories**, and set the
+   planned amounts: from November 2026 they can't add up to more than the month's income (brief 060).
 
 **Notion changed a past month?** Repeat steps 3 and 4. Each month takes Notion's current numbers, ended months
 included; unchanged months print `no change`. Months from November on are never touched.

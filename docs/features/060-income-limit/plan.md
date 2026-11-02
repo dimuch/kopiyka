@@ -285,7 +285,7 @@ Promise<Refusal | { month: string; amountCents: bigint }>`. It still locks first
       "…by €60."; "Delete item" gives "…by €150.", and the item stays.
     - **Before the rule:** October accepts all of these.
     - Light and dark.
-- [ ] 7. Say to add November's income before planning it (~3)
+- [x] 7. Say to add November's income before planning it (~3)
   - Files: `deploy/README.md` (step 5, "November").
   - Change: "Income tab → November → add the household's income; then Budget tab → November → Copy October's
     categories and set the planned amounts (they can't exceed the income)". The current text ("then set the planned

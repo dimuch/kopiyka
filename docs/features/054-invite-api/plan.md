@@ -265,11 +265,18 @@ target. See Open questions for the split.
 
 ## Consolidate
 
-Candidate, left for Phase 3a: the "live" predicate `status = 'pending' AND expires_at > ?` is written out in six
-queries. Those are create's `NOT EXISTS`, the member list, `GET /api/invites`, revoke, decline and accept, across
-`invites/routes.ts` and `ledgers/routes.ts`. The slices write it inline so each query reads alone. Phase 3a decides
-whether to EXTRACT it as one SQL fragment const exported from `invites/routes.ts` (rule of three applies), keeping
-each caller's `now` parameter in place.
+CONSOLIDATE: reused 0 · extracted 1 · left 4
+
+- EXTRACT `liveInvite(table)` in `invites/live.ts`: the live-invite condition was written in six queries across
+  `invites/routes.ts` and `ledgers/routes.ts`; all six call it, each keeping its own `now` parameter. A small module
+  rather than an export of `invites/routes.ts`, so the ledger routes don't import the invite routes.
+- LEAVE the ledger row lock in the invite route vs `categories/monthLists.ts`' private `lockLedger`: two copies, one
+  line each, in different domains (plan's Not doing).
+- LEAVE the `[requireAuth, requireLedger, requireOwner]` guard list in `ledgers/routes.ts` and `invites/routes.ts`:
+  two copies.
+- LEAVE revoke's and decline's `affectedRows === 0` → 404: the repo's idiom, one line each.
+- LEAVE the `send`/`rows` test helpers in `invites.int.test.ts` vs `members.int.test.ts`' local ones: test-only,
+  shaped for each suite.
 
 ## Revision 1
 

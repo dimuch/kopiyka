@@ -148,7 +148,7 @@ Seed items with raw SQL on the dev DB until slice 4 can add them. Today is 2026-
 November is open. Gates run before every commit, with `DATABASE_URL_TEST` exported so the API integration tests
 run.
 
-- [ ] 1. Let the empty-month card say what the month lacks (~25)
+- [x] 1. Let the empty-month card say what the month lacks (~25)
   - Files: `git mv apps/mobile/src/components/NoBudget.tsx …/EmptyMonth.tsx`, `(tabs)/budget.tsx`,
     `(tabs)/expenses.tsx`.
   - Change: the `month` prop becomes `text`, and the component is renamed. Both callers pass

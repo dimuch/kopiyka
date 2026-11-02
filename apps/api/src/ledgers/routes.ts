@@ -46,7 +46,7 @@ export async function ledgerRoutes(app: FastifyInstance, { db, now }: AppDeps): 
          FROM ledger_invites i
          JOIN users u ON u.user_id = i.invitee_user_id
         WHERE i.ledger_id = ? AND ${liveInvite('i')}
-        ORDER BY i.created_at, i.invite_id`,
+        ORDER BY i.invite_id`,
         [req.ledger!.ledgerId, now()],
       );
       return {

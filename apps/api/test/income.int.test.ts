@@ -189,7 +189,9 @@ describe.skipIf(!(await testDbReachable()))('income items (MySQL)', () => {
     it('needs a session and a ledger of your own', async () => {
       const stranger = await makeUser(db, config, 'stranger');
       expect((await add('2026-10', { title: 'Salary', amount: '1' }, {})).statusCode).toBe(401);
-      expect((await add('2026-10', { title: 'Salary', amount: '1' }, auth, stranger.ledgerId)).statusCode).toBe(404);
+      const foreign = await add('2026-10', { title: 'Salary', amount: '1' }, auth, stranger.ledgerId);
+      expect(foreign.statusCode).toBe(404);
+      expect(foreign.json().error).toBe('ledger_not_found');
       expect(await itemCount()).toBe(0);
     });
   });
@@ -248,7 +250,9 @@ describe.skipIf(!(await testDbReachable()))('income items (MySQL)', () => {
       const stranger = await makeUser(db, config, 'stranger');
       const strangerAuth = await authHeader(app, stranger, clock);
       expect((await edit(salary, { title: 'X', amount: '1' }, {})).statusCode).toBe(401);
-      expect((await edit(salary, { title: 'X', amount: '1' }, strangerAuth)).statusCode).toBe(404);
+      const foreign = await edit(salary, { title: 'X', amount: '1' }, strangerAuth);
+      expect(foreign.statusCode).toBe(404);
+      expect(foreign.json().error).toBe('ledger_not_found');
       expect(await storedItem(salary)).toEqual({ title: 'Salary', amount_eur: '2500.00', created_by: owner.userId });
     });
   });
@@ -293,7 +297,9 @@ describe.skipIf(!(await testDbReachable()))('income items (MySQL)', () => {
       const stranger = await makeUser(db, config, 'stranger');
       const strangerAuth = await authHeader(app, stranger, clock);
       expect((await remove(salary, {})).statusCode).toBe(401);
-      expect((await remove(salary, strangerAuth)).statusCode).toBe(404);
+      const foreign = await remove(salary, strangerAuth);
+      expect(foreign.statusCode).toBe(404);
+      expect(foreign.json().error).toBe('ledger_not_found');
       expect(await storedItem(salary)).toBeDefined();
     });
   });
@@ -353,7 +359,9 @@ describe.skipIf(!(await testDbReachable()))('income items (MySQL)', () => {
       const stranger = await makeUser(db, config, 'stranger');
       await storeItem(owner.ledgerId, owner, '2026-10', 'Salary', '2500.00');
       expect((await copy('2026-11', {})).statusCode).toBe(401);
-      expect((await copy('2026-11', auth, stranger.ledgerId)).statusCode).toBe(404);
+      const foreign = await copy('2026-11', auth, stranger.ledgerId);
+      expect(foreign.statusCode).toBe(404);
+      expect(foreign.json().error).toBe('ledger_not_found');
       expect(await itemCount()).toBe(1);
     });
 

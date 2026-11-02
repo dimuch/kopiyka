@@ -29,11 +29,15 @@ interface AuthApi {
 
 const AuthContext = createContext<AuthApi | null>(null);
 
-/** The user's ledgers, opening the one chosen on this device while they're still in it, else the first; none → noLedger. */
-async function fetchMe(): Promise<AuthState> {
+/**
+ * The user's ledgers, opening `choice` (or the one chosen on this device) while they're still in it, else the first;
+ * none → noLedger.
+ */
+async function fetchMe(choice?: number): Promise<AuthState> {
   const me = await api<{ user: User; ledgers: Ledger[] }>('/api/ledgers');
   // A failed read (storage unavailable) counts as no choice.
-  const stored = await AsyncStorage.getItem(choiceKey(me.user.userId)).catch(() => null);
+  const stored =
+    choice !== undefined ? String(choice) : await AsyncStorage.getItem(choiceKey(me.user.userId)).catch(() => null);
   const ledger = pickLedger(me.ledgers, stored);
   if (!ledger) return { status: 'noLedger', user: me.user };
   return { status: 'signedIn', user: me.user, ledger, ledgers: me.ledgers };
@@ -83,9 +87,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const openLedger = useCallback(
     async (ledgerId: number) => {
       if (state.status !== 'signedIn') return;
-      // A failed write only means the choice isn't remembered next launch, as for the theme.
-      await AsyncStorage.setItem(choiceKey(state.user.userId), String(ledgerId)).catch(() => {});
-      setState(await fetchMe());
+      const next = await fetchMe(ledgerId);
+      // Remembered only once it opened, so a failed switch doesn't come back on the next launch. A failed write only
+      // means the choice isn't remembered, as for the theme.
+      if (next.status === 'signedIn' && next.ledger.ledgerId === ledgerId) {
+        await AsyncStorage.setItem(choiceKey(next.user.userId), String(ledgerId)).catch(() => {});
+      }
+      setState(next);
     },
     [state],
   );
@@ -103,6 +111,6 @@ export function useAuth(): AuthApi {
 /** The signed-in session; only for screens behind the sign-in redirect. */
 export function useSession() {
   const { state, logout, openLedger } = useAuth();
-  if (state.status !== 'signedIn') throw new Error('useSession while signed out');
+  if (state.status !== 'signedIn') throw new Error('useSession without an open ledger');
   return { ...state, logout, openLedger };
 }

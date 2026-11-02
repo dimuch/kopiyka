@@ -180,3 +180,13 @@ Total: about 285 changed lines in 4 slices.
 ## Deviations
 
 ## Consolidate
+
+- REUSE (already in slice 1): `withTransaction` (`db.ts`) for the join path, instead of a second hand-rolled
+  transaction like `createUserWithLedger`'s.
+- LEAVE: `INSERT INTO users …` in `createUserJoiningLedger` and `createUserWithLedger`. That's two copies, neither is
+  shared code, and the plan keeps `createUserWithLedger` untouched (AC6).
+- LEAVE: `addMember` and the owner `INSERT INTO ledger_members` in `createUserWithLedger`. The role differs, and
+  routing the owner row through `addMember` would add a `role` parameter that only this path needs (see "Not doing").
+- LEAVE: the owned-ledger lookup in `createUserJoiningLedger`. Nothing else in `apps/api/src` reads
+  `ledgers.owner_user_id` (`ledgers/access.ts` reads `ledger_members`).
+- In the script, the username regex is now one `Username` schema used by `--username` and `--join`, not two copies.

@@ -1,5 +1,5 @@
-import type { FastifyInstance } from 'fastify';
-import type { ResultSetHeader, RowDataPacket } from 'mysql2/promise';
+import type { FastifyInstance, FastifyReply } from 'fastify';
+import type { PoolConnection, ResultSetHeader, RowDataPacket } from 'mysql2/promise';
 import { z } from 'zod';
 import type { AppDeps } from '../app.js';
 import { lockLedger } from '../categories/monthLists.js';
@@ -30,9 +30,30 @@ function toDto(r: RowDataPacket): IncomeItemDto {
   return { incomeId: r.income_id, title: r.title, amountEur: r.amount_eur, addedBy: r.added_by };
 }
 
+type Refusal = 'not_found' | 'month_ended';
+
+function sendRefusal(reply: FastifyReply, refusal: Refusal): FastifyReply {
+  return reply.code(refusal === 'not_found' ? 404 : 409).send({ error: refusal });
+}
+
 /** A ledger's income items per month (brief 058). Any member reads and writes any item. */
 export async function incomeRoutes(app: FastifyInstance, { db, now }: AppDeps): Promise<void> {
   const guards = { preHandler: [app.requireAuth, app.requireLedger] };
+
+  /**
+   * Locks the ledger, then says why an existing item can't change: unknown or another ledger's, or in an ended
+   * month. Null when it can.
+   */
+  async function refuseChange(conn: PoolConnection, ledgerId: number, incomeId: number): Promise<Refusal | null> {
+    await lockLedger(conn, ledgerId);
+    const [rows] = await conn.query<RowDataPacket[]>(
+      'SELECT income_month FROM income_items WHERE income_id = ? AND ledger_id = ?',
+      [incomeId, ledgerId],
+    );
+    const item = rows[0];
+    if (!item) return 'not_found';
+    return monthEnded(item.income_month.slice(0, 7), now()) ? 'month_ended' : null;
+  }
 
   app.get('/api/ledgers/:id/months/:month/income', guards, async (req) => {
     const { month } = MonthParams.parse(req.params);
@@ -71,24 +92,29 @@ export async function incomeRoutes(app: FastifyInstance, { db, now }: AppDeps): 
     const { incomeId } = IncomeParams.parse(req.params);
     const { title, amount } = IncomeBody.parse(req.body);
     const ledgerId = req.ledger!.ledgerId;
-    const result = await withTransaction(db, async (conn) => {
-      await lockLedger(conn, ledgerId);
-      const [rows] = await conn.query<RowDataPacket[]>(
-        'SELECT income_month FROM income_items WHERE income_id = ? AND ledger_id = ?',
-        [incomeId, ledgerId],
-      );
-      const item = rows[0];
-      if (!item) return 'not_found';
-      if (monthEnded(item.income_month.slice(0, 7), now())) return 'month_ended';
+    const refused = await withTransaction(db, async (conn) => {
+      const refusal = await refuseChange(conn, ledgerId, incomeId);
+      if (refusal) return refusal;
       await conn.query('UPDATE income_items SET title = ?, amount_eur = ? WHERE income_id = ?', [
         title,
         centsToString(toCents(amount)),
         incomeId,
       ]);
-      return 'edited';
+      return null;
     });
-    if (result === 'not_found') return reply.code(404).send({ error: 'not_found' });
-    if (result === 'month_ended') return reply.code(409).send({ error: 'month_ended' });
-    return reply.code(204).send();
+    return refused ? sendRefusal(reply, refused) : reply.code(204).send();
+  });
+
+  // Any member deletes any item, at once: there is no Undo. An item in an ended month is read-only.
+  app.delete('/api/ledgers/:id/income/:incomeId', guards, async (req, reply) => {
+    const { incomeId } = IncomeParams.parse(req.params);
+    const ledgerId = req.ledger!.ledgerId;
+    const refused = await withTransaction(db, async (conn) => {
+      const refusal = await refuseChange(conn, ledgerId, incomeId);
+      if (refusal) return refusal;
+      await conn.query('DELETE FROM income_items WHERE income_id = ?', [incomeId]);
+      return null;
+    });
+    return refused ? sendRefusal(reply, refused) : reply.code(204).send();
   });
 }

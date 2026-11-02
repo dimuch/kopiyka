@@ -1,14 +1,33 @@
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { useState } from 'react';
+import { AccessibilityInfo, Pressable, StyleSheet, Text, View } from 'react-native';
 import { useAppearance, useThemedStyles } from '@/appearance/AppearanceContext';
 import { useSession } from '@/auth/AuthContext';
 import { AppearancePicker } from '@/components/AppearancePicker';
+import { LedgerPicker } from '@/components/LedgerPicker';
 import { PlaceholderPage } from '@/components/PlaceholderPage';
 import { fonts, type Palette } from '@/theme';
 
 export default function Settings() {
   const styles = useThemedStyles(makeStyles);
   const { preference, setPreference } = useAppearance();
-  const { user, logout } = useSession();
+  const { user, ledger, ledgers, logout, openLedger } = useSession();
+  const [switching, setSwitching] = useState(false);
+  const [switchFailed, setSwitchFailed] = useState(false);
+
+  async function switchTo(ledgerId: number) {
+    setSwitching(true);
+    setSwitchFailed(false);
+    try {
+      await openLedger(ledgerId);
+    } catch {
+      setSwitchFailed(true);
+      // role="alert" covers web; VoiceOver needs an explicit announcement.
+      AccessibilityInfo.announceForAccessibility(SWITCH_FAILED);
+    } finally {
+      setSwitching(false);
+    }
+  }
+
   return (
     <PlaceholderPage title="Settings">
       <View style={styles.account}>
@@ -22,7 +41,18 @@ export default function Settings() {
           </Text>
         </View>
       </View>
-      <View style={styles.appearance}>
+      {ledgers.length > 1 && (
+        <View style={styles.section}>
+          <Text style={styles.caption}>Ledger</Text>
+          <LedgerPicker ledgers={ledgers} selectedId={ledger.ledgerId} onSelect={switchTo} disabled={switching} />
+          {switchFailed && (
+            <Text accessibilityRole="alert" style={styles.error}>
+              {SWITCH_FAILED}
+            </Text>
+          )}
+        </View>
+      )}
+      <View style={styles.section}>
         <Text style={styles.caption}>Appearance</Text>
         <AppearancePicker value={preference} onChange={setPreference} />
       </View>
@@ -32,6 +62,8 @@ export default function Settings() {
     </PlaceholderPage>
   );
 }
+
+const SWITCH_FAILED = 'Couldn’t switch. Check your connection and try again.';
 
 const makeStyles = (colors: Palette) =>
   StyleSheet.create({
@@ -56,7 +88,8 @@ const makeStyles = (colors: Palette) =>
       justifyContent: 'center',
     },
     initial: { fontFamily: fonts.display, fontSize: 17, color: colors.accent },
-    appearance: { marginTop: 24, gap: 8 },
+    section: { marginTop: 24, gap: 8 },
+    error: { fontFamily: fonts.body, fontSize: 14, color: colors.muted },
     caption: { fontFamily: fonts.body, fontSize: 12, color: colors.muted },
     username: { fontFamily: fonts.bodySemi, fontSize: 16, color: colors.text },
     // Shaped like the login button, outlined so it doesn't read as the screen's main action;

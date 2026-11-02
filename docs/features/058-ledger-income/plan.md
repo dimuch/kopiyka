@@ -246,7 +246,7 @@ knows its delta, so computing "after" before writing is smaller.
     - `2026-13` gives 400;
     - no session gives 401;
     - a non-member gets 404 `ledger_not_found`.
-- [ ] 1.2 Add an income item to a month (~120)
+- [x] 1.2 Add an income item to a month (~120)
   - Files: `income/routes.ts` (`IncomeBody`, POST), `categories/monthLists.ts` (export `lockLedger`), the test file.
   - Tests:
     - the owner adds `'  Salary '`/`'2500'` → 201 `{ title: 'Salary', amountEur: '2500.00', addedBy: owner }`;

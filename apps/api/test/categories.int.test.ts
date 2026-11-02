@@ -3,6 +3,7 @@ import type { ResultSetHeader, RowDataPacket } from 'mysql2/promise';
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest';
 import { buildApp } from '../src/app.js';
 import { createDb, type Db } from '../src/db.js';
+import { addMember } from '../src/ledgers/members.js';
 import { loadGroceries, planGroceries } from '../src/notion/groceries.js';
 import { loadUncounted } from '../src/notion/totals.js';
 import {
@@ -117,6 +118,14 @@ describe.skipIf(!(await testDbReachable()))('categories API (MySQL)', () => {
 
   const expense = (method: 'GET' | 'DELETE' | 'POST', expenseId: number, path = '') =>
     app.inject({ method, url: `/api/ledgers/${owner.ledgerId}/expenses/${expenseId}${path}`, headers: auth });
+
+  /** Stores a month's income item with raw SQL, as the owner (brief 060's rule sums it). */
+  async function storeIncome(month: string, amount: string): Promise<void> {
+    await db.query(
+      'INSERT INTO income_items (ledger_id, income_month, title, amount_eur, created_by) VALUES (?, ?, ?, ?, ?)',
+      [owner.ledgerId, `${month}-01`, 'Salary', amount, owner.userId],
+    );
+  }
 
   async function idOf(techName: string, ledgerId = owner.ledgerId): Promise<number> {
     const [rows] = await db.query<RowDataPacket[]>(
@@ -686,6 +695,8 @@ describe.skipIf(!(await testDbReachable()))('categories API (MySQL)', () => {
 
     it('starts a month whose categories were all removed afresh', async () => {
       await storeMonthList(db, owner.ledgerId, '2026-11', []);
+      // November is under the income rule (brief 060).
+      await storeIncome('2026-11', '15.00');
       expect((await plan(await idOf('gym'), auth, owner.ledgerId, '2026-11', '15.00')).statusCode).toBe(204);
       const gym = await addSpend('gym', '2026-11-02', '15.00');
       await db.query(
@@ -799,6 +810,8 @@ describe.skipIf(!(await testDbReachable()))('categories API (MySQL)', () => {
       expect((await plannedOf('2026-09')).rent).toBe('0.00');
 
       await storeMonthList(db, owner.ledgerId, '2026-11', []);
+      // November is under the income rule (brief 060).
+      await storeIncome('2026-11', '40.00');
       expect((await plan(await idOf('gym'), auth, owner.ledgerId, '2026-11', '40')).statusCode).toBe(204);
       const november = await plannedOf('2026-11');
       expect(november.gym).toBe('40.00');
@@ -1141,6 +1154,97 @@ describe.skipIf(!(await testDbReachable()))('categories API (MySQL)', () => {
       const stranger = await makeUser(db, config, 'stranger');
       expect((await call(await idOf('rent', stranger.ledgerId), auth, stranger.ledgerId)).statusCode).toBe(404);
       expect((await call('abc')).json()).toMatchObject({ error: 'invalid_request' });
+    });
+  });
+
+  describe('over-income rule (brief 060)', () => {
+    /** A category's stored November plan, or undefined when it has no row. */
+    async function storedPlan(techName: string): Promise<string | undefined> {
+      const [rows] = await db.query<RowDataPacket[]>(
+        "SELECT planned_eur FROM category_budgets WHERE category_id = ? AND budget_month = '2026-11-01'",
+        [await idOf(techName)],
+      );
+      return rows[0]?.planned_eur;
+    }
+
+    async function storePlan(techName: string, amount: string): Promise<void> {
+      await db.query(
+        "INSERT INTO category_budgets (category_id, budget_month, planned_eur) VALUES (?, '2026-11-01', ?)",
+        [await idOf(techName), amount],
+      );
+    }
+
+    const planNovember = async (techName: string, amount: string, headers = auth) =>
+      plan(await idOf(techName), headers, owner.ledgerId, '2026-11', amount);
+
+    beforeEach(async () => {
+      await storeMonthList(db, owner.ledgerId, '2026-11', []);
+    });
+
+    it('lets a raise reach the income and refuses one cent more, writing nothing', async () => {
+      await storeIncome('2026-11', '100.00');
+      expect((await planNovember('rent', '100')).statusCode).toBe(204);
+      const refused = await planNovember('groceries', '0.01');
+      expect(refused.statusCode).toBe(409);
+      expect(refused.json()).toEqual({ error: 'over_income', overEur: '0.01' });
+      expect(await storedPlan('groceries')).toBeUndefined();
+    });
+
+    it('lets a month that is over move back but never further', async () => {
+      await storePlan('rent', '150.00');
+      await storePlan('groceries', '50.00');
+      expect((await planNovember('rent', '120')).statusCode).toBe(204);
+      expect((await planNovember('rent', '120')).statusCode).toBe(204);
+      const refused = await planNovember('rent', '121');
+      expect(refused.statusCode).toBe(409);
+      expect(refused.json()).toEqual({ error: 'over_income', overEur: '171.00' });
+      expect(await storedPlan('rent')).toBe('120.00');
+
+      expect((await removeFrom(await idOf('groceries'), auth, owner.ledgerId, '2026-11')).statusCode).toBe(204);
+      const income = await app.inject({
+        method: 'POST',
+        url: `/api/ledgers/${owner.ledgerId}/months/2026-11/income`,
+        payload: { title: 'Salary', amount: '10' },
+        headers: auth,
+      });
+      expect(income.statusCode).toBe(201);
+    });
+
+    it('leaves months before November 2026 unchecked', async () => {
+      expect((await plan(await idOf('rent'), auth, owner.ledgerId, '2026-10', '500')).statusCode).toBe(204);
+    });
+
+    it('answers not_found and month_ended before over_income', async () => {
+      await storePlan('rent', '150.00');
+      await db.query("UPDATE category_months SET deleted_at = ? WHERE category_id = ? AND list_month = '2026-11-01'", [
+        clock,
+        await idOf('gym'),
+      ]);
+      const missing = await planNovember('gym', '500');
+      expect([missing.statusCode, missing.json()]).toEqual([404, { error: 'not_found' }]);
+
+      now = new Date('2026-11-30T22:00:00Z'); // 1 December in Kyiv: November has ended.
+      auth = await authHeader(app, owner, now);
+      const ended = await planNovember('rent', '500');
+      expect([ended.statusCode, ended.json()]).toEqual([409, { error: 'month_ended' }]);
+    });
+
+    it('holds when two members raise plans at once', async () => {
+      const member = await makeUser(db, config, 'olena');
+      await addMember(db, owner.ledgerId, member.userId);
+      const memberAuth = await authHeader(app, member, clock);
+      await storeIncome('2026-11', '60.00');
+      const names = ['rent', 'groceries', 'education', 'personal', 'parking', 'clothes'];
+      const codes = await Promise.all(
+        names.map(async (name, index) => (await planNovember(name, '20', index % 2 ? memberAuth : auth)).statusCode),
+      );
+      expect(codes.sort()).toEqual([204, 204, 204, 409, 409, 409]);
+      const [[row]] = await db.query<RowDataPacket[]>(
+        `SELECT SUM(b.planned_eur) AS total FROM category_budgets b JOIN categories c ON c.category_id = b.category_id
+          WHERE c.ledger_id = ? AND b.budget_month = '2026-11-01'`,
+        [owner.ledgerId],
+      );
+      expect(row!.total).toBe('60.00');
     });
   });
 });

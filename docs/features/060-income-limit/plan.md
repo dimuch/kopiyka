@@ -190,7 +190,7 @@ Promise<Refusal | { month: string; amountCents: bigint }>`. It still locks first
     - 15 × 99,999,999.99 planned against 0 income: 149999999985n, exactly.
     - `overIncomeError({ overCents: 1n })` gives `{ error: 'over_income', overEur: '0.01' }`; 150000n gives
       `'1500.00'`.
-- [ ] 3. Refuse raising a planned amount above the month's income (~145)
+- [x] 3. Refuse raising a planned amount above the month's income (~145)
   - Files:
     - `income/limit.ts` (`checkIncome`; it returns null before its two SUMs when the month is before
       `INCOME_RULE_START`, or the delta raises no planned amount and lowers no income);
@@ -365,6 +365,7 @@ Total is about 570 changed lines, tests included. 058 estimated ~480 for Part 3.
 ## Deviations
 
 - Slice 1 web checks ran on the QA ledger's own November (income €5,581 against rent planned €6,000 → "−€419" in red; €419 more income on the Income tab → €0 on return), not €100/€150. October has no budget on that ledger, so "October shows its own figures" became "an empty month shows only the empty card" (October and March 2027). Web ran from this worktree's Metro on 127.0.0.1:8084 against main's API on :3000 (no API change in slice 1).
+- Slice 3 Prove-It: with `lockLedger` dropped from `setPlanned`, the two-members race test failed 3 of 3 runs (4–6 of the six raises got 204).
 
 ## Consolidate
 

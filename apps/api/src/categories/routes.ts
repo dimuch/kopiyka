@@ -3,6 +3,7 @@ import type { RowDataPacket } from 'mysql2/promise';
 import { z } from 'zod';
 import type { AppDeps } from '../app.js';
 import { MONTH_RE, monthEnded, nextMonthStart } from '../dates.js';
+import { overIncomeError } from '../income/limit.js';
 import { AMOUNT_RE } from '../money.js';
 import {
   addToMonth,
@@ -170,9 +171,10 @@ export async function categoryRoutes(app: FastifyInstance, { db, now }: AppDeps)
     const { categoryId, month } = MonthParams.parse(req.params);
     const { amount } = PlannedBody.parse(req.body);
     if (monthEnded(month, now())) return reply.code(409).send({ error: 'month_ended' });
-    return (await setPlanned(db, req.ledger!.ledgerId, categoryId, month, amount))
-      ? reply.code(204).send()
-      : reply.code(404).send({ error: 'not_found' });
+    const result = await setPlanned(db, req.ledger!.ledgerId, categoryId, month, amount);
+    if (result === 'not_found') return reply.code(404).send({ error: 'not_found' });
+    if (result !== 'set') return reply.code(409).send(overIncomeError(result));
+    return reply.code(204).send();
   });
 
   // Brief 037. An ended month is read-only, so it's refused before anything is read.

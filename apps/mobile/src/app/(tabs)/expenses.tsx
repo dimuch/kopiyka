@@ -7,14 +7,14 @@ import { useSession } from '@/auth/AuthContext';
 import { AddExpenseButton } from '@/components/AddExpenseButton';
 import { CategoryTile } from '@/components/CategoryTile';
 import { HeaderDivider, useCollapsingSummary } from '@/components/CollapsingSummary';
+import { EmptyMonth } from '@/components/EmptyMonth';
 import { HomeButton } from '@/components/HomeButton';
 import { LoadError } from '@/components/LoadError';
 import { MonthSwitcher } from '@/components/MonthSwitcher';
-import { NoBudget } from '@/components/NoBudget';
 import { budgetProgress } from '@/data/budgetProgress';
 import { plannedCents, spentByCategory } from '@/data/monthSummary';
 import { useMonth } from '@/data/useMonth';
-import { eur, kyivMonth, toCents } from '@/format';
+import { eur, kyivMonth, monthName, toCents } from '@/format';
 import { fonts, type Palette } from '@/theme';
 
 export default function Expenses() {
@@ -96,8 +96,8 @@ export default function Expenses() {
           <>
             {error && <LoadError message="Couldn’t refresh. Check your connection and try again." onRetry={reload} />}
             {rows.length === 0 ? (
-              <NoBudget
-                month={month}
+              <EmptyMonth
+                text={`No budget for ${monthName(month)} yet`}
                 // An ended month can't be set up any more, so there's nothing to go to (brief 035, Gate A).
                 action={
                   month < thisMonth

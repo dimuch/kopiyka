@@ -26,6 +26,8 @@ const PATHS = {
     'M3 7v11a2 2 0 0 0 2 2h14a1 1 0 0 0 1-1v-9a1 1 0 0 0-1-1H5a2 2 0 0 1-2-2',
     'M16 14h.01',
   ],
+  // An arrow into a tray: money coming in.
+  income: ['M12 3v12', 'M7 10l5 5 5-5', 'M5 21h14'],
   expenses: ['M6 3h12v18l-3-2-3 2-3-2-3 2z', 'M9 8h6', 'M9 12h6', 'M9 16h3'],
   stats: ['M4 20h16', 'M7 16v-5', 'M12 16V6', 'M17 16V9'],
   settings: [

@@ -1,16 +1,15 @@
 import { ActivityIndicator, Pressable, StyleSheet, Text, View } from 'react-native';
 import { useColors, useThemedStyles } from '@/appearance/AppearanceContext';
 import { LoadError } from '@/components/LoadError';
-import { monthName } from '@/format';
 import { fonts, type Palette } from '@/theme';
 
-/** A month with no categories: "No budget for November yet", an optional action and its outcome. */
-export function NoBudget({
-  month,
+/** A month with nothing in it yet ("No budget for November yet"), an optional action and its outcome. */
+export function EmptyMonth({
+  text,
   action,
   note,
 }: {
-  month: string;
+  text: string;
   action?: { label: string; onPress: () => void; busy: boolean };
   /** A refusal or failure from the action, announced to screen readers (via LoadError). */
   note?: string | null;
@@ -19,7 +18,7 @@ export function NoBudget({
   const styles = useThemedStyles(makeStyles);
   return (
     <View style={styles.card}>
-      <Text style={styles.text}>No budget for {monthName(month)} yet</Text>
+      <Text style={styles.text}>{text}</Text>
       {action && (
         <Pressable
           accessibilityRole="button"

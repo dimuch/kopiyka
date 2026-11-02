@@ -39,7 +39,7 @@ export function AmountFields({ entered, amountText, otherText, onChange, disable
   );
 }
 
-function AmountField({
+export function AmountField({
   currency,
   value,
   onChangeText,

@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import type { Category, Expense } from '@/api/types';
-import { expenseCount, groupByDay, plannedCents, spentByCategory, sumCents } from '@/data/monthSummary';
+import type { Category, Expense, IncomeItem } from '@/api/types';
+import { expenseCount, groupByDay, incomeCents, plannedCents, spentByCategory, sumCents } from '@/data/monthSummary';
 
 describe('expenseCount', () => {
   it('says how many expenses, singular for one', () => {
@@ -83,5 +83,21 @@ describe('monthSummary', () => {
     expect(plannedCents([])).toBe(0);
     // 120.50 + 0 + 0.10 + 0.20; in floats 0.1 + 0.2 isn't 0.3, in cents it's exactly 30.
     expect(plannedCents(['120.50', '0.00', '0.10', '0.20'].map(planned))).toBe(12080);
+  });
+});
+
+describe('incomeCents', () => {
+  const item = (amountEur: string, incomeId = 1): IncomeItem => ({
+    incomeId,
+    title: 'Salary',
+    amountEur,
+    addedBy: 'dimuch',
+  });
+
+  it("sums the month's income in integer cents", () => {
+    expect(incomeCents([item('2500.00', 1), item('300.50', 2), item('0.01', 3)])).toBe(280051);
+    expect(incomeCents([])).toBe(0);
+    // In floats 0.1 + 0.2 isn't 0.3; in cents it's exactly 30.
+    expect(incomeCents([item('0.10', 1), item('0.20', 2)])).toBe(30);
   });
 });

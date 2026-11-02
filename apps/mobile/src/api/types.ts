@@ -53,6 +53,16 @@ export interface Category {
   plannedEur: string;
 }
 
+/** A ledger's income item in one month (brief 058); any member edits or deletes it. */
+export interface IncomeItem {
+  incomeId: number;
+  title: string;
+  /** Decimal string > 0, as stored: '2500.00'. */
+  amountEur: string;
+  /** Username of the member who added it (or copied it in); an edit by someone else doesn't change it. */
+  addedBy: string;
+}
+
 /** One category with its live expenses in one month, and whether that month's list has it (GET one ?month=). */
 export interface CategoryWithTotals extends Category {
   expenseCount: number;

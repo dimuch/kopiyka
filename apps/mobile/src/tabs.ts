@@ -38,8 +38,10 @@ function isTab(name: string): name is TabName {
  * The tab under a page pushed above the tabs, and each tab's current params. A tab tap has to pass those params on:
  * navigating with only a path empties them, so Budget and Income would lose the month the user was on. Route params
  * come from the URL and `setParams`, so only strings are kept. With no tabs underneath (a page opened from a link),
- * or before the tab navigator has a full state, `fallback` is the active tab: guessing from a partial state could
- * highlight the wrong one.
+ * `fallback` is the active tab.
+ *
+ * After a page load the tabs keep the partial state built from the URL (no `index`) until a tab is switched, so a
+ * missing `index` means the first route, as React Navigation's TabRouter reads it.
  */
 export function readTabs(
   routes: StackRoutes,
@@ -57,6 +59,6 @@ export function readTabs(
     if (strings.length > 0) params[route.name] = Object.fromEntries(strings);
   }
 
-  const focused = tabs.index === undefined ? undefined : tabs.routes[tabs.index]?.name;
+  const focused = tabs.routes[tabs.index ?? 0]?.name;
   return { active: focused !== undefined && isTab(focused) ? focused : fallback, params };
 }

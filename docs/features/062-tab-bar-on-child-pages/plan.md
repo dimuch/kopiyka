@@ -232,6 +232,10 @@ See Open questions.
 
 ## Deviations
 
+- slice 5: `readTabs` reads a missing `index` as the first route instead of falling back. After a page load the
+  tabs keep the partial state from the URL (`{ routes: [{ name: 'expenses' }], stale: true }`) until a tab is
+  switched, so the form opened from Expenses showed Home. Same rule as `TabRouter.getRehydratedState`.
+
 ## Consolidate
 
 ## Revision 1

@@ -37,6 +37,10 @@ describe('readTabs', () => {
     expect(readTabs(withTabs(0, ALL, ['category/[categoryId]', 'expense']), 'expenses').active).toBe('index');
   });
 
+  it('reads a partial state with no index as focused on its first route, as after a page load', () => {
+    expect(readTabs(withTabs(undefined, [{ name: 'expenses' }]), 'index').active).toBe('expenses');
+  });
+
   it("carries each tab's string params, so Budget and Income keep their month", () => {
     const routes = withTabs(3, [
       { name: 'index' },
@@ -53,7 +57,6 @@ describe('readTabs', () => {
   it.each([
     ['no tab navigator under the page', [{ name: 'category/[categoryId]' }]],
     ['a tab navigator that has no state yet', [{ name: '(tabs)' }, { name: 'category/[categoryId]' }]],
-    ['a partial state with no index', withTabs(undefined, ALL)],
     ['a focused name that is not a tab', withTabs(0, [{ name: 'somewhere' }])],
   ] as const)('falls back with %s', (_, routes) => {
     expect(readTabs(routes, 'expenses').active).toBe('expenses');

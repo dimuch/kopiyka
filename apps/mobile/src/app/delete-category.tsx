@@ -11,6 +11,7 @@ import { removeFromMonth, restoreToMonth } from '@/data/categories';
 import { notInMonthText } from '@/data/categoryName';
 import { removedMessage, removeWarning } from '@/data/categoryRemove';
 import { monthEndedText, restoreRefusedText } from '@/data/monthEnded';
+import { overIncomeText } from '@/data/overIncome';
 import { setPendingUndo } from '@/data/undo';
 import { useCategoryTotals } from '@/data/useCategoryTotals';
 import { parseIdParam, parseMonthParam } from '@/linkParams';
@@ -102,7 +103,9 @@ function Confirm({
         message: removedMessage(displayName, month, expenseCount),
         restore: () => restoreToMonth(ledgerId, categoryId, month),
         // The restore goes back into the removal month, so a month that ended meanwhile refuses it for good.
-        refusedText: (err) => (err instanceof ApiError ? restoreRefusedText(err.code, month) : null),
+        // Restoring its planned amount could also plan the month above its income (brief 060).
+        refusedText: (err) =>
+          err instanceof ApiError ? (overIncomeText(err.code, err.body) ?? restoreRefusedText(err.code, month)) : null,
       });
       router.dismissTo(toBudget ? { pathname: '/budget', params: { month } } : '/');
     } catch (err) {

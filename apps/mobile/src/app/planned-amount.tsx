@@ -20,6 +20,7 @@ import { CategoryInMonth } from '@/components/CategoryInMonth';
 import { setPlanned } from '@/data/categories';
 import { notInMonthText } from '@/data/categoryName';
 import { monthEndedText } from '@/data/monthEnded';
+import { overIncomeText } from '@/data/overIncome';
 import { useCategoryTotals } from '@/data/useCategoryTotals';
 import { monthName, normalizePlanned } from '@/format';
 import { parseIdParam, parseMonthParam } from '@/linkParams';
@@ -105,13 +106,16 @@ function Editor({
       closeToBudget(month);
     } catch (err) {
       const code = err instanceof ApiError ? err.code : null;
+      // An over-income refusal leaves the field editable, so a smaller amount can still be saved (brief 060).
+      const overIncome = err instanceof ApiError ? overIncomeText(err.code, err.body) : null;
       setGone(code === 'month_ended' || code === 'not_found');
       showError(
-        code === 'month_ended'
-          ? monthEndedText(month)
-          : code === 'not_found'
-            ? notInMonthText(category.displayName, month)
-            : 'Couldn’t save. Check your connection and try again.',
+        overIncome ??
+          (code === 'month_ended'
+            ? monthEndedText(month)
+            : code === 'not_found'
+              ? notInMonthText(category.displayName, month)
+              : 'Couldn’t save. Check your connection and try again.'),
       );
       inFlight.current = false;
       setBusy(false);

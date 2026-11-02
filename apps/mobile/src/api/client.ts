@@ -66,6 +66,8 @@ export class ApiError extends Error {
   constructor(
     readonly status: number,
     readonly code: string,
+    /** The parsed error body, for refusals that carry more than a code (over_income's overEur, brief 060). */
+    readonly body: Record<string, unknown> = {},
   ) {
     super(`${status} ${code}`);
   }
@@ -101,7 +103,7 @@ export async function api<T>(path: string, init: { method?: string; body?: unkno
     if (res.status === 401 && path !== '/api/auth/login') onUnauthorized();
     const code = (data as { error?: string }).error ?? 'unknown';
     if (res.status === 404 && code === 'ledger_not_found') onLedgerGone();
-    throw new ApiError(res.status, code);
+    throw new ApiError(res.status, code, data as Record<string, unknown>);
   }
   return data as T;
 }

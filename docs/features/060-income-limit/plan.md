@@ -258,7 +258,7 @@ Promise<Refusal | { month: string; amountCents: bigint }>`. It still locks first
       - items 50 + 50 and rent 50, with groceries → '50' (`PUT …/planned`) and a DELETE of one item at once: one
         204 and one 409, and planned ≤ income afterwards.
     - Prove-It as in slice 3, with the lock dropped from `findChangeable`, recorded in Deviations.
-- [ ] 6. Explain an over-income refusal in the app (~80)
+- [x] 6. Explain an over-income refusal in the app (~80)
   - Files:
     - `apps/mobile/src/api/client.ts` (`ApiError.body`);
     - `apps/mobile/src/data/overIncome.ts`, `apps/mobile/test/overIncome.test.ts`;
@@ -367,6 +367,7 @@ Total is about 570 changed lines, tests included. 058 estimated ~480 for Part 3.
 - Slice 1 web checks ran on the QA ledger's own November (income €5,581 against rent planned €6,000 → "−€419" in red; €419 more income on the Income tab → €0 on return), not €100/€150. October has no budget on that ledger, so "October shows its own figures" became "an empty month shows only the empty card" (October and March 2027). Web ran from this worktree's Metro on 127.0.0.1:8084 against main's API on :3000 (no API change in slice 1).
 - Slice 3 Prove-It: with `lockLedger` dropped from `setPlanned`, the two-members race test failed 3 of 3 runs (4–6 of the six raises got 204).
 - Slice 5 Prove-It: with `lockLedger` dropped from `findChangeable`, the six-deletes race test failed 3 of 3 runs (all six got 204).
+- Slice 6 web checks used November with €100 income and rent €140 + gym €10 planned: groceries → 5 said "…by €55." and → 0 saved; Undo of gym on Budget and on Home said "…by €50." with no Retry; Salary → 90 said "…by €60." and "Delete item" said "…by €150.", the item staying. "Before the rule: October accepts all of these" wasn't run: October has ended, so every change there is refused as `month_ended` first; months before the rule are covered by the API tests in slices 3–5. Light mode wasn't seen (the QA user's theme stays dark); the change adds no styles.
 
 ## Consolidate
 

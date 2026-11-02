@@ -20,6 +20,7 @@ import { LoadError } from '@/components/LoadError';
 import { normalizeName } from '@/data/categoryName';
 import { addIncome, deleteIncome, updateIncome } from '@/data/income';
 import { monthEndedText } from '@/data/monthEnded';
+import { overIncomeText } from '@/data/overIncome';
 import { useIncome } from '@/data/useIncome';
 import { monthName, normalizeAmount } from '@/format';
 import { parseIdParam, parseMonthParam } from '@/linkParams';
@@ -178,8 +179,13 @@ function IncomeForm({
       leave(month);
     } catch (err) {
       const code = err instanceof ApiError ? err.code : null;
+      // An over-income refusal keeps the form open, so a smaller cut can still be saved (brief 060).
+      const overIncome = err instanceof ApiError ? overIncomeText(err.code, err.body) : null;
       setGone(code === 'month_ended' || code === 'not_found');
-      showError(code === 'month_ended' ? monthEndedText(month) : code === 'not_found' ? notListedText(month) : failed);
+      showError(
+        overIncome ??
+          (code === 'month_ended' ? monthEndedText(month) : code === 'not_found' ? notListedText(month) : failed),
+      );
       inFlight.current = false;
       setBusy(false);
     }

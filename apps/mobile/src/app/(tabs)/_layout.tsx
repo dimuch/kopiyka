@@ -14,7 +14,8 @@ const TABS: { name: string; title: string; icon: IconName }[] = [
 
 export default function TabsLayout() {
   const colors = useColors();
-  const { reload } = useInvites();
+  const { invites, reload } = useInvites();
+  const count = invites?.length ?? 0;
   return (
     <Tabs
       // Every tab tap (and the return from a pushed screen) checks for new invites; there's no polling.
@@ -28,18 +29,28 @@ export default function TabsLayout() {
         sceneStyle: { backgroundColor: colors.bg },
       }}
     >
-      {TABS.map((t) => (
-        <Tabs.Screen
-          key={t.name}
-          name={t.name}
-          options={{
-            title: t.title,
-            // Without labels the web tab has no name; iOS builds "Home, tab, 1 of 5" from the title itself.
-            tabBarAccessibilityLabel: Platform.OS === 'web' ? t.title : undefined,
-            tabBarIcon: ({ color, size }) => <Icon name={t.icon} color={color} size={size} />,
-          }}
-        />
-      ))}
+      {TABS.map((tab) => {
+        // Settings carries the count of pending invites, which it lists. Screen readers don't read the badge, so
+        // the tab's name says it too.
+        const badge = tab.name === 'settings' && count > 0 ? count : undefined;
+        const label = badge ? `${tab.title}, ${badge} ${badge === 1 ? 'invite' : 'invites'}` : tab.title;
+        return (
+          <Tabs.Screen
+            key={tab.name}
+            name={tab.name}
+            options={{
+              title: tab.title,
+              // The label is hidden; iOS builds "Settings, 2 invites, tab, 5 of 5" from it.
+              tabBarLabel: label,
+              // Without labels the web tab has no name.
+              tabBarAccessibilityLabel: Platform.OS === 'web' ? label : undefined,
+              tabBarBadge: badge,
+              tabBarBadgeStyle: { backgroundColor: colors.accent, color: colors.onAccent },
+              tabBarIcon: ({ color, size }) => <Icon name={tab.icon} color={color} size={size} />,
+            }}
+          />
+        );
+      })}
     </Tabs>
   );
 }

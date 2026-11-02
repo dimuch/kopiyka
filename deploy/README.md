@@ -169,6 +169,9 @@ so piped `sudo` commands don't prompt twice at once.
    sudo certbot renew --dry-run
    ```
 
+   If certbot can't find a server block for the name, install a temporary port-80-only block for it (as
+   `~/subdomain-setup.sh` did for gendash), reload, and re-run `certonly`.
+
    Then make systemd start nginx again if it crashes (Ubuntu ships it with `Restart=no`):
 
    ```bash
@@ -178,12 +181,9 @@ so piped `sudo` commands don't prompt twice at once.
    sudo systemctl daemon-reload
    ```
 
-   It only adds "start again after a crash": stop, reload and restart behave as before, and nginx isn't restarted by
-   this. nginx is shared, so the other sites get it too. Undo:
+   It only adds "start again after a crash": stop, reload and restart behave as before, and applying it doesn't
+   restart nginx. nginx is shared, so the other sites get it too. Undo:
    `sudo rm /etc/systemd/system/nginx.service.d/restart.conf && sudo systemctl daemon-reload`.
-
-   If certbot can't find a server block for the name, install a temporary port-80-only block for it (as
-   `~/subdomain-setup.sh` did for gendash), reload, and re-run `certonly`.
 
    Until the first deploy the site answers 404 for pages and 502 for `/api`; the other sites must still load.
 

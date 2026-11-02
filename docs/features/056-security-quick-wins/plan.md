@@ -94,7 +94,7 @@ Facts checked on the Base:
   - Tests: `liveInvite('i')` returns the exact condition string. The second line is
     `// @ts-expect-error -- only the aliases its callers use reach SQL` on `liveInvite('users')`, so `yarn typecheck`
     fails if the union is ever widened back to `string`.
-- [ ] 4. Refuse a non-https API URL in a native release build
+- [x] 4. Refuse a non-https API URL in a native release build
   - Files: `apps/mobile/src/api/baseUrl.ts` (new), `apps/mobile/src/api/client.ts`,
     `apps/mobile/test/baseUrl.test.ts` (new)
   - Change: move the native branch of `apiUrl()` into `nativeApiUrl` (contract above). `client.ts` passes in the env

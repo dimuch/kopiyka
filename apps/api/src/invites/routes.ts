@@ -42,4 +42,25 @@ export async function inviteRoutes(app: FastifyInstance, { db, now }: AppDeps): 
     if (!invite) return reply.code(409).send({ error: 'cannot_invite' });
     return reply.code(201).send(invite);
   });
+
+  // The caller's own live invites, oldest first, each with the ledger's owner: every ledger is named "Home".
+  app.get('/api/invites', { preHandler: app.requireAuth }, async (req) => {
+    const [rows] = await db.query<RowDataPacket[]>(
+      `SELECT i.invite_id, l.ledger_id, l.name, o.username AS owner
+         FROM ledger_invites i
+         JOIN ledgers l ON l.ledger_id = i.ledger_id
+         JOIN users o ON o.user_id = l.owner_user_id
+        WHERE i.invitee_user_id = ? AND i.status = 'pending' AND i.expires_at > ?
+        ORDER BY i.created_at, i.invite_id`,
+      [req.auth!.userId, now()],
+    );
+    return {
+      invites: rows.map((row) => ({
+        inviteId: row.invite_id,
+        ledgerId: row.ledger_id,
+        ledgerName: row.name,
+        owner: row.owner,
+      })),
+    };
+  });
 }

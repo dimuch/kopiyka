@@ -153,7 +153,7 @@ on it is an exact `toEqual` (e.g. `[{ status: 'revoked', status_changed_at: cloc
   - Deploy check (in the PR's test plan): before merge, on the droplet,
     `mysql -h 127.0.0.1 -u kopiyka -p kopiyka -e 'SELECT COUNT(*) FROM ledger_invites'` must print 0. Otherwise stop
     and ask the user.
-- [ ] 3. List live pending invites for the owner's ledger and for the invitee (~80)
+- [x] 3. List live pending invites for the owner's ledger and for the invitee (~80)
   - Files: `apps/api/src/ledgers/routes.ts` (destructure `now`; a second query for `invites`),
     `apps/api/src/invites/routes.ts` (`GET /api/invites`, joining `ledgers l` and `users o ON o.user_id = l.owner_user_id`),
     `apps/api/test/members.int.test.ts` ("lists the members for the owner" gains `invites: []`),

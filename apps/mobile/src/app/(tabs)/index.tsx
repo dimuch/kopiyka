@@ -7,7 +7,9 @@ import { useSession } from '@/auth/AuthContext';
 import { Icon, type IconName } from '@/components/Icon';
 import { LoadError } from '@/components/LoadError';
 import { NotionSyncPanel } from '@/components/NotionSyncPanel';
+import { PendingInvites } from '@/components/PendingInvites';
 import { UndoToast } from '@/components/UndoToast';
+import { useInvites } from '@/data/invites';
 import { expenseCount, plannedCents, sumCents } from '@/data/monthSummary';
 import { useUndoOffer } from '@/data/undo';
 import { useMonth } from '@/data/useMonth';
@@ -24,6 +26,8 @@ export default function Home() {
   const { data, error, reload } = useMonth(ledger.ledgerId, month);
   const count = data?.expenses.length;
   const notion = useNotionSync(ledger.ledgerId);
+  // Shown as they load, with no loading or error block, like the figures.
+  const invites = useInvites();
   // A restore changes the month's figures and what Notion still needs to hear about.
   const toast = useUndoOffer(() => {
     reload();
@@ -59,6 +63,13 @@ export default function Home() {
         <Text style={styles.title}>Kopiyka</Text>
         <Text style={styles.caption}>{monthLabel(month)}</Text>
       </View>
+      <PendingInvites
+        invites={invites.invites ?? []}
+        busyId={invites.busyId}
+        failure={invites.failure}
+        onAccept={invites.accept}
+        onDecline={invites.decline}
+      />
       <View style={styles.grid}>
         {cards.map((c) => (
           <Pressable

@@ -24,6 +24,7 @@ the copy use the same list, badge and labels.
 The expense form becomes a normal pushed page (drop `presentation: 'modal'`), and its "Cancel" becomes "Back".
 
 **Decision on the brief's open question: the expense form becomes a regular pushed page.**
+
 - On iOS a `modal` is a sheet over a dimmed parent. A bar inside the sheet would float above the real screen edge,
   and the dimmed parent would show its own bar behind the sheet. A pushed card fills the screen, so the bar sits where
   it does on tab pages.
@@ -34,6 +35,7 @@ Alternative considered: brief option 2, a nested `Stack` in the Expenses tab. Bo
 Expenses and category detail (`expenses.tsx:123`, `AddExpenseButton` in `expenses.tsx:52` and
 `category/[categoryId].tsx:94,152`), so this needs one stack, not a copy per tab. It would show the real bar with
 about a third of the code. It lost on the link cases:
+
 - A linked `/expense` would highlight Expenses, but the brief says Home.
 - Linked pages go back through the tab router's `firstRoute` history (`TabRouter.js:96`). Without
   `initialRouteName`, a linked category goes back to Home instead of Expenses. With `initialRouteName: 'expenses'`, a
@@ -97,7 +99,7 @@ See Open questions.
 
 ## Slices
 
-- [ ] 1. Share the tab list and invite badge between the tab bar and other screens
+- [x] 1. Share the tab list and invite badge between the tab bar and other screens
   - Files: `apps/mobile/src/tabs.ts` (new), `apps/mobile/src/app/(tabs)/_layout.tsx`,
     `apps/mobile/test/tabs.test.ts` (new)
   - Change: move `TABS` and the badge/label computation into `tabs.ts`, adding `href`. `_layout.tsx` maps over
@@ -165,19 +167,19 @@ See Open questions.
 
 ## AC → evidence
 
-| AC                                                     | Evidence                                                                         |
-| ------------------------------------------------------ | -------------------------------------------------------------------------------- |
-| "Back" top-left, no "Cancel"                           | Slice 2 verify (New and Edit, web and iPhone)                                    |
-| Back returns to origin, Home from a link               | Slice 2 verify (from Expenses, from a category, from a direct link)              |
-| Bar shows; Add / list not covered (iOS, web)           | Slice 4 and 5 verify (last row, toast, Add/Update above the bar)                 |
-| Tab tap shows that tab; back/swipe doesn't return      | Slice 4 and 5 verify (browser back, iOS)                                         |
-| (What) tab tap works the same as on a tab page         | `readTabs` params cases + slice 4 verify (Budget and Income month kept)          |
-| Category from Expenses → Expenses active               | `readTabs` active cases + slice 4 verify                                         |
-| Settings badge on child pages                          | `tabBadge` cases + slice 4 verify                                                |
-| Unsaved input: tab tap leaves without prompt           | Slice 5 verify                                                                   |
-| iOS swipe-back on category detail                      | Slice 4 verify (iPhone)                                                          |
-| (What) bar looks and reads the same                    | Slice 4 side-by-side screenshots; VoiceOver label check                          |
-| (What) link: Expenses active on category, Home on form | `readTabs` fallback cases + slice 4 and 5 direct-link verify                     |
+| AC                                                     | Evidence                                                                |
+| ------------------------------------------------------ | ----------------------------------------------------------------------- |
+| "Back" top-left, no "Cancel"                           | Slice 2 verify (New and Edit, web and iPhone)                           |
+| Back returns to origin, Home from a link               | Slice 2 verify (from Expenses, from a category, from a direct link)     |
+| Bar shows; Add / list not covered (iOS, web)           | Slice 4 and 5 verify (last row, toast, Add/Update above the bar)        |
+| Tab tap shows that tab; back/swipe doesn't return      | Slice 4 and 5 verify (browser back, iOS)                                |
+| (What) tab tap works the same as on a tab page         | `readTabs` params cases + slice 4 verify (Budget and Income month kept) |
+| Category from Expenses → Expenses active               | `readTabs` active cases + slice 4 verify                                |
+| Settings badge on child pages                          | `tabBadge` cases + slice 4 verify                                       |
+| Unsaved input: tab tap leaves without prompt           | Slice 5 verify                                                          |
+| iOS swipe-back on category detail                      | Slice 4 verify (iPhone)                                                 |
+| (What) bar looks and reads the same                    | Slice 4 side-by-side screenshots; VoiceOver label check                 |
+| (What) link: Expenses active on category, Home on form | `readTabs` fallback cases + slice 4 and 5 direct-link verify            |
 
 ## Not doing (YAGNI)
 
@@ -235,6 +237,7 @@ See Open questions.
 ## Revision 1
 
 Skeptic REVISE, round 1:
+
 - **Blocker:** a tab tap on a child page now keeps Budget's and Income's month. `tabUnder` became `readTabs`, which
   also returns each tab route's params, and `TabBar` passes them to `dismissTo`. Added unit cases, a month-kept
   verify step and a Risks line.

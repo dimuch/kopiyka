@@ -156,7 +156,7 @@ run.
   - Verify: Budget and Expenses on an empty month whose previous month has categories (e.g. 2026-12, while it's still
     empty) read and look as before, and Budget's Copy still shows. On an empty month after an empty one (e.g.
     2027-03), the card shows no Copy. Typecheck, lint.
-- [ ] 2. Load a month's income items in the app (~60)
+- [x] 2. Load a month's income items in the app (~60)
   - Files: `api/types.ts` (`IncomeItem`), `data/useIncome.ts` (new), `data/monthSummary.ts` (`incomeCents`),
     `test/monthSummary.test.ts`.
   - Change: as in Contracts. This is the conventions' "types + data hook" step. Slice 3 is its caller.

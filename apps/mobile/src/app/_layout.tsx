@@ -37,6 +37,7 @@ function Screens() {
         <Stack.Screen name="planned-amount" options={{ presentation: 'modal' }} />
         <Stack.Screen name="add-category" options={{ presentation: 'modal' }} />
         <Stack.Screen name="rename-category" options={{ presentation: 'modal' }} />
+        <Stack.Screen name="income-item" options={{ presentation: 'modal' }} />
       </Stack.Protected>
       <Stack.Protected guard={state.status === 'noLedger'}>
         <Stack.Screen name="no-ledger" />

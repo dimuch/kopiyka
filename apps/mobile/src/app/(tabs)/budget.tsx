@@ -10,7 +10,7 @@ import { HomeButton } from '@/components/HomeButton';
 import { Icon } from '@/components/Icon';
 import { LoadError } from '@/components/LoadError';
 import { MonthSwitcher } from '@/components/MonthSwitcher';
-import { NoBudget } from '@/components/NoBudget';
+import { EmptyMonth } from '@/components/EmptyMonth';
 import { UndoToast } from '@/components/UndoToast';
 import { copyPreviousMonth } from '@/data/categories';
 import { copyRefusedText } from '@/data/monthCopy';
@@ -121,8 +121,8 @@ export default function Budget() {
             {error && <LoadError message="Couldn’t refresh. Check your connection and try again." onRetry={reload} />}
             {data.categories.length === 0 ? (
               <>
-                <NoBudget
-                  month={month}
+                <EmptyMonth
+                  text={`No budget for ${monthName(month)} yet`}
                   action={
                     canCopy
                       ? { label: `Copy ${monthName(previousMonth)}’s categories`, onPress: copy, busy }

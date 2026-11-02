@@ -122,7 +122,7 @@ The slices, in order:
     COLUMN has no data to migrate, so there's no `migrations.int.test.ts` case.
     - The three existing ledger-list assertions (`ledgers.int.test.ts:52–53`, `members.int.test.ts:69,72`,
       `invites.int.test.ts:249`) gain `label: null`.
-- [ ] 2. Let anyone in a ledger set or clear their own label for it (~90)
+- [x] 2. Let anyone in a ledger set or clear their own label for it (~90)
   - Files: `apps/api/src/ledgers/routes.ts`, `apps/api/test/members.int.test.ts`
   - Change: `LabelBody` and the PUT route per Contracts.
   - Tests: a new `describe('your own label')` in `members.int.test.ts`, using the existing dimuch (owner) + olena

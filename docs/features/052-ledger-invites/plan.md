@@ -162,7 +162,7 @@ size and harder to read. Both are destructive only if rows exist, which they don
     "answers ledger_not_found for a ledger that doesn't exist and for someone else's":
     `GET /api/ledgers/999999/categories?month=2026-10` and the stranger's ledger both give
     `[404, { error: 'ledger_not_found' }]`.
-- [ ] 1.2 Name each ledger's owner in the ledger list (~20)
+- [x] 1.2 Name each ledger's owner in the ledger list (~20)
   - Files: `apps/api/src/ledgers/routes.ts`, `apps/api/test/ledgers.int.test.ts`, `apps/api/test/members.int.test.ts`
   - Change: join `users o ON o.user_id = l.owner_user_id` and return `owner: o.username`. Update the comment ("the
     app opens the stored choice or the first").

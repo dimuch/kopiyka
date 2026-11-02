@@ -17,8 +17,9 @@ export async function inviteRoutes(app: FastifyInstance, { db, now }: AppDeps): 
   const ownerOnly = { preHandler: [app.requireAuth, app.requireLedger, requireOwner] };
 
   // The owner invites someone who already has an account. An unknown username, a member (the owner too) and someone
-  // with a live invite here all get the same 409, so the answer doesn't tell which usernames exist. The ledger row
-  // lock keeps two invites sent at once from both passing the check: a unique key can't see expiry.
+  // with a live invite here all get the same 409: a refusal doesn't say why, so it can't tell an unknown username
+  // from a member. The ledger row lock keeps two invites sent at once from both passing the check: a unique key
+  // can't see expiry.
   app.post('/api/ledgers/:id/invites', ownerOnly, async (req, reply) => {
     const { username } = InviteBody.parse(req.body);
     const ledgerId = req.ledger!.ledgerId;
@@ -54,7 +55,7 @@ export async function inviteRoutes(app: FastifyInstance, { db, now }: AppDeps): 
          JOIN ledgers l ON l.ledger_id = i.ledger_id
          JOIN users o ON o.user_id = l.owner_user_id
         WHERE i.invitee_user_id = ? AND ${liveInvite('i')}
-        ORDER BY i.created_at, i.invite_id`,
+        ORDER BY i.invite_id`,
       [req.auth!.userId, now()],
     );
     return {

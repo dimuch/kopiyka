@@ -19,7 +19,7 @@ without restarting nginx.
 
 ## Slices
 
-- [ ] 1. Restart nginx after a crash, in the runbook (~20 lines)
+- [x] 1. Restart nginx after a crash, in the runbook (~20 lines)
   - Files: `deploy/README.md`, this plan.
   - Change: step 8 gets `sudo mkdir -p /etc/systemd/system/nginx.service.d`, the `printf … | sudo tee …/restart.conf`
     line and `sudo systemctl daemon-reload` (the `mkdir` makes it work on a fresh droplet), then one line on what it

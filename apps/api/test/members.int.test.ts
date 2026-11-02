@@ -159,4 +159,62 @@ describe.skipIf(!(await testDbReachable()))('a member of a shared ledger (MySQL)
       expect(await members(await authHeader(app, stranger, clock))).toEqual([404, { error: 'ledger_not_found' }]);
     });
   });
+
+  describe('removing a member and leaving', () => {
+    const remove = async (headers: Record<string, string>, userId: number | string) => {
+      const res = await app.inject({ method: 'DELETE', url: ledgerUrl(`/members/${userId}`), headers });
+      return res.statusCode === 204 ? [204] : [res.statusCode, res.json()];
+    };
+    const listed = async () =>
+      (await app.inject({ method: 'GET', url: ledgerUrl('/members'), headers: ownerAuth }))
+        .json()
+        .members.map((m: { username: string }) => m.username);
+    const expectOlenaGone = async () => {
+      const res = await app.inject({ method: 'GET', url: ledgerUrl('/categories?month=2026-10'), headers: memberAuth });
+      expect([res.statusCode, res.json()]).toEqual([404, { error: 'ledger_not_found' }]);
+      expect((await app.inject({ method: 'GET', url: '/api/ledgers', headers: memberAuth })).json().ledgers).toEqual(
+        [],
+      );
+      expect(await listed()).toEqual(['dimuch']);
+    };
+
+    it('the owner removes a member, whose next request is ledger_not_found', async () => {
+      expect(await remove(ownerAuth, olena.userId)).toEqual([204]);
+      await expectOlenaGone();
+    });
+
+    it('a member leaves, with the same effect', async () => {
+      expect(await remove(memberAuth, olena.userId)).toEqual([204]);
+      await expectOlenaGone();
+    });
+
+    it("a member can't remove anyone", async () => {
+      const sam = await joinUser(db, config, 'sam', 'dimuch');
+      expect(await remove(memberAuth, sam.userId)).toEqual([403, { error: 'owner_only' }]);
+      expect(await remove(memberAuth, dimuch.userId)).toEqual([403, { error: 'owner_only' }]);
+      expect(await listed()).toEqual(['dimuch', 'olena', 'sam']);
+    });
+
+    it("the owner can't leave", async () => {
+      expect(await remove(ownerAuth, dimuch.userId)).toEqual([409, { error: 'owner_cannot_leave' }]);
+      expect(await listed()).toEqual(['dimuch', 'olena']);
+    });
+
+    it("answers not_found for someone who isn't a member here", async () => {
+      const stranger = await makeUser(db, config, 'stranger');
+      expect(await remove(ownerAuth, stranger.userId)).toEqual([404, { error: 'not_found' }]);
+      expect(await remove(ownerAuth, 999999)).toEqual([404, { error: 'not_found' }]);
+    });
+
+    it('rejects a bad id, needs a session, and hides the ledger from outsiders', async () => {
+      expect((await remove(ownerAuth, 'abc'))[0]).toBe(400);
+      expect((await remove({}, olena.userId))[0]).toBe(401);
+      const stranger = await makeUser(db, config, 'stranger');
+      expect(await remove(await authHeader(app, stranger, clock), olena.userId)).toEqual([
+        404,
+        { error: 'ledger_not_found' },
+      ]);
+      expect(await listed()).toEqual(['dimuch', 'olena']);
+    });
+  });
 });

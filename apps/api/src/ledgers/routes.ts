@@ -1,6 +1,9 @@
 import type { FastifyInstance } from 'fastify';
-import type { RowDataPacket } from 'mysql2/promise';
+import type { ResultSetHeader, RowDataPacket } from 'mysql2/promise';
+import { z } from 'zod';
 import type { AppDeps } from '../app.js';
+
+const MemberParams = z.object({ userId: z.coerce.number().int().positive() });
 
 export async function ledgerRoutes(app: FastifyInstance, { db }: AppDeps): Promise<void> {
   // The ledgers the user belongs to, oldest membership first, each with its owner's username (every ledger is
@@ -36,4 +39,24 @@ export async function ledgerRoutes(app: FastifyInstance, { db }: AppDeps): Promi
     );
     return { members: rows.map((r) => ({ userId: r.user_id, username: r.username, role: r.role })) };
   });
+
+  // The owner removes a member, or a member removes themselves (leaves). The owner can't leave: a ledger always
+  // keeps its owner, and handing it over is out of scope. Matching role = 'member' keeps the owner's row safe too.
+  // The removed user's expenses stay in the ledger.
+  app.delete(
+    '/api/ledgers/:id/members/:userId',
+    { preHandler: [app.requireAuth, app.requireLedger] },
+    async (req, reply) => {
+      const { userId } = MemberParams.parse(req.params);
+      const isOwner = req.ledger!.role === 'owner';
+      if (userId === req.auth!.userId && isOwner) return reply.code(409).send({ error: 'owner_cannot_leave' });
+      if (userId !== req.auth!.userId && !isOwner) return reply.code(403).send({ error: 'owner_only' });
+      const [res] = await db.query<ResultSetHeader>(
+        "DELETE FROM ledger_members WHERE ledger_id = ? AND user_id = ? AND role = 'member'",
+        [req.ledger!.ledgerId, userId],
+      );
+      if (res.affectedRows === 0) return reply.code(404).send({ error: 'not_found' });
+      return reply.code(204).send();
+    },
+  );
 }

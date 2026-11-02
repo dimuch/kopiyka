@@ -43,7 +43,7 @@ describe.skipIf(!(await testDbReachable()))('createUserJoiningLedger (MySQL)', (
 
     if ('error' in created) throw new Error(created.error);
     expect(created.ledgerId).toBe(dimuch.ledgerId);
-    expect(new URL(created.otpauthUri).pathname).toContain('olena');
+    expect(new URL(created.otpauthUri).pathname).toBe('/Kopiyka%3Aolena');
     const [members] = await db.query<RowDataPacket[]>(
       'SELECT user_id, role FROM ledger_members WHERE ledger_id = ? ORDER BY user_id',
       [dimuch.ledgerId],

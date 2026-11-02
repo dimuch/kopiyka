@@ -138,7 +138,8 @@ const makeStyles = (colors: Palette) =>
     error: { fontFamily: fonts.bodyMedium, fontSize: 14, color: colors.over },
     caption: { fontFamily: fonts.body, fontSize: 12, color: colors.muted },
     username: { fontFamily: fonts.bodySemi, fontSize: 16, color: colors.text },
-    content: { flexGrow: 1 },
+    // The same 6pt between sections as PlaceholderPage's own gap.
+    content: { flexGrow: 1, gap: 6 },
     spacer: { flexGrow: 1, minHeight: 24 },
     signOut: { ...outlinedDangerButton(colors), marginBottom: 20 },
     signOutText: outlinedDangerText(colors),

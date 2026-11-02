@@ -118,7 +118,7 @@ See Open questions.
     - Web: New and Edit both show "Back", and no "Cancel".
     - Web: Back returns to Expenses and to the category; a direct `/expense` link goes Back to Home.
     - iPhone: the form slides in as a page, and both Back and swipe-back return.
-- [ ] 3. Read the active tab and each tab's params from the navigation state
+- [x] 3. Read the active tab and each tab's params from the navigation state
   - Files: `apps/mobile/src/tabs.ts` (+`StackRoutes`, `readTabs`), `apps/mobile/test/tabs.test.ts`
   - Change: the pure reader only. Its caller arrives in slice 4.
   - Tests: `readTabs`:

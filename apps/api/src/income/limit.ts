@@ -62,8 +62,8 @@ export async function checkIncome(
     [ledgerId, first, ledgerId, first],
   );
   const before: MonthTotals = {
-    plannedCents: toCents(String(rows[0]!.planned_eur)),
-    incomeCents: toCents(String(rows[0]!.income_eur)),
+    plannedCents: toCents(rows[0]!.planned_eur),
+    incomeCents: toCents(rows[0]!.income_eur),
   };
   const after: MonthTotals = {
     plannedCents: before.plannedCents + delta.plannedCents,

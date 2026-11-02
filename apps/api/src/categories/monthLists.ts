@@ -137,7 +137,7 @@ export async function restoreToMonth(
     if (!row) return 'not_found';
     if (await nameTaken(conn, ledgerId, first, row.name, categoryId)) return 'name_taken';
     // Brief 060: from 2026-11 an Undo may not bring the month's plan back above its income.
-    const restored = toCents(String(row.planned_eur));
+    const restored = toCents(row.planned_eur);
     const over = await checkIncome(conn, ledgerId, month, { plannedCents: restored, incomeCents: 0n });
     if (over) return over;
     const stamp = row.deleted_at;
@@ -183,7 +183,7 @@ export async function setPlanned(
     const current = rows[0];
     if (!current) return 'not_found';
     // Brief 060: from 2026-11 a raise may not leave the month planned above its income.
-    const raise = toCents(amount) - toCents(String(current.planned_eur));
+    const raise = toCents(amount) - toCents(current.planned_eur);
     const over = await checkIncome(conn, ledgerId, month, { plannedCents: raise, incomeCents: 0n });
     if (over) return over;
     await conn.query(

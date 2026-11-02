@@ -131,7 +131,7 @@ See Open questions.
     - `(tabs)` with no `state` → the fallback
     - a nested state with no `index` → the fallback
     - an unknown tab name → the fallback
-- [ ] 4. Show the tab bar on category detail
+- [x] 4. Show the tab bar on category detail
   - Files: `apps/mobile/src/components/TabBar.tsx` (new), `apps/mobile/src/app/category/[categoryId].tsx`
   - Change: `CategoryScreen` wraps its result in a `flex: 1` view (background `colors.bg`), followed by
     `<TabBar fallback="expenses" />`. The `SafeAreaView` keeps `edges={['top']}`. The Undo toast

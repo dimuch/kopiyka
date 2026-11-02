@@ -45,6 +45,15 @@ vendored library skills (`.claude/skills/`) → general packs (`~/.claude/skills
 - **Comments say why**, not what: constraints, invariants, units, surprising
   choices (`// not an edit; keep ON UPDATE from firing`). One-line JSDoc on
   exported functions whose name alone doesn't carry units or edge cases.
+- **Fix the cause, not the crash.** Reproduce, find why, fix that. A guard
+  that only hides the symptom (`?.`, `?? 0`, an empty `catch`, an early
+  `return` for a value that should never be missing) is not a fix; a guard
+  for a value that really can be absent is fine — say why in the comment.
+- **Re-runnable by default.** Anything that writes in bulk or outside a
+  request — migrations, imports (`notion/historyImport.ts`), sync jobs,
+  `deploy/*.sh` — ends in the same state when run twice or
+  re-run after a crash halfway through (upserts, `IF NOT EXISTS`, a
+  transaction, or a check before each write).
 
 ## 2. Where logic lives (responsibility split by domain)
 

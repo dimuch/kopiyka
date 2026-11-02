@@ -164,7 +164,7 @@ The slices, in order:
        for LA keeps "claude-qa-056’s" whole, and Home's title takes at most two lines (ending in "…" if needed)
        without overlapping the month caption.
     4. Light and dark at a glance.
-- [ ] 3a. Name the Members screen's accent button styles for a second form (~4)
+- [x] 3a. Name the Members screen's accent button styles for a second form (~4)
   - Files: `apps/mobile/src/app/members.tsx`
   - Change: rename the styles `invite`/`inviteText` to `primary`/`primaryText` (as in `CategoryNameForm`) and update
     InviteForm's two uses. This is mechanical and behaviour-preserving; slice 4's Save is the second user.

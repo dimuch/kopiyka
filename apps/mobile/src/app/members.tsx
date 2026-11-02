@@ -297,10 +297,10 @@ function InviteForm({ ledgerId, onInvited }: { ledgerId: number; onInvited: () =
         accessibilityState={{ disabled: busy || !name, busy }}
         disabled={busy || !name}
         onPress={invite}
-        style={[styles.invite, (busy || !name) && { opacity: 0.5 }]}
+        style={[styles.primary, (busy || !name) && { opacity: 0.5 }]}
       >
         {busy && <ActivityIndicator size="small" color={colors.onAccent} />}
-        <Text style={styles.inviteText}>Invite</Text>
+        <Text style={styles.primaryText}>Invite</Text>
       </Pressable>
     </View>
   );
@@ -484,7 +484,7 @@ const makeStyles = (colors: Palette) =>
       fontFamily: fonts.bodyMedium,
       fontSize: 16,
     },
-    invite: {
+    primary: {
       height: 48,
       flexDirection: 'row',
       alignItems: 'center',
@@ -493,5 +493,5 @@ const makeStyles = (colors: Palette) =>
       borderRadius: 24,
       backgroundColor: colors.accent,
     },
-    inviteText: { fontFamily: fonts.bodySemi, fontSize: 15, color: colors.onAccent },
+    primaryText: { fontFamily: fonts.bodySemi, fontSize: 15, color: colors.onAccent },
   });

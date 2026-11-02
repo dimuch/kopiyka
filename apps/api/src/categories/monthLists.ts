@@ -3,6 +3,8 @@
 import type { PoolConnection, ResultSetHeader, RowDataPacket } from 'mysql2/promise';
 import { nextMonthStart, previousMonthStart } from '../dates.js';
 import { type Db, withTransaction } from '../db.js';
+import { checkIncome, type OverIncome } from '../income/limit.js';
+import { toCents } from '../money.js';
 
 /**
  * SQL that is true when category `c` is in the list of the date's own month; nothing carries over (brief 033). The
@@ -150,8 +152,9 @@ export async function restoreToMonth(
 }
 
 /**
- * Sets a category's planned EUR ('12.50', ≥ 0) for a 'YYYY-MM' month (brief 036). False, writing nothing, when the
- * category isn't in the month's list (unknown, foreign, deleted, removed, or the month has no budget).
+ * Sets a category's planned EUR ('12.50', ≥ 0) for a 'YYYY-MM' month (brief 036). 'not_found', writing nothing, when
+ * the category isn't in the month's list (unknown, foreign, deleted, removed, or the month has no budget); the
+ * refusal, writing nothing, when the raise would plan the month above its income (brief 060).
  */
 export async function setPlanned(
   db: Db,
@@ -159,22 +162,29 @@ export async function setPlanned(
   categoryId: number,
   month: string,
   amount: string,
-): Promise<boolean> {
+): Promise<'set' | 'not_found' | OverIncome> {
   const first = `${month}-01`;
   return withTransaction(db, async (conn) => {
     await lockLedger(conn, ledgerId);
     const [rows] = await conn.query<RowDataPacket[]>(
-      `SELECT 1 FROM categories c
+      `SELECT COALESCE(b.planned_eur, 0) AS planned_eur
+         FROM categories c
+         LEFT JOIN category_budgets b ON b.category_id = c.category_id AND b.budget_month = ?
         WHERE c.category_id = ? AND c.ledger_id = ? AND c.deleted_at IS NULL AND ${inMonthList('?')}`,
-      [categoryId, ledgerId, first],
+      [first, categoryId, ledgerId, first],
     );
-    if (!rows.length) return false;
+    const current = rows[0];
+    if (!current) return 'not_found';
+    // Brief 060: from 2026-11 a raise may not leave the month planned above its income.
+    const raise = toCents(amount) - toCents(String(current.planned_eur));
+    const over = await checkIncome(conn, ledgerId, month, { plannedCents: raise, incomeCents: 0n });
+    if (over) return over;
     await conn.query(
       `INSERT INTO category_budgets (category_id, budget_month, planned_eur) VALUES (?, ?, ?)
        ON DUPLICATE KEY UPDATE planned_eur = ?`,
       [categoryId, first, amount, amount],
     );
-    return true;
+    return 'set';
   });
 }
 

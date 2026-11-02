@@ -141,6 +141,9 @@ Report one line: `CONSOLIDATE: reused <n> · extracted <n> · left <n> (<why>)`.
 3. Re-review (same reviewer via SendMessage, or a fresh one with the
    previous report) until `APPROVE`/`APPROVE WITH NITS`. Max **3 rounds**;
    then stop and escalate the open list — don't push.
+   A finding that comes back `STILL OPEN` after a fix → attack the premise
+   (`kopiyka-develop` → When stuck) before the next fix, and name the
+   premise you checked in the fix commit's body.
 
 ## Phase 5 — Critical self-check
 
@@ -151,6 +154,8 @@ Before Gate B, answer honestly, in the report:
 - Is the diff proportional to the plan estimate? If it's >1.5× — why?
 - What would I delete if I had to cut 20%? If something obvious — delete
   it now (new commit, gates, quick re-review of that commit).
+- Would any new test still pass if its code returned nothing? Did any fix
+  add a guard that hides a cause (conventions §1)? Fix it now, same way.
 - Are all commits atomic, green, well-named, authored by dimuch, without
   Co-Authored-By trailers (`git log --format='%an <%ae>%n%B' origin/main..HEAD`)?
 - Any follow-ups or risks the user should know?

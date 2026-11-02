@@ -371,7 +371,20 @@ Total is about 570 changed lines, tests included. 058 estimated ~480 for Part 3.
 
 ## Consolidate
 
-<filled in /kopiyka-hos Phase 3a>
+Pass over `origin/main...HEAD`. Reused 12 · extracted 0 · left 4.
+
+- REUSE:
+  - API: `lockLedger`, `withTransaction`, `toCents`, `centsToString`, `monthEnded`.
+  - App: `useIncome`, `incomeCents`, `plannedCents`, `eur`, `LoadError`, `restoreRefusedText`, `monthEndedText`.
+- `overIncomeText` is the one place the message is built; the planned editor, the Undo bar and the income form all
+  call it.
+- `err instanceof ApiError ? overIncomeText(err.code, err.body) : null` in three screens — LEAVE: the screens' existing
+  one-line pattern for mapping a refusal (ten such lines across `app/`); folding it into `overIncome.ts` would make it
+  import `client.ts`, which Node tests avoid.
+- `checkIncome`'s planned SUM vs the categories list query and the app's `plannedCents` — LEAVE: one is a SQL check
+  under the ledger lock, the others list or sum for display (and the app's is another runtime).
+- `IncomeFigures` (Budget) vs Home's cards — LEAVE: different layouts; styles are per screen.
+- `findChangeable` replaces `refuseChange` (same check, now also returning the month and amount) — no second copy.
 
 ## Revision 1
 

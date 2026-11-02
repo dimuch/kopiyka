@@ -109,7 +109,8 @@ slice added for: …).
 Follow `kopiyka-develop` for every slice, with these refactor rules:
 
 - **Its step 2 (test first, see it fail) doesn't apply.** Characterization
-  tests must pass the first time, on unchanged code; rename, extract and move
+  tests must pass the first time, on unchanged code, and then fail when the
+  pinned line is broken by hand (`kopiyka-refactoring` §2); rename, extract and move
   slices add no tests and rely on the existing tests the plan names.
 - **After each slice**: the gates pass, the test count is ≥ baseline, and
   `git diff HEAD~1 --stat -- apps/api/test apps/mobile/test` shows test files

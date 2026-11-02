@@ -40,6 +40,11 @@ refactor: stop and route it through `/kopiyka-hos` with its own brief.
    Thin or none → the first slice adds **characterization tests** that pin
    today's behaviour (including odd behaviour — note it as a Follow-up, don't
    fix it). They must pass on the base before any refactor slice.
+   Since they never start red, **prove each one bites**: break the line it
+   pins by hand (flip a comparison, return early, drop a `WHERE` clause),
+   see the test fail, then restore the line (`git diff` shows only test
+   files again). A characterization test that survives the break pins
+   nothing — tighten it.
 3. **Existing tests stay as they are.** A refactor slice may touch a test file
    only for a mechanical rename/move of an imported symbol. Changed assertions,
    deleted cases, new `skip` → the slice changed behaviour or the test was

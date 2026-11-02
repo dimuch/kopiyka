@@ -23,7 +23,10 @@ interface AuthApi {
   state: AuthState;
   login: (username: string, code: string) => Promise<void>;
   logout: () => Promise<void>;
-  /** Remembers the ledger on this device and opens it (or the fallback if it's gone); rejects if reloading fails. */
+  /**
+   * Remembers the ledger on this device and opens it (or the fallback if it's gone); rejects if reloading fails. Also
+   * from no-ledger, after accepting an invite.
+   */
   openLedger: (ledgerId: number) => Promise<void>;
 }
 
@@ -86,7 +89,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const openLedger = useCallback(
     async (ledgerId: number) => {
-      if (state.status !== 'signedIn') return;
+      if (state.status !== 'signedIn' && state.status !== 'noLedger') return;
       const next = await fetchMe(ledgerId);
       // Remembered only once it opened, so a failed switch doesn't come back on the next launch. A failed write only
       // means the choice isn't remembered, as for the theme.

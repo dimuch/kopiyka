@@ -125,4 +125,40 @@ describe.skipIf(!(await testDbReachable()))('ledger invites (MySQL)', () => {
       expect(await rows()).toEqual([]);
     });
   });
+
+  describe('listing', () => {
+    const memberList = async () => (await send(dimuch, 'GET', `/api/ledgers/${dimuch.ledgerId}/members`))[1].invites;
+    const inviteList = async (user: TestUser) => (await send(user, 'GET', '/api/invites'))[1].invites;
+
+    it('lists a pending invite to the owner and the invitee', async () => {
+      const [, { inviteId }] = await invite(dimuch, 'olena');
+      expect(await memberList()).toEqual([{ inviteId, username: 'olena' }]);
+      expect(await inviteList(olena)).toEqual([
+        { inviteId, ledgerId: dimuch.ledgerId, ledgerName: 'Home', owner: 'dimuch' },
+      ]);
+      expect(await inviteList(sam)).toEqual([]);
+    });
+
+    it("an expired invite isn't listed", async () => {
+      await invite(dimuch, 'olena');
+      await later(60);
+      expect(await memberList()).toEqual([]);
+      expect(await inviteList(olena)).toEqual([]);
+    });
+
+    it("lists the invitee's invites in send order", async () => {
+      const ivanka = await makeUser(db, config, 'ivanka');
+      await signIn(ivanka);
+      const [, fromDimuch] = await invite(dimuch, 'olena');
+      await later(1);
+      const [, fromIvanka] = await invite(ivanka, 'olena', ivanka.ledgerId);
+      expect((await inviteList(olena)).map((found: { owner: string }) => found.owner)).toEqual(['dimuch', 'ivanka']);
+      expect(fromIvanka.inviteId).toBeGreaterThan(fromDimuch.inviteId);
+      expect(await memberList()).toEqual([{ inviteId: fromDimuch.inviteId, username: 'olena' }]);
+    });
+
+    it('needs a session', async () => {
+      expect((await send(null, 'GET', '/api/invites'))[0]).toBe(401);
+    });
+  });
 });

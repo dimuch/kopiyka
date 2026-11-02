@@ -142,6 +142,7 @@ describe.skipIf(!(await testDbReachable()))('a member of a shared ledger (MySQL)
             { userId: dimuch.userId, username: 'dimuch', role: 'owner' },
             { userId: olena.userId, username: 'olena', role: 'member' },
           ],
+          invites: [],
         },
       ]);
     });

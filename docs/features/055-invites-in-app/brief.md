@@ -21,12 +21,17 @@ brief from it.
       shared ledger.
 - [ ] Decline and revoke make the invite disappear for both sides.
 - [ ] A user removed from their only ledger can accept a new invite from the no-ledger screen.
+- [ ] With pending invites, the Settings tab shows their count, and Settings lists them with Accept and Decline; the
+      badge goes when none are left.
 - [ ] Checked on web at phone width and on the iPhone via Expo Go.
 
 ## Out of scope
 
 - Push or email notifications about invites.
 
-## Open questions (user reopened at 052's Gate A)
+## Decisions
 
-- Also show a badge on the Settings tab when there are pending invites, or Home only (planned default)?
+- The Settings tab shows a badge with the number of the user's pending invites, and Settings lists them (with Accept
+  and Decline) so the badge leads to them. Home keeps its list too. Decided by the user on 2026-11-02.
+- From 054 (decided by the user on 2026-11-02): an invite expires 1 hour after it's sent; only live invites are
+  listed, and an expired one answers 404 to Accept, Decline and Revoke.

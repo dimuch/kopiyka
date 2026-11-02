@@ -136,7 +136,7 @@ open. Gates run before every commit, with `DATABASE_URL_TEST` exported so the AP
     - `&incomeId=999999` shows the not-listed line, and `&incomeId=abc` shows "That link isn’t valid.".
     - Delete the item with SQL while its form is open, then Save: the not-listed line shows, and Save disappears.
     - The October item's link: Save shows the ended line, and Save disappears.
-- [ ] 3. Delete an income item from its form (~40)
+- [x] 3. Delete an income item from its form (~40)
   - Files: `data/income.ts` (`deleteIncome`), `app/income-item.tsx`.
   - Change:
     - The edit screen passes `remove={() => deleteIncome(ledgerId, incomeId)}`.

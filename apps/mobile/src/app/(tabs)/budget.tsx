@@ -44,8 +44,9 @@ export default function Budget() {
   const ended = month < thisMonth;
 
   const [busy, setBusy] = useState(false);
-  // Tagged with their month, so switching months clears them without an effect.
-  const [refused, setRefused] = useState<{ month: string; text: string } | null>(null);
+  // Tagged with their ledger and month, so switching either clears them without an effect.
+  const shown = `${ledger.ledgerId}/${month}`;
+  const [refused, setRefused] = useState<{ shown: string; text: string } | null>(null);
   const [failed, setFailed] = useState<string | null>(null);
   // The empty month loaded before a successful copy: useMonth keeps it until the reload lands, so without this Copy
   // would flash back.
@@ -66,12 +67,12 @@ export default function Budget() {
     } catch (err) {
       const text = err instanceof ApiError ? copyRefusedText(err.code, month) : null;
       if (text) {
-        setRefused({ month, text });
+        setRefused({ shown, text });
         // A budget_exists brings the list in; a no_previous_budget refreshes the previous month.
         reload();
         previous.reload();
       } else {
-        setFailed(month);
+        setFailed(shown);
       }
     } finally {
       // The screen stays mounted, so a later copy into another month must work.
@@ -80,10 +81,10 @@ export default function Budget() {
     }
   }
 
-  const refusal = refused?.month === month ? refused.text : null;
+  const refusal = refused?.shown === shown ? refused.text : null;
   const canCopy =
     !ended && previous.status === 'ready' && previous.categories.length > 0 && !refusal && data !== copiedOver;
-  const note = refusal ?? (failed === month ? 'Couldn’t copy. Check your connection and try again.' : null);
+  const note = refusal ?? (failed === shown ? 'Couldn’t copy. Check your connection and try again.' : null);
 
   return (
     <SafeAreaView style={styles.screen} edges={['top']}>

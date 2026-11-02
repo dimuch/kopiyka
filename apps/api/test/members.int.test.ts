@@ -183,6 +183,24 @@ describe.skipIf(!(await testDbReachable()))('a member of a shared ledger (MySQL)
       await expectOlenaGone();
     });
 
+    it("keeps a removed member's expenses in the ledger", async () => {
+      const groceries = (await categories(ownerAuth)).categories.find(
+        (category: { techName: string }) => category.techName === 'groceries',
+      ).categoryId;
+      const added = await app.inject({
+        method: 'POST',
+        url: ledgerUrl('/expenses'),
+        payload: { categoryId: groceries, expenseDate: '2026-10-06', name: 'Silpo', amount: '12.50', currency: 'EUR' },
+        headers: memberAuth,
+      });
+      expect(await remove(ownerAuth, olena.userId)).toEqual([204]);
+
+      const list = await app.inject({ method: 'GET', url: ledgerUrl('/expenses?month=2026-10'), headers: ownerAuth });
+      expect(list.json().expenses).toEqual([
+        expect.objectContaining({ expenseId: added.json().expenseId, createdBy: olena.userId }),
+      ]);
+    });
+
     it('a member leaves, with the same effect', async () => {
       expect(await remove(memberAuth, olena.userId)).toEqual([204]);
       await expectOlenaGone();

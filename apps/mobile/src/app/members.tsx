@@ -236,12 +236,12 @@ function ConfirmPanel({
   return (
     <View style={styles.panel}>
       <Text style={styles.question}>{question}</Text>
-      {detail && <Text style={styles.detail}>{detail}</Text>}
-      {failure && (
+      {detail ? <Text style={styles.detail}>{detail}</Text> : null}
+      {failure ? (
         <Text accessibilityRole="alert" style={styles.failure}>
           {failure}
         </Text>
-      )}
+      ) : null}
       <View style={styles.panelButtons}>
         <Pressable accessibilityRole="button" disabled={busy} onPress={onCancel} style={styles.cancel}>
           <Text style={styles.cancelText}>{gone ? 'Close' : 'Cancel'}</Text>

@@ -1229,6 +1229,62 @@ describe.skipIf(!(await testDbReachable()))('categories API (MySQL)', () => {
       expect([ended.statusCode, ended.json()]).toEqual([409, { error: 'month_ended' }]);
     });
 
+    it('refuses an Undo that brings a plan back above income, writing nothing', async () => {
+      await storeIncome('2026-11', '100.00');
+      expect((await planNovember('rent', '80')).statusCode).toBe(204);
+      const rentSpend = await addSpend('rent', '2026-11-02', '80.00');
+      const rent = await idOf('rent');
+      expect((await removeFrom(rent, auth, owner.ledgerId, '2026-11')).statusCode).toBe(204);
+      const [[before]] = await db.query<RowDataPacket[]>(
+        "SELECT deleted_at FROM category_months WHERE category_id = ? AND list_month = '2026-11-01'",
+        [rent],
+      );
+      expect((await planNovember('groceries', '50')).statusCode).toBe(204);
+
+      const refused = await restoreTo(rent, auth, owner.ledgerId, '2026-11');
+      expect([refused.statusCode, refused.json()]).toEqual([409, { error: 'over_income', overEur: '30.00' }]);
+      expect(await listOf('2026-11')).not.toContain('rent');
+      const [[after]] = await db.query<RowDataPacket[]>(
+        "SELECT deleted_at FROM category_months WHERE category_id = ? AND list_month = '2026-11-01'",
+        [rent],
+      );
+      expect(after!.deleted_at).toEqual(before!.deleted_at);
+      expect((await expense('GET', rentSpend)).statusCode).toBe(404);
+
+      expect((await planNovember('groceries', '20')).statusCode).toBe(204);
+      expect((await restoreTo(rent, auth, owner.ledgerId, '2026-11')).statusCode).toBe(204);
+      expect(await storedPlan('rent')).toBe('80.00');
+      expect((await expense('GET', rentSpend)).statusCode).toBe(200);
+    });
+
+    it('restores a €0 category into a month that is already over', async () => {
+      await storePlan('rent', '150.00');
+      const gym = await idOf('gym');
+      expect((await removeFrom(gym, auth, owner.ledgerId, '2026-11')).statusCode).toBe(204);
+      expect((await restoreTo(gym, auth, owner.ledgerId, '2026-11')).statusCode).toBe(204);
+    });
+
+    it('restores above income in a month before the rule', async () => {
+      const rent = await idOf('rent');
+      expect((await plan(rent, auth, owner.ledgerId, '2026-10', '500')).statusCode).toBe(204);
+      expect((await removeFrom(rent)).statusCode).toBe(204);
+      expect((await restoreTo(rent)).statusCode).toBe(204);
+    });
+
+    it('answers name_taken and month_ended before over_income on an Undo', async () => {
+      await storePlan('rent', '80.00');
+      const rent = await idOf('rent');
+      expect((await removeFrom(rent, auth, owner.ledgerId, '2026-11')).statusCode).toBe(204);
+      expect((await rename(await idOf('gym'), auth, owner.ledgerId, '2026-11', 'rent')).statusCode).toBe(204);
+      const taken = await restoreTo(rent, auth, owner.ledgerId, '2026-11');
+      expect([taken.statusCode, taken.json()]).toEqual([409, { error: 'name_taken' }]);
+
+      now = new Date('2026-11-30T22:00:00Z'); // 1 December in Kyiv: November has ended.
+      auth = await authHeader(app, owner, now);
+      const ended = await restoreTo(rent, auth, owner.ledgerId, '2026-11');
+      expect([ended.statusCode, ended.json()]).toEqual([409, { error: 'month_ended' }]);
+    });
+
     it('holds when two members raise plans at once', async () => {
       const member = await makeUser(db, config, 'olena');
       await addMember(db, owner.ledgerId, member.userId);

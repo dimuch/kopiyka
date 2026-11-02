@@ -113,19 +113,22 @@ export async function removeFromMonth(
  * Expenses deleted earlier on their own keep their own stamp and stay deleted. 'not_found' when it isn't removed
  * there: in the list, not in that month's list, unknown, foreign or deleted. 'name_taken', writing nothing, when
  * another category in that month now has its name (brief 037); the stamp stays, so the Undo works once it's free.
+ * The refusal, writing nothing, when the amount it brings back would plan the month above its income (brief 060).
  */
 export async function restoreToMonth(
   db: Db,
   ledgerId: number,
   categoryId: number,
   month: string,
-): Promise<'restored' | 'not_found' | 'name_taken'> {
+): Promise<'restored' | 'not_found' | 'name_taken' | OverIncome> {
   const first = `${month}-01`;
   return withTransaction(db, async (conn) => {
     await lockLedger(conn, ledgerId);
+    // A removal keeps the budget row, so this is the amount the restore brings back.
     const [rows] = await conn.query<RowDataPacket[]>(
-      `SELECT m.deleted_at, ${ROW_NAME} AS name
+      `SELECT m.deleted_at, ${ROW_NAME} AS name, COALESCE(b.planned_eur, 0) AS planned_eur
          FROM category_months m JOIN categories c ON c.category_id = m.category_id
+         LEFT JOIN category_budgets b ON b.category_id = m.category_id AND b.budget_month = m.list_month
         WHERE m.category_id = ? AND c.ledger_id = ? AND c.deleted_at IS NULL
           AND m.list_month = ? AND m.deleted_at IS NOT NULL`,
       [categoryId, ledgerId, first],
@@ -133,6 +136,10 @@ export async function restoreToMonth(
     const row = rows[0];
     if (!row) return 'not_found';
     if (await nameTaken(conn, ledgerId, first, row.name, categoryId)) return 'name_taken';
+    // Brief 060: from 2026-11 an Undo may not bring the month's plan back above its income.
+    const restored = toCents(String(row.planned_eur));
+    const over = await checkIncome(conn, ledgerId, month, { plannedCents: restored, incomeCents: 0n });
+    if (over) return over;
     const stamp = row.deleted_at;
     await conn.query(
       `UPDATE expenses e JOIN categories c ON c.category_id = e.category_id

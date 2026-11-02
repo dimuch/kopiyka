@@ -1,5 +1,5 @@
 import { useRef, useState } from 'react';
-import { AccessibilityInfo, Pressable, StyleSheet, Text, View } from 'react-native';
+import { AccessibilityInfo, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useAppearance, useColors, useThemedStyles } from '@/appearance/AppearanceContext';
 import { useSession } from '@/auth/AuthContext';
 import { AppearancePicker } from '@/components/AppearancePicker';
@@ -42,49 +42,54 @@ export default function Settings() {
 
   return (
     <PlaceholderPage title="Settings">
-      <View style={styles.account}>
-        <View style={styles.avatar}>
-          <Text style={styles.initial}>{user.username.slice(0, 1).toUpperCase()}</Text>
-        </View>
-        <View style={{ flex: 1, gap: 2 }}>
-          <Text style={styles.caption}>Signed in as</Text>
-          <Text numberOfLines={1} style={styles.username}>
-            {user.username}
-          </Text>
-        </View>
-      </View>
-      {/* Under the account card, so the tab's invite badge leads straight to them. */}
-      <PendingInvites
-        invites={invites.invites ?? []}
-        busyId={invites.busyId}
-        failure={invites.failure}
-        onAccept={invites.accept}
-        onDecline={invites.decline}
-        style={styles.section}
-      />
-      {ledgers.length > 1 && (
-        <View style={styles.section}>
-          <Text style={styles.caption}>Ledger</Text>
-          <LedgerPicker ledgers={ledgers} selectedId={ledger.ledgerId} onSelect={switchTo} disabled={switching} />
-          {switchFailed && (
-            <Text accessibilityRole="alert" style={styles.error}>
-              {SWITCH_FAILED}
+      {/* Scrolls once invites and the Ledger picker no longer fit above the tab bar. */}
+      <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
+        <View style={styles.account}>
+          <View style={styles.avatar}>
+            <Text style={styles.initial}>{user.username.slice(0, 1).toUpperCase()}</Text>
+          </View>
+          <View style={{ flex: 1, gap: 2 }}>
+            <Text style={styles.caption}>Signed in as</Text>
+            <Text numberOfLines={1} style={styles.username}>
+              {user.username}
             </Text>
-          )}
+          </View>
         </View>
-      )}
-      {/* On its own, always shown: with one ledger there's no Ledger section to put it in. */}
-      <Pressable accessibilityRole="button" onPress={() => pushOnce('/members')} style={styles.members}>
-        <Text style={styles.membersText}>Members</Text>
-        <Icon name="forward" color={colors.muted} />
-      </Pressable>
-      <View style={styles.section}>
-        <Text style={styles.caption}>Appearance</Text>
-        <AppearancePicker value={preference} onChange={setPreference} />
-      </View>
-      <Pressable accessibilityRole="button" onPress={logout} style={styles.signOut}>
-        <Text style={styles.signOutText}>Sign out</Text>
-      </Pressable>
+        {/* Under the account card, so the tab's invite badge leads straight to them. */}
+        <PendingInvites
+          invites={invites.invites ?? []}
+          busyId={invites.busyId}
+          failure={invites.failure}
+          onAccept={invites.accept}
+          onDecline={invites.decline}
+          style={styles.section}
+        />
+        {ledgers.length > 1 && (
+          <View style={styles.section}>
+            <Text style={styles.caption}>Ledger</Text>
+            <LedgerPicker ledgers={ledgers} selectedId={ledger.ledgerId} onSelect={switchTo} disabled={switching} />
+            {switchFailed && (
+              <Text accessibilityRole="alert" style={styles.error}>
+                {SWITCH_FAILED}
+              </Text>
+            )}
+          </View>
+        )}
+        {/* On its own, always shown: with one ledger there's no Ledger section to put it in. */}
+        <Pressable accessibilityRole="button" onPress={() => pushOnce('/members')} style={styles.members}>
+          <Text style={styles.membersText}>Members</Text>
+          <Icon name="forward" color={colors.muted} />
+        </Pressable>
+        <View style={styles.section}>
+          <Text style={styles.caption}>Appearance</Text>
+          <AppearancePicker value={preference} onChange={setPreference} />
+        </View>
+        {/* Pins Sign out to the bottom when there's room, and keeps a gap above it when the page scrolls. */}
+        <View style={styles.spacer} />
+        <Pressable accessibilityRole="button" onPress={logout} style={styles.signOut}>
+          <Text style={styles.signOutText}>Sign out</Text>
+        </Pressable>
+      </ScrollView>
     </PlaceholderPage>
   );
 }
@@ -133,7 +138,8 @@ const makeStyles = (colors: Palette) =>
     error: { fontFamily: fonts.bodyMedium, fontSize: 14, color: colors.over },
     caption: { fontFamily: fonts.body, fontSize: 12, color: colors.muted },
     username: { fontFamily: fonts.bodySemi, fontSize: 16, color: colors.text },
-    // The auto top margin pins it to the bottom of the page, above the tab bar.
-    signOut: { ...outlinedDangerButton(colors), marginTop: 'auto', marginBottom: 20 },
+    content: { flexGrow: 1 },
+    spacer: { flexGrow: 1, minHeight: 24 },
+    signOut: { ...outlinedDangerButton(colors), marginBottom: 20 },
     signOutText: outlinedDangerText(colors),
   });

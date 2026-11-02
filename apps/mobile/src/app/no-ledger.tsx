@@ -26,10 +26,13 @@ export default function NoLedger() {
           </Text>
           <Text style={styles.text}>Signed in as {state.user.username}.</Text>
         </View>
-        {error ? (
-          <LoadError message="Couldn’t check for invites. Check your connection and try again." onRetry={reload} />
-        ) : invites === null ? (
-          <ActivityIndicator color={colors.accent} />
+        {/* A failed refetch keeps the list, so a failed Accept's line under it stays readable. */}
+        {invites === null ? (
+          error ? (
+            <LoadError message="Couldn’t check for invites. Check your connection and try again." onRetry={reload} />
+          ) : (
+            <ActivityIndicator color={colors.accent} />
+          )
         ) : (
           <PendingInvites invites={invites} busyId={busyId} failure={failure} onAccept={accept} onDecline={decline} />
         )}

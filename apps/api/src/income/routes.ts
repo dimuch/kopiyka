@@ -6,6 +6,7 @@ import { lockLedger } from '../categories/monthLists.js';
 import { MONTH_RE, monthEnded, previousMonthStart } from '../dates.js';
 import { withTransaction } from '../db.js';
 import { AMOUNT_RE, centsToString, toCents } from '../money.js';
+import { checkIncome, overIncomeError, type OverIncome } from './limit.js';
 
 export interface IncomeItemDto {
   incomeId: number;
@@ -32,7 +33,8 @@ function toDto(row: RowDataPacket): IncomeItemDto {
 
 type Refusal = 'not_found' | 'month_ended';
 
-function sendRefusal(reply: FastifyReply, refusal: Refusal): FastifyReply {
+function sendRefusal(reply: FastifyReply, refusal: Refusal | OverIncome): FastifyReply {
+  if (typeof refusal !== 'string') return reply.code(409).send(overIncomeError(refusal));
   return reply.code(refusal === 'not_found' ? 404 : 409).send({ error: refusal });
 }
 
@@ -41,18 +43,24 @@ export async function incomeRoutes(app: FastifyInstance, { db, now }: AppDeps): 
   const guards = { preHandler: [app.requireAuth, app.requireLedger] };
 
   /**
-   * Locks the ledger, then says why an existing item can't change: unknown or another ledger's, or in an ended
-   * month. Null when it can.
+   * Locks the ledger, then finds an item that can change: its month and amount. Otherwise why it can't: unknown or
+   * another ledger's, or in an ended month.
    */
-  async function refuseChange(conn: PoolConnection, ledgerId: number, incomeId: number): Promise<Refusal | null> {
+  async function findChangeable(
+    conn: PoolConnection,
+    ledgerId: number,
+    incomeId: number,
+  ): Promise<Refusal | { month: string; amountCents: bigint }> {
     await lockLedger(conn, ledgerId);
     const [rows] = await conn.query<RowDataPacket[]>(
-      'SELECT income_month FROM income_items WHERE income_id = ? AND ledger_id = ?',
+      'SELECT income_month, amount_eur FROM income_items WHERE income_id = ? AND ledger_id = ?',
       [incomeId, ledgerId],
     );
     const item = rows[0];
     if (!item) return 'not_found';
-    return monthEnded(item.income_month.slice(0, 7), now()) ? 'month_ended' : null;
+    const month = item.income_month.slice(0, 7);
+    if (monthEnded(month, now())) return 'month_ended';
+    return { month, amountCents: toCents(item.amount_eur) };
   }
 
   app.get('/api/ledgers/:id/months/:month/income', guards, async (req) => {
@@ -93,8 +101,12 @@ export async function incomeRoutes(app: FastifyInstance, { db, now }: AppDeps): 
     const { title, amount } = IncomeBody.parse(req.body);
     const ledgerId = req.ledger!.ledgerId;
     const refused = await withTransaction(db, async (conn) => {
-      const refusal = await refuseChange(conn, ledgerId, incomeId);
-      if (refusal) return refusal;
+      const item = await findChangeable(conn, ledgerId, incomeId);
+      if (typeof item === 'string') return item;
+      // Brief 060: from 2026-11 a cut may not leave the month planned above its income.
+      const change = toCents(amount) - item.amountCents;
+      const over = await checkIncome(conn, ledgerId, item.month, { plannedCents: 0n, incomeCents: change });
+      if (over) return over;
       await conn.query('UPDATE income_items SET title = ?, amount_eur = ? WHERE income_id = ?', [
         title,
         centsToString(toCents(amount)),
@@ -110,8 +122,10 @@ export async function incomeRoutes(app: FastifyInstance, { db, now }: AppDeps): 
     const { incomeId } = IncomeParams.parse(req.params);
     const ledgerId = req.ledger!.ledgerId;
     const refused = await withTransaction(db, async (conn) => {
-      const refusal = await refuseChange(conn, ledgerId, incomeId);
-      if (refusal) return refusal;
+      const item = await findChangeable(conn, ledgerId, incomeId);
+      if (typeof item === 'string') return item;
+      const over = await checkIncome(conn, ledgerId, item.month, { plannedCents: 0n, incomeCents: -item.amountCents });
+      if (over) return over;
       await conn.query('DELETE FROM income_items WHERE income_id = ?', [incomeId]);
       return null;
     });

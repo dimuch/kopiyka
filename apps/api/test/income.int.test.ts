@@ -4,11 +4,13 @@ import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest';
 import { buildApp } from '../src/app.js';
 import { createDb, type Db } from '../src/db.js';
 import { addMember } from '../src/ledgers/members.js';
+import { toCents } from '../src/money.js';
 import {
   authHeader,
   clearData,
   makeUser,
   resetSchema,
+  storeMonthList,
   TEST_DB_URL,
   testConfig,
   testDbReachable,
@@ -18,6 +20,7 @@ import {
 describe.skipIf(!(await testDbReachable()))('income items (MySQL)', () => {
   const config = testConfig();
   const clock = new Date('2026-10-06T10:00:00Z');
+  let now = clock;
   let db: Db;
   let app: FastifyInstance;
   let owner: TestUser;
@@ -84,7 +87,7 @@ describe.skipIf(!(await testDbReachable()))('income items (MySQL)', () => {
   beforeAll(async () => {
     await resetSchema();
     db = createDb(TEST_DB_URL!);
-    app = await buildApp({ config, db, now: () => clock, fetchRate: async () => 50.483 });
+    app = await buildApp({ config, db, now: () => now, fetchRate: async () => 50.483 });
   });
 
   afterAll(async () => {
@@ -93,6 +96,7 @@ describe.skipIf(!(await testDbReachable()))('income items (MySQL)', () => {
   });
 
   beforeEach(async () => {
+    now = clock;
     await clearData(db);
     owner = await makeUser(db, config, 'dimuch');
     member = await makeUser(db, config, 'olena');
@@ -371,6 +375,123 @@ describe.skipIf(!(await testDbReachable()))('income items (MySQL)', () => {
       const codes = (await Promise.all([copy('2026-11'), copy('2026-11', memberAuth)])).map((res) => res.statusCode);
       expect(codes.sort()).toEqual([204, 409]);
       expect((await list('2026-11')).json().items).toHaveLength(2);
+    });
+  });
+
+  describe('over-income rule (brief 060)', () => {
+    async function categoryId(techName: string): Promise<number> {
+      const [rows] = await db.query<RowDataPacket[]>(
+        'SELECT category_id FROM categories WHERE ledger_id = ? AND tech_name = ?',
+        [owner.ledgerId, techName],
+      );
+      return rows[0]!.category_id;
+    }
+
+    /** Sets a category's November plan with raw SQL, past the rule. */
+    async function storePlan(techName: string, amount: string): Promise<void> {
+      await db.query(
+        `INSERT INTO category_budgets (category_id, budget_month, planned_eur) VALUES (?, '2026-11-01', ?)
+         ON DUPLICATE KEY UPDATE planned_eur = ?`,
+        [await categoryId(techName), amount, amount],
+      );
+    }
+
+    async function incomeTotal(month: string): Promise<string> {
+      const [[row]] = await db.query<RowDataPacket[]>(
+        'SELECT COALESCE(SUM(amount_eur), 0) AS total FROM income_items WHERE ledger_id = ? AND income_month = ?',
+        [owner.ledgerId, `${month}-01`],
+      );
+      return String(row!.total);
+    }
+
+    let itemA: number;
+    let itemB: number;
+
+    beforeEach(async () => {
+      await storeMonthList(db, owner.ledgerId, '2026-11', []);
+      itemA = await storeItem(owner.ledgerId, owner, '2026-11', 'Salary', '60.00');
+      itemB = await storeItem(owner.ledgerId, member, '2026-11', 'Freelance', '40.00');
+      await storePlan('rent', '100.00');
+    });
+
+    it('refuses an edit that cuts income below planned, writing nothing', async () => {
+      const refused = await edit(itemA, { title: 'Salary', amount: '59.99' });
+      expect([refused.statusCode, refused.json()]).toEqual([409, { error: 'over_income', overEur: '0.01' }]);
+      expect(await storedItem(itemA)).toEqual({ title: 'Salary', amount_eur: '60.00', created_by: owner.userId });
+
+      expect((await edit(itemA, { title: 'Main job', amount: '60' })).statusCode).toBe(204);
+      expect((await edit(itemA, { title: 'Main job', amount: '70' })).statusCode).toBe(204);
+      expect((await edit(itemA, { title: 'Main job', amount: '60' })).statusCode).toBe(204);
+    });
+
+    it('refuses a delete that cuts income below planned until the plan comes down', async () => {
+      const refused = await remove(itemB, memberAuth);
+      expect([refused.statusCode, refused.json()]).toEqual([409, { error: 'over_income', overEur: '40.00' }]);
+      expect(await storedItem(itemB)).toBeDefined();
+
+      await storePlan('rent', '60.00');
+      expect((await remove(itemB, memberAuth)).statusCode).toBe(204);
+    });
+
+    it('lets a month that is already over gain income', async () => {
+      await storePlan('rent', '150.00');
+      expect((await edit(itemA, { title: 'Salary', amount: '61' })).statusCode).toBe(204);
+    });
+
+    it('leaves months before November 2026 unchecked', async () => {
+      const october = await storeItem(owner.ledgerId, owner, '2026-10', 'Salary', '10.00');
+      await db.query(
+        "INSERT INTO category_budgets (category_id, budget_month, planned_eur) VALUES (?, '2026-10-01', '500.00')",
+        [await categoryId('rent')],
+      );
+      expect((await remove(october)).statusCode).toBe(204);
+    });
+
+    it('answers month_ended before over_income', async () => {
+      now = new Date('2026-11-30T22:00:00Z'); // 1 December in Kyiv: November has ended.
+      auth = await authHeader(app, owner, now);
+      const cut = await edit(itemA, { title: 'Salary', amount: '1' });
+      expect([cut.statusCode, cut.json()]).toEqual([409, { error: 'month_ended' }]);
+      const deleted = await remove(itemB);
+      expect([deleted.statusCode, deleted.json()]).toEqual([409, { error: 'month_ended' }]);
+      expect(await storedItem(itemA)).toMatchObject({ amount_eur: '60.00' });
+      expect(await storedItem(itemB)).toMatchObject({ amount_eur: '40.00' });
+    });
+
+    it('holds when members delete income at once', async () => {
+      await db.query('DELETE FROM income_items WHERE ledger_id = ?', [owner.ledgerId]);
+      await storePlan('rent', '60.00');
+      const items = [];
+      for (let index = 0; index < 6; index++) {
+        items.push(await storeItem(owner.ledgerId, owner, '2026-11', `Item ${index}`, '20.00'));
+      }
+      const codes = await Promise.all(
+        items.map(async (item, index) => (await remove(item, index % 2 ? memberAuth : auth)).statusCode),
+      );
+      expect(codes.sort()).toEqual([204, 204, 204, 409, 409, 409]);
+      expect(await incomeTotal('2026-11')).toBe('60.00');
+    });
+
+    it('holds when a plan rises and income falls at once', async () => {
+      await storePlan('rent', '50.00');
+      expect((await edit(itemA, { title: 'Salary', amount: '50' })).statusCode).toBe(204);
+      expect((await edit(itemB, { title: 'Freelance', amount: '50' })).statusCode).toBe(204);
+      const [raise, cut] = await Promise.all([
+        app.inject({
+          method: 'PUT',
+          url: `/api/ledgers/${owner.ledgerId}/categories/${await categoryId('groceries')}/months/2026-11/planned`,
+          payload: { amount: '50' },
+          headers: memberAuth,
+        }),
+        remove(itemA),
+      ]);
+      expect([raise.statusCode, cut.statusCode].sort()).toEqual([204, 409]);
+      const [[planned]] = await db.query<RowDataPacket[]>(
+        `SELECT SUM(b.planned_eur) AS total FROM category_budgets b JOIN categories c ON c.category_id = b.category_id
+          WHERE c.ledger_id = ? AND b.budget_month = '2026-11-01'`,
+        [owner.ledgerId],
+      );
+      expect(toCents(String(planned!.total)) <= toCents(await incomeTotal('2026-11'))).toBe(true);
     });
   });
 });

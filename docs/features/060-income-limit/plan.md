@@ -240,7 +240,7 @@ Promise<Refusal | { month: string; amountCents: bigint }>`. It still locks first
       - restoring a removed rent planned at 80, whose name another category now has, answers `name_taken`, not
         `over_income`;
       - with the clock at `now = new Date('2026-11-30T22:00:00Z')`, then `auth = await authHeader(app, owner, now)`, because sessions last 30 minutes on the app clock, as at `categories.int.test.ts:423-424`, restoring it answers `month_ended`.
-- [ ] 5. Refuse lowering or deleting income below the month's planned total (~110)
+- [x] 5. Refuse lowering or deleting income below the month's planned total (~110)
   - Files: `income/routes.ts` (`findChangeable`, then `checkIncome` in PUT and DELETE; `sendRefusal`),
     `apps/api/test/income.int.test.ts` (`describe('over-income rule')`).
   - Tests: November is listed (`storeMonthList`), with items A €60 and B €40 and rent planned at €100 (raw SQL).
@@ -366,6 +366,7 @@ Total is about 570 changed lines, tests included. 058 estimated ~480 for Part 3.
 
 - Slice 1 web checks ran on the QA ledger's own November (income €5,581 against rent planned €6,000 → "−€419" in red; €419 more income on the Income tab → €0 on return), not €100/€150. October has no budget on that ledger, so "October shows its own figures" became "an empty month shows only the empty card" (October and March 2027). Web ran from this worktree's Metro on 127.0.0.1:8084 against main's API on :3000 (no API change in slice 1).
 - Slice 3 Prove-It: with `lockLedger` dropped from `setPlanned`, the two-members race test failed 3 of 3 runs (4–6 of the six raises got 204).
+- Slice 5 Prove-It: with `lockLedger` dropped from `findChangeable`, the six-deletes race test failed 3 of 3 runs (all six got 204).
 
 ## Consolidate
 

@@ -164,7 +164,7 @@ on it is an exact `toEqual` (e.g. `[{ status: 'revoked', status_changed_at: cloc
     invite isn't listed": after `later(60)`, both lists are `[]`. "lists the invitee's invites in send order": a
     second owner, `makeUser('ivanka')`, also invites olena, and olena's list has dimuch's invite, then ivanka's, while
     dimuch's member list still shows only his own. `GET /api/invites` with no session gives 401.
-- [ ] 4. Let the owner revoke an invite and the invitee decline it (~130)
+- [x] 4. Let the owner revoke an invite and the invitee decline it (~130)
   - Files: `apps/api/src/invites/routes.ts`, `apps/api/test/invites.int.test.ts`
   - Change: `InviteParams = z.object({ inviteId: z.coerce.number().int().positive() })`. Revoke is
     `UPDATE … SET status = 'revoked', status_changed_at = ? WHERE invite_id = ? AND ledger_id = ? AND <live>`.

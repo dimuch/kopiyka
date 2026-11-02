@@ -9,6 +9,7 @@ import { requireOwner } from '../ledgers/access.js';
 const INVITE_TTL_MS = 60 * 60_000;
 
 const InviteBody = z.object({ username: z.string().trim().min(1).max(64) });
+const InviteParams = z.object({ inviteId: z.coerce.number().int().positive() });
 
 export async function inviteRoutes(app: FastifyInstance, { db, now }: AppDeps): Promise<void> {
   const ownerOnly = { preHandler: [app.requireAuth, app.requireLedger, requireOwner] };
@@ -62,5 +63,31 @@ export async function inviteRoutes(app: FastifyInstance, { db, now }: AppDeps): 
         owner: row.owner,
       })),
     };
+  });
+
+  // Used invites are kept with their status. Revoke and decline only touch a live pending invite, so each works
+  // once, and an unknown, foreign, used or expired one is 404.
+  app.delete('/api/ledgers/:id/invites/:inviteId', ownerOnly, async (req, reply) => {
+    const { inviteId } = InviteParams.parse(req.params);
+    const at = now();
+    const [res] = await db.query<ResultSetHeader>(
+      `UPDATE ledger_invites SET status = 'revoked', status_changed_at = ?
+        WHERE invite_id = ? AND ledger_id = ? AND status = 'pending' AND expires_at > ?`,
+      [at, inviteId, req.ledger!.ledgerId, at],
+    );
+    if (res.affectedRows === 0) return reply.code(404).send({ error: 'not_found' });
+    return reply.code(204).send();
+  });
+
+  app.delete('/api/invites/:inviteId', { preHandler: app.requireAuth }, async (req, reply) => {
+    const { inviteId } = InviteParams.parse(req.params);
+    const at = now();
+    const [res] = await db.query<ResultSetHeader>(
+      `UPDATE ledger_invites SET status = 'declined', status_changed_at = ?
+        WHERE invite_id = ? AND invitee_user_id = ? AND status = 'pending' AND expires_at > ?`,
+      [at, inviteId, req.auth!.userId, at],
+    );
+    if (res.affectedRows === 0) return reply.code(404).send({ error: 'not_found' });
+    return reply.code(204).send();
   });
 }

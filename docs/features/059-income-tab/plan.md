@@ -4,7 +4,7 @@ Status: approved <!-- draft → skeptic-approved → approved (by the user) -->
 Brief: ./brief.md
 Design source: ../058-ledger-income/plan.md, Part 2 (slices 2.1–2.5), re-checked against the merged code below
 Branch: feat/income-tab
-Base: origin/main @ d55d790 (058's income API merged)
+Base: origin/main @ 02a367c (058's income API merged; rebased from d55d790 after main's history was rewritten, same tree)
 
 ## Summary and split (decided by the user)
 
@@ -349,8 +349,25 @@ Part 2 (061, for its plan):
 
 ## Deviations
 
-<filled by the developer during build>
+- Rebased onto the rewritten origin/main (`02a367c`) after slice 5; `d55d790` and the new `b249982` have identical
+  trees, so no slice changed.
+- Light mode wasn't seen on web: the QA user's app theme stays dark under the pane's light emulation. Every new style
+  takes its colours from the palette via `useThemedStyles`, as Budget's do.
+- `Cancel` disabled while a save is in flight is the planned-amount modal's code; it wasn't checked with a throttled
+  network.
 
 ## Consolidate
 
-<filled in /kopiyka-hos Phase 3a: CONSOLIDATE line, each reuse/extract, each LEAVE + reason>
+Pass over `origin/main...HEAD` (Part 1). Reused 5 · extracted 0 · left 5.
+
+- REUSE: `EmptyMonth` (was `NoBudget`, slice 1), `AmountField` (exported, slice 4), `normalizeName`,
+  `normalizeAmount`, `monthEndedText`, `MonthSwitcher`, `HomeButton`, `LoadError`, `usePushOnce`, `parseMonthParam`.
+- `useIncome` vs `useMembers` — LEAVE: the same tagged-load shape, one hook per resource as `data/` does
+  (`useMembers`, `useMonth`); a generic loader is a refactor of its own.
+- `incomeCents` vs `sumCents` / `plannedCents` — LEAVE here: folding three existing summers is a behaviour-preserving
+  refactor (Follow-ups).
+- `leave()` in `income-item.tsx` vs `closeToBudget` — LEAVE: a different fallback tab; `expense.tsx` and
+  `members.tsx` keep their own the same way.
+- The Income tab's header and list styles vs Budget's — LEAVE: styles are per screen by convention (`makeStyles`).
+- The income form's field, error and Save styles vs the planned-amount and expense modals — LEAVE: the modal-header
+  follow-up covers the shared parts.

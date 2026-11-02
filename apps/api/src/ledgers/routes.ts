@@ -2,6 +2,7 @@ import type { FastifyInstance } from 'fastify';
 import type { ResultSetHeader, RowDataPacket } from 'mysql2/promise';
 import { z } from 'zod';
 import type { AppDeps } from '../app.js';
+import { liveInvite } from '../invites/live.js';
 import { requireOwner } from './access.js';
 
 const MemberParams = z.object({ userId: z.coerce.number().int().positive() });
@@ -44,7 +45,7 @@ export async function ledgerRoutes(app: FastifyInstance, { db, now }: AppDeps): 
         `SELECT i.invite_id, u.username
          FROM ledger_invites i
          JOIN users u ON u.user_id = i.invitee_user_id
-        WHERE i.ledger_id = ? AND i.status = 'pending' AND i.expires_at > ?
+        WHERE i.ledger_id = ? AND ${liveInvite('i')}
         ORDER BY i.created_at, i.invite_id`,
         [req.ledger!.ledgerId, now()],
       );

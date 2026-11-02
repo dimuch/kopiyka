@@ -60,7 +60,10 @@ export default function Home() {
   return (
     <SafeAreaView style={styles.screen} edges={['top']}>
       <View style={styles.header}>
-        <Text style={styles.title}>Kopiyka</Text>
+        {/* The user's own label for the open ledger, once they've set one (brief 056). */}
+        <Text numberOfLines={2} style={styles.title}>
+          {ledger.label ?? 'Kopiyka'}
+        </Text>
         <Text style={styles.caption}>{monthLabel(month)}</Text>
       </View>
       <PendingInvites

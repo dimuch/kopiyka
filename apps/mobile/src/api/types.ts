@@ -11,8 +11,10 @@ export interface Ledger {
   ledgerId: number;
   name: string;
   role: 'owner' | 'member';
-  /** The owner's username: every ledger is named "Home", so this tells them apart. */
+  /** The owner's username: until a label is set, every ledger shows as "Home", so this tells them apart. */
   owner: string;
+  /** The user's own label for it (brief 056); null shows the default. */
+  label: string | null;
 }
 
 /** Someone in a ledger, as its owner sees them on the Members screen. */

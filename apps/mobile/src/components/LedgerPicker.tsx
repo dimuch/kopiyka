@@ -3,7 +3,7 @@ import type { Ledger } from '@/api/types';
 import { useThemedStyles } from '@/appearance/AppearanceContext';
 import { fonts, type Palette } from '@/theme';
 
-/** "Yours" for the user's own ledger, else whose it is: every ledger is named "Home". */
+/** "Yours" for the user's own ledger, else whose it is: until a label is set, every ledger shows as "Home". */
 function whose(ledger: Ledger): string {
   return ledger.role === 'owner' ? 'Yours' : `${ledger.owner}’s`;
 }
@@ -23,23 +23,23 @@ export function LedgerPicker({
   const styles = useThemedStyles(makeStyles);
   return (
     <View accessibilityRole="radiogroup" style={styles.group}>
-      {ledgers.map((l) => {
-        const checked = l.ledgerId === selectedId;
+      {ledgers.map((ledger) => {
+        const checked = ledger.ledgerId === selectedId;
         return (
           <Pressable
-            key={l.ledgerId}
+            key={ledger.ledgerId}
             accessibilityRole="radio"
-            accessibilityLabel={`${l.name}, ${whose(l)}`}
+            accessibilityLabel={`${ledger.label ?? ledger.name}, ${whose(ledger)}`}
             accessibilityState={{ checked, disabled }}
             disabled={disabled}
-            onPress={() => !checked && onSelect(l.ledgerId)}
+            onPress={() => !checked && onSelect(ledger.ledgerId)}
             style={[styles.option, checked && styles.optionOn]}
           >
             <Text numberOfLines={1} style={[styles.name, checked && styles.textOn]}>
-              {l.name}
+              {ledger.label ?? ledger.name}
             </Text>
             <Text numberOfLines={1} style={[styles.whose, checked && styles.textOn]}>
-              {whose(l)}
+              {whose(ledger)}
             </Text>
           </Pressable>
         );
@@ -68,7 +68,8 @@ const makeStyles = (colors: Palette) =>
       gap: 12,
     },
     optionOn: { backgroundColor: colors.activeTint, borderWidth: 1, borderColor: colors.activeLine },
-    name: { fontFamily: fonts.bodyMedium, fontSize: 15, color: colors.text },
-    whose: { flexShrink: 1, fontFamily: fonts.body, fontSize: 14, color: colors.muted },
+    name: { flexShrink: 1, fontFamily: fonts.bodyMedium, fontSize: 15, color: colors.text },
+    // Kept whole beside a long label, but never more than half the row, so a long owner name can't push it out.
+    whose: { flexShrink: 0, maxWidth: '50%', fontFamily: fonts.body, fontSize: 14, color: colors.muted },
     textOn: { fontFamily: fonts.bodySemi, color: colors.active },
   });

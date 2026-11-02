@@ -279,7 +279,7 @@ knows its delta, so computing "after" before writing is smaller.
     - September → 409 `month_ended`, still there;
     - 401;
     - non-member 404.
-- [ ] 1.5 Copy last month's income into an empty month (~95)
+- [x] 1.5 Copy last month's income into an empty month (~95)
   - Files: `income/routes.ts` (copy), the test file.
   - Tests:
     - October has Salary 2500 (owner) and Freelance 300 (member). The member copies into November → 204.

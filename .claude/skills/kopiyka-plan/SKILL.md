@@ -45,6 +45,15 @@ tests (§6), gates (§7), commits (§8).
    AC using what the repo already has. Write down one real alternative
    (often "smaller" or "reuse X") and why it lost. Anything beyond the ACs
    goes to _Not doing_, not into slices.
+   - **Subtract first**: what can the change delete (a branch, a param, a
+     now-dead path) before it adds anything?
+   - **Bolt-on check**: if the smallest change special-cases the old design
+     (a new flag or boolean param, an `if (kind === …)` in a shared
+     function, a second code path for "the new case"), sketch what the code
+     would look like had the requirement existed from the start. Pick that
+     shape when its total diff is about the same size, and deliver it in
+     slices (reshape first, behaviour-preserving; then the feature). If it
+     is much bigger, keep the bolt-on and say why in the alternative line.
 4. **Define contracts first**: migration (columns + types + comments),
    endpoint (method, path, params, body, response, error codes), DTO
    mirror in `apps/mobile/src/api/types.ts`, hook signature, component
@@ -177,6 +186,10 @@ complexity, naming that conventions don't decide.
 - A new helper, hook or query that does what an existing one already does
   (search per `.claude/skills/kopiyka-refactoring/SKILL.md` §8 before planning it).
 - "Add tests" as a separate final slice.
+- A new boolean param or `kind` switch in a shared function with no
+  bolt-on note in the Approach.
+- A bulk write (migration, import, sync, script) with no plan for running
+  it twice or after a crash halfway (conventions §1).
 - New package, state library, generic `utils`, or config option "for later".
 - Contracts described as "TBD" or "similar to X".
 - Plan longer than the code it describes.

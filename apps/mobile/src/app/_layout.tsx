@@ -24,6 +24,7 @@ function Screens() {
     );
   }
   const signedIn = state.status === 'signedIn';
+  // Three groups so a user who loses their last ledger lands on no-ledger, not on login (they're still signed in).
   return (
     <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: colors.bg } }}>
       <Stack.Protected guard={signedIn}>
@@ -35,7 +36,10 @@ function Screens() {
         <Stack.Screen name="add-category" options={{ presentation: 'modal' }} />
         <Stack.Screen name="rename-category" options={{ presentation: 'modal' }} />
       </Stack.Protected>
-      <Stack.Protected guard={!signedIn}>
+      <Stack.Protected guard={state.status === 'noLedger'}>
+        <Stack.Screen name="no-ledger" />
+      </Stack.Protected>
+      <Stack.Protected guard={state.status === 'signedOut'}>
         <Stack.Screen name="login" />
       </Stack.Protected>
     </Stack>

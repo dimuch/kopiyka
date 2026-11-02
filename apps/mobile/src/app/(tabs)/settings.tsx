@@ -7,7 +7,7 @@ import { Icon } from '@/components/Icon';
 import { LedgerPicker } from '@/components/LedgerPicker';
 import { PlaceholderPage } from '@/components/PlaceholderPage';
 import { usePushOnce } from '@/pushOnce';
-import { fonts, type Palette } from '@/theme';
+import { fonts, outlinedDangerButton, outlinedDangerText, type Palette } from '@/theme';
 
 export default function Settings() {
   const colors = useColors();
@@ -121,18 +121,7 @@ const makeStyles = (colors: Palette) =>
     error: { fontFamily: fonts.bodyMedium, fontSize: 14, color: colors.over },
     caption: { fontFamily: fonts.body, fontSize: 12, color: colors.muted },
     username: { fontFamily: fonts.bodySemi, fontSize: 16, color: colors.text },
-    // Shaped like the login button, outlined so it doesn't read as the screen's main action;
-    // the auto top margin pins it to the bottom of the page, above the tab bar.
-    signOut: {
-      marginTop: 'auto',
-      marginBottom: 20,
-      height: 48,
-      borderRadius: 24,
-      borderWidth: 1,
-      borderColor: colors.borderStrong,
-      backgroundColor: colors.surface,
-      alignItems: 'center',
-      justifyContent: 'center',
-    },
-    signOutText: { fontFamily: fonts.bodySemi, fontSize: 15, color: colors.danger },
+    // The auto top margin pins it to the bottom of the page, above the tab bar.
+    signOut: { ...outlinedDangerButton(colors), marginTop: 'auto', marginBottom: 20 },
+    signOutText: outlinedDangerText(colors),
   });

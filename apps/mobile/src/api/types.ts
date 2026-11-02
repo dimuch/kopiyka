@@ -11,6 +11,8 @@ export interface Ledger {
   ledgerId: number;
   name: string;
   role: 'owner' | 'member';
+  /** The owner's username: every ledger is named "Home", so this tells them apart. */
+  owner: string;
 }
 
 export interface Category {

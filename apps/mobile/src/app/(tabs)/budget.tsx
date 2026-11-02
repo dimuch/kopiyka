@@ -230,15 +230,18 @@ function IncomeFigures({ incomeCents, plannedCents }: { incomeCents: number; pla
   const colors = useColors();
   const styles = useThemedStyles(makeStyles);
   const left = incomeCents - plannedCents;
+  const income = eur(incomeCents);
+  const planned = eur(plannedCents);
+  const leftText = eur(left);
   const figures = [
-    { label: 'Income', value: eur(incomeCents) },
-    { label: 'Planned', value: eur(plannedCents) },
-    { label: 'Left to plan', value: eur(left), over: left < 0 },
+    { label: 'Income', value: income },
+    { label: 'Planned', value: planned },
+    { label: 'Left to plan', value: leftText, over: left < 0 },
   ];
   return (
     <View
       accessible
-      accessibilityLabel={`Income ${figures[0]!.value}, planned ${figures[1]!.value}, left to plan ${figures[2]!.value}`}
+      accessibilityLabel={`Income ${income}, planned ${planned}, left to plan ${leftText}`}
       style={styles.figures}
     >
       {figures.map((figure) => (

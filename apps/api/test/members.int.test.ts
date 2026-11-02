@@ -168,7 +168,7 @@ describe.skipIf(!(await testDbReachable()))('a member of a shared ledger (MySQL)
     const listed = async () =>
       (await app.inject({ method: 'GET', url: ledgerUrl('/members'), headers: ownerAuth }))
         .json()
-        .members.map((m: { username: string }) => m.username);
+        .members.map((member: { username: string }) => member.username);
     const expectOlenaGone = async () => {
       const res = await app.inject({ method: 'GET', url: ledgerUrl('/categories?month=2026-10'), headers: memberAuth });
       expect([res.statusCode, res.json()]).toEqual([404, { error: 'ledger_not_found' }]);

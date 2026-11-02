@@ -127,4 +127,36 @@ describe.skipIf(!(await testDbReachable()))('a member of a shared ledger (MySQL)
     });
     expect(deleted.statusCode).toBe(204);
   });
+
+  describe('the member list', () => {
+    const members = async (headers: Record<string, string>) => {
+      const res = await app.inject({ method: 'GET', url: ledgerUrl('/members'), headers });
+      return [res.statusCode, res.json()];
+    };
+
+    it('lists the members for the owner', async () => {
+      expect(await members(ownerAuth)).toEqual([
+        200,
+        {
+          members: [
+            { userId: dimuch.userId, username: 'dimuch', role: 'owner' },
+            { userId: olena.userId, username: 'olena', role: 'member' },
+          ],
+        },
+      ]);
+    });
+
+    it('a member gets owner_only from the list', async () => {
+      expect(await members(memberAuth)).toEqual([403, { error: 'owner_only' }]);
+    });
+
+    it('needs a session', async () => {
+      expect((await members({}))[0]).toBe(401);
+    });
+
+    it('answers ledger_not_found to someone outside the ledger', async () => {
+      const stranger = await makeUser(db, config, 'stranger');
+      expect(await members(await authHeader(app, stranger, clock))).toEqual([404, { error: 'ledger_not_found' }]);
+    });
+  });
 });

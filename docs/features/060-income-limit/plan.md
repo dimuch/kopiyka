@@ -1,6 +1,6 @@
 # Plan: Planned never above income
 
-Status: skeptic-approved <!-- draft → skeptic-approved → approved (by the user) -->
+Status: approved <!-- draft → skeptic-approved → approved (by the user) -->
 Brief: ./brief.md
 Branch: feat/income-limit
 Base: origin/main @ 2edd350 (058, 059 and 061 merged; custom TabBar, Income tab before Budget)

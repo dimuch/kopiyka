@@ -5,6 +5,7 @@ import type { AppDeps } from '../app.js';
 import { withTransaction } from '../db.js';
 import { requireOwner } from '../ledgers/access.js';
 import { addMember } from '../ledgers/members.js';
+import { liveInvite } from './live.js';
 
 /** An invite can be used for an hour after it's sent (decided in brief 054). */
 const INVITE_TTL_MS = 60 * 60_000;
@@ -30,7 +31,7 @@ export async function inviteRoutes(app: FastifyInstance, { db, now }: AppDeps): 
             AND NOT EXISTS (SELECT 1 FROM ledger_members m WHERE m.ledger_id = ? AND m.user_id = u.user_id)
             AND NOT EXISTS (SELECT 1 FROM ledger_invites i
                              WHERE i.ledger_id = ? AND i.invitee_user_id = u.user_id
-                               AND i.status = 'pending' AND i.expires_at > ?)`,
+                               AND ${liveInvite('i')})`,
         [username, ledgerId, ledgerId, at],
       );
       const invitee = rows[0];
@@ -52,7 +53,7 @@ export async function inviteRoutes(app: FastifyInstance, { db, now }: AppDeps): 
          FROM ledger_invites i
          JOIN ledgers l ON l.ledger_id = i.ledger_id
          JOIN users o ON o.user_id = l.owner_user_id
-        WHERE i.invitee_user_id = ? AND i.status = 'pending' AND i.expires_at > ?
+        WHERE i.invitee_user_id = ? AND ${liveInvite('i')}
         ORDER BY i.created_at, i.invite_id`,
       [req.auth!.userId, now()],
     );
@@ -73,7 +74,7 @@ export async function inviteRoutes(app: FastifyInstance, { db, now }: AppDeps): 
     const at = now();
     const [res] = await db.query<ResultSetHeader>(
       `UPDATE ledger_invites SET status = 'revoked', status_changed_at = ?
-        WHERE invite_id = ? AND ledger_id = ? AND status = 'pending' AND expires_at > ?`,
+        WHERE invite_id = ? AND ledger_id = ? AND ${liveInvite('ledger_invites')}`,
       [at, inviteId, req.ledger!.ledgerId, at],
     );
     if (res.affectedRows === 0) return reply.code(404).send({ error: 'not_found' });
@@ -85,7 +86,7 @@ export async function inviteRoutes(app: FastifyInstance, { db, now }: AppDeps): 
     const at = now();
     const [res] = await db.query<ResultSetHeader>(
       `UPDATE ledger_invites SET status = 'declined', status_changed_at = ?
-        WHERE invite_id = ? AND invitee_user_id = ? AND status = 'pending' AND expires_at > ?`,
+        WHERE invite_id = ? AND invitee_user_id = ? AND ${liveInvite('ledger_invites')}`,
       [at, inviteId, req.auth!.userId, at],
     );
     if (res.affectedRows === 0) return reply.code(404).send({ error: 'not_found' });
@@ -102,7 +103,7 @@ export async function inviteRoutes(app: FastifyInstance, { db, now }: AppDeps): 
     const accepted = await withTransaction(db, async (conn) => {
       const [rows] = await conn.query<RowDataPacket[]>(
         `SELECT ledger_id FROM ledger_invites
-          WHERE invite_id = ? AND invitee_user_id = ? AND status = 'pending' AND expires_at > ?
+          WHERE invite_id = ? AND invitee_user_id = ? AND ${liveInvite('ledger_invites')}
           FOR UPDATE`,
         [inviteId, userId, at],
       );

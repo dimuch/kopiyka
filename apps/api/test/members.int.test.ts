@@ -66,10 +66,10 @@ describe.skipIf(!(await testDbReachable()))('a member of a shared ledger (MySQL)
       (await app.inject({ method: 'GET', url: '/api/ledgers', headers })).json().ledgers;
 
     expect(await ledgers(memberAuth)).toEqual([
-      { ledgerId: dimuch.ledgerId, name: 'Home', role: 'member', owner: 'dimuch' },
+      { ledgerId: dimuch.ledgerId, name: 'Home', role: 'member', owner: 'dimuch', label: null },
     ]);
     expect(await ledgers(ownerAuth)).toEqual([
-      { ledgerId: dimuch.ledgerId, name: 'Home', role: 'owner', owner: 'dimuch' },
+      { ledgerId: dimuch.ledgerId, name: 'Home', role: 'owner', owner: 'dimuch', label: null },
     ]);
   });
 

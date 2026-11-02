@@ -111,7 +111,7 @@ QA setup for the Verify steps (per `kopiyka-local-qa`):
 
 The slices, in order:
 
-- [ ] 1. List each person's own ledger label with their ledgers (~25)
+- [x] 1. List each person's own ledger label with their ledgers (~25)
   - Files: `apps/api/migrations/011_ledger_member_labels.sql` (new), `apps/api/src/ledgers/routes.ts`,
     `apps/api/test/ledgers.int.test.ts`, `apps/api/test/members.int.test.ts`, `apps/api/test/invites.int.test.ts`
   - Change:

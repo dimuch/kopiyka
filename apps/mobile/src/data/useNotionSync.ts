@@ -13,7 +13,8 @@ const notConfigured = (err: unknown) =>
 
 /**
  * The ledger's Notion sync status, reloaded whenever the screen comes into focus, and the Sync action. A refetch keeps
- * the last status on screen; `unconfigured` sticks for the ledger once the API says so, since status can answer while sync can't.
+ * the last status on screen; `unconfigured` sticks for the ledger once the API says so, since status can answer while
+ * sync can't.
  */
 export function useNotionSync(ledgerId: number) {
   const [version, setVersion] = useState(0);

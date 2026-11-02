@@ -344,13 +344,18 @@ Part 2 (061, for its plan):
   non-category caller appears.
 - The modal header (Cancel, title, spacer) and its styles now repeat in six modals. This is a candidate for
   `/kopiyka-hos-refactoring`.
+- Six screens copy "go back, or replace with a tab on that month" (`closeToBudget`, `members.tsx`,
+  `category/[categoryId].tsx`, `delete-category.tsx`, `expense.tsx`, `income-item.tsx`'s `leave`). A
+  `closeTo(tab, month)` is a candidate for `/kopiyka-hos-refactoring`.
+- The income form doesn't submit on Return/Enter (`planned-amount.tsx` does); `AmountField` would need an
+  `onSubmitEditing` prop. Small; fold into 061's form work.
 - `incomeCents`, `sumCents` and `plannedCents` (`data/monthSummary.ts`) each sum one decimal-string field in cents.
   Folding them into one helper is a candidate for `/kopiyka-hos-refactoring`.
 
 ## Deviations
 
 - Rebased onto the rewritten origin/main (`02a367c`) after slice 5; `d55d790` and the new `b249982` have identical
-  trees, so no slice changed.
+  trees (`b249982` is the rewritten twin of `d55d790`), so no slice changed.
 - Light mode wasn't seen on web: the QA user's app theme stays dark under the pane's light emulation. Every new style
   takes its colours from the palette via `useThemedStyles`, as Budget's do.
 - `Cancel` disabled while a save is in flight is the planned-amount modal's code; it wasn't checked with a throttled
@@ -358,7 +363,7 @@ Part 2 (061, for its plan):
 
 ## Consolidate
 
-Pass over `origin/main...HEAD` (Part 1). Reused 5 · extracted 0 · left 5.
+Pass over `origin/main...HEAD` (Part 1). Reused 10 · extracted 0 · left 5.
 
 - REUSE: `EmptyMonth` (was `NoBudget`, slice 1), `AmountField` (exported, slice 4), `normalizeName`,
   `normalizeAmount`, `monthEndedText`, `MonthSwitcher`, `HomeButton`, `LoadError`, `usePushOnce`, `parseMonthParam`.

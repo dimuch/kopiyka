@@ -23,7 +23,7 @@ export function tabBadge(
   return { badge: inviteCount, label: `${tab.title}, ${inviteCount} ${inviteCount === 1 ? 'invite' : 'invites'}` };
 }
 
-/** The routes of the root stack, as `useNavigationState((s) => s.routes)` gives them. */
+/** The routes of the root stack, as `useNavigationState((state) => state.routes)` gives them. */
 export type StackRoutes = readonly {
   name: string;
   params?: object;

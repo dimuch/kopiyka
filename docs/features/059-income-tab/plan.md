@@ -162,7 +162,7 @@ run.
   - Change: as in Contracts. This is the conventions' "types + data hook" step. Slice 3 is its caller.
   - Tests: `incomeCents` sums `'2500.00'`, `'300.50'` and `'0.01'` to 280051 (250000 + 30050 + 1), `[]` to 0, and
     `'0.10'` + `'0.20'` to exactly 30.
-- [ ] 3. Show a month's income on a new Income tab (~115)
+- [x] 3. Show a month's income on a new Income tab (~115)
   - Files: `components/Icon.tsx` (`income`), `(tabs)/_layout.tsx` (a `TABS` entry; the iOS label comment becomes
     "6 of 6"), `(tabs)/income.tsx` (new).
   - Change: the tab (Approach), with no "+" yet and rows as plain `View`s:

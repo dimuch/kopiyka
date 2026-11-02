@@ -7,6 +7,7 @@ import { useInvites } from '@/data/invites';
 const TABS: { name: string; title: string; icon: IconName }[] = [
   { name: 'index', title: 'Home', icon: 'home' },
   { name: 'budget', title: 'Budget', icon: 'budget' },
+  { name: 'income', title: 'Income', icon: 'income' },
   { name: 'expenses', title: 'Expenses', icon: 'expenses' },
   { name: 'statistics', title: 'Statistics', icon: 'stats' },
   { name: 'settings', title: 'Settings', icon: 'settings' },
@@ -40,7 +41,7 @@ export default function TabsLayout() {
             name={tab.name}
             options={{
               title: tab.title,
-              // The label is hidden; iOS builds "Settings, 2 invites, tab, 5 of 5" from it.
+              // The label is hidden; iOS builds "Settings, 2 invites, tab, 6 of 6" from it.
               tabBarLabel: label,
               // Without labels the web tab has no name.
               tabBarAccessibilityLabel: Platform.OS === 'web' ? label : undefined,

@@ -169,6 +169,19 @@ so piped `sudo` commands don't prompt twice at once.
    sudo certbot renew --dry-run
    ```
 
+   Then make systemd start nginx again if it crashes (Ubuntu ships it with `Restart=no`):
+
+   ```bash
+   sudo mkdir -p /etc/systemd/system/nginx.service.d
+   printf "%s\n" "[Service]" "Restart=on-failure" "RestartSec=5s" |
+     sudo tee /etc/systemd/system/nginx.service.d/restart.conf >/dev/null
+   sudo systemctl daemon-reload
+   ```
+
+   It only adds "start again after a crash": stop, reload and restart behave as before, and nginx isn't restarted by
+   this. nginx is shared, so the other sites get it too. Undo:
+   `sudo rm /etc/systemd/system/nginx.service.d/restart.conf && sudo systemctl daemon-reload`.
+
    If certbot can't find a server block for the name, install a temporary port-80-only block for it (as
    `~/subdomain-setup.sh` did for gendash), reload, and re-run `certonly`.
 
@@ -259,6 +272,7 @@ only. Turning sync back on (both lines back, restart the API) needs a sync to `u
 
 - [ ] `https://kopiyka.englishplus.com.ua` on the laptop and the iPhone: log in, add an expense, reload, it's there.
 - [ ] `curl -sI http://kopiyka.englishplus.com.ua` → `301`, `Location: https://…`; the browser shows a valid cert.
+- [ ] `systemctl show nginx -p Restart` → `Restart=on-failure` (step 8's drop-in).
 - [ ] The app page is checked on every load and the bundle is cached for good (this also catches headers that the
       droplet's own `nginx.conf` might add or drop):
 

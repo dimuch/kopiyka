@@ -504,4 +504,16 @@ knows its delta, so computing "after" before writing is smaller.
 
 ## Consolidate
 
-<filled in /kopiyka-hos Phase 3a>
+Pass over `origin/main...HEAD` (Part 1). Reused 1 · extracted 0 · left 4.
+
+- `lockLedger` — REUSE: exported from `categories/monthLists.ts` and called by every income write (slice 1.2).
+- `AMOUNT_RE`, `toCents`, `centsToString`, `MONTH_RE`, `monthEnded`, `previousMonthStart`, `withTransaction` — already
+  called, nothing re-implemented.
+- `refuseChange` / `sendRefusal` — the PUT and DELETE copies of "find the item, refuse an ended month" were merged in
+  slice 1.4, so the branch has one.
+- `MonthParams`, `IncomeParams`, `IncomeBody` — LEAVE: Zod params and bodies are per domain by convention
+  (`ExpenseParams`, `InviteParams`, categories' `Month`); none is exported to share.
+- `toDto` — LEAVE: each domain maps its own rows to its DTO.
+- Copy route vs `copyPreviousMonth` — LEAVE: different rules (categories with amounts reset to €0 and month lists,
+  versus income rows copied with amounts); merging them would change behaviour.
+- Inline `409 month_ended` replies — LEAVE: the same one-line pattern every month route uses.

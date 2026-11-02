@@ -26,8 +26,8 @@ const IncomeBody = z.object({
     .refine((amount) => AMOUNT_RE.test(amount) && toCents(amount) > 0n, 'expected an amount > 0, 2 decimals at most'),
 });
 
-function toDto(r: RowDataPacket): IncomeItemDto {
-  return { incomeId: r.income_id, title: r.title, amountEur: r.amount_eur, addedBy: r.added_by };
+function toDto(row: RowDataPacket): IncomeItemDto {
+  return { incomeId: row.income_id, title: row.title, amountEur: row.amount_eur, addedBy: row.added_by };
 }
 
 type Refusal = 'not_found' | 'month_ended';

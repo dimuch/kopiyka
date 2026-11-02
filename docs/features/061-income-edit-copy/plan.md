@@ -113,7 +113,7 @@ open. Gates run before every commit, with `DATABASE_URL_TEST` exported so the AP
       with Gift listed.
     - Enter in the Title field, with Title filled and the amount empty, shows the amount hint, and the API log shows no POST.
     - The expense form's amounts look and behave as before.
-- [ ] 2. Edit an income item from its row (~90)
+- [x] 2. Edit an income item from its row (~90)
   - Files: `data/income.ts` (`updateIncome`), `app/income-item.tsx`, `app/(tabs)/income.tsx`.
   - Change:
     - **Rows:** if the month hasn't ended, the row's `View` becomes a `Pressable` with role button, the merged label

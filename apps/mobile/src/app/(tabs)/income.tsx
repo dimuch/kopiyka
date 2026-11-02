@@ -78,20 +78,36 @@ export default function Income() {
                 <View style={styles.listCard}>
                   {items.map((item, index) => {
                     const amount = eur(toCents(item.amountEur));
-                    return (
-                      // One stop for screen readers instead of three.
-                      <View
-                        key={item.incomeId}
-                        accessible
-                        accessibilityLabel={`${item.title}, ${amount}, added by ${item.addedBy}`}
-                        style={[styles.row, index < items.length - 1 && styles.divider]}
-                      >
+                    const label = `${item.title}, ${amount}, added by ${item.addedBy}`;
+                    const style = [styles.row, index < items.length - 1 && styles.divider];
+                    const content = (
+                      <>
                         <View style={styles.rowText}>
                           <Text style={styles.rowName}>{item.title}</Text>
                           <Text style={styles.small}>Added by {item.addedBy}</Text>
                         </View>
                         <Text style={styles.rowAmount}>{amount}</Text>
+                      </>
+                    );
+                    // An ended month can't change, so its rows aren't buttons; either way, one stop for screen
+                    // readers instead of three.
+                    return ended ? (
+                      <View key={item.incomeId} accessible accessibilityLabel={label} style={style}>
+                        {content}
                       </View>
+                    ) : (
+                      <Pressable
+                        key={item.incomeId}
+                        accessibilityRole="button"
+                        accessibilityLabel={label}
+                        accessibilityHint="Edits the item"
+                        onPress={() =>
+                          pushOnce({ pathname: '/income-item', params: { month, incomeId: item.incomeId } })
+                        }
+                        style={style}
+                      >
+                        {content}
+                      </Pressable>
                     );
                   })}
                 </View>

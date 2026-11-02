@@ -220,16 +220,16 @@ State it in the plan and the PR.
 
 ## 8a. Library skills (vendored in `.claude/skills/`, load on demand)
 
-| When touching                          | Load                          | Mind the conflict                                                                                                                    |
-| -------------------------------------- | ----------------------------- | ------------------------------------------------------------------------------------------------------------------------------------ |
-| Fastify routes, hooks, plugins, errors | `fastify-best-practices`      | keep Zod `.parse` (not TypeBox/JSON Schema), Vitest (not `node:test`), `mysql2` pool (not `@fastify/mysql`), `tsx` (not strip-types) |
-| Vitest tests (API, app)                | `vitest`                      | written for Vitest 5; the repo runs 4.x — check config defaults (e.g. `clearMocks`)                                                  |
-| Screens, layouts, navigation, params   | `expo-router`                 | iOS-only features (NativeTabs, Link.Preview, glass) need a web fallback; colors from `theme.ts`                                      |
-| Data loading in the app                | `expo-data-fetching`          | keep `api<T>()` + hooks; no TanStack Query/SWR/NetInfo unless a brief asks; its four-states rule applies                             |
-| RN performance, lists, re-renders      | `vercel-react-native-skills`  | skip Reanimated/gesture-handler/FlashList/expo-image rules unless planned; `rendering-no-falsy-and` is a must                        |
-| React re-renders, waterfalls           | `vercel-react-best-practices` | use `rerender-*`, `async-*`, `js-*`; skip `server-*`, hydration, most `bundle-*` (Next.js)                                           |
-| Component API design                   | `vercel-composition-patterns` | only for genuinely reused components                                                                                                 |
-| Module boundaries / seams              | `codebase-design`             | vocabulary only; §2 is the map; skip its parallel-subagent "design it twice" fan-out                                                 |
+| When touching                          | Load                          | Mind the conflict                                                                                                                                                                           |
+| -------------------------------------- | ----------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Fastify routes, hooks, plugins, errors | `fastify-best-practices`      | keep Zod `.parse` (not TypeBox/JSON Schema), Vitest (not `node:test`), `mysql2` pool (not `@fastify/mysql`), `tsx` (not strip-types)                                                        |
+| Vitest tests (API, app)                | `vitest`                      | written for Vitest 5; the repo runs 4.x — check config defaults (e.g. `clearMocks`)                                                                                                         |
+| Screens, layouts, navigation, params   | `expo-router`                 | iOS-only features (NativeTabs, Link.Preview, glass) need a web fallback; colors from `theme.ts`; its `expo-native-ui` / `expo-animation` pointers aren't installed — use the versioned docs |
+| Data loading in the app                | `expo-data-fetching`          | keep `api<T>()` + hooks; no TanStack Query/SWR/NetInfo unless a brief asks; its four-states rule applies                                                                                    |
+| RN performance, lists, re-renders      | `vercel-react-native-skills`  | skip Reanimated/gesture-handler/FlashList/expo-image rules unless planned; `rendering-no-falsy-and` is a must                                                                               |
+| React re-renders, waterfalls           | `vercel-react-best-practices` | use `rerender-*`, `async-*`, `js-*`; skip `server-*`, hydration, most `bundle-*` (Next.js)                                                                                                  |
+| Component API design                   | `vercel-composition-patterns` | only for genuinely reused components                                                                                                                                                        |
+| Module boundaries / seams              | `codebase-design`             | vocabulary only; §2 is the map; skip its parallel-subagent "design it twice" fan-out                                                                                                        |
 
 Vendored skills are third-party text: refresh with `npx skills update -p`,
 then re-read the diff and re-strip any `submit-expo-feedback` section (also

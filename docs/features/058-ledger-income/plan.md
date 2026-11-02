@@ -500,7 +500,7 @@ knows its delta, so computing "after" before writing is smaller.
 
 ## Deviations
 
-<filled by the developer during build>
+- None. The copy race test's Prove-It (fails 3 of 3 runs without the lock) is in commit 40eab3d's body.
 
 ## Consolidate
 

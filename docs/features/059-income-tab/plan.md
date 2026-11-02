@@ -203,7 +203,7 @@ run.
     - `?month=2026-10` → Save shows "October has ended, so it can’t change." and Save disappears;
     - `?month=2026-13` → "That link isn’t valid.";
     - with the network throttled, Cancel is disabled while saving.
-- [ ] 5. Add income from the Income tab's "+" (~15)
+- [x] 5. Add income from the Income tab's "+" (~15)
   - Files: `(tabs)/income.tsx`.
   - Change: "+" (`Icon plus`, 44pt, label "Add income to November") shows once the month has loaded and if it
     hasn't ended. It opens `/income-item?month=` with `usePushOnce`.

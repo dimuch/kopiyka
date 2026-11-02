@@ -14,8 +14,9 @@ import { MonthSwitcher } from '@/components/MonthSwitcher';
 import { UndoToast } from '@/components/UndoToast';
 import { copyPreviousMonth } from '@/data/categories';
 import { copyRefusedText } from '@/data/monthCopy';
-import { plannedCents } from '@/data/monthSummary';
+import { incomeCents, plannedCents } from '@/data/monthSummary';
 import { useUndoOffer } from '@/data/undo';
+import { useIncome } from '@/data/useIncome';
 import { type MonthData, useMonth } from '@/data/useMonth';
 import { useMonthCategories } from '@/data/useMonthCategories';
 import { eur, kyivMonth, monthName, shiftMonth, toCents } from '@/format';
@@ -42,6 +43,8 @@ export default function Budget() {
   const previousMonth = shiftMonth(month, -1);
   const previous = useMonthCategories(ledger.ledgerId, previousMonth);
   const ended = month < thisMonth;
+  // What the month may spend (brief 060): its income from every member, against what's planned.
+  const income = useIncome(ledger.ledgerId, month);
 
   const [busy, setBusy] = useState(false);
   // Tagged with their ledger and month, so switching either clears them without an effect.
@@ -139,6 +142,25 @@ export default function Budget() {
               </>
             ) : (
               <>
+                {income.items ? (
+                  <>
+                    <IncomeFigures
+                      incomeCents={incomeCents(income.items)}
+                      plannedCents={plannedCents(data.categories)}
+                    />
+                    {income.error && (
+                      <LoadError
+                        message="Couldn’t refresh. Check your connection and try again."
+                        onRetry={income.reload}
+                      />
+                    )}
+                  </>
+                ) : income.error ? (
+                  <LoadError
+                    message={`Couldn’t load ${monthName(month)}’s income. Check your connection and try again.`}
+                    onRetry={income.reload}
+                  />
+                ) : null}
                 <View style={styles.sectionHead}>
                   <Text style={styles.sectionTitle}>Categories</Text>
                   <Text style={styles.small}>{eur(plannedCents(data.categories))} planned</Text>
@@ -203,6 +225,32 @@ export default function Budget() {
   );
 }
 
+/** The month's income, planned total and what's left to plan; below zero reads in the danger colour. */
+function IncomeFigures({ incomeCents, plannedCents }: { incomeCents: number; plannedCents: number }) {
+  const colors = useColors();
+  const styles = useThemedStyles(makeStyles);
+  const left = incomeCents - plannedCents;
+  const figures = [
+    { label: 'Income', value: eur(incomeCents) },
+    { label: 'Planned', value: eur(plannedCents) },
+    { label: 'Left to plan', value: eur(left), over: left < 0 },
+  ];
+  return (
+    <View
+      accessible
+      accessibilityLabel={`Income ${figures[0]!.value}, planned ${figures[1]!.value}, left to plan ${figures[2]!.value}`}
+      style={styles.figures}
+    >
+      {figures.map((figure) => (
+        <View key={figure.label} style={styles.figure}>
+          <Text style={styles.small}>{figure.label}</Text>
+          <Text style={[styles.figureValue, figure.over && { color: colors.danger }]}>{figure.value}</Text>
+        </View>
+      ))}
+    </View>
+  );
+}
+
 const makeStyles = (colors: Palette) =>
   StyleSheet.create({
     screen: { flex: 1, backgroundColor: colors.bg, paddingHorizontal: 20, paddingTop: 20 },
@@ -229,6 +277,18 @@ const makeStyles = (colors: Palette) =>
     },
     row: { flexDirection: 'row', alignItems: 'center', gap: 12, paddingVertical: 12, paddingHorizontal: 16 },
     divider: { borderBottomWidth: 1, borderBottomColor: colors.border },
+    figures: {
+      flexDirection: 'row',
+      backgroundColor: colors.surface,
+      borderColor: colors.border,
+      borderWidth: 1,
+      borderRadius: 22,
+      paddingVertical: 14,
+      paddingHorizontal: 16,
+      gap: 8,
+    },
+    figure: { flex: 1, gap: 4 },
+    figureValue: { fontFamily: fonts.bodySemi, fontSize: 16, color: colors.text, fontVariant: ['tabular-nums'] },
     openRow: { flexDirection: 'row', alignItems: 'center' },
     rename: { width: 44, height: 44, alignItems: 'center', justifyContent: 'center', marginRight: 6 },
     rowName: { flex: 1, fontFamily: fonts.bodyMedium, fontSize: 15, color: colors.text },

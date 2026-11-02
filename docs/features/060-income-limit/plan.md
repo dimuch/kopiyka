@@ -151,7 +151,7 @@ Promise<Refusal | { month: string; amountCents: bigint }>`. It still locks first
 
 ## Slices
 
-- [ ] 1. Show income, planned and left to plan on the Budget tab (~65)
+- [x] 1. Show income, planned and left to plan on the Budget tab (~65)
   - Files: `apps/mobile/src/app/(tabs)/budget.tsx`.
   - Change: a month with categories gets a card above the "Categories" head, in one accessible group labelled
     "Income €X, planned €Y, left to plan €Z". It shows three figures:
@@ -364,7 +364,7 @@ Total is about 570 changed lines, tests included. 058 estimated ~480 for Part 3.
 
 ## Deviations
 
-<filled by the developer during build>
+- Slice 1 web checks ran on the QA ledger's own November (income €5,581 against rent planned €6,000 → "−€419" in red; €419 more income on the Income tab → €0 on return), not €100/€150. October has no budget on that ledger, so "October shows its own figures" became "an empty month shows only the empty card" (October and March 2027). Web ran from this worktree's Metro on 127.0.0.1:8084 against main's API on :3000 (no API change in slice 1).
 
 ## Consolidate
 

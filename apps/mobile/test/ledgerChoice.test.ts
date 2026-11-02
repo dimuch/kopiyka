@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import type { Ledger } from '@/api/types';
 import { choiceKey, pickLedger } from '@/auth/ledgerChoice';
 
-const ledger = (ledgerId: number): Ledger => ({ ledgerId, name: 'Home', role: 'owner', owner: 'dimuch' });
+const ledger = (ledgerId: number): Ledger => ({ ledgerId, name: 'Home', role: 'owner', owner: 'dimuch', label: null });
 
 describe('pickLedger', () => {
   // The stored choice wins while the user is still in that ledger; otherwise the first (oldest membership) one.

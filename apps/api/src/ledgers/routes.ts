@@ -2,6 +2,7 @@ import type { FastifyInstance } from 'fastify';
 import type { ResultSetHeader, RowDataPacket } from 'mysql2/promise';
 import { z } from 'zod';
 import type { AppDeps } from '../app.js';
+import { requireOwner } from './access.js';
 
 const MemberParams = z.object({ userId: z.coerce.number().int().positive() });
 
@@ -24,21 +25,23 @@ export async function ledgerRoutes(app: FastifyInstance, { db }: AppDeps): Promi
     };
   });
 
-  // Only the owner sees who's in the ledger. The check is inline: this is the one route that is owner-only
-  // throughout, so a `requireOwner` preHandler would have one caller (054's invite routes bring it).
-  app.get('/api/ledgers/:id/members', { preHandler: [app.requireAuth, app.requireLedger] }, async (req, reply) => {
-    if (req.ledger!.role !== 'owner') return reply.code(403).send({ error: 'owner_only' });
-    const [rows] = await db.query<RowDataPacket[]>(
-      // ENUM sorts by index: owner first.
-      `SELECT m.user_id, u.username, m.role
+  // Only the owner sees who's in the ledger.
+  app.get(
+    '/api/ledgers/:id/members',
+    { preHandler: [app.requireAuth, app.requireLedger, requireOwner] },
+    async (req) => {
+      const [rows] = await db.query<RowDataPacket[]>(
+        // ENUM sorts by index: owner first.
+        `SELECT m.user_id, u.username, m.role
          FROM ledger_members m
          JOIN users u ON u.user_id = m.user_id
         WHERE m.ledger_id = ?
         ORDER BY m.role, m.joined_at, m.user_id`,
-      [req.ledger!.ledgerId],
-    );
-    return { members: rows.map((row) => ({ userId: row.user_id, username: row.username, role: row.role })) };
-  });
+        [req.ledger!.ledgerId],
+      );
+      return { members: rows.map((row) => ({ userId: row.user_id, username: row.username, role: row.role })) };
+    },
+  );
 
   // The owner removes a member, or a member removes themselves (leaves). The owner can't leave: a ledger always
   // keeps its owner, and handing it over is out of scope. Matching role = 'member' keeps the owner's row safe too.

@@ -184,7 +184,7 @@ to keep correct.
     - Back → Settings. Opening `/members` straight from the URL, then Back → Settings.
     - With a fetch stub failing `…/members`: the load error and Retry.
     - Light and dark at a glance. iPhone (Expo Go) at Gate B.
-- [ ] 2.6 Remove a member, or leave the ledger, with a second tap (~130)
+- [x] 2.6 Remove a member, or leave the ledger, with a second tap (~130)
   - Files: `apps/mobile/src/data/members.ts` (new), `apps/mobile/src/app/members.tsx`
   - Change: `removeMember`, then on the screen:
     - Who sees what: in `OwnerMembers`, each row except the viewer's has "Remove" (label "Remove <username>",

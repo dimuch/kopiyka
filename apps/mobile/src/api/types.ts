@@ -15,6 +15,17 @@ export interface Ledger {
   owner: string;
 }
 
+/** Someone in a ledger, as its owner sees them on the Members screen. */
+export interface Member {
+  userId: number;
+  username: string;
+  role: 'owner' | 'member';
+}
+
+export interface LedgerMembers {
+  members: Member[];
+}
+
 export interface Category {
   categoryId: number;
   techName: string;

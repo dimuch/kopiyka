@@ -2,6 +2,7 @@ import type { FastifyInstance } from 'fastify';
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest';
 import { createUserJoiningLedger } from '../src/admin.js';
 import { buildApp } from '../src/app.js';
+import { addMember } from '../src/ledgers/members.js';
 import { base32Decode } from '../src/auth/totp.js';
 import type { Config } from '../src/config.js';
 import { createDb, type Db } from '../src/db.js';
@@ -234,6 +235,83 @@ describe.skipIf(!(await testDbReachable()))('a member of a shared ledger (MySQL)
         { error: 'ledger_not_found' },
       ]);
       expect(await listed()).toEqual(['dimuch', 'olena']);
+    });
+  });
+
+  describe('your own label', () => {
+    const label = async (headers: Record<string, string>, body: object, ledgerId = dimuch.ledgerId) => {
+      const res = await app.inject({ method: 'PUT', url: `/api/ledgers/${ledgerId}/label`, headers, payload: body });
+      return res.statusCode === 204 ? [204] : [res.statusCode, res.json()];
+    };
+    const labels = async (headers: Record<string, string>) =>
+      (await app.inject({ method: 'GET', url: '/api/ledgers', headers }))
+        .json()
+        .ledgers.map((ledger: { label: string | null }) => ledger.label);
+
+    it('each person sets their own label, seen only by them', async () => {
+      const before = await categories(memberAuth);
+      expect(await label(ownerAuth, { label: 'Family' })).toEqual([204]);
+      expect(await label(memberAuth, { label: 'Flat with Olena' })).toEqual([204]);
+
+      expect(await labels(ownerAuth)).toEqual(['Family']);
+      expect(await labels(memberAuth)).toEqual(['Flat with Olena']);
+      const ledgers = (await app.inject({ method: 'GET', url: '/api/ledgers', headers: memberAuth })).json().ledgers;
+      expect(ledgers).toEqual([
+        { ledgerId: dimuch.ledgerId, name: 'Home', role: 'member', owner: 'dimuch', label: 'Flat with Olena' },
+      ]);
+      expect(await categories(memberAuth)).toEqual(before);
+    });
+
+    it('trims, allows 40 characters (also emoji) and refuses 41', async () => {
+      await label(ownerAuth, { label: '  Family  ' });
+      expect(await labels(ownerAuth)).toEqual(['Family']);
+
+      expect(await label(ownerAuth, { label: 'x'.repeat(40) })).toEqual([204]);
+      expect(await label(ownerAuth, { label: 'x'.repeat(41) })).toEqual([
+        400,
+        expect.objectContaining({ error: 'invalid_request' }),
+      ]);
+      expect(await labels(ownerAuth)).toEqual(['x'.repeat(40)]);
+
+      expect(await label(ownerAuth, { label: '😀'.repeat(40) })).toEqual([204]);
+      expect(await labels(ownerAuth)).toEqual(['😀'.repeat(40)]);
+    });
+
+    it("clearing brings back no label and leaves the other person's", async () => {
+      await label(ownerAuth, { label: 'Family' });
+      await label(memberAuth, { label: 'Flat' });
+      expect(await label(ownerAuth, { label: '' })).toEqual([204]);
+      expect(await labels(ownerAuth)).toEqual([null]);
+      await label(ownerAuth, { label: 'Family' });
+      expect(await label(ownerAuth, { label: '   ' })).toEqual([204]);
+      expect(await labels(ownerAuth)).toEqual([null]);
+      expect(await labels(memberAuth)).toEqual(['Flat']);
+    });
+
+    it('rejects a body without a string label and needs a session', async () => {
+      for (const body of [{}, { label: 5 }, { label: null }]) {
+        expect((await label(ownerAuth, body))[0]).toBe(400);
+      }
+      expect((await label({}, { label: 'Family' }))[0]).toBe(401);
+    });
+
+    it('answers ledger_not_found outside the ledger', async () => {
+      const stranger = await makeUser(db, config, 'stranger');
+      const strangerAuth = await authHeader(app, stranger, clock);
+      expect(await label(strangerAuth, { label: 'Mine' })).toEqual([404, { error: 'ledger_not_found' }]);
+      expect(await label(ownerAuth, { label: 'Mine' }, 999999)).toEqual([404, { error: 'ledger_not_found' }]);
+    });
+
+    it('leaving drops the label', async () => {
+      await label(memberAuth, { label: 'Flat' });
+      const left = await app.inject({
+        method: 'DELETE',
+        url: ledgerUrl(`/members/${olena.userId}`),
+        headers: memberAuth,
+      });
+      expect(left.statusCode).toBe(204);
+      await addMember(db, dimuch.ledgerId, olena.userId);
+      expect(await labels(memberAuth)).toEqual([null]);
     });
   });
 });

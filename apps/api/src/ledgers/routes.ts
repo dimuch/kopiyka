@@ -6,6 +6,8 @@ import { liveInvite } from '../invites/live.js';
 import { requireOwner } from './access.js';
 
 const MemberParams = z.object({ userId: z.coerce.number().int().positive() });
+// Up to 40 characters after trimming (Zod and utf8mb4 VARCHAR both count code points); empty clears it.
+const LabelBody = z.object({ label: z.string().trim().max(40) });
 
 export async function ledgerRoutes(app: FastifyInstance, { db, now }: AppDeps): Promise<void> {
   // The ledgers the user belongs to, oldest membership first, each with its owner's username and the caller's own
@@ -81,4 +83,16 @@ export async function ledgerRoutes(app: FastifyInstance, { db, now }: AppDeps): 
       return reply.code(204).send();
     },
   );
+
+  // Each person's own label for a ledger they're in (brief 056), owner or member; only their own row changes. A
+  // membership removed meanwhile matches nothing and still answers 204: their next request gets ledger_not_found.
+  app.put('/api/ledgers/:id/label', { preHandler: [app.requireAuth, app.requireLedger] }, async (req, reply) => {
+    const { label } = LabelBody.parse(req.body);
+    await db.query('UPDATE ledger_members SET label = ? WHERE ledger_id = ? AND user_id = ?', [
+      label || null,
+      req.ledger!.ledgerId,
+      req.auth!.userId,
+    ]);
+    return reply.code(204).send();
+  });
 }

@@ -31,6 +31,6 @@ export function useMembers(ledgerId: number) {
     }, [key, attempt, ledgerId]),
   );
 
-  const reload = useCallback(() => setVersion((v) => v + 1), []);
+  const reload = useCallback(() => setVersion((current) => current + 1), []);
   return { data: loaded?.key === key ? loaded.data : null, error: failed === attempt, reload };
 }

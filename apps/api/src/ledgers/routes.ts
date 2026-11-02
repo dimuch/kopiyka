@@ -37,7 +37,7 @@ export async function ledgerRoutes(app: FastifyInstance, { db }: AppDeps): Promi
         ORDER BY m.role, m.joined_at, m.user_id`,
       [req.ledger!.ledgerId],
     );
-    return { members: rows.map((r) => ({ userId: r.user_id, username: r.username, role: r.role })) };
+    return { members: rows.map((row) => ({ userId: row.user_id, username: row.username, role: row.role })) };
   });
 
   // The owner removes a member, or a member removes themselves (leaves). The owner can't leave: a ledger always

@@ -258,7 +258,7 @@ knows its delta, so computing "after" before writing is smaller.
     - 409 `month_ended` for 2026-09;
     - 401;
     - non-member 404.
-- [ ] 1.3 Let any member edit an income item (~95)
+- [x] 1.3 Let any member edit an income item (~95)
   - Files: `income/routes.ts` (`IncomeParams`, PUT in a transaction), the test file.
   - Tests:
     - a member edits the owner's item → 204; the list shows the new title and amount, and `addedBy` is still the

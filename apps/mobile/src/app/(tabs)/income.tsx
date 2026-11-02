@@ -1,17 +1,19 @@
 import { router, useLocalSearchParams } from 'expo-router';
 import { useState } from 'react';
-import { ActivityIndicator, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useColors, useThemedStyles } from '@/appearance/AppearanceContext';
 import { useSession } from '@/auth/AuthContext';
 import { EmptyMonth } from '@/components/EmptyMonth';
 import { HomeButton } from '@/components/HomeButton';
+import { Icon } from '@/components/Icon';
 import { LoadError } from '@/components/LoadError';
 import { MonthSwitcher } from '@/components/MonthSwitcher';
 import { incomeCents } from '@/data/monthSummary';
 import { useIncome } from '@/data/useIncome';
 import { eur, kyivMonth, monthName, toCents } from '@/format';
 import { parseMonthParam } from '@/linkParams';
+import { usePushOnce } from '@/pushOnce';
 import { fonts, type Palette } from '@/theme';
 
 /**
@@ -21,12 +23,14 @@ import { fonts, type Palette } from '@/theme';
 export default function Income() {
   const colors = useColors();
   const styles = useThemedStyles(makeStyles);
+  const pushOnce = usePushOnce();
   const { ledger } = useSession();
   const params = useLocalSearchParams<{ month?: string | string[] }>();
   const [thisMonth] = useState(() => kyivMonth(new Date()));
   // A missing or malformed month opens the current one.
   const month = parseMonthParam(params.month) ?? thisMonth;
   const { items, error, reload } = useIncome(ledger.ledgerId, month);
+  const ended = month < thisMonth;
 
   return (
     <SafeAreaView style={styles.screen} edges={['top']}>
@@ -35,7 +39,19 @@ export default function Income() {
           <HomeButton />
         </View>
         <MonthSwitcher month={month} onChange={(next) => router.setParams({ month: next })} />
-        <View style={[styles.side, styles.sideEnd]} />
+        <View style={[styles.side, styles.sideEnd]}>
+          {/* Like Budget's "+"; an ended month can't change, and nothing shows before the month loads. */}
+          {items && !ended ? (
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel={`Add income to ${monthName(month)}`}
+              onPress={() => pushOnce({ pathname: '/income-item', params: { month } })}
+              style={styles.iconButton}
+            >
+              <Icon name="plus" color={colors.accent} />
+            </Pressable>
+          ) : null}
+        </View>
       </View>
 
       <ScrollView contentContainerStyle={styles.content}>
@@ -86,6 +102,7 @@ const makeStyles = (colors: Palette) =>
     // Equal-width sides keep the month switcher on the header's true centre; flexBasis 0 matters on web.
     side: { flex: 1, flexBasis: 0, flexDirection: 'row' },
     sideEnd: { justifyContent: 'flex-end' },
+    iconButton: { width: 44, height: 44, alignItems: 'center', justifyContent: 'center', borderRadius: 12 },
     content: { gap: 14, paddingTop: 4, paddingBottom: 24 },
     sectionHead: {
       flexDirection: 'row',

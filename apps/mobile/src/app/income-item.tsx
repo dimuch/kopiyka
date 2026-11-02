@@ -18,12 +18,12 @@ import { useSession } from '@/auth/AuthContext';
 import { AmountField } from '@/components/AmountFields';
 import { LoadError } from '@/components/LoadError';
 import { normalizeName } from '@/data/categoryName';
-import { addIncome, updateIncome } from '@/data/income';
+import { addIncome, deleteIncome, updateIncome } from '@/data/income';
 import { monthEndedText } from '@/data/monthEnded';
 import { useIncome } from '@/data/useIncome';
 import { monthName, normalizeAmount } from '@/format';
 import { parseIdParam, parseMonthParam } from '@/linkParams';
-import { fonts, type Palette } from '@/theme';
+import { dangerText, fonts, type Palette } from '@/theme';
 
 /**
  * Closes the modal. Opened straight from a web link there's nothing to go back to, so it falls back to the Income
@@ -124,6 +124,7 @@ function EditLoader({ month, incomeId, busy, setBusy }: { month: string; incomeI
       month={month}
       initial={item}
       save={(title, amount) => updateIncome(ledger.ledgerId, incomeId, title, amount)}
+      remove={() => deleteIncome(ledger.ledgerId, incomeId)}
       busy={busy}
       setBusy={setBusy}
     />
@@ -134,6 +135,7 @@ function IncomeForm({
   month,
   initial,
   save: send,
+  remove,
   busy,
   setBusy,
 }: {
@@ -141,6 +143,8 @@ function IncomeForm({
   /** The item being edited; null when adding. */
   initial: IncomeItem | null;
   save: (title: string, amount: string) => Promise<void>;
+  /** Deletes the item; only when editing. */
+  remove?: () => Promise<void>;
 } & Saving) {
   const colors = useColors();
   const styles = useThemedStyles(makeStyles);
@@ -164,6 +168,23 @@ function IncomeForm({
     setError(null);
   }
 
+  /** Runs a save or a delete, then leaves; a refusal or failure keeps the form open with its reason. */
+  async function run(action: () => Promise<void>, failed: string) {
+    inFlight.current = true;
+    setBusy(true);
+    setError(null);
+    try {
+      await action();
+      leave(month);
+    } catch (err) {
+      const code = err instanceof ApiError ? err.code : null;
+      setGone(code === 'month_ended' || code === 'not_found');
+      showError(code === 'month_ended' ? monthEndedText(month) : code === 'not_found' ? notListedText(month) : failed);
+      inFlight.current = false;
+      setBusy(false);
+    }
+  }
+
   async function save() {
     if (inFlight.current || gone) return;
     const name = normalizeName(title);
@@ -176,25 +197,13 @@ function IncomeForm({
       showError('Enter an amount in euros above 0, like 2500 or 2500.50.');
       return;
     }
-    inFlight.current = true;
-    setBusy(true);
-    setError(null);
-    try {
-      await send(name, amount);
-      leave(month);
-    } catch (err) {
-      const code = err instanceof ApiError ? err.code : null;
-      setGone(code === 'month_ended' || code === 'not_found');
-      showError(
-        code === 'month_ended'
-          ? monthEndedText(month)
-          : code === 'not_found'
-            ? notListedText(month)
-            : 'Couldn’t save. Check your connection and try again.',
-      );
-      inFlight.current = false;
-      setBusy(false);
-    }
+    await run(() => send(name, amount), 'Couldn’t save. Check your connection and try again.');
+  }
+
+  // At once, with no confirm and no Undo: the API has no restore for income (brief 061).
+  async function deleteItem() {
+    if (inFlight.current || gone || !remove) return;
+    await run(remove, 'Couldn’t delete. Check your connection and try again.');
   }
 
   return (
@@ -243,6 +252,12 @@ function IncomeForm({
           {busy ? <ActivityIndicator color={colors.onAccent} /> : <Text style={styles.primaryText}>Save</Text>}
         </Pressable>
       )}
+
+      {remove && !gone ? (
+        <Pressable accessibilityRole="button" disabled={busy} onPress={deleteItem} style={styles.delete}>
+          <Text style={styles.deleteText}>Delete item</Text>
+        </Pressable>
+      ) : null}
     </ScrollView>
   );
 }
@@ -279,4 +294,6 @@ const makeStyles = (colors: Palette) =>
       justifyContent: 'center',
     },
     primaryText: { fontFamily: fonts.bodySemi, fontSize: 16, color: colors.onAccent },
+    delete: { height: 48, alignItems: 'center', justifyContent: 'center' },
+    deleteText: dangerText(colors),
   });

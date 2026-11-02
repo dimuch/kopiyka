@@ -9,3 +9,8 @@ export async function addIncome(ledgerId: number, month: string, title: string, 
 export async function updateIncome(ledgerId: number, incomeId: number, title: string, amount: string): Promise<void> {
   await api(`/api/ledgers/${ledgerId}/income/${incomeId}`, { method: 'PUT', body: { title, amount } });
 }
+
+/** Deletes any member's income item at once (brief 061); there's no Undo. */
+export async function deleteIncome(ledgerId: number, incomeId: number): Promise<void> {
+  await api(`/api/ledgers/${ledgerId}/income/${incomeId}`, { method: 'DELETE' });
+}

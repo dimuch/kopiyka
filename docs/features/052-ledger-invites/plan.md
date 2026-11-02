@@ -392,6 +392,20 @@ Decisions for you at Gate A (none blocking; the plan uses the first option given
 
 ## Consolidate
 
+Part 1 only (this branch).
+
+- REUSE: `useThemedStyles`/`Palette`, `AsyncStorage` (as in `AppearanceContext`), `api()`'s handler pattern, and
+  `fetchMe` for both `openLedger` and the ledger-gone reload. There's no second copy of the ledger fetch.
+- LEAVE: `setLedgerGoneHandler` next to `setUnauthorizedHandler`. Two one-line setters for two different events; a
+  generic event bus would be more code than both.
+- LEAVE: the outlined Sign out style in `no-ledger.tsx` and `settings.tsx`. It's two copies of a style, not logic, and
+  Settings pins its button to the bottom while no-ledger centres it. Extract a `SignOutButton` if a third screen needs
+  it.
+- LEAVE: `LedgerPicker` next to `AppearancePicker`. Both are radiogroups with the same tinted "on" row, but one is a
+  fixed row of three labels and the other a column of ledgers with a second label. Sharing would need a generic
+  picker for two callers.
+- No twin: `pickLedger`/`choiceKey` (pure, tested), and the owner `JOIN users` in `GET /api/ledgers`.
+
 ## Revision 1
 
 Skeptic edits. Part 2 is ~500 lines, not ~420, so the total is now ~1,575; 2a/2b is offered as a split. Slice 1.6

@@ -19,6 +19,7 @@ mysql -u root -p < apps/api/scripts/setup-local-db.sql   # app user + databases;
 cp apps/api/.env.example apps/api/.env       # then set the DB password and TOTP_ENC_KEY (openssl rand -base64 32)
 yarn api migrate
 yarn api create-user --username you --email you@example.com   # prints a QR for Google Authenticator
+# add --join <owner> to make the new user a member of <owner>'s ledger instead of giving them their own
 yarn api dev                                 # API on http://127.0.0.1:3000
 yarn mobile start                            # Expo dev server
 ```

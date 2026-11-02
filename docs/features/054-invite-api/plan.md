@@ -131,7 +131,7 @@ on it is an exact `toEqual` (e.g. `[{ status: 'revoked', status_changed_at: cloc
     inline check. The old comment ("054's invite routes bring it") becomes "Only the owner sees who's in the ledger".
   - Tests: no changes. `members.int.test.ts` "a member gets owner_only from the list", "lists the members for the
     owner", 401 and stranger 404 already pin the behaviour.
-- [ ] 2. Let the owner invite an existing user by username (~175)
+- [x] 2. Let the owner invite an existing user by username (~175)
   - Files: `apps/api/migrations/010_ledger_invites_by_user.sql` (new), `apps/api/src/invites/routes.ts` (new),
     `apps/api/src/app.ts` (`await inviteRoutes(app, deps)` after `ledgerRoutes`),
     `apps/api/test/invites.int.test.ts` (new)

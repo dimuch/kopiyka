@@ -285,7 +285,6 @@ function InviteForm({ ledgerId, onInvited }: { ledgerId: number; onInvited: () =
         onSubmitEditing={invite}
         editable={!busy}
         style={styles.input}
-        placeholderTextColor={colors.muted}
       />
       <Text style={styles.caption}>They’ll see it in the app for an hour.</Text>
       {failure ? (

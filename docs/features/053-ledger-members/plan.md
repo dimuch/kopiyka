@@ -116,7 +116,7 @@ to keep correct.
     "a member gets owner_only from the list": olena → `[403, { error: 'owner_only' }]`. "needs a session": 401.
     "answers ledger_not_found to someone outside the ledger": a `makeUser` stranger gets
     `[404, { error: 'ledger_not_found' }]`.
-- [ ] 2.2 Let the owner remove a member, and a member leave (~130)
+- [x] 2.2 Let the owner remove a member, and a member leave (~130)
   - Files: `apps/api/src/ledgers/routes.ts`, `apps/api/test/members.int.test.ts`
   - Change: the DELETE route per Contracts. The comment says why the owner can't leave: a ledger always keeps its
     owner, and ownership transfer is out of scope.

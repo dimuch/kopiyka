@@ -76,6 +76,12 @@ export function setUnauthorizedHandler(handler: () => void): void {
   onUnauthorized = handler;
 }
 
+let onLedgerGone: () => void = () => {};
+/** Called when the API says the user isn't in the ledger any more (removed, or left on another device). */
+export function setLedgerGoneHandler(handler: () => void): void {
+  onLedgerGone = handler;
+}
+
 export async function api<T>(path: string, init: { method?: string; body?: unknown } = {}): Promise<T> {
   const headers: Record<string, string> = {};
   if (init.body !== undefined) headers['content-type'] = 'application/json';
@@ -92,7 +98,9 @@ export async function api<T>(path: string, init: { method?: string; body?: unkno
   const data = await res.json().catch(() => ({}));
   if (!res.ok) {
     if (res.status === 401 && path !== '/api/auth/login') onUnauthorized();
-    throw new ApiError(res.status, (data as { error?: string }).error ?? 'unknown');
+    const code = (data as { error?: string }).error ?? 'unknown';
+    if (res.status === 404 && code === 'ledger_not_found') onLedgerGone();
+    throw new ApiError(res.status, code);
   }
   return data as T;
 }

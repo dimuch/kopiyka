@@ -10,6 +10,7 @@ import { CategoryTile } from '@/components/CategoryTile';
 import { CompactTotal, HeaderDivider, useCollapsingSummary } from '@/components/CollapsingSummary';
 import { Icon } from '@/components/Icon';
 import { LoadError } from '@/components/LoadError';
+import { TabBar } from '@/components/TabBar';
 import { UndoToast } from '@/components/UndoToast';
 import { expenseCount, groupByDay, sumCents } from '@/data/monthSummary';
 import { useUndoOffer } from '@/data/undo';
@@ -32,11 +33,17 @@ export default function CategoryScreen() {
   const [thisMonth] = useState(() => kyivMonth(new Date()));
   const categoryId = parseIdParam(params.categoryId);
   const month = parseMonthParam(params.month || thisMonth);
-  // Checked before anything loads, so a bad link fetches nothing.
-  return categoryId !== null && month !== null ? (
-    <CategoryBreakdown categoryId={categoryId} month={month} ended={month < thisMonth} />
-  ) : (
-    <InvalidLink />
+  const colors = useColors();
+  return (
+    <View style={{ flex: 1, backgroundColor: colors.bg }}>
+      {/* Checked before anything loads, so a bad link fetches nothing. */}
+      {categoryId !== null && month !== null ? (
+        <CategoryBreakdown categoryId={categoryId} month={month} ended={month < thisMonth} />
+      ) : (
+        <InvalidLink />
+      )}
+      <TabBar fallback="expenses" />
+    </View>
   );
 }
 

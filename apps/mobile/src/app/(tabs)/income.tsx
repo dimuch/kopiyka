@@ -76,15 +76,24 @@ export default function Income() {
                   <Text style={styles.small}>{eur(incomeCents(items))} total</Text>
                 </View>
                 <View style={styles.listCard}>
-                  {items.map((item, index) => (
-                    <View key={item.incomeId} style={[styles.row, index < items.length - 1 && styles.divider]}>
-                      <View style={styles.rowText}>
-                        <Text style={styles.rowName}>{item.title}</Text>
-                        <Text style={styles.small}>Added by {item.addedBy}</Text>
+                  {items.map((item, index) => {
+                    const amount = eur(toCents(item.amountEur));
+                    return (
+                      // One stop for screen readers instead of three.
+                      <View
+                        key={item.incomeId}
+                        accessible
+                        accessibilityLabel={`${item.title}, ${amount}, added by ${item.addedBy}`}
+                        style={[styles.row, index < items.length - 1 && styles.divider]}
+                      >
+                        <View style={styles.rowText}>
+                          <Text style={styles.rowName}>{item.title}</Text>
+                          <Text style={styles.small}>Added by {item.addedBy}</Text>
+                        </View>
+                        <Text style={styles.rowAmount}>{amount}</Text>
                       </View>
-                      <Text style={styles.rowAmount}>{eur(toCents(item.amountEur))}</Text>
-                    </View>
-                  ))}
+                    );
+                  })}
                 </View>
               </>
             )}

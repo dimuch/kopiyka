@@ -17,7 +17,7 @@ import { useColors, useThemedStyles } from '@/appearance/AppearanceContext';
 import { useSession } from '@/auth/AuthContext';
 import { Icon } from '@/components/Icon';
 import { LoadError } from '@/components/LoadError';
-import { inviteMember, removeMember } from '@/data/members';
+import { inviteMember, removeMember, revokeInvite } from '@/data/members';
 import { useMembers } from '@/data/useMembers';
 import { dangerText, fonts, outlinedDangerButton, outlinedDangerText, type Palette } from '@/theme';
 
@@ -150,32 +150,88 @@ function OwnerMembers({ ledgerId }: { ledgerId: number }) {
           );
         })}
       </View>
-      <PendingList invites={data.invites} />
+      <PendingList ledgerId={ledgerId} invites={data.invites} onChange={reload} />
       <InviteForm ledgerId={ledgerId} onInvited={reload} />
     </>
   );
 }
 
-/** The ledger's live invites; nothing while there are none. */
-function PendingList({ invites }: { invites: PendingInvite[] }) {
+/**
+ * The ledger's live invites, each with a one-tap Revoke (inviting again undoes it); nothing while there are none and
+ * no failure to show.
+ */
+function PendingList({
+  ledgerId,
+  invites,
+  onChange,
+}: {
+  ledgerId: number;
+  invites: PendingInvite[];
+  onChange: () => void;
+}) {
   const styles = useThemedStyles(makeStyles);
-  if (!invites.length) return null;
+  const [busy, setBusy] = useState(false);
+  const [failure, setFailure] = useState<string | null>(null);
+  // `busy` disables the buttons only after a re-render; two taps in one tick would both get here.
+  const inFlight = useRef(false);
+
+  async function revoke(invite: PendingInvite) {
+    if (inFlight.current) return;
+    inFlight.current = true;
+    setBusy(true);
+    setFailure(null);
+    try {
+      await revokeInvite(ledgerId, invite.inviteId);
+      onChange();
+    } catch (err) {
+      // Expired, or answered meanwhile: the row is stale, so the list reloads under the message.
+      const gone = err instanceof ApiError && err.code === 'not_found';
+      const text = gone
+        ? `${invite.username}’s invite has already expired or been answered.`
+        : 'Couldn’t revoke. Check your connection and try again.';
+      // role="alert" covers web; VoiceOver needs an explicit announcement.
+      setFailure(text);
+      AccessibilityInfo.announceForAccessibility(text);
+      if (gone) onChange();
+    } finally {
+      inFlight.current = false;
+      setBusy(false);
+    }
+  }
+
+  if (!invites.length && !failure) return null;
   return (
     <View style={styles.section}>
       <Text style={styles.caption}>Invited</Text>
-      <View style={styles.list}>
-        {invites.map((invite, index) => (
-          <View key={invite.inviteId} style={[styles.row, index > 0 && styles.divider]}>
-            <View style={styles.line}>
-              <View style={styles.who}>
-                <Text numberOfLines={1} style={styles.name}>
-                  {invite.username}
-                </Text>
+      {invites.length ? (
+        <View style={styles.list}>
+          {invites.map((invite, index) => (
+            <View key={invite.inviteId} style={[styles.row, index > 0 && styles.divider]}>
+              <View style={styles.line}>
+                <View style={styles.who}>
+                  <Text numberOfLines={1} style={styles.name}>
+                    {invite.username}
+                  </Text>
+                </View>
+                <Pressable
+                  accessibilityRole="button"
+                  accessibilityLabel={`Revoke invite to ${invite.username}`}
+                  disabled={busy}
+                  onPress={() => revoke(invite)}
+                  style={styles.remove}
+                >
+                  <Text style={styles.removeText}>Revoke</Text>
+                </Pressable>
               </View>
             </View>
-          </View>
-        ))}
-      </View>
+          ))}
+        </View>
+      ) : null}
+      {failure ? (
+        <Text accessibilityRole="alert" style={styles.failure}>
+          {failure}
+        </Text>
+      ) : null}
     </View>
   );
 }

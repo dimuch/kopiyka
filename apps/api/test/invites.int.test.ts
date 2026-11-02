@@ -161,4 +161,72 @@ describe.skipIf(!(await testDbReachable()))('ledger invites (MySQL)', () => {
       expect((await send(null, 'GET', '/api/invites'))[0]).toBe(401);
     });
   });
+
+  describe('revoking and declining', () => {
+    const revoke = (user: TestUser | null, inviteId: number | string, ledgerId = dimuch.ledgerId) =>
+      send(user, 'DELETE', `/api/ledgers/${ledgerId}/invites/${inviteId}`);
+    const decline = (user: TestUser | null, inviteId: number | string) =>
+      send(user, 'DELETE', `/api/invites/${inviteId}`);
+    const ledgersOf = async (user: TestUser) =>
+      (await send(user, 'GET', '/api/ledgers'))[1].ledgers.map((ledger: { owner: string }) => ledger.owner);
+    const expectNoInviteNorMembership = async () => {
+      expect((await send(dimuch, 'GET', `/api/ledgers/${dimuch.ledgerId}/members`))[1].invites).toEqual([]);
+      expect((await send(olena, 'GET', '/api/invites'))[1].invites).toEqual([]);
+      expect(await ledgersOf(olena)).toEqual(['olena']);
+    };
+
+    it('revoking keeps the invite as revoked, with no membership', async () => {
+      const [, { inviteId }] = await invite(dimuch, 'olena');
+      expect(await revoke(dimuch, inviteId)).toEqual([204]);
+      expect(await rows()).toEqual([{ status: 'revoked', status_changed_at: clock }]);
+      await expectNoInviteNorMembership();
+      expect(await revoke(dimuch, inviteId)).toEqual([404, { error: 'not_found' }]);
+    });
+
+    it('declining keeps the invite as declined, with no membership', async () => {
+      const [, { inviteId }] = await invite(dimuch, 'olena');
+      expect(await decline(olena, inviteId)).toEqual([204]);
+      expect(await rows()).toEqual([{ status: 'declined', status_changed_at: clock }]);
+      await expectNoInviteNorMembership();
+      expect(await decline(olena, inviteId)).toEqual([404, { error: 'not_found' }]);
+      expect((await invite(dimuch, 'olena'))[0]).toBe(201);
+    });
+
+    it("revokes only this ledger's live invites", async () => {
+      const ivanka = await makeUser(db, config, 'ivanka');
+      await signIn(ivanka);
+      const [, foreign] = await invite(ivanka, 'olena', ivanka.ledgerId);
+      const [, mine] = await invite(dimuch, 'olena');
+      expect(await revoke(dimuch, 999999)).toEqual([404, { error: 'not_found' }]);
+      expect(await revoke(dimuch, foreign.inviteId)).toEqual([404, { error: 'not_found' }]);
+      await later(60);
+      expect(await revoke(dimuch, mine.inviteId)).toEqual([404, { error: 'not_found' }]);
+      expect(await rows()).toEqual([
+        { status: 'pending', status_changed_at: null },
+        { status: 'pending', status_changed_at: null },
+      ]);
+    });
+
+    it("declines only the caller's own live invite", async () => {
+      const [, { inviteId }] = await invite(dimuch, 'olena');
+      expect(await decline(sam, inviteId)).toEqual([404, { error: 'not_found' }]);
+      await later(60);
+      expect(await decline(olena, inviteId)).toEqual([404, { error: 'not_found' }]);
+      expect(await rows()).toEqual([{ status: 'pending', status_changed_at: null }]);
+    });
+
+    it('only the owner revokes; a member gets owner_only and a stranger ledger_not_found', async () => {
+      const [, { inviteId }] = await invite(dimuch, 'olena');
+      expect(await revoke(sam, inviteId)).toEqual([403, { error: 'owner_only' }]);
+      expect(await revoke(olena, inviteId)).toEqual([404, { error: 'ledger_not_found' }]);
+      expect(await rows()).toEqual([{ status: 'pending', status_changed_at: null }]);
+    });
+
+    it('rejects a bad id and needs a session', async () => {
+      expect((await revoke(dimuch, 'abc'))[0]).toBe(400);
+      expect((await decline(olena, 'abc'))[0]).toBe(400);
+      expect((await revoke(null, 1))[0]).toBe(401);
+      expect((await decline(null, 1))[0]).toBe(401);
+    });
+  });
 });

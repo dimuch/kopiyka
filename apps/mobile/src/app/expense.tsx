@@ -22,6 +22,7 @@ import { CategoryPicker } from '@/components/CategoryPicker';
 import { DateChips } from '@/components/DateChips';
 import { Icon } from '@/components/Icon';
 import { LoadError } from '@/components/LoadError';
+import { TabBar } from '@/components/TabBar';
 import { expenseLocked, firstOpenDate } from '@/data/expenseLock';
 import { lockedText, restoreRefusedText } from '@/data/monthEnded';
 import { deleteExpense, restoreExpense, saveExpense } from '@/data/expenses';
@@ -70,22 +71,26 @@ export default function ExpenseScreen() {
   const expenseId = parseIdParam(params.expenseId);
 
   return (
-    <SafeAreaView style={styles.screen} edges={['top', 'bottom']}>
-      <View style={styles.header}>
-        <Pressable accessibilityRole="button" onPress={leave} style={styles.back}>
-          <Text style={styles.backText}>Back</Text>
-        </Pressable>
-        <Text style={styles.title}>{editing ? 'Edit expense' : 'New expense'}</Text>
-        <View style={{ width: 52 }} />
-      </View>
+    <View style={styles.page}>
+      {/* The tab bar pads the bottom inset. */}
+      <SafeAreaView style={styles.screen} edges={['top']}>
+        <View style={styles.header}>
+          <Pressable accessibilityRole="button" onPress={leave} style={styles.back}>
+            <Text style={styles.backText}>Back</Text>
+          </Pressable>
+          <Text style={styles.title}>{editing ? 'Edit expense' : 'New expense'}</Text>
+          <View style={{ width: 52 }} />
+        </View>
 
-      {editing && expenseId === null ? (
-        <LoadFailed message="That link isn’t valid." />
-      ) : (
-        // A malformed category id is ignored: the form starts on its month's first quick category.
-        <ExpenseLoader expenseId={expenseId} categoryId={parseIdParam(params.categoryId)} />
-      )}
-    </SafeAreaView>
+        {editing && expenseId === null ? (
+          <LoadFailed message="That link isn’t valid." />
+        ) : (
+          // A malformed category id is ignored: the form starts on its month's first quick category.
+          <ExpenseLoader expenseId={expenseId} categoryId={parseIdParam(params.categoryId)} />
+        )}
+      </SafeAreaView>
+      <TabBar fallback="index" />
+    </View>
   );
 }
 
@@ -393,6 +398,7 @@ const makeStyles = (colors: Palette) => {
   } as const;
 
   return StyleSheet.create({
+    page: { flex: 1, backgroundColor: colors.bg },
     screen: { flex: 1, backgroundColor: colors.bg, paddingHorizontal: 20, paddingTop: 8 },
     header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 },
     back: { height: 44, justifyContent: 'center' },

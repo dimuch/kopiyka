@@ -181,20 +181,41 @@ open. Gates run before every commit, with `DATABASE_URL_TEST` exported so the AP
       and February now has items. 'Couldn’t check February’s income. …' shows with Retry, and Copy doesn't. Unblock it
       and press Retry: Copy shows.
 
-Estimated total: about 225 changed lines. Every slice stays under 150.
+- [ ] 5. Show this month's income first on Home (~25) — added before the PR at the user's request (mini Gate A)
+  - Files: `app/(tabs)/index.tsx`.
+  - Change:
+    - Home calls `useIncome(ledger.ledgerId, month)` for its current Kyiv month (it reloads on focus, like the tab).
+    - A new first card `{ title: 'Income', href: '/income', icon: 'income' }`, before Budget. Its figure is null
+      while loading, "Not set" when the month has no items (like Budget's "Not set"), else
+      `eur(incomeCents(items))`.
+    - Each card gets its own `failed` flag for the screen-reader label ("…, not available"): Income uses the income
+      hook's `error`, the others keep `useMonth`'s. No new error block, as the comment above the cards says.
+    - The grid is unchanged: five cards at `flexBasis: '45%'` with `flexGrow: 1` put Income and Budget on the first
+      row and stretch Settings across the last.
+  - Verify (web 390×844):
+    - November shows Income with the tab's total, first, beside Budget; Settings spans the last row.
+    - Tapping Income opens the Income tab on November, also after the Income tab was left on December.
+    - On a ledger with no November income (or after deleting November's items through the app and re-adding them),
+      Home shows "Not set".
+    - Block `/api/ledgers/35/months/2026-11/income` and refocus Home: Income shows "—" with the label "Income, not
+      available"; Budget, Expenses and Statistics keep their figures and loaded labels. Unblock and refocus: the total
+      returns.
+
+Estimated total: about 250 changed lines. Every slice stays under 150.
 
 ## AC → evidence
 
-| AC                                                         | Evidence                                                                                    |
-| ---------------------------------------------------------- | ------------------------------------------------------------------------------------------- |
-| Web 390×844: edits                                         | Slice 2 checks (and slice 1's Return/Enter)                                                 |
-| Web 390×844: deletes                                       | Slice 3 checks                                                                              |
-| Web 390×844: copies last month's items into an empty month | Slice 4 checks; the `copyRefusedText` rows; 058's copy integration tests                    |
-| What: every member edits and deletes any item              | Slices 2–3 edit Freelance, added by another user; 058's API tests for members               |
-| What: copy keeps titles and amounts                        | Slice 4: Salary arrives as €2,500                                                           |
-| What: ended months can't change                            | Slices 2–3 October checks (rows aren't buttons; refusals hide Save and Delete); slice 4     |
-| iPhone (Expo Go): editing, deleting and copying work       | The user, at Gate B. Rows open the form, the swipe is off while busy, Return in Title saves |
-| Gates green, integration tests ran                         | Every slice, with `DATABASE_URL_TEST` exported                                              |
+| AC                                                                           | Evidence                                                                                                                                                                                 |
+| ---------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Web 390×844: edits                                                           | Slice 2 checks (and slice 1's Return/Enter)                                                                                                                                              |
+| Web 390×844: deletes                                                         | Slice 3 checks                                                                                                                                                                           |
+| Web 390×844: copies last month's items into an empty month                   | Slice 4 checks; the `copyRefusedText` rows; 058's copy integration tests                                                                                                                 |
+| What: every member edits and deletes any item                                | Slices 2–3 edit Freelance, added by another user; 058's API tests for members                                                                                                            |
+| What: copy keeps titles and amounts                                          | Slice 4: Salary arrives as €2,500                                                                                                                                                        |
+| What: ended months can't change                                              | Slices 2–3 October checks (rows aren't buttons; refusals hide Save and Delete); slice 4                                                                                                  |
+| Web 390×844: Home's first card is Income, total or Not set                   | Slice 5 checks                                                                                                                                                                           |
+| iPhone (Expo Go): editing, deleting and copying work, and the Home grid fits | The user, at Gate B. Rows open the form, the swipe is off while busy, Return in Title saves; Home shows three rows of cards (Settings full width) with nothing cut off above the tab bar |
+| Gates green, integration tests ran                                           | Every slice, with `DATABASE_URL_TEST` exported                                                                                                                                           |
 
 ## Not doing (YAGNI)
 
@@ -213,6 +234,11 @@ Estimated total: about 225 changed lines. Every slice stays under 150.
   Title field submits (Gate B).
 - **A row turned `Pressable`** might lose its single screen-reader stop or its layout. Slice 2 checks the row's role
   and label in the web accessibility tree, and that the row looks as before. iPhone is checked at Gate B.
+
+- **Home may not fit on a phone.** Home isn't a ScrollView, so a third row of cards plus PendingInvites, the Notion
+  panel and the Undo toast could push content under the tab bar. Slice 5 checks web 390×844, and the user checks
+  iPhone at Gate B. If it doesn't fit, wrapping Home's content in a ScrollView is a follow-up change that needs the
+  user's OK.
 
 ## Open questions
 

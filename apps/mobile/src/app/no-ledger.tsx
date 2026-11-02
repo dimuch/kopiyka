@@ -2,7 +2,7 @@ import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useThemedStyles } from '@/appearance/AppearanceContext';
 import { useAuth } from '@/auth/AuthContext';
-import { fonts, type Palette } from '@/theme';
+import { fonts, outlinedDangerButton, outlinedDangerText, type Palette } from '@/theme';
 
 /** Shown to a signed-in user who is in no ledger: nothing to open, so all they can do is sign out. */
 export default function NoLedger() {
@@ -40,15 +40,6 @@ const makeStyles = (colors: Palette) =>
     },
     title: { fontFamily: fonts.display, fontSize: 28, color: colors.text, letterSpacing: -0.4 },
     text: { fontFamily: fonts.body, fontSize: 15, color: colors.muted },
-    // The same outlined Sign out as Settings.
-    signOut: {
-      height: 48,
-      borderRadius: 24,
-      borderWidth: 1,
-      borderColor: colors.borderStrong,
-      backgroundColor: colors.surface,
-      alignItems: 'center',
-      justifyContent: 'center',
-    },
-    signOutText: { fontFamily: fonts.bodySemi, fontSize: 15, color: colors.danger },
+    signOut: outlinedDangerButton(colors),
+    signOutText: outlinedDangerText(colors),
   });

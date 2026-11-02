@@ -309,6 +309,20 @@ The split (a cut after slice 2.2, as separate sequential briefs) was not taken.
 
 ## Consolidate
 
+CONSOLIDATE: reused 0 · extracted 1 · left 6
+
+- EXTRACT `outlinedDangerButton` / `outlinedDangerText` in `theme.ts`: the outlined Sign out style was in Settings
+  and no-ledger, and Leave ledger would have been the third copy. All three call it; Settings keeps its own margins.
+- LEAVE `useMembers` vs `useMonth`: the same focus-reload shape, but only two copies in `data/`, and `useMonth` loads
+  two requests. A shared hook waits for a third.
+- LEAVE `goBack` in `members.tsx` vs `category/[categoryId].tsx` / `delete-category.tsx`: the same three lines with
+  a different fallback screen each.
+- LEAVE the `inFlight` ref + `announceForAccessibility` in `members.tsx` (twice) vs Settings' `switchTo` and
+  `delete-category.tsx`: each screen maps its own outcomes to its own text (per-screen by convention).
+- LEAVE `ConfirmPanel`: local to `members.tsx` by plan; 055's Revoke is the next user on the same screen.
+- LEAVE the DELETE's `affectedRows === 0` → 404: the repo's idiom (expenses), one line.
+- LEAVE `MemberParams` vs `ExpenseParams`: different field.
+
 ## Revision 1
 
 Skeptic suggestions (verdict APPROVE, no blockers), applied:

@@ -178,7 +178,7 @@ on it is an exact `toEqual` (e.g. `[{ status: 'revoked', status_changed_at: cloc
     decline: sam declining olena's invite and an expired one give 404, and the row stays `pending`. sam revoking gives
     403 `owner_only`. A stranger revoking gives 404 `ledger_not_found`. `inviteId=abc` gives 400 for revoke and for
     decline. Both routes give 401 without a session.
-- [ ] 5. Let the invitee accept an invite and become a member (~150)
+- [x] 5. Let the invitee accept an invite and become a member (~150)
   - Files: `apps/api/src/invites/routes.ts`, `apps/api/src/ledgers/members.ts` (JSDoc: "…and accepting an invite
     does (brief 054)"), `apps/api/test/invites.int.test.ts`
   - Change: `POST /api/invites/:inviteId/accept`, as in Contracts, in one `withTransaction`. The `FOR UPDATE` read

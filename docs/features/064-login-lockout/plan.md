@@ -115,7 +115,7 @@ Facts checked on the Base:
       from an earlier login, clock +60 s) and olena (`device-olena-01`, new) log in with right codes in one
       `Promise.all`, from different IPs. Both get 200. `known_devices` then has exactly those two rows, and ivanka's
       `last_login_at` has moved, so both the insert and the ODKU update ran concurrently.
-- [ ] 2. Let a known device log in while its username is locked (~120 lines)
+- [x] 2. Let a known device log in while its username is locked (~120 lines)
   - Files: `apps/api/src/auth/throttle.ts`, `apps/api/test/auth.int.test.ts`
   - Change:
     - Replace `states.some(isLocked)` with the rule above.

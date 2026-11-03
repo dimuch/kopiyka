@@ -2,7 +2,9 @@ import type { PoolConnection, RowDataPacket } from 'mysql2/promise';
 import type { Db } from '../db.js';
 
 // 5 wrong codes → 24 h block, counted separately per username, per IP (/64 for
-// IPv6) and per device id. Failures older than 24 h no longer count.
+// IPv6) and per device id. Failures older than 24 h no longer count. A blocked
+// username doesn't block a device that has logged in as that user before
+// (brief 064), so strangers' wrong codes can't lock its owner out.
 export const MAX_FAILURES = 5;
 export const WINDOW_MS = 24 * 60 * 60 * 1000;
 export const LOCK_MS = 24 * 60 * 60 * 1000;
@@ -83,7 +85,7 @@ export async function throttledAttempt<T extends { userId: number }>(
         lockedUntil: row.locked_until,
       });
     }
-    if (states.some((state) => isLocked(state, now))) {
+    if (await blocked(conn, keys, states, now)) {
       await conn.rollback();
       return { outcome: 'blocked' };
     }
@@ -122,4 +124,29 @@ export async function throttledAttempt<T extends { userId: number }>(
   } finally {
     conn.release();
   }
+}
+
+/**
+ * Whether an attempt is blocked: any locked IP or device key blocks it; a locked username does too, unless the
+ * attempt's device has logged in as that username before. The lookup is a plain read (no locks) and runs only on a
+ * locked username, whether or not the user exists, so it doesn't tell them apart.
+ */
+async function blocked(
+  conn: PoolConnection,
+  keys: ThrottleKey[],
+  states: ThrottleState[],
+  now: Date,
+): Promise<boolean> {
+  const locked = keys.filter((_key, keyIndex) => isLocked(states[keyIndex], now));
+  if (locked.some((key) => key.type !== 'username')) return true;
+  const username = locked.find((key) => key.type === 'username');
+  if (!username) return false;
+  const device = keys.find((key) => key.type === 'device');
+  if (!device) return true;
+  const [rows] = await conn.query<RowDataPacket[]>(
+    `SELECT 1 FROM known_devices k JOIN users u ON u.user_id = k.user_id
+      WHERE u.username = ? AND k.device_id = ?`,
+    [username.value, device.value],
+  );
+  return rows.length === 0;
 }

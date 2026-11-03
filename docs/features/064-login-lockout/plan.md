@@ -227,3 +227,9 @@ From the skeptic's APPROVE WITH EDITS:
   - (a) asserts the username stays locked;
   - `wrongAt()` avoids the ±1-step codes.
 - Estimate: ~85 + ~120 lines.
+
+- `blocked` (throttle.ts): reuses `isLocked`; no other module decides blocking. LEAVE.
+- `known_devices` upsert and lookup: the only queries on the table, both in `throttle.ts`. LEAVE.
+- Test helper `wrongAt` vs the inline `wrong = codeAt() === '000000' ? …` in older auth tests: those tests stay unchanged (out of scope); `wrongAt` also covers the ±1 steps. LEAVE.
+
+CONSOLIDATE: reused 1 (`isLocked`) · extracted 0 · left 3 (no twin / old tests out of scope)

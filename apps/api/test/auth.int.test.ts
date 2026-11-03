@@ -177,4 +177,66 @@ describe.skipIf(!(await testDbReachable()))('auth routes (MySQL)', () => {
       ]),
     );
   });
+
+  describe('known devices', () => {
+    const later = () => {
+      clock = new Date(clock.getTime() + 60_000); // two TOTP steps on, so the next login has a fresh code
+    };
+    const knownDevices = async () => {
+      const [rows] = await db.query<mysql.RowDataPacket[]>(
+        `SELECT u.username, k.device_id, k.first_login_at, k.last_login_at
+           FROM known_devices k JOIN users u ON u.user_id = k.user_id ORDER BY u.username, k.device_id`,
+      );
+      return rows.map((r) => [r.username, r.device_id, r.first_login_at, r.last_login_at]);
+    };
+
+    it("remembers a device's first and last successful login", async () => {
+      const first = clock;
+      const res = await login({ username: 'ivanka', code: codeAt(), deviceId: 'device-known-01', client: 'native' });
+      expect(res.statusCode).toBe(200);
+      const auth = { authorization: `Bearer ${res.json().token}` };
+      expect((await app.inject({ method: 'POST', url: '/api/auth/logout', headers: auth })).statusCode).toBe(204);
+      later();
+      const second = clock;
+      expect((await login({ username: 'ivanka', code: codeAt(), deviceId: 'device-known-01' })).statusCode).toBe(200);
+      later();
+      const wrong = ['000000', '111111', '222222', '333333'].find((c) => ![-1, 0, 1].some((d) => codeAt(d) === c))!;
+      expect((await login({ username: 'ivanka', code: wrong, deviceId: 'device-other-01' })).statusCode).toBe(401);
+
+      expect(await knownDevices()).toEqual([['ivanka', 'device-known-01', first, second]]);
+    });
+
+    it('remembers no device for a login without a device id', async () => {
+      expect((await login({ username: 'ivanka', code: codeAt() })).statusCode).toBe(200);
+      expect(await knownDevices()).toEqual([]);
+    });
+
+    it("forgets a user's devices when the user is deleted", async () => {
+      // A user with no ledger: ledgers.owner_user_id has no cascade.
+      const [user] = await db.query<mysql.ResultSetHeader>(
+        "INSERT INTO users (username, email, totp_secret_enc) VALUES ('gone', 'gone@example.com', x'00')",
+      );
+      await db.query('INSERT INTO known_devices VALUES (?, ?, ?, ?)', [user.insertId, 'device-gone-01', clock, clock]);
+      await db.query('DELETE FROM users WHERE user_id = ?', [user.insertId]);
+      const [rows] = await db.query<mysql.RowDataPacket[]>('SELECT COUNT(*) AS n FROM known_devices');
+      expect(Number(rows[0]!.n)).toBe(0);
+    });
+
+    it('remembers devices for parallel logins', async () => {
+      const olena = await makeUser(db, config, 'olena');
+      const first = clock;
+      expect((await login({ username: 'ivanka', code: codeAt(), deviceId: 'device-known-01' })).statusCode).toBe(200);
+      later();
+      const olenaCode = hotp(olena.secret, timeStep(clock.getTime()));
+      const [ivankaRes, olenaRes] = await Promise.all([
+        login({ username: 'ivanka', code: codeAt(), deviceId: 'device-known-01' }, '192.0.2.1'),
+        login({ username: 'olena', code: olenaCode, deviceId: 'device-olena-01' }, '192.0.2.2'),
+      ]);
+      expect([ivankaRes.statusCode, olenaRes.statusCode]).toEqual([200, 200]);
+      expect(await knownDevices()).toEqual([
+        ['ivanka', 'device-known-01', first, clock],
+        ['olena', 'device-olena-01', clock, clock],
+      ]);
+    });
+  });
 });

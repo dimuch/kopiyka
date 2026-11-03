@@ -72,6 +72,7 @@ const DATA_TABLES = [
   'ledgers',
   'sessions',
   'login_throttle',
+  'known_devices',
   'users',
 ];
 

@@ -46,12 +46,12 @@ export type Attempt<T> = { outcome: 'blocked' } | { outcome: 'rejected' } | { ou
 
 /**
  * Locks the throttle rows for `keys`; if none is locked, runs `check` on that connection and counts a
- * failure (null) or clears the username/device counts (non-null), all in one transaction, so parallel
- * attempts on a shared key are checked one at a time. `check` must use only `conn`: a second pool
- * connection while holding the rows can starve the pool. Throttle rows are always locked before the
- * users row, which `check` updates.
+ * failure (null) or clears the username/device counts and remembers the device (non-null), all in one
+ * transaction, so parallel attempts on a shared key are checked one at a time. `check` must use only
+ * `conn`: a second pool connection while holding the rows can starve the pool. Throttle rows are always
+ * locked before the users row, which `check` updates, and the known_devices row last.
  */
-export async function throttledAttempt<T>(
+export async function throttledAttempt<T extends { userId: number }>(
   db: Db,
   keys: ThrottleKey[],
   now: Date,
@@ -105,6 +105,14 @@ export async function throttledAttempt<T>(
           key.value,
         ]);
       }
+    }
+    const device = keys.find((key) => key.type === 'device');
+    if (value !== null && device) {
+      await conn.query(
+        `INSERT INTO known_devices (user_id, device_id, first_login_at, last_login_at) VALUES (?, ?, ?, ?)
+         ON DUPLICATE KEY UPDATE last_login_at = ?`,
+        [value.userId, device.value, now, now, now],
+      );
     }
     await conn.commit();
     return value === null ? { outcome: 'rejected' } : { outcome: 'accepted', value };

@@ -96,7 +96,7 @@ Facts checked on the Base:
 
 ## Slices
 
-- [ ] 1. Remember which devices have logged in as each user (~85 lines)
+- [x] 1. Remember which devices have logged in as each user (~85 lines)
   - Files: `apps/api/migrations/013_known_devices.sql`, `apps/api/src/auth/throttle.ts`, `apps/api/test/helpers.ts`,
     `apps/api/test/auth.int.test.ts`
   - Change:

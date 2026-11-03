@@ -189,6 +189,28 @@ describe.skipIf(!(await testDbReachable()))('auth routes (MySQL)', () => {
       );
       return rows.map((r) => [r.username, r.device_id, r.first_login_at, r.last_login_at]);
     };
+    // A code no step in verifyTotp's ±1 window accepts.
+    const wrongAt = () =>
+      ['000000', '111111', '222222', '333333'].find((c) => ![-1, 0, 1].some((d) => codeAt(d) === c))!;
+    const lockIvanka = async () => {
+      for (let i = 0; i < 5; i++) {
+        const res = await login({ username: 'ivanka', code: wrongAt(), deviceId: 'stranger-0001' }, `198.51.100.${i}`);
+        expect(res.statusCode).toBe(401);
+      }
+    };
+    const knowDevice = async (deviceId: string) => {
+      const res = await login({ username: 'ivanka', code: codeAt(), deviceId, client: 'native' });
+      expect(res.statusCode).toBe(200);
+      const auth = { authorization: `Bearer ${res.json().token}` };
+      expect((await app.inject({ method: 'POST', url: '/api/auth/logout', headers: auth })).statusCode).toBe(204);
+      later();
+    };
+    const usernameRow = async () => {
+      const [rows] = await db.query<mysql.RowDataPacket[]>(
+        "SELECT failed_attempts, locked_until FROM login_throttle WHERE key_type = 'username' AND key_value = 'ivanka'",
+      );
+      return rows[0]!;
+    };
 
     it("remembers a device's first and last successful login", async () => {
       const first = clock;
@@ -200,8 +222,7 @@ describe.skipIf(!(await testDbReachable()))('auth routes (MySQL)', () => {
       const second = clock;
       expect((await login({ username: 'ivanka', code: codeAt(), deviceId: 'device-known-01' })).statusCode).toBe(200);
       later();
-      const wrong = ['000000', '111111', '222222', '333333'].find((c) => ![-1, 0, 1].some((d) => codeAt(d) === c))!;
-      expect((await login({ username: 'ivanka', code: wrong, deviceId: 'device-other-01' })).statusCode).toBe(401);
+      expect((await login({ username: 'ivanka', code: wrongAt(), deviceId: 'device-other-01' })).statusCode).toBe(401);
 
       expect(await knownDevices()).toEqual([['ivanka', 'device-known-01', first, second]]);
     });
@@ -237,6 +258,72 @@ describe.skipIf(!(await testDbReachable()))('auth routes (MySQL)', () => {
         ['ivanka', 'device-known-01', first, clock],
         ['olena', 'device-olena-01', clock, clock],
       ]);
+    });
+
+    it('lets a known device log in while its username is locked', async () => {
+      await knowDevice('device-known-01');
+      await lockIvanka();
+      const res = await login({ username: 'ivanka', code: codeAt(), deviceId: 'device-known-01' }, '192.0.2.1');
+      expect(res.statusCode).toBe(200);
+      expect((await usernameRow()).locked_until.getTime()).toBeGreaterThan(clock.getTime());
+    });
+
+    it('still blocks unknown devices and logins without a device id on a locked username', async () => {
+      await knowDevice('device-known-01');
+      await lockIvanka();
+      expect(
+        (await login({ username: 'ivanka', code: codeAt(), deviceId: 'device-known-01' }, '192.0.2.1')).statusCode,
+      ).toBe(200);
+      later();
+      expect(
+        (await login({ username: 'ivanka', code: codeAt(), deviceId: 'device-other-01' }, '192.0.2.2')).statusCode,
+      ).toBe(429);
+      expect((await login({ username: 'ivanka', code: codeAt() }, '192.0.2.3')).statusCode).toBe(429);
+    });
+
+    it("doesn't take a device known for another user as known for this one", async () => {
+      const olena = await makeUser(db, config, 'olena');
+      const olenaCode = hotp(olena.secret, timeStep(clock.getTime()));
+      expect((await login({ username: 'olena', code: olenaCode, deviceId: 'device-known-01' })).statusCode).toBe(200);
+      await lockIvanka();
+      expect(
+        (await login({ username: 'ivanka', code: codeAt(), deviceId: 'device-known-01' }, '192.0.2.1')).statusCode,
+      ).toBe(429);
+    });
+
+    it("still applies a known device's own lock and the IP lock", async () => {
+      await knowDevice('device-known-01');
+      await knowDevice('device-known-02');
+      await lockIvanka();
+
+      // The waiver lets a known device's wrong codes through to be counted (401, not 429) until its own lock.
+      for (let i = 0; i < 5; i++) {
+        const res = await login({ username: 'ivanka', code: wrongAt(), deviceId: 'device-known-01' }, `192.0.2.1${i}`);
+        expect(res.statusCode).toBe(401);
+      }
+      expect(
+        (await login({ username: 'ivanka', code: codeAt(), deviceId: 'device-known-01' }, '192.0.2.20')).statusCode,
+      ).toBe(429);
+
+      for (let i = 0; i < 5; i++) {
+        await login({ username: `guess${i}`, code: '000000' }, '203.0.113.50');
+      }
+      expect(
+        (await login({ username: 'ivanka', code: codeAt(), deviceId: 'device-known-02' }, '203.0.113.50')).statusCode,
+      ).toBe(429);
+      expect(
+        (await login({ username: 'ivanka', code: codeAt(), deviceId: 'device-known-02' }, '192.0.2.21')).statusCode,
+      ).toBe(200);
+    });
+
+    it("counts a known device's wrong codes against the username", async () => {
+      await knowDevice('device-known-01');
+      await lockIvanka();
+      const res = await login({ username: 'ivanka', code: wrongAt(), deviceId: 'device-known-01' }, '192.0.2.1');
+      expect(res.statusCode).toBe(401);
+      const row = await usernameRow();
+      expect(row.failed_attempts).toBe(1);
+      expect(row.locked_until.getTime()).toBeGreaterThan(clock.getTime());
     });
   });
 });

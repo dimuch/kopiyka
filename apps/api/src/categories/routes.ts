@@ -51,7 +51,6 @@ const MonthParams = CategoryParams.extend(Month.shape);
 const NameBody = z.object({ name: z.string().trim().min(1).max(40) });
 // Money crosses the wire as decimal strings; €0 is a plan.
 const Amount = z.string().regex(AMOUNT_RE, 'expected an amount ≥ 0, 2 decimals at most');
-const PlannedBody = z.object({ amount: Amount });
 const AddBody = NameBody.extend({ amount: Amount.default('0') });
 // A field left out stays as it is, so saving one can't overwrite the other a member just changed (brief 065).
 const EditBody = z
@@ -179,22 +178,6 @@ export async function categoryRoutes(app: FastifyInstance, { db, now }: AppDeps)
     if (result === 'name_taken') return reply.code(409).send({ error: 'name_taken' });
     if (result !== 'restored') return reply.code(409).send(overIncomeError(result));
     return reply.code(204).send();
-  });
-
-  // Brief 036. An ended month is read-only, so it's refused before anything is read.
-  app.put('/api/ledgers/:id/categories/:categoryId/months/:month/planned', guards, async (req, reply) => {
-    const { categoryId, month } = MonthParams.parse(req.params);
-    const { amount } = PlannedBody.parse(req.body);
-    if (monthEnded(month, now())) return reply.code(409).send({ error: 'month_ended' });
-    return sendEdit(reply, await editInMonth(db, req.ledger!.ledgerId, categoryId, month, { amount }));
-  });
-
-  // Brief 037. An ended month is read-only, so it's refused before anything is read.
-  app.put('/api/ledgers/:id/categories/:categoryId/months/:month/name', guards, async (req, reply) => {
-    const { categoryId, month } = MonthParams.parse(req.params);
-    const { name } = NameBody.parse(req.body);
-    if (monthEnded(month, now())) return reply.code(409).send({ error: 'month_ended' });
-    return sendEdit(reply, await editInMonth(db, req.ledger!.ledgerId, categoryId, month, { name }));
   });
 
   // Brief 065. An ended month is read-only, so it's refused before anything is read.

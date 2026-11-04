@@ -67,34 +67,6 @@ describe.skipIf(!(await testDbReachable()))('categories API (MySQL)', () => {
   const copy = (month: string, headers: Record<string, string> = auth, ledgerId = owner.ledgerId) =>
     app.inject({ method: 'POST', url: `/api/ledgers/${ledgerId}/months/${month}/copy`, headers });
 
-  const rename = (
-    categoryId: number | string,
-    headers: Record<string, string> = auth,
-    ledgerId = owner.ledgerId,
-    month = '2026-10',
-    name: unknown = 'food out',
-  ) =>
-    app.inject({
-      method: 'PUT',
-      url: `/api/ledgers/${ledgerId}/categories/${categoryId}/months/${month}/name`,
-      payload: { name },
-      headers,
-    });
-
-  const plan = (
-    categoryId: number | string,
-    headers: Record<string, string> = auth,
-    ledgerId = owner.ledgerId,
-    month = '2026-10',
-    amount: unknown = '120.50',
-  ) =>
-    app.inject({
-      method: 'PUT',
-      url: `/api/ledgers/${ledgerId}/categories/${categoryId}/months/${month}/planned`,
-      payload: { amount },
-      headers,
-    });
-
   const edit = (
     categoryId: number | string,
     headers: Record<string, string> = auth,
@@ -108,6 +80,22 @@ describe.skipIf(!(await testDbReachable()))('categories API (MySQL)', () => {
       payload,
       headers,
     });
+
+  const rename = (
+    categoryId: number | string,
+    headers: Record<string, string> = auth,
+    ledgerId = owner.ledgerId,
+    month = '2026-10',
+    name: unknown = 'food out',
+  ) => edit(categoryId, headers, ledgerId, month, { name });
+
+  const plan = (
+    categoryId: number | string,
+    headers: Record<string, string> = auth,
+    ledgerId = owner.ledgerId,
+    month = '2026-10',
+    amount: unknown = '120.50',
+  ) => edit(categoryId, headers, ledgerId, month, { amount });
 
   /** A category's name and planned amount in a month. */
   const fieldsIn = async (categoryId: number, month = '2026-10') => {
@@ -421,6 +409,19 @@ describe.skipIf(!(await testDbReachable()))('categories API (MySQL)', () => {
         expect((await one(`${id}?month=2026-10`)).json(), String(id)).toEqual({ error: 'not_found' });
       }
     });
+  });
+
+  it('no longer sets a name or an amount on its own routes', async () => {
+    const rent = await idOf('rent');
+    for (const [path, payload] of [
+      ['name', { name: 'home' }],
+      ['planned', { amount: '10' }],
+    ] as const) {
+      const url = `/api/ledgers/${owner.ledgerId}/categories/${rent}/months/2026-10/${path}`;
+      const res = await app.inject({ method: 'PUT', url, payload, headers: auth });
+      expect([res.statusCode, res.json()], path).toEqual([404, { error: 'not_found' }]);
+    }
+    expect(await fieldsIn(rent)).toEqual({ displayName: 'rent', plannedEur: '0.00' });
   });
 
   it('no longer deletes or restores a category in every month', async () => {
@@ -847,8 +848,8 @@ describe.skipIf(!(await testDbReachable()))('categories API (MySQL)', () => {
         expect([res.statusCode, res.json()], String(amount)).toMatchObject([400, { error: 'invalid_request' }]);
       }
       const noBody = await app.inject({
-        method: 'PUT',
-        url: `/api/ledgers/${owner.ledgerId}/categories/${rent}/months/2026-10/planned`,
+        method: 'PATCH',
+        url: `/api/ledgers/${owner.ledgerId}/categories/${rent}/months/2026-10`,
         headers: auth,
       });
       expect(noBody.statusCode).toBe(400);
@@ -937,8 +938,8 @@ describe.skipIf(!(await testDbReachable()))('categories API (MySQL)', () => {
         expect([res.statusCode, res.json()], String(name)).toMatchObject([400, { error: 'invalid_request' }]);
       }
       const noBody = await app.inject({
-        method: 'PUT',
-        url: `/api/ledgers/${owner.ledgerId}/categories/${gym}/months/2026-10/name`,
+        method: 'PATCH',
+        url: `/api/ledgers/${owner.ledgerId}/categories/${gym}/months/2026-10`,
         headers: auth,
       });
       expect(noBody.statusCode).toBe(400);

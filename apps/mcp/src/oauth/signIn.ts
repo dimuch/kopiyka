@@ -31,7 +31,7 @@ export interface AuthorizationCode {
 export const hashClientId = (clientId: string) => createHash('sha256').update(clientId).digest('hex');
 
 interface ApiLedgers {
-  ledgers: { name: string; label: string; role: string; owner: string }[];
+  ledgers: { name: string; label: string | null; role: string; owner: string }[];
 }
 
 export async function signInRoutes(app: FastifyInstance, { config, now, fetch }: AppDeps): Promise<void> {

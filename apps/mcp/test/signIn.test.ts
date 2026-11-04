@@ -12,7 +12,7 @@ const minutesAfterT = (minutes: number) => new Date(T.getTime() + minutes * 60_0
 const LEDGERS = {
   user: { userId: 1, username: 'olena' },
   ledgers: [
-    { ledgerId: 1, name: 'Home', role: 'owner', owner: 'olena', label: '' },
+    { ledgerId: 1, name: 'Home', role: 'owner', owner: 'olena', label: null },
     { ledgerId: 2, name: 'Flat', role: 'member', owner: 'taras', label: 'Rent' },
   ],
 };

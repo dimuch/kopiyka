@@ -140,7 +140,7 @@ ${error ? `<p class="error" role="alert">${escapeHtml(error)}</p>` : ''}
 export interface ConsentView {
   clientName: string;
   redirectHost: string;
-  ledgers: { name: string; label: string; role: string; owner: string }[];
+  ledgers: { name: string; label: string | null; role: string; owner: string }[];
   /** The sealed consent. */
   consent: string;
 }

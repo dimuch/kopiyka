@@ -1,7 +1,8 @@
-import { StyleSheet, Text, TextInput, View } from 'react-native';
+import { StyleSheet, Text, View } from 'react-native';
 import type { Currency } from '@/api/types';
 import { useColors, useThemedStyles } from '@/appearance/AppearanceContext';
 import { Icon } from '@/components/Icon';
+import { TextField } from '@/components/TextField';
 import { fonts, type Palette } from '@/theme';
 
 interface Props {
@@ -60,7 +61,7 @@ export function AmountField({
       <Text style={styles.label}>Amount in {currency}</Text>
       <View>
         <Text style={styles.symbol}>{currency === 'UAH' ? '₴' : '€'}</Text>
-        <TextInput
+        <TextField
           accessibilityLabel={`Amount in ${currency}`}
           value={value}
           onChangeText={onChangeText}

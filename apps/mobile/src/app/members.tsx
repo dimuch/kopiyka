@@ -1,15 +1,6 @@
 import { router } from 'expo-router';
 import { useRef, useState } from 'react';
-import {
-  AccessibilityInfo,
-  ActivityIndicator,
-  Pressable,
-  ScrollView,
-  StyleSheet,
-  Text,
-  TextInput,
-  View,
-} from 'react-native';
+import { AccessibilityInfo, ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { ApiError } from '@/api/client';
 import type { Ledger, Member, PendingInvite } from '@/api/types';
@@ -17,6 +8,7 @@ import { useColors, useThemedStyles } from '@/appearance/AppearanceContext';
 import { useSession } from '@/auth/AuthContext';
 import { Icon } from '@/components/Icon';
 import { LoadError } from '@/components/LoadError';
+import { TextField } from '@/components/TextField';
 import { normalizeLabel } from '@/data/ledgerLabel';
 import { inviteMember, removeMember, revokeInvite, setLedgerLabel } from '@/data/members';
 import { useMembers } from '@/data/useMembers';
@@ -111,7 +103,7 @@ function LabelForm({ ledger }: { ledger: Ledger }) {
   return (
     <View style={styles.section}>
       <Text style={styles.caption}>Your label</Text>
-      <TextInput
+      <TextField
         accessibilityLabel="Your label"
         value={text}
         onChangeText={setText}
@@ -359,7 +351,7 @@ function InviteForm({ ledgerId, onInvited }: { ledgerId: number; onInvited: () =
   return (
     <View style={styles.section}>
       <Text style={styles.caption}>Invite by username</Text>
-      <TextInput
+      <TextField
         accessibilityLabel="Username to invite"
         value={username}
         onChangeText={setUsername}

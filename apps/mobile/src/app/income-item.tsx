@@ -1,15 +1,6 @@
 import { router, Stack, useLocalSearchParams } from 'expo-router';
 import { useRef, useState } from 'react';
-import {
-  AccessibilityInfo,
-  ActivityIndicator,
-  Pressable,
-  ScrollView,
-  StyleSheet,
-  Text,
-  TextInput,
-  View,
-} from 'react-native';
+import { AccessibilityInfo, ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { ApiError } from '@/api/client';
 import type { IncomeItem } from '@/api/types';
@@ -17,6 +8,7 @@ import { useColors, useThemedStyles } from '@/appearance/AppearanceContext';
 import { useSession } from '@/auth/AuthContext';
 import { AmountField } from '@/components/AmountFields';
 import { LoadError } from '@/components/LoadError';
+import { TextField } from '@/components/TextField';
 import { normalizeName } from '@/data/categoryName';
 import { addIncome, deleteIncome, updateIncome } from '@/data/income';
 import { monthEndedText } from '@/data/monthEnded';
@@ -218,7 +210,7 @@ function IncomeForm({
 
       <View style={styles.group}>
         <Text style={styles.label}>Title</Text>
-        <TextInput
+        <TextField
           accessibilityLabel="Title"
           value={title}
           onChangeText={(text) => edit(setTitle, text)}

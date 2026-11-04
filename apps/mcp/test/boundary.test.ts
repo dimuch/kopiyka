@@ -8,7 +8,7 @@ const APP_ROOT = resolve(dirname(THIS_FILE), '..');
 
 /** Everything but this file, whose fixtures below are bad imports on purpose. */
 function sourceFiles(): string[] {
-  return ['test'].flatMap((folder) =>
+  return ['src', 'test'].flatMap((folder) =>
     readdirSync(join(APP_ROOT, folder), { recursive: true, encoding: 'utf8' })
       .filter((file) => file.endsWith('.ts'))
       .map((file) => join(APP_ROOT, folder, file))
@@ -39,6 +39,7 @@ describe('the apps/mcp import boundary', () => {
       }),
     );
 
+    expect(sourceFiles()).toContain(join(APP_ROOT, 'src', 'app.ts'));
     expect(violations).toEqual([]);
   });
 

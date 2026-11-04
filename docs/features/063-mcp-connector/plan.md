@@ -352,7 +352,7 @@ now());` goes before the session lookup. `apiTokenAuth` looks the hash up live (
     specifiers. None may start with `@kopiyka/`, and every relative one must resolve inside `apps/mcp`. A fixture
     string with `'../../api/src/money.js'` proves the check would fail.
   - ~110 lines
-- [ ] 4b. Add the apps/mcp config and an empty Fastify app
+- [x] 4b. Add the apps/mcp config and an empty Fastify app
   - Files: `apps/mcp/src/{config.ts,app.ts,server.ts}`, `apps/mcp/.env.example`, `apps/mcp/test/config.test.ts`,
     `apps/mcp/package.json` + `yarn.lock` (add `fastify`, `zod`)
   - Change: `buildApp(deps)` creates Fastify with `trustProxy: 'loopback'`, `bodyLimit: 65536`,

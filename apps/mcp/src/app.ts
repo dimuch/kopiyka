@@ -1,5 +1,7 @@
+import { validateHostHeader, validateOriginHeader } from '@modelcontextprotocol/server';
 import Fastify, { type FastifyInstance, type FastifyReply } from 'fastify';
 import type { Config } from './config.js';
+import { mcpRoutes } from './mcp/routes.js';
 
 export interface AppDeps {
   config: Config;
@@ -26,6 +28,17 @@ export async function buildApp(deps: AppDeps): Promise<FastifyInstance> {
     },
   });
 
+  // Against DNS rebinding, which the MCP spec requires a server to stop: only our own host, from our own pages.
+  const allowedHosts = [new URL(deps.config.publicUrl).hostname];
+  app.addHook('onRequest', async (req, reply) => {
+    if (!validateHostHeader(req.headers.host, allowedHosts).ok) {
+      return reply.code(403).send({ error: 'invalid_host' });
+    }
+    if (!validateOriginHeader(req.headers.origin, allowedHosts).ok) {
+      return reply.code(403).send({ error: 'invalid_origin' });
+    }
+  });
+
   app.setErrorHandler((err, req, reply) => {
     const status = (err as { statusCode?: number }).statusCode;
     if (status && status < 500) return reply.code(status).send({ error: 'invalid_request' });
@@ -34,6 +47,8 @@ export async function buildApp(deps: AppDeps): Promise<FastifyInstance> {
   });
 
   app.setNotFoundHandler((_req, reply) => reply.code(404).send({ error: 'not_found' }));
+
+  await mcpRoutes(app, deps);
 
   return app;
 }

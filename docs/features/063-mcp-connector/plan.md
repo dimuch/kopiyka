@@ -877,6 +877,11 @@ To delete it:
 - **If Anthropic's egress range changes, connecting stops until nginx is updated.** `/oauth/token` and `/oauth/register`
   then answer 403, and a client that's already connected keeps working until its hour ends. Another LLM app needs its
   range added too. Anthropic's IP page is the source of truth.
+- **A double tap on Continue looks like a wrong code.** The pages have no scripts, so the button can't disable itself. The
+  second POST reaches the API after the first has used the TOTP step, so the user sees "Wrong username or code" after
+  typing it right. It counts against the IP, a good login doesn't clear that count, and five in 24 hours lock the IP
+  for every login, including the app. A double Allow shows "expired" and leaves a 1-hour token nobody holds. Not fixed:
+  it would need state. Tap twice during slice 14's tunnel run and record what happens.
 - **What a client shows after Cancel is unknown.** Deny now stops on a page with a link. In slice 14's Verify, click
   Cancel, then record what the client shows before and after the "Return to"
   link.
@@ -1090,6 +1095,7 @@ Also:
 
 ## Deviations
 
+- slice 13: API 400 on login counts as a wrong code; a login whose ledger read fails ends the session; `username`, `code` and `code_verifier` have upper bounds. `apiClient` takes 204 as success: the real logout answers 204, which the stub hid. Deny against the real API is owed in the tunnel run.
 - slice 14, run against the real API locally (2026-11-04, a throwaway user, since deleted): register, a wrong code, TOTP login, consent, Allow, token, all five tools, a foreign ledger and revocation all behaved as contracted, and `month_summary` matched the seeded data. It found the API sends `label: null`, which the stub didn't; the types now say so. In Chromium the Allow meta refresh ran under the CSP and `claude.ai`'s callback removed the code, not logged in. Safari, a logged-in browser and the tunnel checks are still owed.
 - slice 13: the POST routes live in a new `oauth/signIn.ts`, not `authorize.ts`. The form parser sits in a Fastify scope around them, so `/mcp` keeps answering 415 to forms and these routes refuse JSON with no extra check. API failures answer 502; an expired sign-in or a second Allow answers 400.
 - slice 12b, checked in the browser at 390×844 with a 252-character hostname: the sign-in and fault pages wrap it fully, nothing overflows, the fault page answers 400 with no refresh, and the CSP reports no violation. That hostname has hyphens, which help it wrap; `overflow-wrap: anywhere` covers the case without them.

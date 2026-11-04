@@ -31,7 +31,8 @@ export function fakeApi(answer: (call: RecordedCall) => Answer | Promise<Answer>
         init?.signal?.addEventListener('abort', () => reject(init.signal?.reason));
       });
     }
-    return new Response(result.text ?? JSON.stringify(result.json ?? {}), { status: result.status ?? 200 });
+    const body = result.status === 204 ? null : (result.text ?? JSON.stringify(result.json ?? {}));
+    return new Response(body, { status: result.status ?? 200 });
   };
   return { fetch: stub, calls };
 }

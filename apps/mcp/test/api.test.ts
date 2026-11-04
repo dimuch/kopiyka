@@ -41,6 +41,12 @@ describe('apiClient', () => {
     expect(call.headers.get('authorization')).toBeNull();
   });
 
+  it('takes an empty 204 as success', async () => {
+    const { client: kopiyka } = client({ status: 204, text: '' });
+
+    await expect(kopiyka.post('/api/auth/logout', 'token', {})).resolves.toBeUndefined();
+  });
+
   it('keeps the API’s error code', async () => {
     const { client: kopiyka } = client({ status: 404, json: { error: 'ledger_not_found' } });
 

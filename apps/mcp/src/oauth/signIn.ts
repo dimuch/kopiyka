@@ -5,12 +5,24 @@ import { ApiError, apiClient } from '../api.js';
 import type { AppDeps } from '../app.js';
 import { open, seal } from '../seal.js';
 import { authorizationResponse, type AuthorizationRequest } from './authorize.js';
-import { consentPage, declinedPage, errorPage, returningPage, sendPage, signInPage } from './pages.js';
+import {
+  consentPage,
+  declinedPage,
+  errorPage,
+  returningPage,
+  sendPage,
+  signInPage,
+  type ConsentView,
+} from './pages.js';
 
 const CONSENT_TTL_MS = 10 * 60_000;
 export const CODE_TTL_MS = 60_000;
 
-const SignInForm = z.object({ request: z.string(), username: z.string().default(''), code: z.string().default('') });
+const SignInForm = z.object({
+  request: z.string(),
+  username: z.string().max(64).default(''),
+  code: z.string().max(16).default(''),
+});
 const ConsentForm = z.object({ consent: z.string(), decision: z.enum(['allow', 'deny']) });
 
 interface Consent {
@@ -30,10 +42,6 @@ export interface AuthorizationCode {
 
 export const hashClientId = (clientId: string) => createHash('sha256').update(clientId).digest('hex');
 
-interface ApiLedgers {
-  ledgers: { name: string; label: string | null; role: string; owner: string }[];
-}
-
 export async function signInRoutes(app: FastifyInstance, { config, now, fetch }: AppDeps): Promise<void> {
   const api = apiClient(config.apiUrl, fetch);
   const issuer = config.publicUrl;
@@ -41,8 +49,15 @@ export async function signInRoutes(app: FastifyInstance, { config, now, fetch }:
 
   const startAgain = (reply: FastifyReply) =>
     sendPage(reply, 400, errorPage('This sign-in has expired, so you’ll need to start again.'));
-  const apiFailed = (reply: FastifyReply) =>
-    sendPage(reply, 502, errorPage('Kopiyka couldn’t finish signing you in. Try again in a minute.'));
+  const apiFailed = (reply: FastifyReply, { status, code }: ApiError) => {
+    reply.log.warn({ status, code }, 'sign-in stopped by the API');
+    return sendPage(reply, 502, errorPage('Kopiyka couldn’t finish signing you in. Try again in a minute.'));
+  };
+  /** The user is leaving either way: a session left behind ends by itself in 30 minutes. */
+  const endSession = (session: string) =>
+    api.post('/api/auth/logout', session, {}).catch((err: unknown) => {
+      if (!(err instanceof ApiError)) throw err;
+    });
 
   app.post('/oauth/authorize', async (req, reply) => {
     const form = SignInForm.safeParse(req.body);
@@ -65,7 +80,7 @@ export async function signInRoutes(app: FastifyInstance, { config, now, fetch }:
     } catch (err) {
       if (!(err instanceof ApiError)) throw err;
       if (err.status === 429) return sendPage(reply, 429, errorPage('Too many attempts; try again in 24 hours.'));
-      if (err.status !== 400 && err.status !== 401) return apiFailed(reply);
+      if (err.status !== 400 && err.status !== 401) return apiFailed(reply, err);
       const view = {
         clientName: request.clientName,
         redirectHost: hostOf(request),
@@ -76,12 +91,13 @@ export async function signInRoutes(app: FastifyInstance, { config, now, fetch }:
       return sendPage(reply, 401, signInPage(view));
     }
 
-    let ledgers: ApiLedgers['ledgers'];
+    let ledgers: ConsentView['ledgers'];
     try {
-      ({ ledgers } = await api.get<ApiLedgers>('/api/ledgers', session));
+      ({ ledgers } = await api.get<Pick<ConsentView, 'ledgers'>>('/api/ledgers', session));
     } catch (err) {
-      if (err instanceof ApiError) return apiFailed(reply);
-      throw err;
+      if (!(err instanceof ApiError)) throw err;
+      await endSession(session);
+      return apiFailed(reply, err);
     }
     const consent: Consent = { session, request };
     return sendPage(
@@ -103,10 +119,7 @@ export async function signInRoutes(app: FastifyInstance, { config, now, fetch }:
     const { session, request } = consent;
 
     if (form.data.decision === 'deny') {
-      // The user said no either way: a session left behind ends by itself in 30 minutes.
-      await api.post('/api/auth/logout', session, {}).catch((err: unknown) => {
-        if (!(err instanceof ApiError)) throw err;
-      });
+      await endSession(session);
       const returnUrl = authorizationResponse(request.redirectUri, issuer, { error: 'access_denied' }, request.state);
       return sendPage(reply, 200, declinedPage(hostOf(request), returnUrl));
     }
@@ -117,7 +130,7 @@ export async function signInRoutes(app: FastifyInstance, { config, now, fetch }:
     } catch (err) {
       if (!(err instanceof ApiError)) throw err;
       // A 401 is a second Allow: the first one used the session up.
-      return err.status === 401 ? startAgain(reply) : apiFailed(reply);
+      return err.status === 401 ? startAgain(reply) : apiFailed(reply, err);
     }
 
     const code: AuthorizationCode = {

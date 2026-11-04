@@ -53,8 +53,8 @@ export default function IncomeItemScreen() {
       {/* The iOS modal can’t be swiped away while a save is in flight either. */}
       <Stack.Screen options={{ gestureEnabled: !busy }} />
       <View style={styles.header}>
-        <Pressable accessibilityRole="button" disabled={busy} onPress={() => leave(month)} style={styles.cancel}>
-          <Text style={styles.cancelText}>Cancel</Text>
+        <Pressable accessibilityRole="button" disabled={busy} onPress={() => leave(month)} style={styles.back}>
+          <Text style={styles.backText}>Back</Text>
         </Pressable>
         <Text style={styles.title}>{editing ? 'Edit income' : 'Add income'}</Text>
         <View style={{ width: 52 }} />
@@ -265,8 +265,8 @@ const makeStyles = (colors: Palette) =>
   StyleSheet.create({
     screen: { flex: 1, backgroundColor: colors.bg, paddingHorizontal: 20, paddingTop: 8 },
     header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 },
-    cancel: { height: 44, justifyContent: 'center' },
-    cancelText: { fontFamily: fonts.bodyMedium, fontSize: 15, color: colors.muted },
+    back: { height: 44, justifyContent: 'center', marginLeft: -8, paddingHorizontal: 8 },
+    backText: { fontFamily: fonts.bodyMedium, fontSize: 15, color: colors.muted },
     title: { fontFamily: fonts.display, fontSize: 18, color: colors.text },
     body: { gap: 16, paddingTop: 16, paddingBottom: 40 },
     caption: { fontFamily: fonts.body, fontSize: 14, color: colors.muted },

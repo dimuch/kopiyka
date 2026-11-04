@@ -40,13 +40,8 @@ export default function CategoryFormScreen() {
       {/* The iOS modal can’t be swiped away while a save is in flight either. */}
       <Stack.Screen options={{ gestureEnabled: !busy }} />
       <View style={styles.header}>
-        <Pressable
-          accessibilityRole="button"
-          disabled={busy}
-          onPress={() => closeToBudget(month)}
-          style={styles.cancel}
-        >
-          <Text style={styles.cancelText}>Cancel</Text>
+        <Pressable accessibilityRole="button" disabled={busy} onPress={() => closeToBudget(month)} style={styles.back}>
+          <Text style={styles.backText}>Back</Text>
         </Pressable>
         <Text style={styles.title}>{editing ? 'Edit category' : 'Add a category'}</Text>
         <View style={{ width: 52 }} />
@@ -141,8 +136,8 @@ const makeStyles = (colors: Palette) =>
   StyleSheet.create({
     screen: { flex: 1, backgroundColor: colors.bg, paddingHorizontal: 20, paddingTop: 8 },
     header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 },
-    cancel: { height: 44, justifyContent: 'center' },
-    cancelText: { fontFamily: fonts.bodyMedium, fontSize: 15, color: colors.muted },
+    back: { height: 44, justifyContent: 'center', marginLeft: -8, paddingHorizontal: 8 },
+    backText: { fontFamily: fonts.bodyMedium, fontSize: 15, color: colors.muted },
     title: { fontFamily: fonts.display, fontSize: 18, color: colors.text },
     remove: { height: 48, alignItems: 'center', justifyContent: 'center' },
     removeText: dangerText(colors),

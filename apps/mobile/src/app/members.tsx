@@ -221,7 +221,7 @@ function OwnerMembers({ ledgerId }: { ledgerId: number }) {
                   failure={failure}
                   gone={gone}
                   onConfirm={() => remove(member)}
-                  onCancel={() => showPanel(null)}
+                  onDismiss={() => showPanel(null)}
                 />
               )}
             </View>
@@ -444,7 +444,7 @@ function MemberLeave({ ledger }: { ledger: Ledger }) {
       failure={failure}
       gone={false}
       onConfirm={leave}
-      onCancel={() => showPanel(false)}
+      onDismiss={() => showPanel(false)}
     />
   ) : (
     <Pressable accessibilityRole="button" onPress={() => showPanel(true)} style={styles.leave}>
@@ -462,7 +462,7 @@ function ConfirmPanel({
   failure,
   gone,
   onConfirm,
-  onCancel,
+  onDismiss,
 }: {
   question: string;
   detail?: string;
@@ -471,7 +471,7 @@ function ConfirmPanel({
   failure: string | null;
   gone: boolean;
   onConfirm: () => void;
-  onCancel: () => void;
+  onDismiss: () => void;
 }) {
   const colors = useColors();
   const styles = useThemedStyles(makeStyles);
@@ -485,8 +485,8 @@ function ConfirmPanel({
         </Text>
       ) : null}
       <View style={styles.panelButtons}>
-        <Pressable accessibilityRole="button" disabled={busy} onPress={onCancel} style={styles.cancel}>
-          <Text style={styles.cancelText}>{gone ? 'Close' : 'Cancel'}</Text>
+        <Pressable accessibilityRole="button" disabled={busy} onPress={onDismiss} style={styles.dismiss}>
+          <Text style={styles.dismissText}>{gone ? 'Close' : 'Back'}</Text>
         </Pressable>
         {!gone && (
           <Pressable
@@ -538,8 +538,8 @@ const makeStyles = (colors: Palette) =>
     detail: { fontFamily: fonts.body, fontSize: 14, lineHeight: 20, color: colors.text },
     failure: { fontFamily: fonts.bodyMedium, fontSize: 14, color: colors.over },
     panelButtons: { flexDirection: 'row', justifyContent: 'flex-end', alignItems: 'center', gap: 8 },
-    cancel: { minHeight: 44, justifyContent: 'center', paddingHorizontal: 12 },
-    cancelText: { fontFamily: fonts.bodyMedium, fontSize: 15, color: colors.muted },
+    dismiss: { minHeight: 44, justifyContent: 'center', paddingHorizontal: 12 },
+    dismissText: { fontFamily: fonts.bodyMedium, fontSize: 15, color: colors.muted },
     confirm: {
       minHeight: 44,
       flexDirection: 'row',

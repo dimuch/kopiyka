@@ -4,10 +4,11 @@ A small shared budget app: monthly category budgets, expenses in EUR with the UA
 National Bank of Ukraine rate of the day. One Expo codebase serves the iPhone app and the web app;
 a Fastify API sits in front of MySQL.
 
-| Path          | What                                            |
-| ------------- | ----------------------------------------------- |
-| `apps/api`    | Node 24 + TypeScript + Fastify + Zod, MySQL 8.4 |
-| `apps/mobile` | Expo (React Native) app, iOS + web              |
+| Path          | What                                                 |
+| ------------- | ---------------------------------------------------- |
+| `apps/api`    | Node 24 + TypeScript + Fastify + Zod, MySQL 8.4      |
+| `apps/mobile` | Expo (React Native) app, iOS + web                   |
+| `apps/mcp`    | MCP connector for Claude: Fastify, reads via the API |
 
 ## Local setup
 
@@ -78,6 +79,44 @@ start with empty Actual Amounts.
 The pairs and the Notion "Kopiyka ID" column hold this database's expense ids. A fresh production database has
 different ids, so refill Kopiyka ID with production's ids before its first sync. Only one environment may sync to
 the Budget tables at a time.
+
+## Connecting Claude
+
+`apps/mcp` lets Claude read a user's budgets. In Claude, add a custom connector with the URL `https://<host>/mcp` at
+claude.ai > Customize > Connectors; it then works in Claude Desktop and Claude mobile. Sign in with your username and
+authenticator code, and allow it. It's read-only, and sign-in comes back every hour. Free plans allow one custom
+connector; on Team and Enterprise an Owner adds it.
+
+Claude Code can't connect directly (`claude mcp add`), because it uses a loopback redirect. A connector added on claude.ai
+may still appear in it for a claude.ai login. Claude Desktop on third-party inference can't connect either.
+
+Locally, copy `apps/mcp/.env.example` to `apps/mcp/.env`, set `MCP_SEAL_KEY`, add `MCP_ENABLED=true` to `apps/api/.env`, and
+run `yarn mcp dev`. Claude itself needs a public `https` address.
+
+| Variable                    | Where      | What                                                        |
+| --------------------------- | ---------- | ----------------------------------------------------------- |
+| `MCP_ENABLED`               | `apps/api` | The main switch: off unless `true`                          |
+| `API_TOKEN_TTL_MINUTES`     | `apps/api` | How long a connection lasts, 60 by default                  |
+| `PUBLIC_URL`                | `apps/mcp` | Where clients reach it: an origin, `https` in production    |
+| `API_URL`                   | `apps/mcp` | The API, reached over HTTP only                             |
+| `MCP_SEAL_KEY`              | `apps/mcp` | 32 random bytes, base64. Changing it signs everyone out     |
+| `MCP_ALLOWED_REDIRECT_URIS` | `apps/mcp` | Exact callback URLs; unset means Claude's, blank means none |
+
+### Removing the connector
+
+To switch it off, take `MCP_ENABLED` out of `api.env` and restart the API, then `sudo systemctl disable --now kopiyka-mcp`.
+To delete it:
+
+1. Delete `apps/mcp/` and `apps/api/src/apiTokens/`, and `apps/api/test/apiTokens.*`.
+2. Remove the `apiTokenRoutes` import and line in `apps/api/src/app.ts`, the `apiTokenAuth` import and line in
+   `apps/api/src/auth/routes.ts`, the `MCP_ENABLED`, `API_TOKEN_TTL_MINUTES` and `apiTokens` lines in
+   `apps/api/src/config.ts`, and the lines in `apps/api/.env.example`.
+3. Add a migration with `DROP TABLE IF EXISTS api_tokens;`.
+4. Remove the root `mcp` script, the `mcp` entry in `.claude/launch.json`, the MCP block in
+   `deploy/kopiyka.englishplus.com.ua.conf`, `deploy/kopiyka-mcp.service`, the MCP lines in `deploy/deploy.sh`, and the MCP
+   sections in `deploy/README.md`, this file and `CLAUDE.md`. Run `yarn install`.
+5. On the droplet: remove the unit, `/etc/kopiyka/mcp.env`, the second sudo rule and the `kopiyka-mcp` user, then re-install
+   the vhost and `deploy.sh`.
 
 ## Tests
 

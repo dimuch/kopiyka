@@ -88,20 +88,22 @@ export function faultPage(redirectHost: string, returnUrl: string): string {
 export interface SignInView {
   clientName: string;
   redirectHost: string;
-  loopbackOnly: boolean;
+  /** Where this request goes, not what the client registered: one extra URI mustn't hide the warning. */
+  loopback: boolean;
   /** The sealed authorization request. */
   request: string;
   username?: string;
   error?: string;
 }
 
-export function signInPage({ clientName, redirectHost, loopbackOnly, request, username, error }: SignInView): string {
-  const client = escapeHtml(clientName || 'An app');
+export function signInPage({ clientName, redirectHost, loopback, request, username, error }: SignInView): string {
+  // A client picks its own name, so the page never states it as fact.
+  const client = clientName ? `An app calling itself <bdi>${escapeHtml(clientName)}</bdi>` : 'An app';
   return page(
     'Sign in to Kopiyka',
     `<h1>Sign in to Kopiyka</h1>
 <p>${client} wants to read your budgets. You’ll go back to <strong>${escapeHtml(redirectHost)}</strong> afterwards.</p>
-${loopbackOnly ? '<p class="warning">This app runs only on this computer. Continue only if you started it yourself.</p>' : ''}
+${loopback ? '<p class="warning">This app runs only on this computer. Continue only if you started it yourself.</p>' : ''}
 ${error ? `<p class="error" role="alert">${escapeHtml(error)}</p>` : ''}
 <form method="post" action="/oauth/authorize">
 <input type="hidden" name="request" value="${escapeHtml(request)}">

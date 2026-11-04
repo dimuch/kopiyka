@@ -253,11 +253,13 @@ describe('GET /oauth/authorize', () => {
       expect(res.headers['cache-control']).toBe('no-store');
     });
 
-    it('leaves out a state it wasn’t given', async () => {
-      const res = await authorize({ client_id: await register([CALLBACK]), state: undefined, scope: 'write' });
+    it('needs a state: without one, Claude’s callback leaves the code in the address bar', async () => {
+      const res = await authorize({ client_id: await register([CALLBACK]), state: undefined });
 
+      expect(res.statusCode).toBe(400);
+      expect(res.body).not.toContain('name="request"');
       expect(Object.fromEntries(returnLink(res.body).searchParams)).toEqual({
-        error: 'invalid_scope',
+        error: 'invalid_request',
         iss: PUBLIC_URL,
       });
     });

@@ -4,11 +4,13 @@ Type: feature
 
 ## Why
 
-We want to ask an LLM app (claude.ai, Claude Desktop, Claude mobile) about our budget: "how
-much is left in groceries this month?", "what did we spend on cafés in October?". Every
-kopiyka user should get this by adding one connector URL to their LLM app, with nothing to
-install or run locally. Apps that redirect to the user's own machine, such as Claude Code,
-can't connect (plan, Revision 4).
+We want to ask a hosted Claude app (claude.ai, Claude Desktop, Claude mobile) about our
+budget: "how much is left in groceries this month?", "what did we spend on cafés in
+October?". Every kopiyka user with a Claude account should get this by adding one connector
+URL, with nothing to install or run locally. Free plans allow one custom connector, and on
+Team and Enterprise an Owner adds it. Claude Code can't connect directly (`claude mcp add`),
+because it uses a loopback redirect. A connector added on claude.ai may still appear in it
+for a claude.ai login (plan, Revisions 4 and 5).
 
 The MCP support must sit apart from the main app so it can be switched off or deleted
 without touching the API's domain logic or the Expo app. This first brief is read-only. A
@@ -80,11 +82,15 @@ protections as the app, plus rate limits.
     capped: expense lists are paged with a max page size, never "everything".
   - **Bounded streams:** a cap on concurrent Streamable HTTP sessions and SSE streams, per
     token and overall, with an idle timeout. Old sessions are dropped first.
-  - **Client registration abuse:** registration is rate-limited, and `redirect_uri` must be
-    string-equal to an entry on `MCP_ALLOWED_REDIRECT_URIS` and to the registered value. No
-    loopback `http://`: a code left in a failed page's address bar can be talked out of a
-    user (plan, Revision 4). Registered clients and authorization codes expire (codes after
+  - **Client registration abuse:** registration is rate-limited. It keeps only the
+    `redirect_uri` values string-equal to an entry on `MCP_ALLOWED_REDIRECT_URIS`, whose default
+    is Claude's `https://claude.ai/api/mcp/auth_callback`, and refuses when none is. A
+    requested URI must also equal a registered one, and `state` is required. No loopback
+    `http://`: a code left in a failed page's address bar can be talked out of a user (plan,
+    Revisions 4 and 5). Registered clients and authorization codes expire (codes after
     ≤ 60 s, one use).
+  - **Egress limit:** nginx answers `/oauth/token` and `/oauth/register` only from Anthropic's
+    egress, so a code can't be redeemed from a stranger's machine.
   - **DNS rebinding / origin:** `Origin` and `Host` are validated as the MCP spec requires.
   - **Logs:** no tokens, TOTP codes or amounts in logs. 401/403/429 counts are logged, so
     abuse shows up in `journalctl`.
@@ -120,8 +126,8 @@ protections as the app, plus rate limits.
 - [ ] `curl -sI` on `/mcp` and the sign-in page shows the security headers and the sign-in CSP.
 - [ ] Root gates (`format:check`, `lint`, `typecheck`, `test`) cover `apps/mcp`.
 - [ ] Deploy docs: systemd unit, nginx `location /mcp` (+ OAuth well-known paths), env vars.
-      `README.md` says how to connect from claude.ai, Claude Desktop and Claude mobile, that
-      Claude Code can't, and how to remove the feature.
+      `README.md` says how to add the connector on claude.ai and use it in Claude Desktop and
+      Claude mobile, that Claude Code can't connect directly, and how to remove the feature.
 
 ## Out of scope
 
@@ -129,8 +135,10 @@ protections as the app, plus rate limits.
   copy, invites). That's the next brief, which adds a `write` scope.
 - Token management UI in the Expo app.
 - Notion sync tools.
-- Local stdio mode, and any client with a loopback redirect: Claude Code and Claude Desktop
-  on third-party inference. Supporting them later needs its own decision (plan, Revision 4).
+- Local stdio mode, and any client with a loopback redirect. Claude Code can't connect directly
+  (`claude mcp add`), because it uses a loopback redirect. A connector added on claude.ai may
+  still appear in it for a claude.ai login. Claude Desktop on third-party inference can't
+  connect either. Supporting them later needs its own decision (plan, Revision 4).
 - Changing session TTL or the app's login flow.
 - Adding nginx rate limits to the app's own `/api/` routes. That's worth a brief of its
   own, and this one can reuse the same `limit_req` zones.

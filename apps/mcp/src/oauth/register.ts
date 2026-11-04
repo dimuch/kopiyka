@@ -45,11 +45,13 @@ export async function registerRoutes(app: FastifyInstance, { config, now }: AppD
         error_description: 'Expected 1 to 5 redirect_uris, a short client_name and no client secret',
       });
     }
-    const { redirect_uris: redirectUris, client_name: clientName } = body.data;
-    const refused = redirectUris.filter((uri) => !config.allowedRedirectUris.includes(uri));
-    if (refused.length) {
-      // A hosted app refused here is the lockout to look for, and listing its URL fixes it. Local clients stay refused.
-      req.log.warn({ redirectUris: refused.map(redirectForLog) }, 'client registration refused');
+    const { redirect_uris: requestedUris, client_name: clientName } = body.data;
+    const redirectUris = requestedUris.filter((uri) => config.allowedRedirectUris.includes(uri));
+    const refused = requestedUris.filter((uri) => !redirectUris.includes(uri));
+    // A hosted app refused here is the lockout to look for, and listing its URL fixes it. Local clients stay refused.
+    if (refused.length) req.log.warn({ redirectUris: refused.map(redirectForLog) }, 'redirect URIs refused');
+    // Keeps what's listed rather than refusing it all, as RFC 7591 allows: a client may also send a URL we don't trust.
+    if (!redirectUris.length) {
       return reply.code(400).send({
         error: 'invalid_redirect_uri',
         error_description: 'This server only accepts its listed redirect URIs',

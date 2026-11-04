@@ -219,11 +219,13 @@ describe('OAuth discovery and registration', () => {
       expect(logs).toContain(CALLBACK);
     });
 
-    it('refuses the whole registration if any URI is unlisted', async () => {
-      const res = await registerLogged([CALLBACK, 'https://evil.example/cb']);
+    it('keeps only the listed URIs of a mixed registration, so a client can’t be locked out by an extra one', async () => {
+      const res = await registerLogged([CALLBACK, 'https://claude.com/api/mcp/auth_callback']);
 
-      expect(res.statusCode).toBe(400);
-      expect(res.json().error).toBe('invalid_redirect_uri');
+      expect(res.statusCode).toBe(201);
+      expect(res.json().redirect_uris).toEqual([CALLBACK]);
+      expect(openClient(config.sealKey, res.json().client_id, T)?.redirectUris).toEqual([CALLBACK]);
+      expect(logs).toContain('https://claude.com/api/mcp/auth_callback');
     });
 
     it.each(['http://localhost:5000/callback', 'http://127.0.0.1/callback', 'http://[::1]/callback'])(

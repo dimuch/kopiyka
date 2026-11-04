@@ -723,7 +723,7 @@ frame-ancestors 'none'; base-uri 'none'` and `Cache-Control: no-store`.
 'client_header_timeout\|default_server'`. Both go in a comment on merged PR 063f. Also
     `sudo tail -n 200 /var/log/nginx/access.log | grep '/oauth/authorize' | grep -c '?'` must print 0.
   - ~150 lines
-- [ ] 16. Document setup, connecting from Claude, and removing the connector
+- [x] 16. Document setup, connecting from Claude, and removing the connector
   - Files: `deploy/README.md`, `README.md`, `CLAUDE.md` (first line: three apps)
   - Change:
     - deploy/README:
@@ -1162,3 +1162,5 @@ longer gates 063e. It runs after 063f is deployed, against the real address, wit
 
 - `authorizationResponse`, `sendPage` and `sealAccessToken` are reused; `claimedName` and `returnPage` are extracted so sign-in and consent, and the fault and Deny pages, share their wording.
 - The `test/oauthFlow.ts` helpers serve the sign-in and token tests; `flow.test.ts` spells its steps out on purpose, being the one test that reads as the whole journey. LEAVE.
+
+063f (`origin/main...HEAD`): skipped. Config and docs only, no new function, route or query in source. `deploy.sh`'s `wait_healthy` was extracted so the API and the connector share one polling loop.

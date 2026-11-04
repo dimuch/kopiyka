@@ -2,14 +2,16 @@
 
 Production is `https://kopiyka.englishplus.com.ua` on the DigitalOcean droplet (`ssh do`, 1 vCPU, 2 GB RAM, shared
 with other sites). nginx serves the web app and proxies `/api` to the API on `127.0.0.1:3100`, run by systemd as the
-`kopiyka` user.
+`kopiyka` user. It also proxies the MCP connector (`/mcp`, `/oauth/`) to `127.0.0.1:3200`, run as `kopiyka-mcp`.
 
 | File                              | Installed as                                                   |
 | --------------------------------- | -------------------------------------------------------------- |
 | `kopiyka.service`                 | `/etc/systemd/system/kopiyka.service`                          |
+| `kopiyka-mcp.service`             | `/etc/systemd/system/kopiyka-mcp.service`                      |
 | `kopiyka.englishplus.com.ua.conf` | `/etc/nginx/sites-available/` + link in `sites-enabled/`       |
 | `deploy.sh`                       | `/usr/local/bin/kopiyka-deploy` (forced command of the key)    |
 | —                                 | `/etc/kopiyka/api.env` (root `0600`, secrets, never in a repo) |
+| —                                 | `/etc/kopiyka/mcp.env` (root `0600`, the seal key)             |
 
 ## How a deploy works
 
@@ -285,14 +287,105 @@ sudo nginx -t && sudo systemctl reload nginx
 
 site=https://kopiyka.englishplus.com.ua
 bundle=$(curl -s "$site/" | grep -o '/_expo/static/[^"]*' | head -1)
-for path in / /index.html /budget "$bundle" /api/health; do
+for path in / /index.html /budget "$bundle" /api/health /mcp /oauth/authorize; do
   echo "== $path"
   curl -sI "$site$path" | grep -iE '^(server|strict-transport-security|content-security-policy|x-frame-options|x-content-type-options|referrer-policy|permissions-policy|cache-control):'
 done
 ```
 
 Each path shows the six security headers. `/`, `/index.html` and `/budget` show `Cache-Control: no-cache`, the bundle
-`…, immutable`, and `/api/health` none.
+`…, immutable`, and `/api/health` none. `/oauth/authorize` shows **two** `content-security-policy` lines, nginx's and the
+page's own, which is expected: browsers enforce both.
+
+## MCP connector
+
+`apps/mcp` lets Claude read a user's budgets (brief 063). It reaches kopiyka only through the API, and the API refuses its
+tokens on every write. `MCP_ENABLED` in `api.env` is the main switch: while it's unset, sign-in can't finish and every
+connection fails.
+
+### One-time setup
+
+Run on the droplet, in this order. A deploy skips the connector until step 4 enables it.
+
+1. **Check the port is free** (`ss -ltn | grep ':3200 ' || echo "3200 free"`), and add the second sudo rule, keeping the
+   first:
+
+   ```bash
+   printf '%s\n' 'kopiyka ALL=(root) NOPASSWD: /usr/bin/systemctl restart kopiyka.service' \
+     'kopiyka ALL=(root) NOPASSWD: /usr/bin/systemctl restart kopiyka-mcp.service' | sudo tee /etc/sudoers.d/kopiyka >/dev/null
+   sudo chmod 440 /etc/sudoers.d/kopiyka && sudo visudo -cf /etc/sudoers.d/kopiyka
+   ```
+
+2. **Re-install `deploy.sh`** with step 6's install line, then run **Deploy** from Actions. A deploy never updates the
+   root-owned script, so without this `apps/mcp` isn't built.
+
+3. **User and secrets.**
+
+   ```bash
+   sudo useradd --system --no-create-home --shell /usr/sbin/nologin kopiyka-mcp
+   sudo install -m 600 -o root -g root /dev/null /etc/kopiyka/mcp.env
+   openssl rand -base64 32                 # → MCP_SEAL_KEY
+   sudoedit /etc/kopiyka/mcp.env
+   ```
+
+   ```ini
+   PUBLIC_URL=https://kopiyka.englishplus.com.ua
+   MCP_SEAL_KEY=<the base64 key>
+   ```
+
+   Changing the key signs everyone out of the connector.
+
+4. **Service.**
+
+   ```bash
+   sudo -u kopiyka git -C /opt/kopiyka/repo.git show main:deploy/kopiyka-mcp.service |
+     sudo tee /etc/systemd/system/kopiyka-mcp.service >/dev/null
+   sudo -u kopiyka-mcp test -r /opt/kopiyka/current/apps/mcp/dist/src/server.js && echo ok
+   sudo systemctl daemon-reload && sudo systemctl enable --now kopiyka-mcp.service
+   ```
+
+5. **vhost.** "After changing the vhost", above. `nginx -t` must pass before the reload.
+
+6. **Turn it on**, only when you mean to: add `MCP_ENABLED=true` to `api.env` with `sudoedit`, then
+   `sudo systemctl restart kopiyka`. Taking the line out and restarting stops every connection at once.
+
+### Checks after setup
+
+Wait a minute after the 429 check, or the next ones answer 429, not 403.
+
+```bash
+site=https://kopiyka.englishplus.com.ua
+for i in $(seq 20); do curl -s -o /dev/null -w '%{http_code}\n' -X POST -H 'content-type: application/json' -d '{}' $site/oauth/register; done | sort | uniq -c
+# → at least 14 × 429, the rest 403
+curl -s -o /dev/null -w '%{http_code}\n' -X POST $site/oauth/token       # → 403 from anywhere but Anthropic
+curl -s -o /dev/null -w '%{http_code}\n' -X POST $site/oauth/register    # → 403
+curl -s -o /dev/null -w '%{http_code}\n' "$site/oauth/authorize"         # → 400, its page: the browser route stays open
+sudo nginx -T | grep -n 'client_header_timeout\|default_server'
+sudo tail -n 200 /var/log/nginx/access.log | grep '/oauth/authorize' | grep -c '?'   # → 0
+```
+
+The access log drops `/oauth/` queries, but nginx's error log still prints the full request line on a limit hit.
+
+### The address limit
+
+`/oauth/token` and `/oauth/register` accept only Anthropic's outbound ranges, the `allow` lines in the vhost. A sign-in code
+therefore can't be redeemed from outside Anthropic's network. The list comes from
+`platform.claude.com/docs/en/api/ip-addresses`: if Anthropic changes it, connecting stops until the vhost is updated. A
+refusal here never reaches `journalctl -u kopiyka-mcp`; find it with `sudo grep 'access forbidden' /var/log/nginx/error.log`.
+
+### Adding another LLM app
+
+Only an app with a fixed `https` callback can be added, so one with a `localhost` redirect can't.
+
+1. Find its exact callback URL in its docs, or in the `redirect URIs refused` line it leaves in
+   `journalctl -u kopiyka-mcp`, which has the origin and path.
+2. Only list a URL whose page removes the code. `curl -sI '<url>?code=x&state=y'` must answer a redirect with no `code` in
+   `Location`. Otherwise a stranger could talk the code out of a user.
+3. `sudoedit /etc/kopiyka/mcp.env` and set `MCP_ALLOWED_REDIRECT_URIS` to Claude's callback plus the new one, comma-separated:
+   the setting replaces the default. Then `sudo systemctl restart kopiyka-mcp`.
+4. Add the app's outbound range to the `allow` lines in the vhost and reinstall it, or its calls get 403.
+
+Removing a URL works the same way: new sign-ins stop at the restart.
 
 ## After the first deploy
 

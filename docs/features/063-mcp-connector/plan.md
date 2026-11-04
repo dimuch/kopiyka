@@ -3,7 +3,7 @@
 Status: approved <!-- draft → skeptic-approved → approved (by the user) -->
 Brief: ./brief.md
 Branch: feat/mcp-connector (PR 063a); later PRs below
-Base: origin/main (063a, 063b); 063c–063f are stacked, each on the one before it
+Base: origin/main for each PR once the one before it is merged; merge order 063a → b → c → d → d2 → e → f
 
 ## Approach
 
@@ -16,12 +16,12 @@ each one is safe to merge on its own:
 | 063b  | `feat/mcp-server`      | origin/main     | `apps/mcp` workspace, `/mcp` with bearer check, `list_ledgers` |    560 |
 | 063c  | `feat/mcp-tools`       | stacked on 063b | the other four tools, per-token limits and stream caps         |    440 |
 | 063d  | `feat/mcp-oauth`       | origin/main     | OAuth: metadata, registration, the redirect rules              |    290 |
-| 063d2 | `feat/mcp-oauth-pages` | origin/main     | OAuth: the sign-in page (GET), no automatic redirects          |    520 |
-| 063e  | `feat/mcp-sign-in`     | stacked on 063d | OAuth: TOTP sign-in, consent, code → access token              |    315 |
-| 063f  | `feat/mcp-deploy`      | stacked on 063e | nginx limits + locations, systemd unit, deploy.sh, docs        |    290 |
+| 063d2 | `feat/mcp-oauth-pages` | after 063d      | OAuth: the sign-in page (GET), no automatic redirects          |    520 |
+| 063e  | `feat/mcp-sign-in`     | after 063d2     | OAuth: TOTP sign-in, consent, code → access token              |    315 |
+| 063f  | `feat/mcp-deploy`      | after 063e      | nginx limits + locations, systemd unit, deploy.sh, docs        |    290 |
 
 063b's code doesn't depend on 063a. It only calls 063a's routes over HTTP, and its tests stub them. Merge order is
-a → b → c → d → e → f, and nothing is deployed until 063f.
+a → b → c → d → d2 → e → f, and nothing is deployed until 063f, which needs d2's fix for the open redirect.
 
 **`apps/api` (063a)** gets one new folder, `src/apiTokens/`, plus its migration. The wiring is an import and a line
 in `app.ts`, an import and a line in `requireAuth`, and the env switch in `config.ts`. API tokens look like
@@ -173,7 +173,7 @@ response_types: ['code'] }`.
     - Errors: 400 `{ error: 'invalid_redirect_uri' | 'invalid_client_metadata', error_description }`. A `client_name`
       with a control or bidi control character (`/[\p{Cc}\p{Bidi_Control}]/u`) gets `invalid_client_metadata`.
       Zero-width joiners stay allowed: emoji and Persian or Indic names need them, and they spoof nothing a homoglyph
-      can't.
+      can't. These two rules land in slice 12a.
     - `client_name` is trimmed first, so a name of only spaces reads as "An app".
   - Redirect URI rules (`oauth/redirects.ts`):
     - Allowed: `https://` with any host, or `http://` with host `localhost`, `127.0.0.1` or `[::1]`.
@@ -725,6 +725,9 @@ To delete it:
 - **What a client shows after Cancel is unknown.** Deny now stops on a page with a link. In the AC1 check for 063f,
   click Cancel in Claude Desktop and Claude Code, then record what the client shows before and after the "Return to"
   link.
+- Real clients could be refused outright: a `scope` other than empty or `read`, or a `token_endpoint_auth_method` other
+  than `none`, fails the request or the registration. Claude's docs suggest neither happens, but check it with Claude
+  Desktop, claude.ai and Claude Code during the AC1 manual check in 063f. A refusal fails loudly, so it can't slip by.
 - **Claude might send an `Origin` header on `/mcp` or `/oauth/token`.** That would give 403. Checked by the AC1
   manual check (journalctl shows `invalid_origin`). The fix would be adding that origin to the allowlist.
 - **Claude's behaviour at the hourly expiry without a refresh token is unknown.** It may re-prompt sign-in, or show
@@ -750,8 +753,7 @@ To delete it:
 ## Open questions
 
 - **Blocking (confirm at the gate): the limit numbers** in "Proposed limits". Meanwhile the table's defaults are used.
-- **Blocking (confirm at the gate): the split into six PRs.** The alternative is fewer, bigger PRs, e.g. 063d + 063e
-  as one ~650-line OAuth PR. Meanwhile the six-PR split is assumed.
+- Settled at the gates: the split, now seven PRs (the user chose to split 063d).
 - No — Brief Q1: should `apps/mcp` get a "revoke this connector" tool? Meanwhile: **no**. Tokens last 1 h, and a
   read token can't call `DELETE`, by design; revoking takes a session (curl now, app UI later).
 - No — The brief says `redirect_uri` is matched "exactly". Meanwhile: exact for everything, except that loopback
@@ -849,7 +851,7 @@ goes from ~150 to ~165 lines. Together they measured 734 lines before the split,
 - `money.ts` and `dates.ts` vs `apps/api/src/money.ts` and `dates.ts`: LEAVE, the runtime boundary, as the plan says.
 - The `Money` formatting vs `apps/mobile/src/format.ts`: LEAVE, same reason.
 
-063d (`origin/main...HEAD`): reused 0 · extracted 1 · left 0.
+063d (`origin/main...HEAD`): reused 0 · extracted 1 · left 1.
 
 - `test/helpers.ts`: the OAuth tests share one `testConfig`, instead of another copy. `mcp.test.ts`, `mcpLimits.test.ts`
   and `tools.test.ts` keep their own: `mcpLimits` needs another host, and moving the others is churn in merged tests.

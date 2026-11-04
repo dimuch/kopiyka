@@ -38,6 +38,8 @@ function rpcResult(res: { body: string }) {
   return JSON.parse(data!.slice('data: '.length)).result;
 }
 
+const toolData = (result: { content: { text: string }[] }) => JSON.parse(result.content[0]!.text);
+
 function twoUsers(call: RecordedCall): Answer {
   const known = LEDGERS[bearerOf(call) ?? ''];
   if (!known) return { status: 401, json: { error: 'unauthorized' } };
@@ -71,6 +73,7 @@ describe('/mcp', () => {
   const callTool = (name: string, token: string) => rpc('tools/call', { name, arguments: {} }, token);
 
   beforeEach(async () => {
+    // Near real time, not a fixed date: the SDK's verifyBearerToken also checks expiresAt against Date.now().
     clock = new Date();
     answer = twoUsers;
     api = fakeApi((call) => answer(call));
@@ -167,21 +170,52 @@ describe('/mcp', () => {
       const olena = await callTool('list_ledgers', accessToken('kpk.olena'));
       const taras = await callTool('list_ledgers', accessToken('kpk.taras'));
 
-      expect(rpcResult(olena).structuredContent).toEqual({
+      expect(toolData(rpcResult(olena))).toEqual({
         user: { username: 'olena' },
         ledgers: [{ ledgerId: 1, name: 'Home', label: 'Ours', role: 'owner', owner: 'olena', currency: 'EUR' }],
       });
-      expect(rpcResult(taras).structuredContent).toEqual({
+      expect(toolData(rpcResult(taras))).toEqual({
         user: { username: 'taras' },
         ledgers: [{ ledgerId: 2, name: 'Flat', label: '', role: 'member', owner: 'ivan', currency: 'EUR' }],
       });
     });
 
-    it('also answers in text, for clients that only read that', async () => {
-      const res = await callTool('list_ledgers', accessToken('kpk.olena'));
+    it('serves a client on the 2026-07-28 revision too', async () => {
+      const modern = (token: string) =>
+        app.inject({
+          method: 'POST',
+          url: '/mcp',
+          headers: {
+            host: HOST,
+            accept: 'application/json, text/event-stream',
+            'content-type': 'application/json',
+            authorization: `Bearer ${token}`,
+            'mcp-protocol-version': '2026-07-28',
+            'mcp-method': 'tools/call',
+            'mcp-name': 'list_ledgers',
+          },
+          payload: {
+            jsonrpc: '2.0',
+            id: 1,
+            method: 'tools/call',
+            params: {
+              name: 'list_ledgers',
+              arguments: {},
+              _meta: {
+                'io.modelcontextprotocol/protocolVersion': '2026-07-28',
+                'io.modelcontextprotocol/clientInfo': { name: 'test', version: '1.0.0' },
+                'io.modelcontextprotocol/clientCapabilities': {},
+              },
+            },
+          },
+        });
 
-      const { content, structuredContent } = rpcResult(res);
-      expect(JSON.parse(content[0].text)).toEqual(structuredContent);
+      const olena = await modern(accessToken('kpk.olena'));
+      const taras = await modern(accessToken('kpk.taras'));
+
+      expect(olena.headers['content-type']).toContain('application/json');
+      expect(toolData(olena.json().result).user).toEqual({ username: 'olena' });
+      expect(toolData(taras.json().result).user).toEqual({ username: 'taras' });
     });
 
     it('reports an API error as a tool error, with its code', async () => {
@@ -221,6 +255,30 @@ describe('/mcp', () => {
       const res = await rpc('tools/list', { padding: 'x'.repeat(70_000) }, accessToken('kpk.olena'));
 
       expect(res.statusCode).toBe(413);
+      expect(res.json()).toEqual({ error: 'invalid_request' });
+    });
+
+    it('refuses malformed JSON', async () => {
+      const res = await app.inject({
+        method: 'POST',
+        url: '/mcp',
+        headers: {
+          host: HOST,
+          'content-type': 'application/json',
+          authorization: `Bearer ${accessToken('kpk.olena')}`,
+        },
+        payload: '{"jsonrpc":',
+      });
+
+      expect(res.statusCode).toBe(400);
+      expect(res.json()).toEqual({ error: 'invalid_request' });
+    });
+
+    it('refuses a malformed URL in the same shape', async () => {
+      const res = await app.inject({ url: '/mcp/%E0%A4%A', headers: { host: HOST } });
+
+      expect(res.statusCode).toBe(400);
+      expect(res.json()).toEqual({ error: 'invalid_request' });
     });
 
     it('answers GET with 405: there’s no stream to open', async () => {

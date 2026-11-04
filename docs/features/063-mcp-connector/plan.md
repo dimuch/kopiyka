@@ -732,6 +732,8 @@ I also took these of the skeptic's suggestions:
 
 ## Deviations
 
+- slice 7: the wrapper lives in a new `src/mcp/auth.ts`. Its fields are `aud`, `apiToken`, `clientId` and `expMs`: the SDK's `AuthInfo` needs a client id and an expiry, and the sealed `exp` isn't handed back by `open`.
+- slice 7: when the API has `MCP_ENABLED` off, `GET /api/api-tokens` is a 404, so `/mcp` answers 503 and clients retry. That keeps people signed in through a mistaken restart; it's the contract's "any other failure".
 - slice 7: the 503 test uses a network failure and a 502 from the stub rather than a hung API, since slice 6 already proves a hang becomes the same `ApiError`. The `aud` check sits in `verifyAccessToken`, before the API call, not in `expectedResource`. The PRM is written out by hand: the SDK builder wants the full AS metadata, which arrives in 063d.
 - slice 6: `apiClient` takes an optional `timeoutMs`, and the test uses 5 ms instead of fake timers, which can't advance `AbortSignal.timeout` (the repo's idiom). A 2xx that isn't JSON is `ApiError 502 api_error`.
 - slice 1: the migration is `014_api_tokens.sql`, because main took 013 for `known_devices` (brief 064) while this was built.

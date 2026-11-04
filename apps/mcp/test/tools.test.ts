@@ -243,7 +243,6 @@ describe('the budget tools', () => {
 
     it('asks for today in Kyiv and spells the rate out', async () => {
       clock = new Date('2026-11-02T22:30:00Z');
-      // The bearer check compares its expiry with the real clock, so only the tool's date is moved.
       const data = toolData(await callTool('eur_uah_rate', {}));
 
       expect(api.calls.map((call) => call.path)).toContain('/api/rates/eur-uah?date=2026-11-03');

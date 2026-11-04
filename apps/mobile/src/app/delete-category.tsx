@@ -56,7 +56,7 @@ export default function DeleteCategoryScreen() {
             category={category}
             month={month}
             ledgerId={ledger.ledgerId}
-            // Opened from the Budget tab's category screen (brief 044): the removal goes back there.
+            // Opened from the Budget tab's category form (brief 044): the removal goes back there.
             toBudget={params.from === 'budget'}
             busy={busy}
             setBusy={setBusy}

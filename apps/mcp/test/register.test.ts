@@ -73,6 +73,25 @@ describe('OAuth discovery and registration', () => {
     expect(openClient(config.sealKey, clientId, new Date(T.getTime() + 90 * DAY_MS))).toBeNull();
   });
 
+  it('registers nothing when the list is blank', async () => {
+    const closed = await buildApp({
+      config: { ...config, allowedRedirectUris: [] },
+      now: () => T,
+      fetch: fakeApi(() => ({ json: {} })).fetch,
+    });
+
+    const res = await closed.inject({
+      method: 'POST',
+      url: '/oauth/register',
+      headers: { host: HOST },
+      payload: { redirect_uris: [CALLBACK] },
+    });
+    await closed.close();
+
+    expect(res.statusCode).toBe(400);
+    expect(res.json().error).toBe('invalid_redirect_uri');
+  });
+
   it('won’t take a forged client id', () => {
     expect(openClient(config.sealKey, 'made-up', T)).toBeNull();
   });
@@ -169,6 +188,28 @@ describe('OAuth discovery and registration', () => {
       expect(res.statusCode).toBe(400);
       expect(logs).toContain('unparseable');
       expect(logs).not.toContain('not a url');
+    });
+
+    // String-equal or nothing: each of these would pass a check on the hostname, the parsed URL or the path alone.
+    it.each([
+      'https://sub.claude.ai/api/mcp/auth_callback',
+      'https://claude.ai.evil.example/api/mcp/auth_callback',
+      'https://claude.ai./api/mcp/auth_callback',
+      'https://evil.example\\@claude.ai/api/mcp/auth_callback',
+      'https://сlaude.ai/api/mcp/auth_callback', // the first letter is Cyrillic
+      'https://claude.ai:443/api/mcp/auth_callback',
+      'https://CLAUDE.ai/api/mcp/auth_callback',
+      'http://claude.ai/api/mcp/auth_callback',
+      'https://claude.ai/api/mcp/auth_callback/',
+      'https://claude.ai/API/mcp/auth_callback',
+      'https://claude.ai/api/mcp/auth_callback?x=1',
+      'https://claude.ai/api/mcp/auth_callback#f',
+      'https://claude.ai/other',
+    ])('refuses %j, which is close but not on the list', async (uri) => {
+      const res = await registerLogged([uri]);
+
+      expect(res.statusCode).toBe(400);
+      expect(res.json().error).toBe('invalid_redirect_uri');
     });
 
     it('registers a listed URI, logging where it points', async () => {

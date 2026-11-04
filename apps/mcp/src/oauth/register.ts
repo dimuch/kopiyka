@@ -48,7 +48,7 @@ export async function registerRoutes(app: FastifyInstance, { config, now }: AppD
     const { redirect_uris: redirectUris, client_name: clientName } = body.data;
     const refused = redirectUris.filter((uri) => !config.allowedRedirectUris.includes(uri));
     if (refused.length) {
-      // A real client refused here is the lockout to look for: the fix is MCP_ALLOWED_REDIRECT_URIS.
+      // A hosted app refused here is the lockout to look for, and listing its URL fixes it. Local clients stay refused.
       req.log.warn({ redirectUris: refused.map(redirectForLog) }, 'client registration refused');
       return reply.code(400).send({
         error: 'invalid_redirect_uri',

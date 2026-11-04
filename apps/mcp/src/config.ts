@@ -2,6 +2,9 @@ import { z } from 'zod';
 
 const KEY_BYTES = 32;
 
+/** A code sent to this machine lands in the address bar, where it can be talked out of a user (plan, Revision 4). */
+const LOOPBACK_HOSTS = new Set(['localhost', '127.0.0.1', '[::1]']);
+
 /** The hosted Claude callback. `claude.com`'s isn't in the docs yet; it's listed so a change there can't lock users out. */
 const CLAUDE_CALLBACKS = 'https://claude.ai/api/mcp/auth_callback,https://claude.com/api/mcp/auth_callback';
 
@@ -47,7 +50,9 @@ function parseSealKey(value: string): Buffer {
 function parseAllowedRedirectUri(uri: string): string {
   const url = URL.canParse(uri) ? new URL(uri) : null;
   const exact = url?.protocol === 'https:' && url.href === uri && !/[#?]/.test(uri) && !url.username && !url.password;
-  if (!exact) throw new Error(`MCP_ALLOWED_REDIRECT_URIS: ${uri} must be an exact https URL with no query or fragment`);
+  if (!exact || LOOPBACK_HOSTS.has(url.hostname)) {
+    throw new Error(`MCP_ALLOWED_REDIRECT_URIS: ${uri} must be an exact https URL on a public host, with no query`);
+  }
   return uri;
 }
 

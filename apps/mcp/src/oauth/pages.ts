@@ -74,7 +74,7 @@ export function errorPage(message: string): string {
   );
 }
 
-/** No automatic redirect: anyone can register a client, so the visitor chooses whether to go back to it. */
+/** No automatic redirect on a bad request: the visitor chooses whether to go back to the client. */
 export function faultPage(redirectHost: string, returnUrl: string): string {
   const host = escapeHtml(redirectHost);
   return page(

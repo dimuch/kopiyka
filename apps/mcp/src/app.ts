@@ -32,7 +32,9 @@ export async function buildApp(deps: AppDeps): Promise<FastifyInstance> {
         : {
             level: deps.config.logLevel,
             // Not the query: on /oauth/authorize it holds the client's state and redirect URI.
-            serializers: { req: ({ method, url }) => ({ method, url: url.split('?')[0] }) },
+            serializers: {
+              req: ({ method, url, host, ip }) => ({ method, url: url.split('?')[0], host, remoteAddress: ip }),
+            },
             ...(deps.logStream ? { stream: deps.logStream } : {}),
           },
     // Only the local nginx may set the client address, as in apps/api.

@@ -9,7 +9,7 @@ import { fonts, type Palette } from '@/theme';
  * A category's name field with Save, for adding (brief 038) and renaming (040) in a 'YYYY-MM' month: checks 1–40
  * characters, sends the trimmed name with `save`, and shows a refusal's text.
  */
-export function CategoryNameForm({
+export function CategoryForm({
   month,
   current,
   caption,

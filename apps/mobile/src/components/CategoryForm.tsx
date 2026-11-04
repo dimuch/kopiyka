@@ -1,42 +1,55 @@
 import { type ReactNode, useRef, useState } from 'react';
-import { AccessibilityInfo, ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, TextInput } from 'react-native';
+import {
+  AccessibilityInfo,
+  ActivityIndicator,
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  View,
+} from 'react-native';
 import { ApiError } from '@/api/client';
+import type { Category } from '@/api/types';
 import { useColors, useThemedStyles } from '@/appearance/AppearanceContext';
-import { nameRefusedText, normalizeName } from '@/data/categoryName';
+import { type CategoryFields, checkFields } from '@/data/categoryForm';
+import { nameRefusedText } from '@/data/categoryName';
+import { overIncomeText } from '@/data/overIncome';
+import { monthName } from '@/format';
 import { fonts, type Palette } from '@/theme';
 
 /**
- * A category's name field with Save, for adding (brief 038) and renaming (040) in a 'YYYY-MM' month: checks 1–40
- * characters, sends the trimmed name with `save`, and shows a refusal's text.
+ * A category's name and planned amount with one Save, for adding and editing in a 'YYYY-MM' month (brief 065): checks
+ * both, sends them with `save`, and shows a refusal's text.
  */
 export function CategoryForm({
   month,
   current,
-  caption,
   busy,
   setBusy,
   save,
   children,
 }: {
   month: string;
-  /** The category's name in the month when renaming (the field starts at it); null when adding. */
-  current: string | null;
-  caption: string;
+  /** The category in the month when editing (the fields start at its values); null when adding. */
+  current: Category | null;
   busy: boolean;
   setBusy: (busy: boolean) => void;
-  /** Sends the checked name and leaves on success; rejects (an ApiError with a code) when refused. */
-  save: (name: string) => Promise<void>;
-  /** Under Save while saving can still help: the rename screen's Remove (brief 044). */
+  /** Sends the checked fields and leaves on success; rejects (an ApiError with a code) when refused. */
+  save: (fields: CategoryFields) => Promise<void>;
+  /** Under Save while saving can still help: the edit screen's Remove (brief 044). */
   children?: ReactNode;
 }) {
   const colors = useColors();
   const styles = useThemedStyles(makeStyles);
-  const [text, setText] = useState(current ?? '');
+  const [nameText, setNameText] = useState(current?.displayName ?? '');
+  const [amountText, setAmountText] = useState(current?.plannedEur ?? '');
   const [error, setError] = useState<string | null>(null);
-  // The month ended, or the renamed category left it, meanwhile: saving again can't help.
+  // The month ended, or the edited category left it, meanwhile: saving again can't help.
   const [gone, setGone] = useState(false);
   // `busy` disables the button only after a re-render; two presses in one tick would both get here.
   const inFlight = useRef(false);
+  const amountInput = useRef<TextInput>(null);
 
   // The alert role covers web; VoiceOver needs an explicit announcement.
   function showError(message: string) {
@@ -46,21 +59,25 @@ export function CategoryForm({
 
   async function submit() {
     if (inFlight.current || gone) return;
-    const name = normalizeName(text);
-    if (name === null) {
-      showError('A name needs 1 to 40 characters.');
+    const fields = checkFields(nameText, amountText, current);
+    if ('error' in fields) {
+      showError(fields.error);
       return;
     }
     inFlight.current = true;
     setBusy(true);
     setError(null);
     try {
-      await save(name);
+      await save(fields);
     } catch (err) {
       const code = err instanceof ApiError ? err.code : null;
+      // An over-income or name refusal leaves the fields editable, so a corrected save can still go through.
+      const overIncome = err instanceof ApiError ? overIncomeText(err.code, err.body) : null;
       setGone(code === 'month_ended' || (code === 'not_found' && current !== null));
       showError(
-        (code && nameRefusedText(code, name, month, current)) ?? 'Couldn’t save. Check your connection and try again.',
+        overIncome ??
+          (code && nameRefusedText(code, fields.name, month, current?.displayName ?? null)) ??
+          'Couldn’t save. Check your connection and try again.',
       );
       inFlight.current = false;
       setBusy(false);
@@ -68,24 +85,57 @@ export function CategoryForm({
   }
 
   return (
-    <ScrollView contentContainerStyle={styles.body} keyboardShouldPersistTaps="handled">
-      <Text style={styles.caption}>{caption}</Text>
+    <ScrollView
+      contentContainerStyle={styles.body}
+      keyboardShouldPersistTaps="handled"
+      // The number keyboard has no Return key, so Save has to stay reachable above it.
+      automaticallyAdjustKeyboardInsets
+    >
+      <Text style={styles.caption}>{`Only for ${monthName(month)}. Other months don’t change.`}</Text>
 
-      <TextInput
-        accessibilityLabel="Category name"
-        value={text}
-        onChangeText={(typed) => {
-          setText(typed);
-          setError(null);
-        }}
-        onSubmitEditing={submit}
-        autoFocus
-        autoCapitalize="none"
-        editable={!busy && !gone}
-        placeholder="Name"
-        placeholderTextColor={colors.faint}
-        style={styles.input}
-      />
+      <View style={styles.field}>
+        <Text style={styles.label}>Name</Text>
+        <TextInput
+          accessibilityLabel="Category name"
+          value={nameText}
+          onChangeText={(typed) => {
+            setNameText(typed);
+            setError(null);
+          }}
+          onSubmitEditing={() => amountInput.current?.focus()}
+          returnKeyType="next"
+          submitBehavior="submit"
+          autoFocus
+          autoCapitalize="none"
+          editable={!busy && !gone}
+          placeholder="Name"
+          placeholderTextColor={colors.faint}
+          style={styles.input}
+        />
+      </View>
+
+      <View style={styles.field}>
+        <Text style={styles.label}>Planned amount</Text>
+        <View>
+          <Text style={styles.symbol}>€</Text>
+          <TextInput
+            ref={amountInput}
+            accessibilityLabel="Planned amount in EUR"
+            value={amountText}
+            onChangeText={(typed) => {
+              setAmountText(typed);
+              setError(null);
+            }}
+            onSubmitEditing={submit}
+            keyboardType="decimal-pad"
+            selectTextOnFocus
+            editable={!busy && !gone}
+            placeholder="0.00"
+            placeholderTextColor={colors.faint}
+            style={[styles.input, styles.amount]}
+          />
+        </View>
+      </View>
 
       {error ? (
         <Text accessibilityRole="alert" style={styles.error}>
@@ -117,6 +167,17 @@ const makeStyles = (colors: Palette) =>
   StyleSheet.create({
     body: { gap: 16, paddingTop: 16, paddingBottom: 40 },
     caption: { fontFamily: fonts.body, fontSize: 14, color: colors.muted },
+    field: { gap: 6 },
+    label: { fontFamily: fonts.bodySemi, fontSize: 13, color: colors.muted },
+    symbol: {
+      position: 'absolute',
+      left: 14,
+      top: 13,
+      zIndex: 1,
+      fontFamily: fonts.body,
+      fontSize: 16,
+      color: colors.muted,
+    },
     input: {
       height: 48,
       borderRadius: 14,
@@ -128,6 +189,7 @@ const makeStyles = (colors: Palette) =>
       fontFamily: fonts.bodyMedium,
       fontSize: 16,
     },
+    amount: { paddingLeft: 32, fontVariant: ['tabular-nums'] },
     error: { fontFamily: fonts.bodyMedium, fontSize: 13, color: colors.over },
     primary: {
       minHeight: 56,

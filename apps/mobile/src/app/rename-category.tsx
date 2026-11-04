@@ -7,14 +7,15 @@ import { useSession } from '@/auth/AuthContext';
 import { closeToBudget } from '@/closeToBudget';
 import { CategoryInMonth } from '@/components/CategoryInMonth';
 import { CategoryForm } from '@/components/CategoryForm';
-import { renameInMonth } from '@/data/categories';
+import { editInMonth } from '@/data/categories';
+import { changedFields } from '@/data/categoryForm';
 import { useCategoryTotals } from '@/data/useCategoryTotals';
 import { kyivMonth, monthName } from '@/format';
 import { parseIdParam, parseMonthParam } from '@/linkParams';
 import { usePushOnce } from '@/pushOnce';
 import { dangerText, fonts, type Palette } from '@/theme';
 
-/** Renames a category in one month only (brief 040): `/rename-category?categoryId=4&month=2026-10`. */
+/** Edits a category's name and planned amount in one month only (brief 065): `/rename-category?categoryId=4&month=2026-10`. */
 export default function RenameCategoryScreen() {
   const styles = useThemedStyles(makeStyles);
   const params = useLocalSearchParams<{ categoryId?: string | string[]; month?: string | string[] }>();
@@ -41,7 +42,7 @@ export default function RenameCategoryScreen() {
         >
           <Text style={styles.cancelText}>Cancel</Text>
         </Pressable>
-        <Text style={styles.title}>Rename category</Text>
+        <Text style={styles.title}>Edit category</Text>
         <View style={{ width: 52 }} />
       </View>
 
@@ -49,12 +50,12 @@ export default function RenameCategoryScreen() {
         {(category, month) => (
           <CategoryForm
             month={month}
-            current={category.displayName}
-            caption={`Only for ${monthName(month)}. Other months keep their names.`}
+            current={category}
             busy={busy}
             setBusy={setBusy}
-            save={async (name) => {
-              await renameInMonth(ledger.ledgerId, category.categoryId, month, name);
+            save={async (fields) => {
+              const changes = changedFields(fields, category);
+              if (Object.keys(changes).length) await editInMonth(ledger.ledgerId, category.categoryId, month, changes);
               closeToBudget(month);
             }}
           >

@@ -5,7 +5,6 @@ import {
   ActivityIndicator,
   KeyboardAvoidingView,
   Platform,
-  Pressable,
   ScrollView,
   StyleSheet,
   Text,
@@ -21,6 +20,7 @@ import { CategoryPicker } from '@/components/CategoryPicker';
 import { DateChips } from '@/components/DateChips';
 import { Icon } from '@/components/Icon';
 import { LoadError } from '@/components/LoadError';
+import { Pressable } from '@/components/Pressable';
 import { TabBar } from '@/components/TabBar';
 import { TextField } from '@/components/TextField';
 import { expenseLocked, firstOpenDate } from '@/data/expenseLock';

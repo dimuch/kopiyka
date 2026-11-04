@@ -1,6 +1,6 @@
 import { Stack, useLocalSearchParams } from 'expo-router';
 import { useState } from 'react';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useThemedStyles } from '@/appearance/AppearanceContext';
 import { useSession } from '@/auth/AuthContext';
@@ -8,6 +8,7 @@ import { closeToBudget } from '@/closeToBudget';
 import { CategoryForm } from '@/components/CategoryForm';
 import { CategoryInMonth } from '@/components/CategoryInMonth';
 import { LoadError } from '@/components/LoadError';
+import { Pressable } from '@/components/Pressable';
 import { addToMonth, editInMonth } from '@/data/categories';
 import { changedFields } from '@/data/categoryForm';
 import { useCategoryTotals } from '@/data/useCategoryTotals';

@@ -1,6 +1,6 @@
 import { type Href, router } from 'expo-router';
 import { useState } from 'react';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useColors, useThemedStyles } from '@/appearance/AppearanceContext';
 import { useSession } from '@/auth/AuthContext';
@@ -8,6 +8,7 @@ import { Icon, type IconName } from '@/components/Icon';
 import { LoadError } from '@/components/LoadError';
 import { NotionSyncPanel } from '@/components/NotionSyncPanel';
 import { PendingInvites } from '@/components/PendingInvites';
+import { Pressable } from '@/components/Pressable';
 import { UndoToast } from '@/components/UndoToast';
 import { useInvites } from '@/data/invites';
 import { expenseCount, incomeCents, plannedCents, sumCents } from '@/data/monthSummary';

@@ -1,10 +1,11 @@
 import { useFocusEffect } from 'expo-router';
-import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useColors, useThemedStyles } from '@/appearance/AppearanceContext';
 import { useAuth } from '@/auth/AuthContext';
 import { LoadError } from '@/components/LoadError';
 import { PendingInvites } from '@/components/PendingInvites';
+import { Pressable } from '@/components/Pressable';
 import { useInvites } from '@/data/invites';
 import { fonts, outlinedDangerButton, outlinedDangerText, type Palette } from '@/theme';
 

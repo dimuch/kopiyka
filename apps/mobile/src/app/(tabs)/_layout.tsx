@@ -1,7 +1,9 @@
 import { Tabs } from 'expo-router/js-tabs';
+import { PlatformPressable } from 'expo-router/react-navigation';
 import { Platform } from 'react-native';
 import { useColors } from '@/appearance/AppearanceContext';
 import { Icon } from '@/components/Icon';
+import { pressedOpacity } from '@/components/Pressable';
 import { useInvites } from '@/data/invites';
 import { TABS, tabBadge } from '@/tabs';
 
@@ -20,6 +22,8 @@ export default function TabsLayout() {
         tabBarInactiveTintColor: colors.muted,
         tabBarStyle: { backgroundColor: colors.bg, borderTopColor: colors.border },
         sceneStyle: { backgroundColor: colors.bg },
+        // The library's tabs don't dim by default.
+        tabBarButton: (props) => <PlatformPressable {...props} pressOpacity={pressedOpacity} />,
       }}
     >
       {TABS.map((tab) => {

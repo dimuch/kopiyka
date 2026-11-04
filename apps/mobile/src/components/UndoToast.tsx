@@ -1,5 +1,6 @@
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, Text, View } from 'react-native';
 import { useThemedStyles } from '@/appearance/AppearanceContext';
+import { Pressable } from '@/components/Pressable';
 import type { UndoOffer } from '@/data/undo';
 import { fonts, type Palette } from '@/theme';
 

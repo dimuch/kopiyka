@@ -1,9 +1,10 @@
-import { Modal, Pressable, StyleSheet, Text, View } from 'react-native';
+import { Modal, StyleSheet, Text, View } from 'react-native';
 import type { Category } from '@/api/types';
 import { useColors, useThemedStyles } from '@/appearance/AppearanceContext';
 import { CategoryTile } from '@/components/CategoryTile';
 import { Icon } from '@/components/Icon';
 import { PhoneColumn } from '@/components/PhoneColumn';
+import { Pressable } from '@/components/Pressable';
 import { fonts, type Palette } from '@/theme';
 
 interface Props {

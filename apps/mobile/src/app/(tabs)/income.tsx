@@ -1,6 +1,6 @@
 import { router, useLocalSearchParams } from 'expo-router';
 import { useRef, useState } from 'react';
-import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { ApiError } from '@/api/client';
 import type { IncomeItem } from '@/api/types';
@@ -11,6 +11,7 @@ import { HomeButton } from '@/components/HomeButton';
 import { Icon } from '@/components/Icon';
 import { LoadError } from '@/components/LoadError';
 import { MonthSwitcher } from '@/components/MonthSwitcher';
+import { Pressable } from '@/components/Pressable';
 import { copyPreviousIncome } from '@/data/income';
 import { copyRefusedText } from '@/data/monthCopy';
 import { incomeCents } from '@/data/monthSummary';

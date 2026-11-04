@@ -1,6 +1,7 @@
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, Text, View } from 'react-native';
 import { useThemedStyles } from '@/appearance/AppearanceContext';
 import type { ThemePreference } from '@/appearance/preference';
+import { Pressable } from '@/components/Pressable';
 import { fonts, type Palette } from '@/theme';
 
 const OPTIONS: { value: ThemePreference; label: string }[] = [

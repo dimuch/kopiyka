@@ -95,7 +95,7 @@ shows one line. It overlaps glyphs on buttons with no side padding, so those get
   - Verify: Tab through the screens under AC2 in both themes: one ring per stop, none clipped, none on mouse click.
     Check that the ring clears the text on NotionSyncPanel's `retry` (minWidth 44, no side padding).
 
-- [ ] 3. Dim buttons and rows while pressed (~90 lines, almost all import lines)
+- [x] 3. Dim buttons and rows while pressed (~90 lines, almost all import lines)
   - Files: new `components/Pressable.tsx`; import swap in the 29 files with Pressables except `PhoneColumn`;
     `app/(tabs)/_layout.tsx`.
   - Change: `tabBarButton: (props) => <PlatformPressable {...props} pressOpacity={pressedOpacity} />` in `screenOptions`.

@@ -6,15 +6,8 @@ import { useColors, useThemedStyles } from '@/appearance/AppearanceContext';
 import { useAuth } from '@/auth/AuthContext';
 import { Pressable } from '@/components/Pressable';
 import { TextField } from '@/components/TextField';
+import { loginErrorText } from '@/data/loginError';
 import { fonts, type Palette } from '@/theme';
-
-function errorText(err: unknown): string {
-  if (err instanceof ApiError) {
-    if (err.code === 'invalid_credentials' || err.code === 'invalid_request') return 'Wrong username or password.';
-    if (err.code === 'blocked') return 'Too many wrong passwords. Sign-in is blocked for 24 hours.';
-  }
-  return 'Can’t reach the server. Check your connection and try again.';
-}
 
 export default function Login() {
   const colors = useColors();
@@ -34,7 +27,7 @@ export default function Login() {
     try {
       await login(username.trim(), password);
     } catch (err) {
-      setError(errorText(err));
+      setError(loginErrorText(err instanceof ApiError ? err.code : null));
       setPassword('');
     } finally {
       setBusy(false);

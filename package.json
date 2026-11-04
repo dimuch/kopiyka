@@ -11,6 +11,7 @@
   "scripts": {
     "api": "yarn workspace @kopiyka/api",
     "mobile": "yarn workspace @kopiyka/mobile",
+    "mcp": "yarn workspace @kopiyka/mcp",
     "typecheck": "yarn workspaces foreach -A run typecheck",
     "test": "yarn workspaces foreach -A run test",
     "lint": "yarn workspaces foreach -A run lint",

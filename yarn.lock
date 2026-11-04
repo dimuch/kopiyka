@@ -1882,6 +1882,22 @@ __metadata:
   languageName: unknown
   linkType: soft
 
+"@kopiyka/mcp@workspace:apps/mcp":
+  version: 0.0.0-use.local
+  resolution: "@kopiyka/mcp@workspace:apps/mcp"
+  dependencies:
+    "@eslint/js": "npm:^9"
+    "@types/node": "npm:^24.0.0"
+    eslint: "npm:^9"
+    eslint-config-prettier: "npm:^10.1.8"
+    globals: "npm:^17.13.0"
+    tsx: "npm:^4.23.15"
+    typescript: "npm:~6.0.3"
+    typescript-eslint: "npm:^8.71.1"
+    vitest: "npm:^4.0.0"
+  languageName: unknown
+  linkType: soft
+
 "@kopiyka/mobile@workspace:apps/mobile":
   version: 0.0.0-use.local
   resolution: "@kopiyka/mobile@workspace:apps/mobile"

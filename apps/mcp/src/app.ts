@@ -7,6 +7,7 @@ import { mcpRoutes } from './mcp/routes.js';
 import { authorizeRoutes } from './oauth/authorize.js';
 import { metadataRoutes } from './oauth/metadata.js';
 import { registerRoutes } from './oauth/register.js';
+import { signInRoutes } from './oauth/signIn.js';
 
 export interface AppDeps {
   config: Config;
@@ -79,6 +80,14 @@ export async function buildApp(deps: AppDeps): Promise<FastifyInstance> {
   await metadataRoutes(app, deps);
   await registerRoutes(app, deps);
   await authorizeRoutes(app, deps);
+  // Only forms in here, so `/mcp` keeps refusing them and these routes refuse JSON.
+  await app.register(async (forms) => {
+    forms.removeAllContentTypeParsers();
+    forms.addContentTypeParser('application/x-www-form-urlencoded', { parseAs: 'string' }, (_req, body, done) => {
+      done(null, Object.fromEntries(new URLSearchParams(body as string)));
+    });
+    await signInRoutes(forms, deps);
+  });
 
   return app;
 }

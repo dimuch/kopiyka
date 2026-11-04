@@ -28,7 +28,7 @@ export interface AuthorizationRequest {
   clientName: string;
   redirectUri: string;
   codeChallenge: string;
-  state?: string;
+  state: string;
 }
 
 /** `redirectUri` with an authorization response on it, including `iss` as RFC 9207 asks. */
@@ -36,7 +36,7 @@ export function authorizationResponse(
   redirectUri: string,
   issuer: string,
   params: Record<string, string>,
-  state: string | undefined,
+  state?: string,
 ): string {
   const url = new URL(redirectUri);
   for (const [name, value] of Object.entries(params)) url.searchParams.set(name, value);
@@ -89,7 +89,7 @@ export async function authorizeRoutes(app: FastifyInstance, { config, now }: App
       clientName: client.clientName,
       redirectUri,
       codeChallenge: query.code_challenge!,
-      state: query.state,
+      state: query.state!,
     };
     return sendPage(
       reply,

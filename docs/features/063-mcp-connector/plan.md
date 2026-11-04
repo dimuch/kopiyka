@@ -628,7 +628,7 @@ frame-ancestors 'none'; base-uri 'none'` and `Cache-Control: no-store`.
 
 ### PR 063e: TOTP sign-in, consent and the token endpoint (`apps/mcp`)
 
-- [ ] 13. Sign in with a TOTP code and confirm which ledgers the connector reads
+- [x] 13. Sign in with a TOTP code and confirm which ledgers the connector reads
   - Files: `apps/mcp/src/oauth/authorize.ts` (POST authorize, POST consent), `apps/mcp/src/oauth/pages.ts`,
     `apps/mcp/test/signIn.test.ts`
   - Change: as in Contracts. Always build a redirect with `authorizationResponse`, never from the raw `redirect_uri`.
@@ -1090,6 +1090,7 @@ Also:
 
 ## Deviations
 
+- slice 13: the POST routes live in a new `oauth/signIn.ts`, not `authorize.ts`. The form parser sits in a Fastify scope around them, so `/mcp` keeps answering 415 to forms and these routes refuse JSON with no extra check. API failures answer 502; an expired sign-in or a second Allow answers 400.
 - slice 12b, checked in the browser at 390×844 with a 252-character hostname: the sign-in and fault pages wrap it fully, nothing overflows, the fault page answers 400 with no refresh, and the CSP reports no violation. That hostname has hyphens, which help it wrap; `overflow-wrap: anywhere` covers the case without them.
 - slice 12: the fault page is built here, not in 12a, so no commit on main ever has the 302. `.claude/launch.json` gets an `mcp` entry, to see the pages run. A parameter sent twice counts as an untrusted request (400 page).
 - slice 11: the form body parser moves to slice 13, its first user, so `/mcp` keeps answering 415 to forms until then. `test/helpers.ts` holds the test config for the OAuth tests.

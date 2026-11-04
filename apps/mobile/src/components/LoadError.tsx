@@ -28,6 +28,6 @@ const makeStyles = (colors: Palette) =>
   StyleSheet.create({
     box: { gap: 4, paddingVertical: 12 },
     message: { fontFamily: fonts.body, fontSize: 14, color: colors.muted },
-    retry: { minHeight: 44, justifyContent: 'center', alignSelf: 'flex-start' },
+    retry: { minHeight: 44, justifyContent: 'center', alignSelf: 'flex-start', paddingHorizontal: 8 },
     retryText: { fontFamily: fonts.bodySemi, fontSize: 15, color: colors.accent },
   });

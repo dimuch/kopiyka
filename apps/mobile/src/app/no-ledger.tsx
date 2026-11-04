@@ -60,7 +60,7 @@ const makeStyles = (colors: Palette) =>
     },
     title: { fontFamily: fonts.display, fontSize: 28, color: colors.text, letterSpacing: -0.4 },
     text: { fontFamily: fonts.body, fontSize: 15, color: colors.muted },
-    check: { minHeight: 44, justifyContent: 'center', alignSelf: 'flex-start' },
+    check: { minHeight: 44, justifyContent: 'center', alignSelf: 'flex-start', marginLeft: -8, paddingHorizontal: 8 },
     checkText: { fontFamily: fonts.bodySemi, fontSize: 15, color: colors.accent },
     signOut: outlinedDangerButton(colors),
     signOutText: outlinedDangerText(colors),

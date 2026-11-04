@@ -401,7 +401,7 @@ const makeStyles = (colors: Palette) => {
     page: { flex: 1, backgroundColor: colors.bg },
     screen: { flex: 1, backgroundColor: colors.bg, paddingHorizontal: 20, paddingTop: 8 },
     header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 },
-    back: { height: 44, justifyContent: 'center' },
+    back: { height: 44, justifyContent: 'center', marginLeft: -8, paddingHorizontal: 8 },
     backText: { fontFamily: fonts.bodyMedium, fontSize: 15, color: colors.muted },
     title: { fontFamily: fonts.display, fontSize: 18, color: colors.text },
     form: { gap: 22, paddingBottom: 40 },

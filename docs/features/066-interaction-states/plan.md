@@ -86,7 +86,7 @@ shows one line. It overlaps glyphs on buttons with no side padding, so those get
     symbol stays in place, and blur restores the border. `income-item` and `category-form` open with the autofocused
     field already accent.
 
-- [ ] 2. Show one accent ring on keyboard focus on web (~12 lines)
+- [x] 2. Show one accent ring on keyboard focus on web (~12 lines)
   - Files: `components/FocusStyles.tsx`; `app/expense.tsx`, `components/LoadError.tsx`, `app/no-ledger.tsx`.
   - Change: add `:not(input):focus-visible { outline: 2px solid <accent>; outline-offset: -2px; box-shadow: inset 0 0 0 4px <bg>; }`.
     Add `marginLeft: -8, paddingHorizontal: 8` to `back` and `check`, so the text doesn't move and the ring clears it.

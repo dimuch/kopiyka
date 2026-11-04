@@ -1,7 +1,7 @@
 import { McpServer, type CallToolResult } from '@modelcontextprotocol/server';
 import { z } from 'zod';
 import { ApiError } from '../api.js';
-import { eur, toCents } from '../money.js';
+import { eur, toCents, uah } from '../money.js';
 import { monthSummary, sumCents, type ApiCategory } from './summary.js';
 
 interface ApiLedgers {
@@ -10,8 +10,20 @@ interface ApiLedgers {
 }
 
 interface ApiExpense {
+  expenseId: number;
   categoryId: number;
+  expenseDate: string;
+  name: string;
   amountEur: string;
+  amountUah: string;
+  eurUahRate: string;
+  enteredCurrency: string;
+}
+
+interface ApiRate {
+  date: string;
+  rateDate: string;
+  eurUah: number;
 }
 
 interface ApiIncomeItem {
@@ -20,6 +32,9 @@ interface ApiIncomeItem {
   amountEur: string;
   addedBy: string;
 }
+
+const DEFAULT_PAGE_SIZE = 25;
+const MAX_PAGE_SIZE = 50;
 
 const LedgerMonth = {
   ledgerId: z.number().int().positive().describe('A ledgerId from list_ledgers'),
@@ -32,6 +47,8 @@ const LedgerMonth = {
 /** What one `/mcp` request may do: read as its user, and spend that user's tool calls. */
 export interface RequestScope {
   read<T>(path: string): Promise<T>;
+  /** Today in Kyiv, as 'YYYY-MM-DD'. */
+  today(): string;
   /** Takes one tool call: 0 when allowed, otherwise the seconds until one is free. */
   takeToolCall(tool: string): number;
 }
@@ -128,6 +145,64 @@ export function buildServer(scope: RequestScope): McpServer {
             addedBy,
           })),
         };
+      }),
+  );
+
+  server.registerTool(
+    'list_expenses',
+    {
+      description:
+        'Lists one month’s expenses in a ledger, newest first, one page at a time. When nextOffset is a number, ' +
+        'call again with it as offset for the next page. Amounts are in EUR and UAH. Months are YYYY-MM.',
+      inputSchema: {
+        ...LedgerMonth,
+        categoryId: z.number().int().positive().optional().describe('Only this category, from month_summary'),
+        offset: z.number().int().min(0).default(0),
+        limit: z.number().int().min(1).max(MAX_PAGE_SIZE).default(DEFAULT_PAGE_SIZE),
+      },
+      annotations: { readOnlyHint: true },
+    },
+    ({ ledgerId, month, categoryId, offset, limit }) =>
+      toolResult(scope, 'list_expenses', async () => {
+        const inCategory = categoryId ? `&categoryId=${categoryId}` : '';
+        const [{ expenses }, { categories }] = await Promise.all([
+          scope.read<{ expenses: ApiExpense[] }>(`/api/ledgers/${ledgerId}/expenses?month=${month}${inCategory}`),
+          scope.read<{ categories: ApiCategory[] }>(`/api/ledgers/${ledgerId}/categories?month=${month}`),
+        ]);
+        const names = new Map(categories.map((category) => [category.categoryId, category.displayName]));
+        const end = offset + limit;
+        return {
+          ledgerId,
+          month,
+          total: expenses.length,
+          offset,
+          limit,
+          nextOffset: end < expenses.length ? end : null,
+          expenses: expenses.slice(offset, end).map((expense) => ({
+            expenseId: expense.expenseId,
+            date: expense.expenseDate,
+            name: expense.name,
+            categoryId: expense.categoryId,
+            categoryName: names.get(expense.categoryId),
+            amountEur: eur(toCents(expense.amountEur)),
+            amountUah: uah(toCents(expense.amountUah)),
+            enteredCurrency: expense.enteredCurrency,
+            eurUahRate: expense.eurUahRate,
+          })),
+        };
+      }),
+  );
+
+  server.registerTool(
+    'eur_uah_rate',
+    {
+      description: 'Gives today’s EUR to UAH rate from the National Bank of Ukraine, and the date it was published.',
+      annotations: { readOnlyHint: true },
+    },
+    () =>
+      toolResult(scope, 'eur_uah_rate', async () => {
+        const { date, rateDate, eurUah } = await scope.read<ApiRate>(`/api/rates/eur-uah?date=${scope.today()}`);
+        return { date, rateDate, eurUah, formatted: `1 EUR = ${eurUah.toFixed(4)} UAH` };
       }),
   );
 

@@ -10,6 +10,7 @@ import {
 import type { FastifyInstance, FastifyReply, FastifyRequest } from 'fastify';
 import { ApiError, apiClient } from '../api.js';
 import type { AppDeps } from '../app.js';
+import { kyivToday } from '../dates.js';
 import { DEFAULT_LIMITS, openRequests, toolCallBuckets } from '../limits.js';
 import { verifyAccessToken } from './auth.js';
 import { buildServer } from './tools.js';
@@ -40,6 +41,7 @@ export async function mcpRoutes(app: FastifyInstance, deps: AppDeps): Promise<vo
     ({ authInfo, requestInfo }) =>
       buildServer({
         read: (path) => api.get(path, authInfo!.token, requestInfo?.signal),
+        today: () => kyivToday(now()),
         takeToolCall: (tool) => {
           const waitSeconds = toolCalls.take(tokenKey(authInfo!.token));
           if (waitSeconds > 0) app.log.warn({ tool }, 'tool call rate limited');

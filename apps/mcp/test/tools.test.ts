@@ -49,6 +49,7 @@ describe('the budget tools', () => {
   let app: FastifyInstance;
   let answer: (call: RecordedCall) => Answer;
   let api: ReturnType<typeof fakeApi>;
+  let clock: Date;
 
   const callTool = (name: string, args: object, apiToken = 'kpk.olena') =>
     app
@@ -71,8 +72,9 @@ describe('the budget tools', () => {
 
   beforeEach(async () => {
     answer = ledgerOne;
+    clock = new Date();
     api = fakeApi((call) => answer(call));
-    app = await buildApp({ config, now: () => new Date(), fetch: api.fetch });
+    app = await buildApp({ config, now: () => clock, fetch: api.fetch, limits: { toolCallBurst: 100 } });
   });
 
   afterEach(async () => {
@@ -148,6 +150,121 @@ describe('the budget tools', () => {
       const result = await callTool('list_income', { ledgerId: 2, month: '2026-10' });
 
       expect(result.content[0].text).toBe('ledger_not_found');
+    });
+  });
+
+  describe('list_expenses', () => {
+    const expense = (expenseId: number) => ({
+      expenseId,
+      categoryId: 7,
+      expenseDate: '2026-10-05',
+      name: `Item ${expenseId}`,
+      amountEur: '12.50',
+      amountUah: '631.04',
+      eurUahRate: '50.4830',
+      enteredCurrency: 'EUR',
+      createdBy: 1,
+      createdAt: '2026-10-05T10:00:00.000Z',
+      updatedAt: '2026-10-05T10:00:00.000Z',
+    });
+    const sixty = Array.from({ length: 60 }, (_item, index) => expense(index + 1));
+
+    beforeEach(() => {
+      answer = (call) =>
+        call.path.startsWith('/api/ledgers/1/expenses') ? { json: { expenses: sixty } } : ledgerOne(call);
+    });
+
+    const ids = (data: { expenses: { expenseId: number }[] }) => data.expenses.map(({ expenseId }) => expenseId);
+
+    it('gives the first page and says where the next starts', async () => {
+      const data = toolData(await callTool('list_expenses', { ledgerId: 1, month: '2026-10' }));
+
+      expect(data).toMatchObject({ ledgerId: 1, month: '2026-10', total: 60, offset: 0, limit: 25, nextOffset: 25 });
+      expect(ids(data)).toEqual(sixty.slice(0, 25).map(({ expenseId }) => expenseId));
+    });
+
+    it('says there’s no next page at the end', async () => {
+      const data = toolData(await callTool('list_expenses', { ledgerId: 1, month: '2026-10', offset: 50 }));
+
+      expect(data).toMatchObject({ offset: 50, nextOffset: null });
+      expect(ids(data)).toEqual(sixty.slice(50).map(({ expenseId }) => expenseId));
+    });
+
+    it('gives an empty page past the end', async () => {
+      const data = toolData(await callTool('list_expenses', { ledgerId: 1, month: '2026-10', offset: 60 }));
+
+      expect(data).toMatchObject({ total: 60, nextOffset: null, expenses: [] });
+    });
+
+    it('shapes each expense, with its category’s name', async () => {
+      const data = toolData(await callTool('list_expenses', { ledgerId: 1, month: '2026-10', limit: 1 }));
+
+      expect(data.expenses).toEqual([
+        {
+          expenseId: 1,
+          date: '2026-10-05',
+          name: 'Item 1',
+          categoryId: 7,
+          categoryName: 'Food',
+          amountEur: { amount: '12.50', formatted: '€12.50' },
+          amountUah: { amount: '631.04', formatted: '₴631.04' },
+          enteredCurrency: 'EUR',
+          eurUahRate: '50.4830',
+        },
+      ]);
+    });
+
+    it.each([{ limit: 51 }, { limit: 0 }, { offset: -1 }])('refuses %j', async (args) => {
+      const result = await callTool('list_expenses', { ledgerId: 1, month: '2026-10', ...args });
+
+      expect(result.isError).toBe(true);
+    });
+
+    it('passes a category on to the API', async () => {
+      await callTool('list_expenses', { ledgerId: 1, month: '2026-10', categoryId: 7 });
+
+      expect(api.calls.map((call) => call.path)).toContain('/api/ledgers/1/expenses?month=2026-10&categoryId=7');
+    });
+
+    it('answers ledger_not_found for someone else’s ledger', async () => {
+      const result = await callTool('list_expenses', { ledgerId: 2, month: '2026-10' });
+
+      expect(result.content[0].text).toBe('ledger_not_found');
+    });
+  });
+
+  describe('eur_uah_rate', () => {
+    beforeEach(() => {
+      answer = (call) =>
+        call.path.startsWith('/api/rates/')
+          ? { json: { date: '2026-11-03', rateDate: '2026-11-02', eurUah: 50.483 } }
+          : ledgerOne(call);
+    });
+
+    it('asks for today in Kyiv and spells the rate out', async () => {
+      clock = new Date('2026-11-02T22:30:00Z');
+      // The bearer check compares its expiry with the real clock, so only the tool's date is moved.
+      const data = toolData(await callTool('eur_uah_rate', {}));
+
+      expect(api.calls.map((call) => call.path)).toContain('/api/rates/eur-uah?date=2026-11-03');
+      expect(data).toEqual({
+        date: '2026-11-03',
+        rateDate: '2026-11-02',
+        eurUah: 50.483,
+        formatted: '1 EUR = 50.4830 UAH',
+      });
+    });
+
+    it('reports a rate the API can’t get', async () => {
+      answer = (call) =>
+        call.path.startsWith('/api/rates/')
+          ? { status: 503, json: { error: 'rate_unavailable', reason: 'nbu_unreachable' } }
+          : ledgerOne(call);
+
+      const result = await callTool('eur_uah_rate', {});
+
+      expect(result.isError).toBe(true);
+      expect(result.content[0].text).toBe('rate_unavailable');
     });
   });
 });

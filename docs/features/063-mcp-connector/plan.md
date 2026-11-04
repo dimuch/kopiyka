@@ -444,7 +444,7 @@ now());` goes before the session lookup. `apiTokenAuth` looks the hash up live (
     - tools: ledger B with A's token → `isError` containing `ledger_not_found`; month `2026-13` → validation
       `isError`; `list_income` totals.
   - ~150 lines
-- [ ] 10. Add list_expenses with pages and eur_uah_rate
+- [x] 10. Add list_expenses with pages and eur_uah_rate
   - Files: `apps/mcp/src/dates.ts` (`kyivToday`), `apps/mcp/src/mcp/tools.ts`, `apps/mcp/test/{dates.test.ts,tools.test.ts}`
   - Change: the two tools as in Contracts. `list_expenses` adds `categoryName` from the month's categories.
   - Tests:

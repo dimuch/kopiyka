@@ -361,7 +361,7 @@ now());` goes before the session lookup. `apiTokenAuth` looks the hash up live (
   - Tests: config: defaults; production with an `http://` `PUBLIC_URL` → throws; `PUBLIC_URL` with a path → throws;
     a short seal key → throws. app: an unknown path → 404 `{ error: 'not_found' }`.
   - ~110 lines
-- [ ] 5. Seal short-lived OAuth values with AES-256-GCM
+- [x] 5. Seal short-lived OAuth values with AES-256-GCM
   - Files: `apps/mcp/src/seal.ts`, `apps/mcp/test/seal.test.ts`
   - Change: `seal(key, typ, payload, expMs)` gives base64url of iv | tag | ciphertext of `{typ, exp, …}`.
     `open(key, typ, text, now)` returns the payload or null.

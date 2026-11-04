@@ -490,8 +490,8 @@ describe.skipIf(!(await testDbReachable()))('income items (MySQL)', () => {
       expect((await edit(itemB, { title: 'Freelance', amount: '50' })).statusCode).toBe(204);
       const [raise, cut] = await Promise.all([
         app.inject({
-          method: 'PUT',
-          url: `/api/ledgers/${owner.ledgerId}/categories/${await categoryId('groceries')}/months/2026-11/planned`,
+          method: 'PATCH',
+          url: `/api/ledgers/${owner.ledgerId}/categories/${await categoryId('groceries')}/months/2026-11`,
           payload: { amount: '50' },
           headers: memberAuth,
         }),

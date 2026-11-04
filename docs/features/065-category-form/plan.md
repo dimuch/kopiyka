@@ -172,7 +172,7 @@ Estimates are lines added/deleted, tests included. Total: about +530/−530, net
   - Verify: `rg -n "add-category|rename-category|planned-amount" apps` finds nothing. Web and iPhone: "+", pencil, Remove
     with warning and Undo. `/category-form?month=<ended>&categoryId=<id>` shows no Remove;
     `?categoryId=abc&month=2026-11` says the link isn't valid.
-- [ ] 8. Remove the separate rename and planned routes (+30/−95)
+- [x] 8. Remove the separate rename and planned routes (+30/−95)
   - Files: `routes.ts`, `apps/api/test/categories.int.test.ts`, `apps/api/test/income.int.test.ts`, `apps/api/test/members.int.test.ts`
   - Change: delete both PUT handlers and their schemas. `plan` and `rename` become calls to `edit`, and the raw URLs in
     the three test files move to PATCH.

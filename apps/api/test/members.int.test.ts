@@ -80,8 +80,8 @@ describe.skipIf(!(await testDbReachable()))('a member of a shared ledger (MySQL)
     const groceries = memberView.categories.find((c: { techName: string }) => c.techName === 'groceries').categoryId;
 
     const planned = await app.inject({
-      method: 'PUT',
-      url: ledgerUrl(`/categories/${groceries}/months/2026-10/planned`),
+      method: 'PATCH',
+      url: ledgerUrl(`/categories/${groceries}/months/2026-10`),
       payload: { amount: '300.00' },
       headers: memberAuth,
     });

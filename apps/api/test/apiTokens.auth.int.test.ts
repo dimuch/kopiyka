@@ -133,6 +133,31 @@ describe.skipIf(!(await testDbReachable()))('API tokens in requireAuth (MySQL)',
     expect(res.json()).toEqual({ error: 'insufficient_scope' });
   });
 
+  it('answers 401, not 403, to a write with an expired token', async () => {
+    const token = await issueToken(user.userId);
+    clock = minutesAfterT(61);
+
+    const res = await app.inject({
+      method: 'POST',
+      url: `/api/ledgers/${user.ledgerId}/expenses`,
+      headers: bearer(token),
+      payload: {},
+    });
+
+    expect(res.statusCode).toBe(401);
+    expect(res.json()).toEqual({ error: 'unauthorized' });
+  });
+
+  it('allows HEAD like GET', async () => {
+    const res = await app.inject({
+      method: 'HEAD',
+      url: '/api/ledgers',
+      headers: bearer(await issueToken(user.userId)),
+    });
+
+    expect(res.statusCode).toBe(200);
+  });
+
   it('treats the token as an unknown session when the switch is off', async () => {
     const switchedOff = await buildApp({ config: testConfig(), db, now: () => clock, fetchRate: offlineRates });
     try {

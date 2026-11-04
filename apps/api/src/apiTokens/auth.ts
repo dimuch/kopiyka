@@ -6,7 +6,7 @@ import type { Db } from '../db.js';
 /** A session token is base64url, which has no `.`, so the two kinds of token can't be mistaken for each other. */
 export const API_TOKEN_PREFIX = 'kpk.';
 
-/** `requireAuth` for an API token: reads only, so even a compromised MCP server can't change anything. */
+/** `requireAuth` for an API token: GET and HEAD only, so even a compromised MCP server can't change a user's data. */
 export async function apiTokenAuth(
   db: Db,
   req: FastifyRequest,

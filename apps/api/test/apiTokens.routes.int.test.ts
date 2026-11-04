@@ -81,6 +81,27 @@ describe.skipIf(!(await testDbReachable()))('API token routes (MySQL)', () => {
       expect((await list(bearer(body.token))).json().tokens[0].label).toBe('Claude');
     });
 
+    it('uses the configured lifetime', async () => {
+      const longer = await buildApp({
+        config: { ...config, apiTokens: { ttlMinutes: 90 } },
+        db,
+        now: () => clock,
+        fetchRate: offlineRates,
+      });
+      try {
+        const res = await longer.inject({
+          method: 'POST',
+          url: '/api/api-tokens',
+          headers: await authHeader(longer, user, clock),
+          payload: {},
+        });
+
+        expect(res.json().expiresAt).toBe(minutesAfterT(90).toISOString());
+      } finally {
+        await longer.close();
+      }
+    });
+
     it('stores only the hash', async () => {
       const { token } = await issue(user);
 
@@ -174,6 +195,10 @@ describe.skipIf(!(await testDbReachable()))('API token routes (MySQL)', () => {
       expect(res.statusCode).toBe(404);
       expect(res.json()).toEqual({ error: 'not_found' });
       expect((await listLedgers(bearer(token))).statusCode).toBe(200);
+    });
+
+    it('needs auth', async () => {
+      expect((await revoke({}, 1)).statusCode).toBe(401);
     });
 
     it('refuses a bad id, and an API token, even its own', async () => {

@@ -9,8 +9,7 @@ interface ApiLedgers {
 /** Runs a tool, handing an API error to the LLM as a result it can read rather than a protocol failure. */
 async function toolResult(read: () => Promise<Record<string, unknown>>): Promise<CallToolResult> {
   try {
-    const data = await read();
-    return { content: [{ type: 'text', text: JSON.stringify(data) }], structuredContent: data };
+    return { content: [{ type: 'text', text: JSON.stringify(await read()) }] };
   } catch (err) {
     if (err instanceof ApiError) return { content: [{ type: 'text', text: err.code }], isError: true };
     throw err;

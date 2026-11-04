@@ -38,7 +38,7 @@ export default function Budget() {
   // A missing or malformed month opens the current one.
   const month = parseMonthParam(params.month) ?? thisMonth;
   const { data, error, reload } = useMonth(ledger.ledgerId, month);
-  // A removal started from this tab's category screen comes back here with its Undo (brief 044).
+  // A removal started from this tab's category form comes back here with its Undo (brief 044).
   const toast = useUndoOffer(reload);
   const previousMonth = shiftMonth(month, -1);
   const previous = useMonthCategories(ledger.ledgerId, previousMonth);
@@ -102,7 +102,7 @@ export default function Budget() {
             <Pressable
               accessibilityRole="button"
               accessibilityLabel={`Add a category to ${monthName(month)}`}
-              onPress={() => router.push({ pathname: '/category-form', params: { month } })}
+              onPress={() => pushOnce({ pathname: '/category-form', params: { month } })}
               style={styles.iconButton}
             >
               <Icon name="plus" color={colors.accent} />

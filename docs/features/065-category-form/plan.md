@@ -77,7 +77,7 @@ the field the user didn't touch.
 - App, pure (`data/categoryForm.ts`):
   - `interface CategoryFields { name: string; amount: string }`
   - `checkFields(nameText, amountText, current: Pick<Category, 'displayName' | 'plannedEur'> | null): CategoryFields | { error: string }`.
-    A blank amount is `'0.00'` when adding and refused when editing. A field equal to `current` skips its check.
+    A blank amount is `'0.00'` when adding and refused when editing. An unchanged name skips its check; the amount is always checked.
     Today's two messages move here.
   - `changedFields(fields, current): Partial<CategoryFields>`
 - App, transport (`data/categories.ts`):
@@ -249,7 +249,8 @@ Estimates are lines added/deleted, tests included. Total: about +530/−530, net
 
 ## Follow-ups
 
-None found.
+- `CategoryForm`'s amount input and `AmountFields` share the € symbol and input styles. Reuse needs signature changes,
+  so it's a `/kopiyka-hos-refactoring` candidate, not part of this feature.
 
 ## Deviations
 

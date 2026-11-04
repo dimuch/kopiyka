@@ -168,7 +168,7 @@ async function storePlanned(conn: PoolConnection, categoryId: number, first: str
 }
 
 /** What an edit changes; a field left out stays as it is. `name` is trimmed, `amount` is EUR ('12.50', ≥ 0). */
-export interface CategoryEdit {
+interface CategoryEdit {
   name?: string;
   amount?: string;
 }

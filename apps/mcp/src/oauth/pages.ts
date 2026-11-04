@@ -18,12 +18,14 @@ p { margin: 0 0 16px; overflow-wrap: anywhere; }
 .muted { color: var(--muted); }
 .error { color: var(--error); font-weight: 600; }
 a { color: var(--accent); font-weight: 600; }
+ul { margin: 0 0 16px; padding-left: 20px; overflow-wrap: anywhere; }
 label { display: block; margin-bottom: 4px; font-weight: 600; }
 input[type='text'] { width: 100%; margin-bottom: 16px; padding: 10px 12px; font: inherit; color: inherit;
   background: transparent; border: 1px solid var(--line); border-radius: 8px; }
 input[type='text']:focus { outline: 2px solid var(--accent); outline-offset: 1px; }
 button { width: 100%; padding: 12px; font: inherit; font-weight: 600; cursor: pointer; color: var(--on-accent);
   background: var(--accent); border: 0; border-radius: 8px; }
+button.secondary { margin-top: 8px; color: var(--text); background: transparent; border: 1px solid var(--line); }
 `;
 
 const CSS_HASH = createHash('sha256').update(CSS).digest('base64');
@@ -43,13 +45,13 @@ function escapeHtml(text: string): string {
   return text.replace(/[&<>"']/g, (char) => ESCAPES[char]!);
 }
 
-function page(title: string, body: string): string {
+function page(title: string, body: string, head = ''): string {
   return `<!doctype html>
 <html lang="en">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>${escapeHtml(title)}</title>
+<title>${escapeHtml(title)}</title>${head}
 <style>${CSS}</style>
 </head>
 <body><main>${body}</main></body>
@@ -74,15 +76,38 @@ export function errorPage(message: string): string {
   );
 }
 
-/** No automatic redirect on a bad request: the visitor chooses whether to go back to the client. */
-export function faultPage(redirectHost: string, returnUrl: string): string {
-  const host = escapeHtml(redirectHost);
+/** No automatic redirect: the visitor chooses whether to go back to the client. */
+function returnPage(heading: string, message: string, redirectHost: string, returnUrl: string): string {
   return page(
     'Kopiyka',
-    `<h1>Kopiyka can’t continue</h1><p>The app’s sign-in request isn’t valid, so nothing was shared with it.</p>
-<p><a href="${escapeHtml(returnUrl)}" rel="noreferrer">Return to ${host}</a></p>`,
+    `<h1>${escapeHtml(heading)}</h1><p>${escapeHtml(message)}</p>
+<p><a href="${escapeHtml(returnUrl)}" rel="noreferrer">Return to ${escapeHtml(redirectHost)}</a></p>`,
   );
 }
+
+export function faultPage(redirectHost: string, returnUrl: string): string {
+  const message = 'The app’s sign-in request isn’t valid, so nothing was shared with it.';
+  return returnPage('Kopiyka can’t continue', message, redirectHost, returnUrl);
+}
+
+export function declinedPage(redirectHost: string, returnUrl: string): string {
+  return returnPage('Nothing was shared', 'You said no, so the app can’t read your budgets.', redirectHost, returnUrl);
+}
+
+/** The one automatic redirect: the user has signed in and allowed this host. A 302 after a form breaks `form-action`. */
+export function returningPage(redirectHost: string, returnUrl: string): string {
+  const url = escapeHtml(returnUrl);
+  return page(
+    'Kopiyka',
+    `<h1>Returning to ${escapeHtml(redirectHost)}…</h1>
+<p><a href="${url}" rel="noreferrer">Continue to ${escapeHtml(redirectHost)}</a></p>`,
+    `\n<meta http-equiv="refresh" content="0;url=${url}">`,
+  );
+}
+
+const claimedName = (clientName: string) =>
+  // A client picks its own name, so a page never states it as fact.
+  clientName ? `An app calling itself <bdi>${escapeHtml(clientName)}</bdi>` : 'An app';
 
 export interface SignInView {
   clientName: string;
@@ -94,12 +119,10 @@ export interface SignInView {
 }
 
 export function signInPage({ clientName, redirectHost, request, username, error }: SignInView): string {
-  // A client picks its own name, so the page never states it as fact.
-  const client = clientName ? `An app calling itself <bdi>${escapeHtml(clientName)}</bdi>` : 'An app';
   return page(
     'Sign in to Kopiyka',
     `<h1>Sign in to Kopiyka</h1>
-<p>${client} wants to read your budgets. You’ll go back to <strong>${escapeHtml(redirectHost)}</strong> afterwards.</p>
+<p>${claimedName(clientName)} wants to read your budgets. You’ll go back to <strong>${escapeHtml(redirectHost)}</strong> afterwards.</p>
 ${error ? `<p class="error" role="alert">${escapeHtml(error)}</p>` : ''}
 <form method="post" action="/oauth/authorize">
 <input type="hidden" name="request" value="${escapeHtml(request)}">
@@ -110,6 +133,34 @@ ${error ? `<p class="error" role="alert">${escapeHtml(error)}</p>` : ''}
 <input type="text" id="code" name="code" autocomplete="one-time-code" inputmode="numeric" pattern="[0-9]{6}"
   maxlength="6" required>
 <button type="submit">Continue</button>
+</form>`,
+  );
+}
+
+export interface ConsentView {
+  clientName: string;
+  redirectHost: string;
+  ledgers: { name: string; label: string; role: string; owner: string }[];
+  /** The sealed consent. */
+  consent: string;
+}
+
+export function consentPage({ clientName, redirectHost, ledgers, consent }: ConsentView): string {
+  const items = ledgers.map(({ name, label, role, owner }) => {
+    const whose = role === 'owner' ? 'yours' : `shared by ${owner}`;
+    return `<li>${escapeHtml(label || name)} <span class="muted">(${escapeHtml(whose)})</span></li>`;
+  });
+  return page(
+    'Allow access to Kopiyka',
+    `<h1>Allow read access?</h1>
+<p>${claimedName(clientName)} will be able to read these budgets for up to an hour, but not change them:</p>
+<ul>${items.join('')}</ul>
+<p>You’ll go back to <strong>${escapeHtml(redirectHost)}</strong>.</p>
+<p class="muted">Kopiyka will never ask you to copy or paste an address.</p>
+<form method="post" action="/oauth/consent">
+<input type="hidden" name="consent" value="${escapeHtml(consent)}">
+<button type="submit" name="decision" value="allow">Allow</button>
+<button type="submit" name="decision" value="deny" class="secondary">Cancel</button>
 </form>`,
   );
 }

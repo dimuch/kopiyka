@@ -8,11 +8,10 @@ import { closeToBudget } from '@/closeToBudget';
 import { CategoryForm } from '@/components/CategoryForm';
 import { LoadError } from '@/components/LoadError';
 import { addToMonth } from '@/data/categories';
-import { monthName } from '@/format';
 import { parseMonthParam } from '@/linkParams';
 import { fonts, type Palette } from '@/theme';
 
-/** Adds a category by name to a month at €0 (brief 038): `/add-category?month=2026-11`. */
+/** Adds a category to a month with its planned amount (brief 065): `/add-category?month=2026-11`. */
 export default function AddCategoryScreen() {
   const styles = useThemedStyles(makeStyles);
   const params = useLocalSearchParams<{ month?: string | string[] }>();
@@ -42,11 +41,10 @@ export default function AddCategoryScreen() {
         <CategoryForm
           month={month}
           current={null}
-          caption={`Planned at €0 in ${monthName(month)}`}
           busy={busy}
           setBusy={setBusy}
-          save={async (name) => {
-            await addToMonth(ledger.ledgerId, month, name);
+          save={async ({ name, amount }) => {
+            await addToMonth(ledger.ledgerId, month, name, amount);
             closeToBudget(month);
           }}
         />

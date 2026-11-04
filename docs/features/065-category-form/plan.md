@@ -147,7 +147,7 @@ Estimates are lines added/deleted, tests included. Total: about +530/−530, net
     - Adding: blank and spaces → `'0.00'`; `120,50` → `'120.50'`; bad name; bad amount.
     - Editing: blank amount refused; an unchanged 41-character name passes; `120.5` against `'120.50'` is no change.
     - `changedFields`: name only, amount only, both, neither; `Rent` against `rent` is a change.
-- [ ] 5. Edit a category's name and amount together on one form (+85/−30)
+- [x] 5. Edit a category's name and amount together on one form (+85/−30)
   - Files: `git mv apps/mobile/src/components/CategoryNameForm.tsx CategoryForm.tsx`, `apps/mobile/src/app/add-category.tsx`,
     `apps/mobile/src/app/rename-category.tsx`, `apps/mobile/src/data/categories.ts`
   - Change: add visible Name and Planned amount labels, the amount field, and `checkFields`. Refusal text is

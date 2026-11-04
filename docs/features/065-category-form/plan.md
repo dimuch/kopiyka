@@ -140,7 +140,7 @@ Estimates are lines added/deleted, tests included. Total: about +530/−530, net
     - `answers 404 for a category not in the month`.
     - `refuses a month that has ended`.
     - `cors.test.ts` covers PATCH.
-- [ ] 4. Work out which category fields a save changes (+100/−0)
+- [x] 4. Work out which category fields a save changes (+100/−0)
   - Files: `apps/mobile/src/data/categoryForm.ts`, `apps/mobile/test/categoryForm.test.ts`
   - Change: `checkFields` and `changedFields`, as in Contracts.
   - Tests: tables for:

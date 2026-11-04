@@ -31,7 +31,9 @@ export async function mcpRoutes(app: FastifyInstance, deps: AppDeps): Promise<vo
   const handler = createMcpHandler(({ authInfo }) => buildServer(api, authInfo!.token), {
     responseMode: 'json',
     maxSubscriptions: MAX_SUBSCRIPTIONS,
+    onerror: (err) => app.log.error(err),
   });
+  app.addHook('preClose', () => handler.close());
 
   /** The caller's token details, or null once `reply` has been answered. */
   async function authenticate(req: FastifyRequest, reply: FastifyReply): Promise<AuthInfo | null> {

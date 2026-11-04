@@ -22,6 +22,10 @@ describe('loadConfig', () => {
     expect(loadConfig({ ...base, PUBLIC_URL: 'https://kopiyka.example/' }).publicUrl).toBe('https://kopiyka.example');
   });
 
+  it('drops API_URL’s trailing slash, so paths join cleanly', () => {
+    expect(loadConfig({ ...base, API_URL: 'http://127.0.0.1:3100/' }).apiUrl).toBe('http://127.0.0.1:3100');
+  });
+
   it('needs https in production', () => {
     const production = { ...base, NODE_ENV: 'production' };
 

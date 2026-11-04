@@ -20,6 +20,7 @@ export interface Config {
   logLevel: string;
   /** No trailing slash. */
   publicUrl: string;
+  /** No trailing slash. */
   apiUrl: string;
   sealKey: Buffer;
 }
@@ -45,7 +46,7 @@ export function loadConfig(source: NodeJS.ProcessEnv = process.env): Config {
     port: env.PORT,
     logLevel: env.LOG_LEVEL,
     publicUrl: parsePublicUrl(env.PUBLIC_URL, env.NODE_ENV),
-    apiUrl: env.API_URL,
+    apiUrl: new URL(env.API_URL).origin,
     sealKey: parseSealKey(env.MCP_SEAL_KEY),
   };
 }

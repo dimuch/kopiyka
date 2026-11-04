@@ -19,6 +19,7 @@ export function isAllowedRedirectUri(uri: string): boolean {
 
 /** Exact, except that a loopback port is ignored: local clients pick a free one each run (RFC 8252 §7.3). */
 export function redirectMatches(registered: string[], requested: string): boolean {
+  if (!parse(requested)) return false;
   const withoutPort = (uri: string) => uri.replace(LOOPBACK_PORT, '$1');
   return registered.some((uri) => uri === requested || withoutPort(uri) === withoutPort(requested));
 }

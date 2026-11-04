@@ -648,7 +648,7 @@ frame-ancestors 'none'; base-uri 'none'` and `Cache-Control: no-store`.
       `state` and `iss`; no `Location`, no `http-equiv`.
     - An expired consent blob, and `POST /api/api-tokens` failing → error page, no `http-equiv`.
   - ~165 lines
-- [ ] 14. Exchange a one-time authorization code for an access token
+- [x] 14. Exchange a one-time authorization code for an access token
   - Files: `apps/mcp/src/oauth/token.ts` (route + used-code set), `apps/mcp/test/{token.test.ts,flow.test.ts}`
   - Change: as in Contracts. The used set maps `jti` → exp, prunes expired ids on every insert, and holds at most
     10,000 (when full → 503 `temporarily_unavailable`). Key it on `jti`, never the code text: `open` decodes

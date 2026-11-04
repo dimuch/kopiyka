@@ -4,6 +4,7 @@ export interface Limits {
   openPerToken: number;
   openTotal: number;
   maxOpenMs: number;
+  usedCodes: number;
 }
 
 export const DEFAULT_LIMITS: Limits = {
@@ -12,6 +13,7 @@ export const DEFAULT_LIMITS: Limits = {
   openPerToken: 4,
   openTotal: 32,
   maxOpenMs: 600_000,
+  usedCodes: 10_000,
 };
 
 interface Bucket {

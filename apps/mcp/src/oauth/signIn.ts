@@ -8,7 +8,7 @@ import { authorizationResponse, type AuthorizationRequest } from './authorize.js
 import { consentPage, declinedPage, errorPage, returningPage, sendPage, signInPage } from './pages.js';
 
 const CONSENT_TTL_MS = 10 * 60_000;
-const CODE_TTL_MS = 60_000;
+export const CODE_TTL_MS = 60_000;
 
 const SignInForm = z.object({ request: z.string(), username: z.string().default(''), code: z.string().default('') });
 const ConsentForm = z.object({ consent: z.string(), decision: z.enum(['allow', 'deny']) });

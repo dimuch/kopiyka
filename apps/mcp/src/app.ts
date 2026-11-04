@@ -8,6 +8,7 @@ import { authorizeRoutes } from './oauth/authorize.js';
 import { metadataRoutes } from './oauth/metadata.js';
 import { registerRoutes } from './oauth/register.js';
 import { signInRoutes } from './oauth/signIn.js';
+import { tokenRoutes } from './oauth/token.js';
 
 export interface AppDeps {
   config: Config;
@@ -87,6 +88,7 @@ export async function buildApp(deps: AppDeps): Promise<FastifyInstance> {
       done(null, Object.fromEntries(new URLSearchParams(body as string)));
     });
     await signInRoutes(forms, deps);
+    await tokenRoutes(forms, deps);
   });
 
   return app;

@@ -1,6 +1,7 @@
 import type { FastifyInstance, FastifyReply, FastifyRequest } from 'fastify';
 import type { RowDataPacket, ResultSetHeader } from 'mysql2/promise';
 import { z } from 'zod';
+import { API_TOKEN_PREFIX, apiTokenAuth } from '../apiTokens/auth.js';
 import type { AppDeps } from '../app.js';
 import { ipKey } from './ipKey.js';
 import { decryptSecret } from './secretBox.js';
@@ -33,6 +34,8 @@ export async function authRoutes(app: FastifyInstance, deps: AppDeps): Promise<v
 
   app.decorate('requireAuth', async (req: FastifyRequest, reply: FastifyReply) => {
     const token = bearerOrCookie(req);
+    // The MCP connector's tokens (brief 063), only while it's switched on; otherwise they're unknown sessions.
+    if (config.apiTokens && token?.startsWith(API_TOKEN_PREFIX)) return apiTokenAuth(db, req, reply, token, now());
     const session = token ? await findSession(db, token, now()) : null;
     if (!session) return reply.code(401).send({ error: 'unauthorized' });
     req.auth = session;

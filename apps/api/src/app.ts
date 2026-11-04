@@ -53,8 +53,8 @@ export async function buildApp(deps: AppDeps): Promise<FastifyInstance> {
     await app.register(cors, {
       origin: deps.config.corsOrigins,
       credentials: true,
-      // The plugin's default leaves out PUT and DELETE, which the expense routes use.
-      methods: ['GET', 'HEAD', 'POST', 'PUT', 'DELETE'],
+      // The plugin's default leaves out PUT, PATCH and DELETE, which the expense and category routes use.
+      methods: ['GET', 'HEAD', 'POST', 'PUT', 'PATCH', 'DELETE'],
     });
   }
 

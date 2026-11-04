@@ -53,6 +53,10 @@ const NameBody = z.object({ name: z.string().trim().min(1).max(40) });
 const Amount = z.string().regex(AMOUNT_RE, 'expected an amount ≥ 0, 2 decimals at most');
 const PlannedBody = z.object({ amount: Amount });
 const AddBody = NameBody.extend({ amount: Amount.default('0') });
+// A field left out stays as it is, so saving one can't overwrite the other a member just changed (brief 065).
+const EditBody = z
+  .object({ name: NameBody.shape.name.optional(), amount: Amount.optional() })
+  .refine(({ name, amount }) => name !== undefined || amount !== undefined, 'expected a name or an amount');
 
 function toDto(r: RowDataPacket): CategoryDto {
   return {
@@ -191,6 +195,14 @@ export async function categoryRoutes(app: FastifyInstance, { db, now }: AppDeps)
     const { name } = NameBody.parse(req.body);
     if (monthEnded(month, now())) return reply.code(409).send({ error: 'month_ended' });
     return sendEdit(reply, await editInMonth(db, req.ledger!.ledgerId, categoryId, month, { name }));
+  });
+
+  // Brief 065. An ended month is read-only, so it's refused before anything is read.
+  app.patch('/api/ledgers/:id/categories/:categoryId/months/:month', guards, async (req, reply) => {
+    const { categoryId, month } = MonthParams.parse(req.params);
+    const changes = EditBody.parse(req.body);
+    if (monthEnded(month, now())) return reply.code(409).send({ error: 'month_ended' });
+    return sendEdit(reply, await editInMonth(db, req.ledger!.ledgerId, categoryId, month, changes));
   });
 
   // Brief 033: sets up a month with no budget from the month before it.

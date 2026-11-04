@@ -304,7 +304,7 @@ each user's browser.
     - migration (int): after `resetSchema()`, `SHOW COLUMNS FROM api_tokens` lists the columns and types above, and a
       second `runMigrations` returns `[]`.
   - ~70 lines
-- [ ] 2. Accept read-only API tokens in requireAuth when MCP is enabled
+- [x] 2. Accept read-only API tokens in requireAuth when MCP is enabled
   - Files: `apps/api/src/apiTokens/auth.ts` (new: `API_TOKEN_PREFIX = 'kpk.'`, `apiTokenAuth(db, req, reply, token,
 at)`), `apps/api/src/auth/routes.ts` (an import and one line in `requireAuth`, plus a why-comment),
     `apps/api/test/apiTokens.auth.int.test.ts`

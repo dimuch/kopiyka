@@ -126,7 +126,7 @@ Estimates are lines added/deleted, tests included. Total: about +530/−530, net
     - `rejects a malformed amount, adding nothing`.
     - `answers name_taken and month_ended before over_income on an add`.
     - `holds when two members add at once`.
-- [ ] 3. Change a category's name and amount in one request (+110/−5)
+- [x] 3. Change a category's name and amount in one request (+110/−5)
   - Files: `routes.ts`, `apps/api/src/app.ts`, `apps/api/test/categories.int.test.ts`, `apps/api/test/cors.test.ts`
   - Change: the PATCH route with `EditBody`; add `PATCH` to the CORS methods and its comment.
   - Tests: an `edit` helper taking `(categoryId, headers, ledgerId, month, body)`, also added to the `describe.each`

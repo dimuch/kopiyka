@@ -95,6 +95,26 @@ describe.skipIf(!(await testDbReachable()))('categories API (MySQL)', () => {
       headers,
     });
 
+  const edit = (
+    categoryId: number | string,
+    headers: Record<string, string> = auth,
+    ledgerId = owner.ledgerId,
+    month = '2026-10',
+    payload: Record<string, unknown> = { name: 'food out', amount: '120.50' },
+  ) =>
+    app.inject({
+      method: 'PATCH',
+      url: `/api/ledgers/${ledgerId}/categories/${categoryId}/months/${month}`,
+      payload,
+      headers,
+    });
+
+  /** A category's name and planned amount in a month. */
+  const fieldsIn = async (categoryId: number, month = '2026-10') => {
+    const { displayName, plannedEur } = (await one(`${categoryId}?month=${month}`)).json();
+    return { displayName, plannedEur };
+  };
+
   const add = (
     headers: Record<string, string> = auth,
     ledgerId = owner.ledgerId,
@@ -1013,10 +1033,9 @@ describe.skipIf(!(await testDbReachable()))('categories API (MySQL)', () => {
       const res = await add(auth, owner.ledgerId, '2026-10', 'pets', '120.5');
       expect(res.statusCode).toBe(201);
       expect(res.json()).toMatchObject({ displayName: 'pets', plannedEur: '120.50' });
-      const [rows] = await db.query<RowDataPacket[]>(
-        'SELECT planned_eur FROM category_budgets WHERE category_id = ?',
-        [res.json().categoryId],
-      );
+      const [rows] = await db.query<RowDataPacket[]>('SELECT planned_eur FROM category_budgets WHERE category_id = ?', [
+        res.json().categoryId,
+      ]);
       expect(rows.map((row) => row.planned_eur)).toEqual(['120.50']);
       expect((await one(`${res.json().categoryId}?month=2026-10`)).json()).toMatchObject({ plannedEur: '120.50' });
 
@@ -1166,12 +1185,64 @@ describe.skipIf(!(await testDbReachable()))('categories API (MySQL)', () => {
     });
   });
 
+  describe('edit in a month', () => {
+    it('changes the name and the amount in that month only', async () => {
+      await storeMonthList(db, owner.ledgerId, '2026-11', []);
+      const rent = await idOf('rent');
+      const november = await fieldsIn(rent, '2026-11');
+
+      const res = await edit(rent, auth, owner.ledgerId, '2026-10', { name: 'home', amount: '120.5' });
+      expect([res.statusCode, res.body]).toEqual([204, '']);
+      expect(await fieldsIn(rent)).toEqual({ displayName: 'home', plannedEur: '120.50' });
+      expect(await fieldsIn(rent, '2026-11')).toEqual(november);
+    });
+
+    it('changes only what it is sent', async () => {
+      const rent = await idOf('rent');
+      expect((await edit(rent, auth, owner.ledgerId, '2026-10', { amount: '50' })).statusCode).toBe(204);
+      expect(await fieldsIn(rent)).toEqual({ displayName: 'rent', plannedEur: '50.00' });
+
+      expect((await edit(rent, auth, owner.ledgerId, '2026-10', { name: 'home' })).statusCode).toBe(204);
+      expect(await fieldsIn(rent)).toEqual({ displayName: 'home', plannedEur: '50.00' });
+    });
+
+    it('stores neither when the name is taken', async () => {
+      const rent = await idOf('rent');
+      const res = await edit(rent, auth, owner.ledgerId, '2026-10', { name: 'groceries', amount: '5' });
+      expect([res.statusCode, res.json()]).toEqual([400, { error: 'name_taken' }]);
+      expect(await fieldsIn(rent)).toEqual({ displayName: 'rent', plannedEur: '0.00' });
+    });
+
+    it('rejects an empty body, a bad name or a bad amount, storing neither', async () => {
+      const rent = await idOf('rent');
+      const bodies = [{}, { name: '   ', amount: '5' }, { name: 'x'.repeat(41) }, { name: 'home', amount: '-1' }];
+      for (const body of bodies) {
+        const res = await edit(rent, auth, owner.ledgerId, '2026-10', body);
+        expect([res.statusCode, res.json().error]).toEqual([400, 'invalid_request']);
+      }
+      expect(await fieldsIn(rent)).toEqual({ displayName: 'rent', plannedEur: '0.00' });
+    });
+
+    it('answers 404 for a category not in the month', async () => {
+      const gym = await idOf('gym');
+      expect((await removeFrom(gym)).statusCode).toBe(204);
+      const res = await edit(gym);
+      expect([res.statusCode, res.json()]).toEqual([404, { error: 'not_found' }]);
+    });
+
+    it('refuses a month that has ended', async () => {
+      const res = await edit(await idOf('rent'), auth, owner.ledgerId, '2026-09');
+      expect([res.statusCode, res.json()]).toEqual([409, { error: 'month_ended' }]);
+    });
+  });
+
   describe.each([
     ['GET one', one],
     ['remove from month', removeFrom],
     ['restore to month', restoreTo],
     ['set planned amount', plan],
     ['rename in month', rename],
+    ['edit in month', edit],
   ])('%s guards', (_name, call) => {
     it('needs a session, a ledger of mine and a numeric id', async () => {
       const id = await idOf('rent');
@@ -1216,6 +1287,32 @@ describe.skipIf(!(await testDbReachable()))('categories API (MySQL)', () => {
 
     beforeEach(async () => {
       await storeMonthList(db, owner.ledgerId, '2026-11', []);
+    });
+
+    const editNovember = async (techName: string, payload: Record<string, unknown>) =>
+      edit(await idOf(techName), auth, owner.ledgerId, '2026-11', payload);
+
+    it('stores neither when the amount is over income', async () => {
+      await storeIncome('2026-11', '100.00');
+      const refused = await editNovember('rent', { name: 'home', amount: '101' });
+      expect([refused.statusCode, refused.json()]).toEqual([409, { error: 'over_income', overEur: '1.00' }]);
+      expect(await fieldsIn(await idOf('rent'), '2026-11')).toEqual({ displayName: 'rent', plannedEur: '0.00' });
+      expect(await storedPlan('rent')).toBeUndefined();
+    });
+
+    it('lets a month already over change a name or lower an amount', async () => {
+      await storePlan('rent', '150.00');
+      expect((await editNovember('rent', { name: 'home' })).statusCode).toBe(204);
+      expect((await editNovember('rent', { amount: '120' })).statusCode).toBe(204);
+      expect((await editNovember('rent', { name: 'flat', amount: '120' })).statusCode).toBe(204);
+      expect(await fieldsIn(await idOf('rent'), '2026-11')).toEqual({ displayName: 'flat', plannedEur: '120.00' });
+    });
+
+    it('answers name_taken before over_income on an edit', async () => {
+      await storePlan('groceries', '10.00');
+      const refused = await editNovember('rent', { name: 'groceries', amount: '500' });
+      expect([refused.statusCode, refused.json()]).toEqual([400, { error: 'name_taken' }]);
+      expect(await storedPlan('rent')).toBeUndefined();
     });
 
     it('refuses an add above income, adding nothing, and takes a smaller amount', async () => {

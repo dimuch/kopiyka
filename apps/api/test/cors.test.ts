@@ -33,9 +33,9 @@ describe('CORS', () => {
     await close();
   });
 
-  it('allows PUT and DELETE for editing and deleting expenses', async () => {
+  it('allows PUT, PATCH and DELETE for editing and deleting', async () => {
     const { app, close } = await appWith(['http://localhost:8081']);
-    for (const method of ['PUT', 'DELETE']) {
+    for (const method of ['PUT', 'PATCH', 'DELETE']) {
       const allowed = (await app.inject(preflight('http://localhost:8081', method))).headers[
         'access-control-allow-methods'
       ];

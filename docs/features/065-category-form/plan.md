@@ -164,7 +164,7 @@ Estimates are lines added/deleted, tests included. Total: about +530/−530, net
   - Change: the row pushes with `focus: 'amount'`; `focusAmount` picks which field autofocuses; new accessibility text;
     remove `setPlanned`. The size is one deleted file.
   - Verify: web and iPhone: a row tap and its number open Edit with the amount focused and selected.
-- [ ] 7. Open one category screen for adding and editing (+45/−85)
+- [x] 7. Open one category screen for adding and editing (+45/−85)
   - Files: `git mv apps/mobile/src/app/rename-category.tsx category-form.tsx`, delete `add-category.tsx`, `_layout.tsx`,
     `budget.tsx`, and stale comments in `closeToBudget.ts`, `delete-category.tsx`, `theme.ts`, `CategoryForm.tsx`
   - Change: no `categoryId` means Add, with the title from the mode; Remove stays Edit-only; `gestureEnabled: !busy`

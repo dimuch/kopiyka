@@ -21,7 +21,7 @@ export function notInMonthText(name: string, month: string): string {
 
 /**
  * The text for a refused name in a 'YYYY-MM' month; null when `code` isn't a name refusal. `name` is the typed name;
- * `current` is the category's name in the month when renaming, null when adding (adding has no not_found).
+ * `current` is the category's name in the month when editing, null when adding (adding has no not_found).
  */
 export function nameRefusedText(code: string, name: string, month: string, current: string | null): string | null {
   switch (code) {

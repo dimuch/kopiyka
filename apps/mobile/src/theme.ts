@@ -68,7 +68,7 @@ export const fonts = {
   bodySemi: 'IBMPlexSans_600SemiBold',
 };
 
-/** The text of a button that deletes or removes something (expense form, Category menu, rename screen). */
+/** The text of a button that deletes or removes something (expense form, Category menu, category form). */
 export function dangerText(colors: Palette): TextStyle {
   return { fontFamily: fonts.bodyMedium, fontSize: 15, color: colors.danger };
 }

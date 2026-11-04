@@ -38,7 +38,7 @@ export default function Budget() {
   // A missing or malformed month opens the current one.
   const month = parseMonthParam(params.month) ?? thisMonth;
   const { data, error, reload } = useMonth(ledger.ledgerId, month);
-  // A removal started from this tab's rename screen comes back here with its Undo (brief 044).
+  // A removal started from this tab's category screen comes back here with its Undo (brief 044).
   const toast = useUndoOffer(reload);
   const previousMonth = shiftMonth(month, -1);
   const previous = useMonthCategories(ledger.ledgerId, previousMonth);
@@ -102,7 +102,7 @@ export default function Budget() {
             <Pressable
               accessibilityRole="button"
               accessibilityLabel={`Add a category to ${monthName(month)}`}
-              onPress={() => router.push({ pathname: '/add-category', params: { month } })}
+              onPress={() => router.push({ pathname: '/category-form', params: { month } })}
               style={styles.iconButton}
             >
               <Icon name="plus" color={colors.accent} />
@@ -210,7 +210,7 @@ export default function Budget() {
                           onPress={() =>
                             pushOnce({ pathname: '/category-form', params: { categoryId: c.categoryId, month } })
                           }
-                          style={styles.rename}
+                          style={styles.edit}
                         >
                           <Icon name="edit" color={colors.muted} size={18} />
                         </Pressable>
@@ -296,7 +296,7 @@ const makeStyles = (colors: Palette) =>
     figure: { flex: 1, gap: 4 },
     figureValue: { fontFamily: fonts.bodySemi, fontSize: 16, color: colors.text, fontVariant: ['tabular-nums'] },
     openRow: { flexDirection: 'row', alignItems: 'center' },
-    rename: { width: 44, height: 44, alignItems: 'center', justifyContent: 'center', marginRight: 6 },
+    edit: { width: 44, height: 44, alignItems: 'center', justifyContent: 'center', marginRight: 6 },
     rowName: { flex: 1, fontFamily: fonts.bodyMedium, fontSize: 15, color: colors.text },
     rowAmount: { fontFamily: fonts.bodySemi, fontSize: 15, color: colors.text, fontVariant: ['tabular-nums'] },
   });

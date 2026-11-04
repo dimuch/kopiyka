@@ -199,6 +199,24 @@ describe('GET /oauth/authorize', () => {
       expectErrorPage(res);
     });
 
+    it('for a client whose URL has been taken off the list', async () => {
+      const clientId = await register([CALLBACK]);
+      const narrower = await buildApp({
+        config: { ...config, allowedRedirectUris: [] },
+        now: () => clock,
+        fetch: fakeApi(() => ({ json: {} })).fetch,
+      });
+
+      const res = await narrower.inject({
+        url: '/oauth/authorize',
+        headers: { host: HOST },
+        query: { client_id: clientId, redirect_uri: CALLBACK, scope: 'x' },
+      });
+      await narrower.close();
+
+      expectErrorPage(res);
+    });
+
     it('for a forged client', async () => {
       expectErrorPage(await authorize({ client_id: 'made-up' }));
     });
@@ -260,11 +278,11 @@ describe('GET /oauth/authorize', () => {
     });
 
     it('keeps what the redirect URI already carries, and leaves out a state it wasn’t given', async () => {
-      const clientId = await register([`${CALLBACK}?keep=1`]);
+      const local = 'http://localhost:5000/cb?keep=1';
 
       const res = await authorize({
-        client_id: clientId,
-        redirect_uri: `${CALLBACK}?keep=1`,
+        client_id: await register([local]),
+        redirect_uri: local,
         state: undefined,
         scope: 'write',
       });

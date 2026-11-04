@@ -3,7 +3,7 @@ import { z } from 'zod';
 import type { AppDeps } from '../app.js';
 import { seal } from '../seal.js';
 import { errorPage, faultPage, sendPage, signInPage } from './pages.js';
-import { isLoopback, redirectMatches } from './redirects.js';
+import { isAllowedRedirectUri, isLoopback, redirectMatches } from './redirects.js';
 import { openClient } from './register.js';
 
 const SIGN_IN_TTL_MS = 10 * 60_000;
@@ -65,8 +65,14 @@ export async function authorizeRoutes(app: FastifyInstance, { config, now }: App
     const client = query.client_id ? openClient(config.sealKey, query.client_id, now()) : null;
     const { redirect_uri: redirectUri, client_id: clientId } = query;
     // Until the client and its redirect are proven, there's nowhere safe to send an error: that's how open
-    // redirectors are made.
-    if (!client || !clientId || !redirectUri || !redirectMatches(client.redirectUris, redirectUri)) {
+    // redirectors are made. The list is checked again here because a client_id outlives a change to it.
+    if (
+      !client ||
+      !clientId ||
+      !redirectUri ||
+      !redirectMatches(client.redirectUris, redirectUri) ||
+      !isAllowedRedirectUri(redirectUri, config.allowedRedirectUris)
+    ) {
       return sendPage(reply, 400, errorPage('This sign-in link isn’t valid, or the app’s registration has expired.'));
     }
 

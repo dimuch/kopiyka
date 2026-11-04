@@ -554,7 +554,7 @@ frame-ancestors 'none'; base-uri 'none'` and `Cache-Control: no-store`.
     `redirectUri` at render time, so it also survives the 401 re-render.
   - Tests: the Revision 2 cases listed under slice 12.
   - ~60 lines
-- [ ] 12b. Accept redirects only to listed URLs
+- [x] 12b. Accept redirects only to listed URLs
   - Files: `apps/mcp/src/config.ts`, `apps/mcp/.env.example`, `apps/mcp/src/oauth/{authorize,redirects,register}.ts`,
     `apps/mcp/test/{config,redirects,register,authorize}.test.ts`, `apps/mcp/test/helpers.ts`,
     `apps/mcp/test/{app,mcp,mcpLimits,tools}.test.ts`

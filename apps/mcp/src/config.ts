@@ -2,6 +2,9 @@ import { z } from 'zod';
 
 const KEY_BYTES = 32;
 
+/** The hosted Claude callback. `claude.com`'s isn't in the docs yet; it's listed so a change there can't lock users out. */
+const CLAUDE_CALLBACKS = 'https://claude.ai/api/mcp/auth_callback,https://claude.com/api/mcp/auth_callback';
+
 const Env = z.object({
   NODE_ENV: z.enum(['development', 'test', 'production']).default('development'),
   HOST: z.string().default('127.0.0.1'),
@@ -11,6 +14,8 @@ const Env = z.object({
   PUBLIC_URL: z.url().default('http://localhost:3200'),
   API_URL: z.url().default('http://127.0.0.1:3000'),
   MCP_SEAL_KEY: z.string().min(1),
+  // The only https redirects a client may register, exactly as it sends them. Blank means loopback only.
+  MCP_ALLOWED_REDIRECT_URIS: z.string().default(CLAUDE_CALLBACKS),
 });
 
 export interface Config {
@@ -23,6 +28,7 @@ export interface Config {
   /** No trailing slash. */
   apiUrl: string;
   sealKey: Buffer;
+  allowedRedirectUris: string[];
 }
 
 function parsePublicUrl(value: string, env: Config['env']): string {
@@ -38,6 +44,18 @@ function parseSealKey(value: string): Buffer {
   return key;
 }
 
+function parseAllowedRedirectUri(uri: string): string {
+  const url = URL.canParse(uri) ? new URL(uri) : null;
+  const exact = url?.protocol === 'https:' && url.href === uri && !/[#?]/.test(uri) && !url.username && !url.password;
+  if (!exact) throw new Error(`MCP_ALLOWED_REDIRECT_URIS: ${uri} must be an exact https URL with no query or fragment`);
+  return uri;
+}
+
+function parseAllowedRedirectUris(value: string): string[] {
+  if (!value.trim()) return [];
+  return value.split(',').map((uri) => parseAllowedRedirectUri(uri.trim()));
+}
+
 export function loadConfig(source: NodeJS.ProcessEnv = process.env): Config {
   const env = Env.parse(source);
   return {
@@ -48,5 +66,6 @@ export function loadConfig(source: NodeJS.ProcessEnv = process.env): Config {
     publicUrl: parsePublicUrl(env.PUBLIC_URL, env.NODE_ENV),
     apiUrl: new URL(env.API_URL).origin,
     sealKey: parseSealKey(env.MCP_SEAL_KEY),
+    allowedRedirectUris: parseAllowedRedirectUris(env.MCP_ALLOWED_REDIRECT_URIS),
   };
 }

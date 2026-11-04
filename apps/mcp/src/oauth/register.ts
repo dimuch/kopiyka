@@ -2,7 +2,7 @@ import type { FastifyInstance } from 'fastify';
 import { z } from 'zod';
 import type { AppDeps } from '../app.js';
 import { open, seal } from '../seal.js';
-import { isAllowedRedirectUri } from './redirects.js';
+import { isAllowedRedirectUri, redirectForLog } from './redirects.js';
 
 const CLIENT_TTL_MS = 90 * 86_400_000;
 
@@ -40,12 +40,16 @@ export async function registerRoutes(app: FastifyInstance, { config, now }: AppD
       });
     }
     const { redirect_uris: redirectUris, client_name: clientName } = body.data;
-    if (!redirectUris.every(isAllowedRedirectUri)) {
+    const refused = redirectUris.filter((uri) => !isAllowedRedirectUri(uri, config.allowedRedirectUris));
+    if (refused.length) {
+      // A real client refused here is the lockout to look for: the fix is MCP_ALLOWED_REDIRECT_URIS.
+      req.log.warn({ redirectUris: refused.map(redirectForLog) }, 'client registration refused');
       return reply.code(400).send({
         error: 'invalid_redirect_uri',
-        error_description: 'A redirect URI must be https, or http on localhost, with no fragment or user name',
+        error_description: 'This server only accepts its listed redirect URIs, or http on localhost',
       });
     }
+    req.log.info({ redirectUris: redirectUris.map(redirectForLog) }, 'client registered');
 
     const issuedMs = now().getTime();
     const client: Client = { redirectUris, clientName };

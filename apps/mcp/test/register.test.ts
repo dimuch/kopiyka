@@ -2,6 +2,7 @@ import type { FastifyInstance } from 'fastify';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { buildApp } from '../src/app.js';
 import { openClient } from '../src/oauth/register.js';
+import { Writable } from 'node:stream';
 import { fakeApi } from './fakeApi.js';
 import { HOST, PUBLIC_URL, testConfig } from './helpers.js';
 
@@ -122,10 +123,70 @@ describe('OAuth discovery and registration', () => {
     });
   });
 
-  it('refuses a redirect URI that isn’t allowed', async () => {
-    const res = await register({ redirect_uris: [CALLBACK, 'http://example.com/cb'] });
+  describe('the redirect allowlist', () => {
+    let logs: string;
+    let logged: FastifyInstance;
 
-    expect(res.statusCode).toBe(400);
-    expect(res.json()).toEqual({ error: 'invalid_redirect_uri', error_description: expect.any(String) });
+    const registerLogged = (redirectUris: string[]) =>
+      logged.inject({
+        method: 'POST',
+        url: '/oauth/register',
+        headers: { host: HOST },
+        payload: { redirect_uris: redirectUris },
+      });
+
+    beforeEach(async () => {
+      logs = '';
+      logged = await buildApp({
+        config: { ...config, logLevel: 'info' },
+        now: () => T,
+        fetch: fakeApi(() => ({ json: {} })).fetch,
+        logStream: new Writable({
+          write(chunk, _encoding, done) {
+            logs += String(chunk);
+            done();
+          },
+        }),
+      });
+    });
+
+    afterEach(async () => {
+      await logged.close();
+    });
+
+    it('refuses a stranger’s redirect, logging where it pointed but never its query', async () => {
+      const res = await registerLogged(['https://evil.example/cb?secret=1']);
+
+      expect(res.statusCode).toBe(400);
+      expect(res.json()).toEqual({ error: 'invalid_redirect_uri', error_description: expect.any(String) });
+      expect(logs).toContain('https://evil.example/cb');
+      expect(logs).not.toContain('secret');
+    });
+
+    it('says when a URI couldn’t even be read', async () => {
+      const res = await registerLogged(['not a url']);
+
+      expect(res.statusCode).toBe(400);
+      expect(logs).toContain('unparseable');
+      expect(logs).not.toContain('not a url');
+    });
+
+    it('registers a listed URI, logging where it points', async () => {
+      const res = await registerLogged([CALLBACK]);
+
+      expect(res.statusCode).toBe(201);
+      expect(logs).toContain(CALLBACK);
+    });
+
+    it('refuses the whole registration if any URI is unlisted', async () => {
+      const res = await registerLogged([CALLBACK, 'https://evil.example/cb']);
+
+      expect(res.statusCode).toBe(400);
+      expect(res.json().error).toBe('invalid_redirect_uri');
+    });
+
+    it('registers a local client without a list entry', async () => {
+      expect((await registerLogged(['http://localhost:5000/callback'])).statusCode).toBe(201);
+    });
   });
 });

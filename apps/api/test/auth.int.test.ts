@@ -237,7 +237,10 @@ describe.skipIf(!(await testDbReachable()))('auth routes (MySQL)', () => {
       const [user] = await db.query<mysql.ResultSetHeader>(
         "INSERT INTO users (username, email, totp_secret_enc) VALUES ('gone', 'gone@example.com', x'00')",
       );
-      await db.query('INSERT INTO known_devices VALUES (?, ?, ?, ?)', [user.insertId, 'device-gone-01', clock, clock]);
+      await db.query(
+        'INSERT INTO known_devices (user_id, device_id, first_login_at, last_login_at) VALUES (?, ?, ?, ?)',
+        [user.insertId, 'device-gone-01', clock, clock],
+      );
       await db.query('DELETE FROM users WHERE user_id = ?', [user.insertId]);
       const [rows] = await db.query<mysql.RowDataPacket[]>('SELECT COUNT(*) AS n FROM known_devices');
       expect(Number(rows[0]!.n)).toBe(0);
@@ -306,7 +309,7 @@ describe.skipIf(!(await testDbReachable()))('auth routes (MySQL)', () => {
       ).toBe(429);
 
       for (let i = 0; i < 5; i++) {
-        await login({ username: `guess${i}`, code: '000000' }, '203.0.113.50');
+        expect((await login({ username: `guess${i}`, code: '000000' }, '203.0.113.50')).statusCode).toBe(401);
       }
       expect(
         (await login({ username: 'ivanka', code: codeAt(), deviceId: 'device-known-02' }, '203.0.113.50')).statusCode,

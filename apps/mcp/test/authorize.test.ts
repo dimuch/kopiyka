@@ -135,6 +135,12 @@ describe('GET /oauth/authorize', () => {
       expect(res.body).not.toContain('<script');
     });
 
+    it('accepts a state of 1,024 characters', async () => {
+      const res = await authorize({ client_id: await register([CALLBACK]), state: 'x'.repeat(1024) });
+
+      expect(res.statusCode).toBe(200);
+    });
+
     it('accepts a request with no resource or scope, from a client on an older revision', async () => {
       const res = await authorize({ client_id: await register([CALLBACK]), resource: undefined, scope: undefined });
 
@@ -185,6 +191,10 @@ describe('GET /oauth/authorize', () => {
       await narrower.close();
 
       expectErrorPage(res);
+    });
+
+    it('for a state too long to be real, which a stranger could use to break the callback page', async () => {
+      expectErrorPage(await authorize({ client_id: await register([CALLBACK]), state: 'x'.repeat(1025) }));
     });
 
     it('for a forged client', async () => {
@@ -251,6 +261,14 @@ describe('GET /oauth/authorize', () => {
 
       expect(res.headers['content-security-policy']).toContain("default-src 'none'");
       expect(res.headers['cache-control']).toBe('no-store');
+    });
+
+    it('treats an empty state as none', async () => {
+      const res = await authorize({ client_id: await register([CALLBACK]), state: '' });
+
+      expect(res.statusCode).toBe(400);
+      expect(res.body).not.toContain('name="request"');
+      expect(returnLink(res.body).searchParams.get('error')).toBe('invalid_request');
     });
 
     it('needs a state: without one, Claude’s callback leaves the code in the address bar', async () => {

@@ -16,7 +16,7 @@ each one is safe to merge on its own:
 | 063b  | `feat/mcp-server`      | origin/main     | `apps/mcp` workspace, `/mcp` with bearer check, `list_ledgers` |    560 |
 | 063c  | `feat/mcp-tools`       | stacked on 063b | the other four tools, per-token limits and stream caps         |    440 |
 | 063d  | `feat/mcp-oauth`       | origin/main     | OAuth: metadata, registration, the redirect rules              |    290 |
-| 063d2 | `feat/mcp-oauth-pages` | after 063d      | OAuth: the sign-in page (GET), no automatic redirects          |    883 |
+| 063d2 | `feat/mcp-oauth-pages` | after 063d      | OAuth: the sign-in page (GET), no automatic redirects          |    918 |
 | 063e  | `feat/mcp-sign-in`     | after 063d2     | OAuth: TOTP sign-in, consent, code → access token              |    315 |
 | 063f  | `feat/mcp-deploy`      | after 063e      | nginx limits + locations, systemd unit, deploy.sh, docs        |    320 |
 
@@ -109,7 +109,7 @@ so the bolt-on stays.
   - A 401 with `resource_metadata` is required.
   - The token endpoint must accept `application/x-www-form-urlencoded`.
   - Endpoints get 10 s.
-  - Egress is `160.79.104.0/21`.
+  - Egress is `160.79.104.0/21` and `153.61.208.0/20`.
 - TypeScript SDK: https://github.com/modelcontextprotocol/typescript-sdk and
   https://ts.sdk.modelcontextprotocol.io/v2/ (serving/fastify, serving/http, serving/authorization,
   serving/sessions-state-scaling).
@@ -210,9 +210,10 @@ response_types: ['code'] }`.
         trusts the redirection URI"; if it doesn't, it MAY inform the user and leave the decision to them. The MCP spec
         2026-07-28, security considerations, "Open Redirection", says the same.
       - These faults are: missing or non-S256 PKCE, a challenge that isn't 43–128 base64url, `scope` other than empty
-        or `read`, a `response_type` other than `code`, a missing `state` (Claude's callback requires it, and leaves the code
-        in the address bar without it), and a `resource` that is present but not `<PUBLIC_URL>/mcp`. An
+        or `read`, a `response_type` other than `code`, a missing or empty `state` (Claude's callback requires it, and leaves the
+        code in the address bar without it), and a `resource` that is present but not `<PUBLIC_URL>/mcp`. An
         absent `resource` is accepted; the access token's `aud` is always `<PUBLIC_URL>/mcp`.
+      - `state` is required, 1 to 1,024 characters. A longer one fails the query parse → error page with no link.
     - OK → `200` sign-in page. It says "An app calling itself <name>" (the name is self-declared; `<bdi>` wraps it;
       with no name, "An app"), and shows the redirect **hostname**. The page holds a sealed `{typ:'signin', …request, exp: +10 min}`.
   - `POST /oauth/authorize` (form `request, username, code`):
@@ -242,7 +243,7 @@ response_types: ['code'] }`.
       Deny still shows the Deny page.
   - `POST /oauth/token` (form `grant_type, code, redirect_uri, client_id, code_verifier, resource?`):
     - nginx admits this route and `/oauth/register` only from Anthropic's egress (slice 15). So a code can't be redeemed
-      from a stranger's machine, whatever a page does with it. `/oauth/authorize` and `/oauth/consent` stay open, because
+      from outside Anthropic's network. `/oauth/authorize` and `/oauth/consent` stay open, because
       the user's browser reaches them.
     - → `200 { access_token: <sealed {typ:'access', tok, aud: '<PUBLIC_URL>/mcp', exp: apiExpiresAt}>, token_type:
 'Bearer', expires_in, scope: 'read' }`, with `Cache-Control: no-store`.
@@ -325,7 +326,7 @@ again in N s`.
 | `/mcp` open connections per client IP                          | nginx `limit_conn`      | 10                                                                                                            |
 | `/oauth/*`, `/.well-known/oauth-*` GETs per IP                 | nginx `limit_req`       | 60/min, burst 20, nodelay                                                                                     |
 | POSTs to `/oauth/*` (sign-in, consent, token, register) per IP | nginx `limit_req`       | 10/min, burst 5, nodelay                                                                                      |
-| Who reaches `/oauth/token`, `/oauth/register`                  | nginx `allow`/`deny`    | `160.79.104.0/21`, others 403                                                                                 |
+| Who reaches `/oauth/token`, `/oauth/register`                  | nginx `allow`/`deny`    | `160.79.104.0/21`, `153.61.208.0/20`, others 403                                                              |
 | Over any nginx limit                                           | `limit_*_status`        | 429                                                                                                           |
 | Body size, `/mcp` and `/oauth/*`                               | nginx + Fastify         | 64 KB → 413                                                                                                   |
 | Header / body read timeouts                                    | nginx                   | `client_header_timeout 10s` (server), `client_body_timeout 10s`, `send_timeout 30s`, `proxy_read_timeout 60s` |
@@ -615,11 +616,15 @@ frame-ancestors 'none'; base-uri 'none'` and `Cache-Control: no-store`.
   - Net negative: about −185 lines as it stands on `feat/mcp-oauth-pages`.
   - Correction: slice 11 was built with loopback too. The string-equal rows didn't move at first; dd8b8e6 restored them
     in `register.test.ts` and made `parseAllowedRedirectUri` refuse loopback hosts, so `https://localhost/cb` can't be
-    listed either.
+    listed either. The "sealed client with a loopback URI" row wasn't built, since "taken off the list" covers that
+    branch.
 - [x] 12d. Keep only the listed redirects and require `state`
   - Files: `apps/mcp/src/config.ts`, `apps/mcp/.env.example`, `apps/mcp/src/oauth/{authorize,register}.ts`,
     `apps/mcp/test/{authorize,config,register}.test.ts`
   - Change: Revision 5, decisions 1–3, as in Contracts.
+  - Tests: authorize: no `state` or an empty one → fault page; a `state` over 1,024 characters → error page. register: a
+    listed and an unlisted URI → 201 keeping only the listed one, with the other logged. config: the default is the one
+    URL.
 
 ### PR 063e: TOTP sign-in, consent and the token endpoint (`apps/mcp`)
 
@@ -628,7 +633,8 @@ frame-ancestors 'none'; base-uri 'none'` and `Cache-Control: no-store`.
     `apps/mcp/test/signIn.test.ts`
   - Change: as in Contracts. Always build a redirect with `authorizationResponse`, never from the raw `redirect_uri`.
     The consent page reuses the sign-in page's "An app calling itself" and `<bdi>` wording, and the Deny page reuses
-    slice 12's "Return to <host>" fault page.
+    slice 12's "Return to <host>" fault page. `AuthorizationRequest.state` is always set for a sealed request, so
+    tighten the type when its consumers land.
   - Tests (fake API):
     - Good code → 200 consent page listing A's ledgers. The login call carried `X-Forwarded-For: 203.0.113.9` (the
       inject `remoteAddress` via loopback XFF) and `client: 'native'`.
@@ -659,8 +665,16 @@ frame-ancestors 'none'; base-uri 'none'` and `Cache-Control: no-store`.
   - ~150 lines
   - Verify, before 063e merges: run `api` with `MCP_ENABLED=true` and `apps/mcp` with `PUBLIC_URL=https://<tunnel>`, add
     the connector on claude.ai, sign in as `claude-qa`, Allow, ask one question, repeat after 61 min, click Cancel once.
-    Record the DCR body, any `Origin`, what shows at expiry, and the meta refresh in Chrome and Safari. Shut the tunnel
-    down afterwards. Starting a tunnel needs the user's OK at that time.
+    Record the DCR body, any `Origin`, what shows at expiry, the meta refresh in Chrome and Safari, the `remoteAddress`
+    logged for `/oauth/register` and `/oauth/token`, and the `resource` in the authorize URL from the address bar.
+    - `state` binding: start Connect in browser A, open the authorize URL in browser B (logged out, then on a second
+      Claude account if there is one), and Allow. Record whether A shows Connected. If it does, stop and ask the user
+      before telling anyone the URL. Start a fresh Connect for each run. Record browser B's final address bar; if it
+      holds the code, that's also a stop.
+    - Hostile metadata: serve a throwaway `/mcp` from a second tunnel: it answers 401 and points to metadata with
+      `resource` set to kopiyka's URL and `authorization_servers` set to kopiyka. Add it as a connector. Claude should
+      refuse it. If kopiyka's sign-in page opens, stop and ask the user. It uses only the user's own servers and account.
+    - Shut the tunnels down afterwards. Starting a tunnel needs the user's OK at that time.
 
 ### PR 063f: deploy and docs (`deploy/`, docs)
 
@@ -687,9 +701,11 @@ frame-ancestors 'none'; base-uri 'none'` and `Cache-Control: no-store`.
       - `location = /mcp`: `limit_req zone=kopiyka_mcp burst=60 nodelay; limit_conn kopiyka_mcp_conn 10;`, plus
         `proxy_buffering off`, `proxy_http_version 1.1`, `proxy_set_header Connection ""` and
         `proxy_read_timeout 60s`.
-      - `location ~ ^/oauth/(token|register)$`: `allow 160.79.104.0/21; deny all;`, plus the two `/oauth/` `limit_req`
-        lines below. A regex location beats the prefix one. `limit_req` runs before `allow`/`deny`, so a stranger's
-        flood still gets 429, and otherwise 403.
+      - `location ~ ^/oauth/(token|register)$`: `allow 160.79.104.0/21; allow 153.61.208.0/20; deny all;`, plus the two
+        `/oauth/` `limit_req` lines below and `access_log /var/log/nginx/access.log kopiyka_no_query;`, because a regex
+        location inherits nothing from `/oauth/`. A regex location beats the prefix one. `limit_req` runs before
+        `allow`/`deny`, so a stranger's flood still gets 429, and otherwise 403. No IPv6 `allow`: the troubleshooting
+        page says connectors are IPv4-only.
       - `location /oauth/`: `limit_req zone=kopiyka_oauth burst=20 nodelay;` and
         `limit_req zone=kopiyka_oauth_post burst=5 nodelay;`. The empty key of non-POSTs isn't counted. It also has
         `access_log /var/log/nginx/access.log kopiyka_no_query;`: the default format would log `/oauth/authorize`'s
@@ -704,8 +720,8 @@ frame-ancestors 'none'; base-uri 'none'` and `Cache-Control: no-store`.
       An unhealthy MCP rolls back like an unhealthy API. Re-runnable: the same release twice ends the same way.
   - Verify: `bash -n deploy/deploy.sh`; `nginx -t` on a copy with a self-signed cert (docker `nginx:stable`, if
     available) or on the droplet before reload. After deploy, the 429 script from slice 16 and `nginx -T | grep -n
-'client_header_timeout\|default_server'`. Both go in a comment on merged PR 063f. Also request `/oauth/authorize?x=1`, then check the
-    access log has no `?`.
+'client_header_timeout\|default_server'`. Both go in a comment on merged PR 063f. Also
+    `sudo tail -n 200 /var/log/nginx/access.log | grep '/oauth/authorize' | grep -c '?'` must print 0.
   - ~150 lines
 - [ ] 16. Document setup, connecting from Claude, and removing the connector
   - Files: `deploy/README.md`, `README.md`, `CLAUDE.md` (first line: three apps)
@@ -729,11 +745,16 @@ frame-ancestors 'none'; base-uri 'none'` and `Cache-Control: no-store`.
         range to the `allow` lines in the vhost and reinstall it, or its registration and token calls get 403. Removing
         a URL works the same way: new sign-ins stop at the restart. Only a fixed `https` callback can be added, so an app
         with a loopback redirect can't.
-      - Egress limit: what it is, why it's there, and that a change of Anthropic's range means updating the vhost.
+      - Egress limit: what it is, why it's there, and that a change of Anthropic's range means updating the vhost. A
+        refusal here never reaches `journalctl -u kopiyka-mcp`; find it with
+        `sudo grep 'access forbidden' /var/log/nginx/error.log`.
+      - Logs: the access log drops `/oauth/` queries, but nginx's error log still prints the full request line on a
+        limit hit, so don't claim logs have no query.
       - The 429 check: `for i in $(seq 20); do curl -s -o /dev/null -w '%{http_code}\n' -X POST -H 'content-type:
 application/json' -d '{}' $site/oauth/register; done | sort | uniq -c`, which should show ≥ 14 × 429, the rest 403.
       - Post-deploy checklist items, including one for the egress limit: from the laptop, `POST /oauth/token` and
-        `POST /oauth/register` answer 403, and `GET /oauth/authorize` doesn't.
+        `POST /oauth/register` answer 403, and `GET /oauth/authorize` doesn't. Wait a minute after the 429 check, or
+        these answer 429, not 403.
     - README:
       - A path table row for `apps/mcp`.
       - Connect from Claude: add custom connector URL `https://<host>/mcp` at claude.ai > Customize > Connectors; it then
@@ -749,13 +770,14 @@ application/json' -d '{}' $site/oauth/register; done | sort | uniq -c`, which sh
     here means a fix PR.
     - AC1 with the default list: add the connector on claude.ai or Desktop and use it on mobile. Record whether hourly
       sign-in works from mobile, and from the log the `redirect_uris` each client sent and any unlisted one.
-    - Claude Code: `claude mcp add` gets `invalid_redirect_uri`; record what it shows. Check whether a connector added
+    - Claude Code: `claude mcp add` from a laptop gets nginx's 403 at `/oauth/register`; record what it shows. Check whether a connector added
       on claude.ai appears in it and works.
     - The callback: in Chrome, logged in to claude.ai, open `https://claude.ai/api/mcp/auth_callback?code=x&state=y` once
       and confirm the code leaves the address bar, because a logged-in browser may differ from `curl`.
     - `state` binding: start Connect in browser A, open the authorize URL in browser B (logged out, then on a second
       Claude account if there is one), and Allow. Record whether A shows Connected. If it does, stop and ask the user
-      before telling anyone the URL.
+      before telling anyone the URL. Start a fresh Connect for each run. Record browser B's final address bar; if it
+      holds the code, that's also a stop.
   - ~170 lines
 
 ## Touch points and how to remove
@@ -827,37 +849,41 @@ To delete it:
 - **A form POST followed by a 302 to `claude.ai` is blocked by `form-action 'self'` in Chrome.** Disproven by design
   in slice 13: the consent response is a 200 page, never a 302: Allow has a meta refresh and a link, Deny has only a link. This must be confirmed
   in Chrome and Safari during slice 14's Verify. If the meta refresh is blocked too, the link is the fallback.
-- **DCR phishing.** A stranger can no longer receive a code at their own host: `https` redirects go only to string-equal
-  listed URLs, checked at registration and at authorize (Revision 3).
+- **DCR phishing.** A stranger can no longer receive a code at their own host: redirects go only to string-equal
+  listed URLs, checked at registration and at authorize (Revisions 4 and 5).
   - Mitigated: no automatic redirect happens before the user's Allow. A bad request or a Deny gives a page with a
     "Return to <host>" link (RFC 9700 §4.11.2; MCP spec "Open Redirection"), and the code only goes to the registered
     URI.
   - Mitigated: the pages show the redirect **hostname**, say "An app calling itself <name>" with the name in
     `<bdi>`, and refuse control and bidi characters in `client_name`.
     Slices 12 and 13 test this.
-  - Mitigated: `/oauth/token` and `/oauth/register` answer only Anthropic's egress, so a code can't be redeemed from a
-    stranger's machine, whatever a page does with it (Revision 5).
-  - **Residual risk:** anyone can register a listed URL and show the real sign-in page; no Claude account is needed. A
-    listed URL is safe only while its page removes the code from the URL. On 2026-11-04, `claude.ai`'s callback answered
-    307 with the code gone for any `state`, and 400 with it kept when `state` was missing, which is why `state` is
+  - Mitigated: `/oauth/token` and `/oauth/register` answer only Anthropic's egress, so a code can't be redeemed from
+    outside Anthropic's network (Revision 5).
+  - **Residual risk:** until the egress limit is live, anyone can register a listed URL and show the real sign-in page,
+    with no Claude account; after that, registering takes Anthropic's network. A listed URL is safe only while its page removes the code from the URL. On 2026-11-04, `claude.ai`'s callback answered
+    307 with the code gone for each `state` tried (a dummy value by the coordinator; a random, an empty and a 6 KB value
+    by the skeptic), and 400 with it kept when `state` was missing, which is why `state` is
     required. That rests on Claude's behaviour; `curl -sI '<url>?code=x&state=y'` rechecks it. A stranger with a Claude
     account can also send a victim the authorize link from their own Connect. If `state` isn't tied to the starting
     browser, the victim's Allow connects the stranger with no pasting. Slice 16 tests this. The most anyone gets is 1
-    hour of read access, after the victim's own TOTP sign-in and Allow.
+    hour of read access, after the victim's own TOTP sign-in and Allow. These ranges are shared with every Anthropic
+    customer. The nginx limit does nothing against a flow where Claude itself redeems the code, which is what the `state`
+    test and the hostile-metadata test check.
 - **Supporting Claude Code later would need its own decision.** Local clients are off because of the pasted-code attack
   in Revision 4, and that risk comes back with them.
 - **If Claude changes its callback path, the connector stops until the setting is updated.** It shows as
-  `invalid_redirect_uri` at Connect, with the URI's origin and path in the log, and the fix is one setting.
+  `invalid_redirect_uri` at Connect, with the URI's origin and path in the log, and the fix is one setting. If Claude registers the old URL as well and
+  sends the new one, the user sees kopiyka's error page instead, and the `redirect URIs refused` line is in the log.
 - **If Anthropic's egress range changes, connecting stops until nginx is updated.** `/oauth/token` and `/oauth/register`
   then answer 403, and a client that's already connected keeps working until its hour ends. Another LLM app needs its
-  range added too. See Open questions for the second range Anthropic lists.
+  range added too. Anthropic's IP page is the source of truth.
 - **What a client shows after Cancel is unknown.** Deny now stops on a page with a link. In slice 14's Verify, click
   Cancel, then record what the client shows before and after the "Return to"
   link.
 - Real clients could be refused outright: a `scope` other than empty or `read`, or a `token_endpoint_auth_method` other
   than `none`, fails the request or the registration. Claude picks the method from our metadata, which lists only `none` (#1043, #962, #970), but check it with Claude
-  Desktop, claude.ai and Claude mobile during slice 14's Verify and AC1. `claude mcp add` is refused by design, at
-  registration. A refusal fails loudly, so it can't slip by.
+  Desktop, claude.ai and Claude mobile during slice 14's Verify and AC1. `claude mcp add` is refused by design: nginx
+  answers 403 at `/oauth/register`. A refusal fails loudly, so it can't slip by.
 - **Claude might send an `Origin` header on `/mcp` or `/oauth/token`.** That would give 403. Checked by slice
   14's Verify (the log shows `invalid_origin`). The fix would be adding that origin to the allowlist.
 - **Claude's behaviour at the hourly expiry without a refresh token is unknown.** It may re-prompt sign-in, or show
@@ -883,9 +909,8 @@ To delete it:
 ## Open questions
 
 - **Blocking (confirm at the gate): the limit numbers** in "Proposed limits". Meanwhile the table's defaults are used.
-- **Blocking slice 15: is `160.79.104.0/21` enough?** Claude's connector docs give that range, and the user chose it, but
-  Anthropic's IP page also lists `153.61.208.0/20` as outbound. If Claude's calls come from there, every Connect gets 403. Meanwhile the plan has `160.79.104.0/21` only. The source address of `/oauth/register` and `/oauth/token` in slice
-  14's Verify can show which range is used, but one run can't prove the other is never used.
+- Both outbound ranges are allowed. Anthropic's IP page (https://platform.claude.com/docs/en/api/ip-addresses) is the
+  source; one run can't prove a range is unused.
 - Settled at the gates: the split, now seven PRs (the user chose to split 063d).
 - No — Brief Q1: should `apps/mcp` get a "revoke this connector" tool? Meanwhile: **no**. Tokens last 1 h, and a
   read token can't call `DELETE`, by design; revoking takes a session (curl now, app UI later).
@@ -1031,7 +1056,7 @@ The paste attack survived Revision 4. Checked with `curl` on 2026-11-04, with du
 - `https://claude.ai/api/mcp/auth_callback?code=x`, no `state` → 400, with the code left there.
 - The same with `state` → 307 to `/settings/connectors?step=end_error…`, with the code gone.
 
-No Claude account is needed, because anyone can register a listed URL. A listed URL is safe only while its page removes
+Until the egress limit is live, no Claude account is needed, because anyone can register a listed URL. A listed URL is safe only while its page removes
 the code from the URL. A logged-in browser may differ, so slice 16 confirms it in Chrome once.
 
 The user decided:
@@ -1043,8 +1068,8 @@ The user decided:
    requested metadata). Unlisted ones are logged at `warn`. So the "one unlisted URI loses the registration" lockout
    risk is gone.
 3. A missing `state` is a fault: `invalid_request`, on the fault page.
-4. nginx limits `/oauth/token` and `/oauth/register` to Anthropic's egress. This defeats the paste attack whatever a page
-   does: a code can't be redeemed from a stranger's machine. `/oauth/authorize` and `/oauth/consent` stay open, for the
+4. nginx limits `/oauth/token` and `/oauth/register` to Anthropic's two outbound ranges. This defeats the paste attack: a code can't be
+   redeemed from outside Anthropic's network. `/oauth/authorize` and `/oauth/consent` stay open, for the
    user's browser.
 5. The narrower promise is accepted: hosted Claude only, a Claude account, one custom connector on Free, and an Owner
    adds it on Team. The brief says so.
@@ -1056,10 +1081,11 @@ Also:
 - **Pages:** the meta refresh is `content="0"`, and the consent page has the "never … copy or paste" line. Slice 13's
   200-character hostname Verify is gone; the CSS stays.
 - **Checks:** slice 14 runs the real-client check through a tunnel before 063e merges. nginx-dependent checks stay
-  post-deploy, in a comment on merged PR 063f. Slice 16 tests `state` binding across two browsers.
+  post-deploy, in a comment on merged PR 063f. Slices 14 and 16 test `state` binding across two browsers, and
+  slice 14 tests hostile metadata.
 - **Logs:** slice 15's `/oauth/` location logs without the query.
-- **Estimates:** `git diff --shortstat origin/main...HEAD -- apps/mcp` at dd8b8e6 gives 772 insertions and 111 deletions, so
-  063d2 is 883, replacing Revision 4's ~460. Slice 15 goes to ~150 and slice 16 to ~170, so 063f is ~320 and the total about
+- **Estimates:** `git diff --shortstat origin/main...HEAD -- apps/mcp` at 7716c56 gives 785 insertions and 112 deletions (897),
+  plus 21 uncommitted lines for the `state` cap, so 063d2 is 918, replacing Revision 4's ~460. Slice 15 goes to ~150 and slice 16 to ~170, so 063f is ~320 and the total about
   3,200.
 
 ## Deviations

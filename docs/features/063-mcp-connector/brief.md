@@ -4,10 +4,11 @@ Type: feature
 
 ## Why
 
-We want to ask an LLM app (Claude Desktop, Claude Code, claude.ai, any MCP client) about
-our budget: "how much is left in groceries this month?", "what did we spend on cafés in
-October?". Every kopiyka user should get this by adding one connector URL to their LLM app,
-with nothing to install or run locally.
+We want to ask an LLM app (claude.ai, Claude Desktop, Claude mobile) about our budget: "how
+much is left in groceries this month?", "what did we spend on cafés in October?". Every
+kopiyka user should get this by adding one connector URL to their LLM app, with nothing to
+install or run locally. Apps that redirect to the user's own machine, such as Claude Code,
+can't connect (plan, Revision 4).
 
 The MCP support must sit apart from the main app so it can be switched off or deleted
 without touching the API's domain logic or the Expo app. This first brief is read-only. A
@@ -79,9 +80,10 @@ protections as the app, plus rate limits.
     capped: expense lists are paged with a max page size, never "everything".
   - **Bounded streams:** a cap on concurrent Streamable HTTP sessions and SSE streams, per
     token and overall, with an idle timeout. Old sessions are dropped first.
-  - **Client registration abuse:** registration is rate-limited, `redirect_uri` must be
-    `https://` (or loopback `http://` for local clients), and it's checked exactly against
-    the registered value. Registered clients and authorization codes expire (codes after
+  - **Client registration abuse:** registration is rate-limited, and `redirect_uri` must be
+    string-equal to an entry on `MCP_ALLOWED_REDIRECT_URIS` and to the registered value. No
+    loopback `http://`: a code left in a failed page's address bar can be talked out of a
+    user (plan, Revision 4). Registered clients and authorization codes expire (codes after
     ≤ 60 s, one use).
   - **DNS rebinding / origin:** `Origin` and `Host` are validated as the MCP spec requires.
   - **Logs:** no tokens, TOTP codes or amounts in logs. 401/403/429 counts are logged, so
@@ -118,7 +120,8 @@ protections as the app, plus rate limits.
 - [ ] `curl -sI` on `/mcp` and the sign-in page shows the security headers and the sign-in CSP.
 - [ ] Root gates (`format:check`, `lint`, `typecheck`, `test`) cover `apps/mcp`.
 - [ ] Deploy docs: systemd unit, nginx `location /mcp` (+ OAuth well-known paths), env vars.
-      `README.md` says how to connect from Claude Desktop/Code and how to remove the feature.
+      `README.md` says how to connect from claude.ai, Claude Desktop and Claude mobile, that
+      Claude Code can't, and how to remove the feature.
 
 ## Out of scope
 
@@ -126,7 +129,8 @@ protections as the app, plus rate limits.
   copy, invites). That's the next brief, which adds a `write` scope.
 - Token management UI in the Expo app.
 - Notion sync tools.
-- Local stdio mode. The remote server is enough; Claude Code can use it over HTTP too.
+- Local stdio mode, and any client with a loopback redirect: Claude Code and Claude Desktop
+  on third-party inference. Supporting them later needs its own decision (plan, Revision 4).
 - Changing session TTL or the app's login flow.
 - Adding nginx rate limits to the app's own `/api/` routes. That's worth a brief of its
   own, and this one can reuse the same `limit_req` zones.
@@ -143,7 +147,7 @@ protections as the app, plus rate limits.
 - Prefer keeping `apps/mcp` stateless: authorization codes and registered clients as
   short-lived signed/encrypted blobs (key from env), with the API token as the OAuth access
   token. If that doesn't fit the spec, say why in the plan before adding storage.
-- The OAuth redirect must only go to the registered `redirect_uri`, with PKCE (S256)
+- The OAuth redirect must only go to a registered and listed `redirect_uri`, with PKCE (S256)
   required. The sign-in page sends no third-party requests and sets strict CSP.
 - Store only the token hash in the API (same as `sessions`).
 - Tool descriptions should say amounts are in the ledger's currency and months are

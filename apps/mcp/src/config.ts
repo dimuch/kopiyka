@@ -14,7 +14,7 @@ const Env = z.object({
   PUBLIC_URL: z.url().default('http://localhost:3200'),
   API_URL: z.url().default('http://127.0.0.1:3000'),
   MCP_SEAL_KEY: z.string().min(1),
-  // The only https redirects a client may register, exactly as it sends them. Blank means loopback only.
+  // The only redirects a client may register, exactly as it sends them. Blank means no app can connect.
   MCP_ALLOWED_REDIRECT_URIS: z.string().default(CLAUDE_CALLBACKS),
 });
 

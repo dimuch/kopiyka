@@ -60,7 +60,7 @@ describe('loadConfig', () => {
       ]);
     });
 
-    it('means loopback only when blank', () => {
+    it('means no app can connect when blank', () => {
       expect(load('')).toEqual([]);
       expect(load('   ')).toEqual([]);
     });

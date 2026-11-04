@@ -1,4 +1,5 @@
 import { createHash } from 'node:crypto';
+import { Writable } from 'node:stream';
 import type { FastifyInstance } from 'fastify';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { buildApp } from '../src/app.js';
@@ -23,6 +24,7 @@ describe('GET /oauth/authorize', () => {
       headers: { host: HOST },
       payload: { redirect_uris: redirectUris, client_name: clientName },
     });
+    expect(res.statusCode).toBe(201);
     return res.json().client_id;
   }
 
@@ -190,6 +192,21 @@ describe('GET /oauth/authorize', () => {
       expectErrorPage(res);
     });
 
+    it('for a loopback path one character off, though loopback is allowed', async () => {
+      const res = await authorize({
+        client_id: await register(['http://localhost:5000/callback']),
+        redirect_uri: 'http://localhost:5000/callback/',
+      });
+
+      expectErrorPage(res);
+    });
+
+    it('for a listed URI this client didn’t register', async () => {
+      const res = await authorize({ client_id: await register([CALLBACK]), redirect_uri: 'https://second.example/cb' });
+
+      expectErrorPage(res);
+    });
+
     it('for a loopback port that can’t exist', async () => {
       const res = await authorize({
         client_id: await register(['http://localhost:5000/callback']),
@@ -270,6 +287,12 @@ describe('GET /oauth/authorize', () => {
       expect(res.headers['content-type']).toContain('text/html');
     });
 
+    it('asks the browser not to tell the client where the visitor came from', async () => {
+      const res = await authorize({ client_id: await register([CALLBACK]), scope: 'x' });
+
+      expect(res.body).toContain('rel="noreferrer"');
+    });
+
     it('sends the fault page with the same CSP and no caching', async () => {
       const res = await authorize({ client_id: await register([CALLBACK]), scope: 'x' });
 
@@ -293,5 +316,33 @@ describe('GET /oauth/authorize', () => {
         iss: PUBLIC_URL,
       });
     });
+  });
+
+  it('keeps the query out of the request log: it holds the state and the redirect URI', async () => {
+    let logs = '';
+    const logged = await buildApp({
+      config: { ...config, logLevel: 'info' },
+      now: () => clock,
+      fetch: fakeApi(() => ({ json: {} })).fetch,
+      logStream: new Writable({
+        write(chunk, _encoding, done) {
+          logs += String(chunk);
+          done();
+        },
+      }),
+    });
+
+    const res = await logged.inject({
+      url: '/oauth/authorize',
+      headers: { host: HOST },
+      query: { client_id: 'made-up', state: 'a-state', redirect_uri: 'https://u:p@evil.example/cb?secret=1' },
+    });
+    await logged.close();
+
+    expect(res.statusCode).toBe(400);
+    expect(logs).toContain('"url":"/oauth/authorize"');
+    for (const leak of ['a-state', 'secret', 'u%3Ap', 'evil.example', 'made-up', 'client_id']) {
+      expect(logs).not.toContain(leak);
+    }
   });
 });

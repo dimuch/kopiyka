@@ -7,17 +7,18 @@ Base: origin/main (063a, 063b); 063c–063f are stacked, each on the one before 
 
 ## Approach
 
-The feature is about 2,150 changed lines, five times the ~400 a plan should hold. It goes out as **six PRs**, and
+The feature is about 2,800 changed lines, seven times the ~400 a plan should hold. It goes out as **seven PRs**, and
 each one is safe to merge on its own:
 
-| PR   | Branch               | Base            | What                                                           | ~Lines |
-| ---- | -------------------- | --------------- | -------------------------------------------------------------- | -----: |
-| 063a | `feat/mcp-connector` | origin/main     | `apps/api/src/apiTokens/` + migration, behind `MCP_ENABLED`    |    370 |
-| 063b | `feat/mcp-server`    | origin/main     | `apps/mcp` workspace, `/mcp` with bearer check, `list_ledgers` |    560 |
-| 063c | `feat/mcp-tools`     | stacked on 063b | the other four tools, per-token limits and stream caps         |    440 |
-| 063d | `feat/mcp-oauth`     | stacked on 063c | OAuth: metadata, registration, the sign-in page (GET)          |    350 |
-| 063e | `feat/mcp-sign-in`   | stacked on 063d | OAuth: TOTP sign-in, consent, code → access token              |    300 |
-| 063f | `feat/mcp-deploy`    | stacked on 063e | nginx limits + locations, systemd unit, deploy.sh, docs        |    290 |
+| PR    | Branch                 | Base            | What                                                           | ~Lines |
+| ----- | ---------------------- | --------------- | -------------------------------------------------------------- | -----: |
+| 063a  | `feat/mcp-connector`   | origin/main     | `apps/api/src/apiTokens/` + migration, behind `MCP_ENABLED`    |    370 |
+| 063b  | `feat/mcp-server`      | origin/main     | `apps/mcp` workspace, `/mcp` with bearer check, `list_ledgers` |    560 |
+| 063c  | `feat/mcp-tools`       | stacked on 063b | the other four tools, per-token limits and stream caps         |    440 |
+| 063d  | `feat/mcp-oauth`       | origin/main     | OAuth: metadata, registration, the redirect rules              |    290 |
+| 063d2 | `feat/mcp-oauth-pages` | origin/main     | OAuth: the sign-in page (GET), no automatic redirects          |    520 |
+| 063e  | `feat/mcp-sign-in`     | stacked on 063d | OAuth: TOTP sign-in, consent, code → access token              |    315 |
+| 063f  | `feat/mcp-deploy`      | stacked on 063e | nginx limits + locations, systemd unit, deploy.sh, docs        |    290 |
 
 063b's code doesn't depend on 063a. It only calls 063a's routes over HTTP, and its tests stub them. Merge order is
 a → b → c → d → e → f, and nothing is deployed until 063f.
@@ -169,7 +170,11 @@ authorization_response_iss_parameter_supported: true }`. There is no `client_id_
     - → `201 { client_id: <sealed {typ:'client', redirect_uris, client_name, exp: +90 d}>, client_id_issued_at,
 client_name, redirect_uris, token_endpoint_auth_method: 'none', grant_types: ['authorization_code'],
 response_types: ['code'] }`.
-    - Errors: 400 `{ error: 'invalid_redirect_uri' | 'invalid_client_metadata', error_description }`.
+    - Errors: 400 `{ error: 'invalid_redirect_uri' | 'invalid_client_metadata', error_description }`. A `client_name`
+      with a control or bidi control character (`/[\p{Cc}\p{Bidi_Control}]/u`) gets `invalid_client_metadata`.
+      Zero-width joiners stay allowed: emoji and Persian or Indic names need them, and they spoof nothing a homoglyph
+      can't.
+    - `client_name` is trimmed first, so a name of only spaces reads as "An app".
   - Redirect URI rules (`oauth/redirects.ts`):
     - Allowed: `https://` with any host, or `http://` with host `localhost`, `127.0.0.1` or `[::1]`.
     - Refused: a fragment, userinfo, or any other scheme.
@@ -178,12 +183,25 @@ response_types: ['code'] }`.
   - `GET /oauth/authorize?response_type&client_id&redirect_uri&code_challenge&code_challenge_method&state&scope&resource`:
     - Unreadable or expired client, or a `redirect_uri` that doesn't match → `400` HTML error page, **never a
       redirect**.
-    - Other faults → `302 <redirect_uri>?error=invalid_request|invalid_scope|unsupported_response_type&state&iss`.
-      That covers: missing or non-S256 PKCE, a challenge that isn't 43–128 base64url, `scope` other than empty or
-      `read`, and a `resource` that is present but not `<PUBLIC_URL>/mcp`. An absent `resource` is accepted; the
-      access token's `aud` is always `<PUBLIC_URL>/mcp`.
-    - OK → `200` sign-in page. It shows the client name, the redirect **hostname**, and a loopback warning if every
-      registered URI is loopback. It holds a sealed `{typ:'signin', …request, exp: +10 min}`.
+    - Other faults, for a known client and a matching `redirect_uri` → `400` HTML page, **no 302 and no
+      `<meta refresh>`**. It names the redirect **hostname** and has a "Return to <host>" link carrying the error
+      response (`error=invalid_request|invalid_scope|unsupported_response_type&state&iss`, built by
+      `authorizationResponse`), so the user decides.
+      - Why: with open DCR anyone can register `https://evil.example/login`, and a bad `scope` would otherwise send
+        visitors from kopiyka's real domain straight there, with no user action. RFC 9700 §4.11.2 names this attack
+        and says the server "MUST take precautions" and "SHOULD only automatically redirect the user agent if it
+        trusts the redirection URI"; if it doesn't, it MAY inform the user and leave the decision to them. The MCP spec
+        2026-07-28, security considerations, "Open Redirection", says the same.
+      - These faults are: missing or non-S256 PKCE, a challenge that isn't 43–128 base64url, `scope` other than empty
+        or `read`, a `response_type` other than `code`, and a `resource` that is present but not `<PUBLIC_URL>/mcp`. An
+        absent `resource` is accepted; the access token's `aud` is always `<PUBLIC_URL>/mcp`.
+    - OK → `200` sign-in page. It says "An app calling itself <name>" (the name is self-declared; `<bdi>` wraps it;
+      with no name, "An app"), shows the redirect **hostname**, and warns if the **requested** redirect URI is
+      loopback. The warning is best effort: it covers literal loopback hosts, not a public name that resolves to one, and the
+      redirect hostname is always shown. For this warning only,
+      `https` on a loopback host counts too (`https://localhost`); the allowed and matching rules above don't change.
+      The warning is derived from `redirectUri` at render time, not sealed, so it also survives the 401 re-render. The
+      page holds a sealed `{typ:'signin', …request, exp: +10 min}`.
   - `POST /oauth/authorize` (form `request, username, code`):
     - It calls `POST <API_URL>/api/auth/login` with `{username, code, client: 'native'}` and
       `X-Forwarded-For: <req.ip>`. That's the client address nginx gave `apps/mcp`, which the API trusts from loopback,
@@ -191,15 +209,24 @@ response_types: ['code'] }`.
     - API 401 → `401` sign-in page "Wrong username or code". API 429 → `429` page "Too many attempts; try again in
       24 hours".
     - OK → `GET /api/ledgers` with the session → `200` consent page. It lists the ledgers (name or label, owner or
-      member) and the redirect hostname, with Allow/Cancel, and holds a sealed
-      `{typ:'consent', session token, request, exp: +10 min}`.
+      member) and the redirect hostname, says "An app calling itself <name>" like the sign-in page, has Allow/Cancel,
+      and holds a sealed `{typ:'consent', session token, request, exp: +10 min}`.
   - `POST /oauth/consent` (form `consent, decision=allow|deny`):
     - Allow: `POST /api/api-tokens` with the session and `label=client_name` (the API deletes the session), then a
       code `{typ:'code', jti, apiToken, apiExpiresAt, clientIdHash, redirect_uri, code_challenge, exp: +60 s}`.
-    - Deny: `POST /api/auth/logout` with the session, then `error=access_denied`.
-    - Either way → `200` "Returning to <host>…" page. It has `<meta http-equiv="refresh">` and a link to
-      `redirect_uri?code|error…&state&iss`. A 302 straight after a form POST would be blocked by the
-      `form-action 'self'` CSP in Chrome (see Risks).
+      → `200` "Returning to <host>…" page with `<meta http-equiv="refresh">` and a link to
+      `redirect_uri?code…&state&iss`. A 302 straight after a form POST would be blocked by the `form-action 'self'`
+      CSP in Chrome (see Risks). The automatic redirect is fine here: the user has signed in and seen the hostname on
+      the consent page. Allow is RFC 9700's "inform the user" branch, none of its three attacks is an Allow, and a
+      cross-site POST is refused by the Origin check.
+    - Deny: `POST /api/auth/logout` with the session → `200` page, **no automatic redirect**: it names the hostname
+      and has a "Return to <host>" link carrying `error=access_denied&state&iss`. Declining says nothing about
+      trusting the URI, and this is RFC 9700 §4.11.2's second variant, where a declined consent still lands on the
+      phishing site.
+    - Both links are built by `authorizationResponse`, never from the raw `redirect_uri`.
+    - Anything else that fails in `POST /oauth/authorize` or `POST /oauth/consent` (an expired blob, the API down, a
+      second Allow after the session is gone) → error page with no link and no automatic redirect. A failed logout on
+      Deny still shows the Deny page.
   - `POST /oauth/token` (form `grant_type, code, redirect_uri, client_id, code_verifier, resource?`):
     - → `200 { access_token: <sealed {typ:'access', tok, aud: '<PUBLIC_URL>/mcp', exp: apiExpiresAt}>, token_type:
 'Bearer', expires_in, scope: 'read' }`, with `Cache-Control: no-store`.
@@ -453,7 +480,7 @@ now());` goes before the session lookup. `apiTokenAuth` looks the hash up live (
     - Rate: `2026-11-02T22:30Z` → date `2026-11-03` (Kyiv is +2); API 503 → `isError` `rate_unavailable`.
   - ~130 lines
 
-### PR 063d: OAuth metadata, registration and the sign-in page (`apps/mcp`)
+### PR 063d: OAuth metadata, registration and the redirect rules (`apps/mcp`)
 
 - [x] 11. Publish authorization server metadata and dynamic client registration
   - Files: `apps/mcp/src/oauth/redirects.ts`, `apps/mcp/src/oauth/register.ts` (register route + `openClient`),
@@ -471,6 +498,9 @@ now());` goes before the session lookup. `apiTokenAuth` looks the hash up live (
       `invalid_redirect_uri`; `token_endpoint_auth_method: 'client_secret_basic'` → 400 `invalid_client_metadata`;
       the metadata JSON matches Contracts.
   - ~150 lines
+
+### PR 063d2: the sign-in page, with no automatic redirects (`apps/mcp`)
+
 - [ ] 12. Show the sign-in page for a valid authorization request
   - Files: `apps/mcp/src/oauth/authorize.ts` (GET), `apps/mcp/src/oauth/pages.ts` (HTML via an escaping template;
     one CSS string whose sha256 goes in the CSP; no scripts), `apps/mcp/test/authorize.test.ts`
@@ -482,38 +512,64 @@ frame-ancestors 'none'; base-uri 'none'` and `Cache-Control: no-store`.
     - Styles therefore live only in the one hashed `<style>` element, never in `style=""` attributes: the hash allows
       neither inline attributes nor `'unsafe-inline'`.
     - Inputs have labels, `autocomplete="username"` / `"one-time-code"` and `inputmode="numeric"`.
-  - Tests:
-    - Happy → 200, the page shows the client name and redirect host, and the CSP header is exact.
-    - Loopback-only client → the warning text.
+  - Tests (Revision 2 changed the Happy, loopback and fault cases and added the `client_name` one; those aren't built
+    yet and land in slice 12a):
+    - Happy → 200, the page says "An app calling itself" with the name in `<bdi>`, shows the redirect host, and the
+      CSP header is exact.
+    - Loopback warning follows the requested URI: a client registered with an `https` and a loopback URI gets the
+      warning on the loopback one and not on the `https` one; `https://localhost/cb` gets it too.
     - A `redirect_uri` one character off → 400 page, no `Location`.
     - Expired client (fake clock + 91 d) → 400 page.
-    - No `code_challenge`, or `method=plain` → 302 `error=invalid_request` with `state` and `iss`.
-    - `scope=write` → 302 `invalid_scope`.
-    - `resource=https://other/mcp` → 302 `invalid_request`. No `resource` → 200 sign-in page.
+    - No `code_challenge`, or `method=plain` → 400 page naming the host, with a "Return to <host>" link carrying
+      `error=invalid_request`, `state` and `iss`; no `Location`, no `http-equiv`.
+    - `scope=write` → the same page with `invalid_scope`. `response_type=token` → `unsupported_response_type`.
+    - `resource=https://other/mcp` → the same page with `invalid_request`. No `resource` → 200 sign-in page.
+    - The attack: register `https://evil.example/login`, then `scope=x` → 400, no `Location`, and `evil.example` only
+      in the page's text and link.
     - `<script>` in the client name is shown escaped; the HTML has no `style=` attribute.
-  - ~200 lines (the page template is most of it; it's one concern and only gets used here)
+    - `register.test.ts`: a `client_name` with U+202E or a newline inside it → 400 `invalid_client_metadata`; a
+      Cyrillic name, a ZWJ emoji name and a Persian name with ZWNJ still register; a name of only spaces becomes `''`.
+  - Verify: a 200-character hostname at 390 px wide wraps and stays fully readable (`overflow-wrap: anywhere`), on
+    the sign-in and fault pages.
+  - ~200 lines (the page template is most of it; it's one concern and only gets used here), plus ~70 in slice 12a
+- [ ] 12a. Stop sending visitors to an unvetted client automatically
+  - Files: `apps/mcp/src/oauth/{authorize,pages,redirects,register}.ts`,
+    `apps/mcp/test/{authorize,redirects,register}.test.ts`
+  - Change: Revision 2, as in Contracts. `loopbackOnly` leaves `AuthorizationRequest`: the warning is derived from
+    `redirectUri` at render time, so it also survives the 401 re-render.
+  - Tests: the Revision 2 cases listed under slice 12, plus a `redirects.test.ts` row for the warning's loopback
+    check.
+  - ~70 lines
 
 ### PR 063e: TOTP sign-in, consent and the token endpoint (`apps/mcp`)
 
 - [ ] 13. Sign in with a TOTP code and confirm which ledgers the connector reads
   - Files: `apps/mcp/src/oauth/authorize.ts` (POST authorize, POST consent), `apps/mcp/src/oauth/pages.ts`,
     `apps/mcp/test/signIn.test.ts`
-  - Change: as in Contracts.
+  - Change: as in Contracts. Always build a redirect with `authorizationResponse`, never from the raw `redirect_uri`.
+    The consent page reuses the sign-in page's "An app calling itself" and `<bdi>` wording, and the Deny page reuses
+    slice 12's "Return to <host>" fault page.
   - Tests (fake API):
     - Good code → 200 consent page listing A's ledgers. The login call carried `X-Forwarded-For: 203.0.113.9` (the
       inject `remoteAddress` via loopback XFF) and `client: 'native'`.
     - API 401 → 401 page with the username kept and no code echoed. API 429 → 429 "Too many attempts" page.
     - Expired sign-in blob → 400 "start again".
+    - The consent page shows the redirect host and "An app calling itself" with the name in `<bdi>`.
     - Allow → `POST /api/api-tokens` with label = client name → 200 page whose meta refresh and link go to
       `redirect_uri?code=…&state=…&iss=…`.
-    - Deny → `POST /api/auth/logout`, then `error=access_denied`.
-  - ~150 lines
+    - Deny → `POST /api/auth/logout`, then a 200 page naming the host, with a link carrying `error=access_denied`,
+      `state` and `iss`; no `Location`, no `http-equiv`.
+    - An expired consent blob, and `POST /api/api-tokens` failing → error page, no `http-equiv`.
+  - Verify: the 200-character hostname at 390 px wraps on the consent, "Returning to" and Deny pages.
+  - ~165 lines
 - [ ] 14. Exchange a one-time authorization code for an access token
   - Files: `apps/mcp/src/oauth/token.ts` (route + used-code set), `apps/mcp/test/{token.test.ts,flow.test.ts}`
-  - Change: as in Contracts. The used set maps code id → exp, prunes expired ids on every insert, and holds at most
-    10,000 (when full → 503 `temporarily_unavailable`).
+  - Change: as in Contracts. The used set maps `jti` → exp, prunes expired ids on every insert, and holds at most
+    10,000 (when full → 503 `temporarily_unavailable`). Key it on `jti`, never the code text: `open` decodes
+    base64url leniently, so one code has several texts (trailing bits and padding are ignored).
   - Tests:
-    - Works once → 200 with `expires_in` = API expiry − now; the second use → 400 `invalid_grant`.
+    - Works once → 200 with `expires_in` = API expiry − now; the second use → 400 `invalid_grant`, including with the
+      code re-sent with `=` appended (the same bytes, different text).
     - A fresh code at +61 s → `invalid_grant`.
     - Wrong verifier, `redirect_uri` one character off, another `client_id`, or a wrong `resource` → `invalid_grant`.
     - `grant_type=refresh_token` → `unsupported_grant_type`. A JSON body → 415.
@@ -653,12 +709,22 @@ To delete it:
 ## Risks
 
 - **A form POST followed by a 302 to `claude.ai` is blocked by `form-action 'self'` in Chrome.** Disproven by design
-  in slice 13: the consent response is a 200 page with a meta refresh and a link, never a 302. This must be confirmed
+  in slice 13: the consent response is a 200 page, never a 302: Allow has a meta refresh and a link, Deny has only a link. This must be confirmed
   in Chrome and Safari during the AC1 manual check. If the meta refresh is blocked too, the link is the fallback.
 - **DCR phishing.** Anyone can register a client with an `https` redirect to their own host, then send a victim the
-  authorize link. Mitigated by the sign-in and consent pages, which show the redirect **hostname** and the client
-  name (escaped) before Allow; the code only goes to the registered URI. Slices 12 and 13 test that the hostname is
-  on the page.
+  authorize link.
+  - Mitigated: no automatic redirect happens before the user's Allow. A bad request or a Deny gives a page with a
+    "Return to <host>" link (RFC 9700 §4.11.2; MCP spec "Open Redirection"), and the code only goes to the registered
+    URI.
+  - Mitigated: the pages show the redirect **hostname**, say "An app calling itself <name>" with the name in
+    `<bdi>`, refuse control and bidi characters in `client_name`, and warn when the requested URI is loopback.
+    Slices 12 and 13 test this.
+  - **Residual risk:** a hostile client can still reach the real sign-in page, and a user who ignores the hostname
+    can Allow it. So the hostname must stay readable however long it is (`overflow-wrap: anywhere`), on every page
+    that shows it.
+- **What a client shows after Cancel is unknown.** Deny now stops on a page with a link. In the AC1 check for 063f,
+  click Cancel in Claude Desktop and Claude Code, then record what the client shows before and after the "Return to"
+  link.
 - **Claude might send an `Origin` header on `/mcp` or `/oauth/token`.** That would give 403. Checked by the AC1
   manual check (journalctl shows `invalid_origin`). The fix would be adding that origin to the allowlist.
 - **Claude's behaviour at the hourly expiry without a refresh token is unknown.** It may re-prompt sign-in, or show
@@ -730,6 +796,26 @@ I also took these of the skeptic's suggestions:
 - Slice 16 adds re-installing `deploy.sh` and checking that `kopiyka-mcp` can read the release.
 - A DCR phishing risk is added.
 
+## Revision 2
+
+Status: approved (user, 2026-11-04, after the skeptic's edits)
+
+The 063d review found the approved contract made kopiyka an open redirector. With open DCR, anyone could register
+`https://evil.example/login`, and `GET /oauth/authorize?…&scope=x` answered 302 straight there from the real domain.
+Sources: RFC 9700 §4.11.2 and the MCP spec 2026-07-28, security considerations, "Open Redirection". Both say "MUST
+take precautions" and that the server SHOULD only redirect automatically to a URI it trusts.
+
+- `GET /oauth/authorize`: faults for a known client now give a 400 page with a "Return to <host>" link, never a 302.
+- `POST /oauth/consent`: Deny gives a page with that link and no automatic redirect. Allow keeps the meta refresh.
+- The loopback warning follows the requested URI, and `https` on a loopback host counts for the warning only.
+- The pages say "An app calling itself <name>" with `<bdi>`, and `client_name` refuses `/[\p{Cc}\p{Bidi_Control}]/u`.
+- The DCR phishing risk now names the residual risk. Slices 13 and 14 carry the `authorizationResponse` and `jti`
+  notes, and Risks has a Cancel check for 063f.
+
+The user split 063d in two: 063d is slice 11 and the redirect rules, and 063d2 is slices 12 and 12a (~70 lines), on `feat/mcp-oauth-pages`. Slice 13
+goes from ~150 to ~165 lines. Together they measured 734 lines before the split, so ~800 with slice 12a. 063e is ~315 by the old estimate, but slices 11 and 12 came in at about twice theirs, so expect more. Slices
+14–16 keep their estimates.
+
 ## Deviations
 
 - slice 11: the form body parser moves to slice 13, its first user, so `/mcp` keeps answering 415 to forms until then. `test/helpers.ts` holds the test config for the OAuth tests.
@@ -762,3 +848,8 @@ I also took these of the skeptic's suggestions:
 - `test/rpc.ts`: `rpcResult` and `toolData` extracted once `tools.test.ts` needed them too.
 - `money.ts` and `dates.ts` vs `apps/api/src/money.ts` and `dates.ts`: LEAVE, the runtime boundary, as the plan says.
 - The `Money` formatting vs `apps/mobile/src/format.ts`: LEAVE, same reason.
+
+063d (`origin/main...HEAD`): reused 0 · extracted 1 · left 0.
+
+- `test/helpers.ts`: the OAuth tests share one `testConfig`, instead of another copy. `mcp.test.ts`, `mcpLimits.test.ts`
+  and `tools.test.ts` keep their own: `mcpLimits` needs another host, and moving the others is churn in merged tests.

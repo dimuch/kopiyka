@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { isAllowedRedirectUri, redirectMatches } from '../src/oauth/redirects.js';
+import { isAllowedRedirectUri, redirectForLog, redirectMatches } from '../src/oauth/redirects.js';
 
 describe('isAllowedRedirectUri', () => {
   const claude = 'https://claude.ai/api/mcp/auth_callback';
@@ -51,6 +51,7 @@ describe('isAllowedRedirectUri', () => {
 
   it.each([
     'http://localhost:80@evil.example/cb',
+    'http://evil.example\\@localhost/cb',
     'http://localhost.evil/cb',
     'http://[::ffff:127.0.0.1]/cb',
     'http://localhost:99999/cb',
@@ -58,6 +59,17 @@ describe('isAllowedRedirectUri', () => {
     'https://localhost/cb',
   ])('refuses %j, which only looks like loopback', (uri) => {
     expect(isAllowedRedirectUri(uri, [])).toBe(false);
+  });
+});
+
+describe('redirectForLog', () => {
+  it.each([
+    ['https://a.example/cb?secret=1', 'https://a.example/cb'],
+    ['https://user:pass@a.example/cb', 'https://a.example/cb'],
+    ['data:text/html,<h1>hi</h1>', 'data:'],
+    ['not a url', 'unparseable'],
+  ])('logs %j as %s', (uri, logged) => {
+    expect(redirectForLog(uri)).toBe(logged);
   });
 });
 

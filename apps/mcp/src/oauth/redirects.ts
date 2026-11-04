@@ -20,7 +20,8 @@ export function isAllowedRedirectUri(uri: string, allowedUris: string[]): boolea
 /** Where a URI points, for the log: its query could carry anything. */
 export function redirectForLog(uri: string): string {
   const url = parse(uri);
-  return url ? `${url.origin}${url.pathname}` : 'unparseable';
+  if (!url) return 'unparseable';
+  return url.origin === 'null' ? url.protocol : `${url.origin}${url.pathname}`;
 }
 
 /** Exact, except that a loopback port is ignored: local clients pick a free one each run (RFC 8252 §7.3). */

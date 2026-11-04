@@ -15,7 +15,8 @@ const AuthorizeQuery = z.object({
   redirect_uri: z.string().optional(),
   code_challenge: z.string().optional(),
   code_challenge_method: z.string().optional(),
-  state: z.string().optional(),
+  // A stranger picks this value, and it reaches Claude's callback, whose page must stay the one that clears the code.
+  state: z.string().max(1024).optional(),
   scope: z.string().optional(),
   resource: z.string().optional(),
 });

@@ -90,7 +90,7 @@ protections as the app, plus rate limits.
     Revisions 4 and 5). Registered clients and authorization codes expire (codes after
     ≤ 60 s, one use).
   - **Egress limit:** nginx answers `/oauth/token` and `/oauth/register` only from Anthropic's
-    egress, so a code can't be redeemed from a stranger's machine.
+    egress, so a code can't be redeemed from outside Anthropic's network.
   - **DNS rebinding / origin:** `Origin` and `Host` are validated as the MCP spec requires.
   - **Logs:** no tokens, TOTP codes or amounts in logs. 401/403/429 counts are logged, so
     abuse shows up in `journalctl`.

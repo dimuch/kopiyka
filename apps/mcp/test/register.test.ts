@@ -90,6 +90,38 @@ describe('OAuth discovery and registration', () => {
     expect(res.json()).toEqual({ error: 'invalid_client_metadata', error_description: expect.any(String) });
   });
 
+  describe('client_name', () => {
+    it.each([
+      ['a right-to-left override', 'Claude\u202Eia.edualc'],
+      ['a left-to-right mark', 'Claude\u200E'],
+      ['a directional isolate', 'Claude\u2067'],
+      ['a newline inside it', 'Claude\nYou’ll go back to claude.ai'],
+    ])('refuses %s', async (_case, name) => {
+      const res = await register({ redirect_uris: [CALLBACK], client_name: name });
+
+      expect(res.statusCode).toBe(400);
+      expect(res.json().error).toBe('invalid_client_metadata');
+    });
+
+    it.each([
+      ['Cyrillic', 'Копійка'],
+      ['a family emoji, which needs zero-width joiners', '👨‍👩‍👧'],
+      ['Persian with a zero-width non-joiner', 'می‌خواهم'],
+    ])('accepts %s', async (_case, name) => {
+      const res = await register({ redirect_uris: [CALLBACK], client_name: name });
+
+      expect(res.statusCode).toBe(201);
+      expect(res.json().client_name).toBe(name);
+    });
+
+    it('trims it, so a name of only spaces is no name', async () => {
+      const res = await register({ redirect_uris: [CALLBACK], client_name: '   ' });
+
+      expect(res.statusCode).toBe(201);
+      expect(res.json().client_name).toBe('');
+    });
+  });
+
   it('refuses a redirect URI that isn’t allowed', async () => {
     const res = await register({ redirect_uris: [CALLBACK, 'http://example.com/cb'] });
 

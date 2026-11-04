@@ -83,8 +83,8 @@ describe('GET /oauth/authorize', () => {
 
       expect(res.statusCode).toBe(200);
       expect(res.headers['content-type']).toBe('text/html; charset=utf-8');
-      expect(res.body).toContain('Claude');
-      expect(res.body).toContain('claude.ai');
+      expect(res.body).toContain('An app calling itself <bdi>Claude</bdi>');
+      expect(res.body).toContain('<strong>claude.ai</strong>');
       expect(res.body).toMatch(/<form method="post" action="\/oauth\/authorize">/);
       expect(res.body).toMatch(/<input[^>]*name="request"[^>]*value="[\w-]+"/);
       expect(res.body).toContain('autocomplete="username"');
@@ -106,7 +106,6 @@ describe('GET /oauth/authorize', () => {
         redirectUri: CALLBACK,
         codeChallenge: CHALLENGE,
         state: 'xyz',
-        loopbackOnly: false,
       });
       expect(open(config.sealKey, 'signin', sealed, tenMinutes)).toBeNull();
       expect(open(config.sealKey, 'consent', sealed, T)).toBeNull();
@@ -141,14 +140,39 @@ describe('GET /oauth/authorize', () => {
       expect(res.statusCode).toBe(200);
     });
 
-    it('warns when the client only runs on the user’s own machine', async () => {
-      const res = await authorize({
-        client_id: await register(['http://localhost:5000/callback']),
-        redirect_uri: 'http://localhost:3118/callback',
+    it('says just “An app” for a client with no name', async () => {
+      const res = await authorize({ client_id: await register([CALLBACK], '') });
+
+      expect(res.body).toContain('An app wants to read');
+      expect(res.body).not.toContain('calling itself');
+    });
+
+    describe('the loopback warning follows where this request goes', () => {
+      const local = 'http://localhost:5000/callback';
+      const WARNING = 'only on this computer';
+
+      it('warns for a loopback URI, even if the client also registered another', async () => {
+        const res = await authorize({ client_id: await register([CALLBACK, local]), redirect_uri: local });
+
+        expect(res.statusCode).toBe(200);
+        expect(res.body).toContain(WARNING);
       });
 
-      expect(res.statusCode).toBe(200);
-      expect(res.body).toContain('only on this computer');
+      it('doesn’t warn for the https one of the same client', async () => {
+        const res = await authorize({ client_id: await register([CALLBACK, local]), redirect_uri: CALLBACK });
+
+        expect(res.statusCode).toBe(200);
+        expect(res.body).not.toContain(WARNING);
+      });
+
+      it('warns on another port of a registered loopback URI', async () => {
+        const res = await authorize({
+          client_id: await register([local]),
+          redirect_uri: 'http://localhost:3118/callback',
+        });
+
+        expect(res.body).toContain(WARNING);
+      });
     });
 
     it('shows a hostile client name as text', async () => {

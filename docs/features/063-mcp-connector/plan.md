@@ -547,7 +547,7 @@ frame-ancestors 'none'; base-uri 'none'` and `Cache-Control: no-store`.
   - Verify: a 200-character hostname at 390 px wide wraps and stays fully readable (`overflow-wrap: anywhere`), on
     the sign-in and fault pages.
   - ~200 lines (the page template is most of it; it's one concern and only gets used here), plus ~70 in slice 12a
-- [ ] 12a. Stop sending visitors to an unvetted client automatically
+- [x] 12a. Stop sending visitors to an unvetted client automatically
   - Files: `apps/mcp/src/oauth/{authorize,pages,redirects,register}.ts`,
     `apps/mcp/test/{authorize,redirects,register}.test.ts`
   - Change: Revision 2, as in Contracts. `loopbackOnly` leaves `AuthorizationRequest`: the warning is derived from

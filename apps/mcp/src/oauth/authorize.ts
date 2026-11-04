@@ -29,7 +29,6 @@ export interface AuthorizationRequest {
   redirectUri: string;
   codeChallenge: string;
   state?: string;
-  loopbackOnly: boolean;
 }
 
 /** `redirectUri` with an authorization response on it, including `iss` as RFC 9207 asks. */
@@ -83,7 +82,6 @@ export async function authorizeRoutes(app: FastifyInstance, { config, now }: App
       redirectUri,
       codeChallenge: query.code_challenge!,
       state: query.state,
-      loopbackOnly: client.redirectUris.every(isLoopback),
     };
     return sendPage(
       reply,
@@ -91,7 +89,7 @@ export async function authorizeRoutes(app: FastifyInstance, { config, now }: App
       signInPage({
         clientName: request.clientName,
         redirectHost: new URL(redirectUri).hostname,
-        loopbackOnly: request.loopbackOnly,
+        loopback: isLoopback(redirectUri),
         request: seal(config.sealKey, 'signin', request, now().getTime() + SIGN_IN_TTL_MS),
       }),
     );

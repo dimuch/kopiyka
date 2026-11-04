@@ -930,6 +930,7 @@ Why `claude.com` is in the default anyway:
 
 ## Deviations
 
+- slice 12b, checked in the browser at 390×844 with a 252-character hostname: the sign-in and fault pages wrap it fully, nothing overflows, the fault page answers 400 with no refresh, and the CSP reports no violation. That hostname has hyphens, which help it wrap; `overflow-wrap: anywhere` covers the case without them.
 - slice 12: the fault page is built here, not in 12a, so no commit on main ever has the 302. `.claude/launch.json` gets an `mcp` entry, to see the pages run. A parameter sent twice counts as an untrusted request (400 page).
 - slice 11: the form body parser moves to slice 13, its first user, so `/mcp` keeps answering 415 to forms until then. `test/helpers.ts` holds the test config for the OAuth tests.
 - slice 8: `responseMode: 'json'` is gone. It changed nothing, since no tool emits a message before its result, and it printed a warning on every start; the SDK's default `auto` answers the same. The 10-minute close is tested with fake timers in `limits.test.ts` and a 30 ms cap over real HTTP, because fake timers don't mix with a real listen. The tool's API call is cancelled through `requestInfo.signal`, so `ApiClient.get` takes an optional signal.
@@ -966,3 +967,11 @@ Why `claude.com` is in the default anyway:
 
 - `test/helpers.ts`: the OAuth tests share one `testConfig`, instead of another copy. `mcp.test.ts`, `mcpLimits.test.ts`
   and `tools.test.ts` keep their own: `mcpLimits` needs another host, and moving the others is churn in merged tests.
+
+063d2 (`origin/main...HEAD`): reused 1 · extracted 0 · left 2.
+
+- `isAllowedRedirectUri` is reused at `GET /oauth/authorize` rather than a second check.
+- `escapeHtml` and the `pages.ts` template: nothing like them exists in the repo, and a template library would be a
+  dependency for a few small pages. LEAVE.
+- `parseAllowedRedirectUri` in `config.ts` vs `isAllowedRedirectUri`: LEAVE. One checks an operator's entry at startup
+  and throws, the other a client's input per request; a shared helper would have to do both jobs.

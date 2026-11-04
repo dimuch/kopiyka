@@ -45,6 +45,7 @@ export function apiClient(baseUrl: string, fetchImpl: typeof fetch, timeoutMs = 
     } catch {
       throw new ApiError(504, 'api_unreachable');
     }
+    if (status === 204) return undefined as T;
     const body = parseJson(text);
     if (status < 200 || status >= 300) throw new ApiError(status, errorCode(body));
     if (body === undefined) throw new ApiError(502, 'api_error');

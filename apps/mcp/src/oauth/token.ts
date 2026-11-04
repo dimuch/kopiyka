@@ -12,7 +12,7 @@ const TokenForm = z.object({
   code: z.string(),
   redirect_uri: z.string(),
   client_id: z.string(),
-  code_verifier: z.string(),
+  code_verifier: z.string().max(128),
   resource: z.string().optional(),
 });
 

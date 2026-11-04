@@ -26,7 +26,7 @@ function goodApi(call: RecordedCall): Answer {
       json: { tokenId: 1, token: 'kpk.new', scope: 'read', expiresAt: minutesAfterT(60).toISOString() },
     };
   }
-  if (call.path === '/api/auth/logout') return { json: {} };
+  if (call.path === '/api/auth/logout') return { status: 204, text: '' };
   return { status: 404, json: { error: 'not_found' } };
 }
 
@@ -80,7 +80,8 @@ describe('signing in', () => {
         method: 'POST',
         url: '/oauth/authorize',
         ...form({ request, username: 'olena', code: '123456' }),
-        headers: { ...form({}).headers, 'x-forwarded-for': '203.0.113.9' },
+        // nginx appends the real address: anything before it is the client's own claim.
+        headers: { ...form({}).headers, 'x-forwarded-for': '198.51.100.7, 203.0.113.9' },
       });
 
       expect(res.statusCode).toBe(200);
@@ -89,6 +90,37 @@ describe('signing in', () => {
       expect(login.body).toEqual({ username: 'olena', code: '123456', client: 'native' });
       expect(login.headers.get('x-forwarded-for')).toBe('203.0.113.9');
       expect(bearerOf(callsTo('/api/ledgers')[0]!)).toBe('session-token');
+    });
+
+    it.each(['https://evil.example', 'null'])('refuses a form sent from %s, without asking the API', async (origin) => {
+      const request = await startSignIn(app, await registerClient(app));
+
+      const res = await app.inject({
+        method: 'POST',
+        url: '/oauth/authorize',
+        ...form({ request, username: 'olena', code: '123456' }),
+        headers: { ...form({}).headers, origin },
+      });
+
+      expect(res.statusCode).toBe(403);
+      expect(res.json()).toEqual({ error: 'invalid_origin' });
+      expect(callsTo('/api/auth/login')).toEqual([]);
+    });
+
+    it('ends the session if the ledgers can’t be read, so nothing is left behind', async () => {
+      const request = await startSignIn(app, await registerClient(app));
+      answer = (call) => (call.path === '/api/ledgers' ? { status: 500, json: { error: 'internal' } } : goodApi(call));
+
+      await signIn(request);
+
+      expect(bearerOf(callsTo('/api/auth/logout')[0]!)).toBe('session-token');
+    });
+
+    it('won’t pass on a username longer than the API allows', async () => {
+      const res = await signIn(await startSignIn(app, await registerClient(app)), { username: 'x'.repeat(65) });
+
+      expect(res.statusCode).toBe(400);
+      expect(callsTo('/api/auth/login')).toEqual([]);
     });
 
     it('shows what the app will read, who is asking and where it goes', async () => {
@@ -257,6 +289,20 @@ describe('signing in', () => {
 
       expect(res.statusCode).toBe(502);
       expectErrorPage(res);
+    });
+
+    it('refuses a form sent from another site', async () => {
+      const sealed = await reachConsent();
+
+      const res = await app.inject({
+        method: 'POST',
+        url: '/oauth/consent',
+        ...form({ consent: sealed, decision: 'allow' }),
+        headers: { ...form({}).headers, origin: 'https://evil.example' },
+      });
+
+      expect(res.statusCode).toBe(403);
+      expect(callsTo('/api/api-tokens')).toEqual([]);
     });
 
     it('refuses a second Allow, once the session is gone', async () => {

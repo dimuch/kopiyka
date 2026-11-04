@@ -115,7 +115,7 @@ so the bolt-on stays.
 
 ## Contracts
 
-- DB: `apps/api/migrations/013_api_tokens.sql`:
+- DB: `apps/api/migrations/014_api_tokens.sql`:
 
   ```sql
   -- Brief 063: tokens for the MCP connector (apps/mcp). Removing the connector drops this table in a new migration.
@@ -294,7 +294,7 @@ each user's browser.
 ### PR 063a: API tokens (`apps/api`)
 
 - [x] 1. Add the api_tokens table and the MCP_ENABLED switch
-  - Files: `apps/api/migrations/013_api_tokens.sql`, `apps/api/src/config.ts`, `apps/api/.env.example`,
+  - Files: `apps/api/migrations/014_api_tokens.sql`, `apps/api/src/config.ts`, `apps/api/.env.example`,
     `apps/api/test/apiTokens.config.test.ts`, `apps/api/test/apiTokens.migration.int.test.ts`
   - Change: the migration as above. `MCP_ENABLED` and `API_TOKEN_TTL_MINUTES` go into the Env schema, and
     `Config.apiTokens?` is set only when the switch is on. Commented lines go into `.env.example`.
@@ -593,7 +593,7 @@ application/json' -d '{}' $site/oauth/register; done | sort | uniq -c`, which sh
 The connector lives in these places only:
 
 - `apps/api`:
-  - `src/apiTokens/` (new folder) and `migrations/013_api_tokens.sql` (new).
+  - `src/apiTokens/` (new folder) and `migrations/014_api_tokens.sql` (new).
   - `src/app.ts`: 1 import + 1 line.
   - `src/auth/routes.ts`: 1 import + 1 line (+ comment) in `requireAuth`.
   - `src/config.ts`: 2 env keys, the `apiTokens?` field, 1 mapping line.
@@ -732,6 +732,7 @@ I also took these of the skeptic's suggestions:
 
 ## Deviations
 
+- slice 1: the migration is `014_api_tokens.sql`, because main took 013 for `known_devices` (brief 064) while this was built.
 - slice 3: `app.ts` calls `apiTokenRoutes(app, deps)` unconditionally and the switch check sits inside it — still one line in `app.ts`, and `ttlMinutes` needs no `!`.
 
 ## Consolidate

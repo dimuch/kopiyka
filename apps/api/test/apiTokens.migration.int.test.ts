@@ -3,7 +3,7 @@ import { describe, expect, it } from 'vitest';
 import { runMigrations } from '../src/migrate.js';
 import { resetSchema, TEST_DB_URL, testDbReachable } from './helpers.js';
 
-describe.skipIf(!(await testDbReachable()))('migration 013_api_tokens (MySQL)', () => {
+describe.skipIf(!(await testDbReachable()))('migration 014_api_tokens (MySQL)', () => {
   it('creates api_tokens, and running the migrations again changes nothing', async () => {
     await resetSchema();
 

@@ -1,0 +1,55 @@
+import type { FastifyInstance } from 'fastify';
+import { z } from 'zod';
+import type { AppDeps } from '../app.js';
+import { open, seal } from '../seal.js';
+import { isAllowedRedirectUri } from './redirects.js';
+
+const CLIENT_TTL_MS = 90 * 86_400_000;
+
+const RegisterBody = z.object({
+  redirect_uris: z.array(z.string().max(512)).min(1).max(5),
+  client_name: z.string().max(100).default(''),
+  token_endpoint_auth_method: z.literal('none').default('none'),
+});
+
+export interface Client {
+  redirectUris: string[];
+  clientName: string;
+}
+
+/** The client behind a `client_id`, or null if it's forged or has expired. */
+export function openClient(sealKey: Buffer, clientId: string, now: Date): Client | null {
+  return open<Client>(sealKey, 'client', clientId, now);
+}
+
+/** RFC 7591. The `client_id` is the sealed registration, so nothing is stored. */
+export async function registerRoutes(app: FastifyInstance, { config, now }: AppDeps): Promise<void> {
+  app.post('/oauth/register', async (req, reply) => {
+    const body = RegisterBody.safeParse(req.body);
+    if (!body.success) {
+      return reply.code(400).send({
+        error: 'invalid_client_metadata',
+        error_description: 'Expected 1 to 5 redirect_uris, a short client_name and no client secret',
+      });
+    }
+    const { redirect_uris: redirectUris, client_name: clientName } = body.data;
+    if (!redirectUris.every(isAllowedRedirectUri)) {
+      return reply.code(400).send({
+        error: 'invalid_redirect_uri',
+        error_description: 'A redirect URI must be https, or http on localhost, with no fragment or user name',
+      });
+    }
+
+    const issuedMs = now().getTime();
+    const client: Client = { redirectUris, clientName };
+    return reply.code(201).send({
+      client_id: seal(config.sealKey, 'client', client, issuedMs + CLIENT_TTL_MS),
+      client_id_issued_at: Math.floor(issuedMs / 1000),
+      client_name: clientName,
+      redirect_uris: redirectUris,
+      token_endpoint_auth_method: 'none',
+      grant_types: ['authorization_code'],
+      response_types: ['code'],
+    });
+  });
+}

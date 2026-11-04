@@ -4,6 +4,8 @@ import Fastify, { type FastifyInstance, type FastifyReply } from 'fastify';
 import type { Config } from './config.js';
 import type { Limits } from './limits.js';
 import { mcpRoutes } from './mcp/routes.js';
+import { metadataRoutes } from './oauth/metadata.js';
+import { registerRoutes } from './oauth/register.js';
 
 export interface AppDeps {
   config: Config;
@@ -66,6 +68,8 @@ export async function buildApp(deps: AppDeps): Promise<FastifyInstance> {
   app.setNotFoundHandler((_req, reply) => reply.code(404).send({ error: 'not_found' }));
 
   await mcpRoutes(app, deps);
+  await metadataRoutes(app, deps);
+  await registerRoutes(app, deps);
 
   return app;
 }

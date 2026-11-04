@@ -516,7 +516,7 @@ now());` goes before the session lookup. `apiTokenAuth` looks the hash up live (
 
 ### PR 063d2: the sign-in page, with no automatic redirects (`apps/mcp`)
 
-- [ ] 12. Show the sign-in page for a valid authorization request
+- [x] 12. Show the sign-in page for a valid authorization request
   - Files: `apps/mcp/src/oauth/authorize.ts` (GET), `apps/mcp/src/oauth/pages.ts` (HTML via an escaping template;
     one CSS string whose sha256 goes in the CSP; no scripts), `apps/mcp/test/authorize.test.ts`
   - Change:
@@ -930,6 +930,7 @@ Why `claude.com` is in the default anyway:
 
 ## Deviations
 
+- slice 12: the fault page is built here, not in 12a, so no commit on main ever has the 302. `.claude/launch.json` gets an `mcp` entry, to see the pages run. A parameter sent twice counts as an untrusted request (400 page).
 - slice 11: the form body parser moves to slice 13, its first user, so `/mcp` keeps answering 415 to forms until then. `test/helpers.ts` holds the test config for the OAuth tests.
 - slice 8: `responseMode: 'json'` is gone. It changed nothing, since no tool emits a message before its result, and it printed a warning on every start; the SDK's default `auto` answers the same. The 10-minute close is tested with fake timers in `limits.test.ts` and a 30 ms cap over real HTTP, because fake timers don't mix with a real listen. The tool's API call is cancelled through `requestInfo.signal`, so `ApiClient.get` takes an optional signal.
 - slice 7: the wrapper lives in a new `src/mcp/auth.ts`. Its fields are `aud`, `apiToken`, `clientId` and `expMs`: the SDK's `AuthInfo` needs a client id and an expiry, and the sealed `exp` isn't handed back by `open`.

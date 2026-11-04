@@ -193,9 +193,12 @@ export default function Budget() {
                         <Pressable
                           accessibilityRole="button"
                           accessibilityLabel={`${c.displayName}, ${planned} planned`}
-                          accessibilityHint="Sets the planned amount"
+                          accessibilityHint="Edits its planned amount"
                           onPress={() =>
-                            router.push({ pathname: '/planned-amount', params: { categoryId: c.categoryId, month } })
+                            pushOnce({
+                              pathname: '/rename-category',
+                              params: { categoryId: c.categoryId, month, focus: 'amount' },
+                            })
                           }
                           style={[styles.row, { flex: 1 }]}
                         >
@@ -203,7 +206,7 @@ export default function Budget() {
                         </Pressable>
                         <Pressable
                           accessibilityRole="button"
-                          accessibilityLabel={`Rename ${c.displayName} in ${monthName(month)}`}
+                          accessibilityLabel={`Edit ${c.displayName} in ${monthName(month)}`}
                           onPress={() =>
                             pushOnce({ pathname: '/rename-category', params: { categoryId: c.categoryId, month } })
                           }

@@ -16,14 +16,6 @@ export async function copyPreviousMonth(ledgerId: number, month: string): Promis
   await api(`/api/ledgers/${ledgerId}/months/${month}/copy`, { method: 'POST' });
 }
 
-/** Sets a category's planned EUR ('12.50', ≥ 0) for a 'YYYY-MM' month (brief 036). */
-export async function setPlanned(ledgerId: number, categoryId: number, month: string, amount: string): Promise<void> {
-  await api(`/api/ledgers/${ledgerId}/categories/${categoryId}/months/${month}/planned`, {
-    method: 'PUT',
-    body: { amount },
-  });
-}
-
 /**
  * Adds a category by name to a 'YYYY-MM' month with `amount` planned ('12.50', ≥ 0), reusing the ledger's category with
  * that name. The reply isn't read: screens reload on focus.

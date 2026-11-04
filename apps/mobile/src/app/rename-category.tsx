@@ -18,7 +18,11 @@ import { dangerText, fonts, type Palette } from '@/theme';
 /** Edits a category's name and planned amount in one month only (brief 065): `/rename-category?categoryId=4&month=2026-10`. */
 export default function RenameCategoryScreen() {
   const styles = useThemedStyles(makeStyles);
-  const params = useLocalSearchParams<{ categoryId?: string | string[]; month?: string | string[] }>();
+  const params = useLocalSearchParams<{
+    categoryId?: string | string[];
+    month?: string | string[];
+    focus?: string | string[];
+  }>();
   const categoryId = parseIdParam(params.categoryId);
   const month = parseMonthParam(params.month);
   const { ledger } = useSession();
@@ -51,6 +55,7 @@ export default function RenameCategoryScreen() {
           <CategoryForm
             month={month}
             current={category}
+            focusAmount={params.focus === 'amount'}
             busy={busy}
             setBusy={setBusy}
             save={async (fields) => {

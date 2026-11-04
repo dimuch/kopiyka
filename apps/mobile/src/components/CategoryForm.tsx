@@ -25,6 +25,7 @@ import { fonts, type Palette } from '@/theme';
 export function CategoryForm({
   month,
   current,
+  focusAmount = false,
   busy,
   setBusy,
   save,
@@ -33,6 +34,8 @@ export function CategoryForm({
   month: string;
   /** The category in the month when editing (the fields start at its values); null when adding. */
   current: Category | null;
+  /** Starts in the amount, for a Budget row's tap; else in the name. */
+  focusAmount?: boolean;
   busy: boolean;
   setBusy: (busy: boolean) => void;
   /** Sends the checked fields and leaves on success; rejects (an ApiError with a code) when refused. */
@@ -105,7 +108,7 @@ export function CategoryForm({
           onSubmitEditing={() => amountInput.current?.focus()}
           returnKeyType="next"
           submitBehavior="submit"
-          autoFocus
+          autoFocus={!focusAmount}
           autoCapitalize="none"
           editable={!busy && !gone}
           placeholder="Name"
@@ -128,6 +131,7 @@ export function CategoryForm({
             }}
             onSubmitEditing={submit}
             keyboardType="decimal-pad"
+            autoFocus={focusAmount}
             selectTextOnFocus
             editable={!busy && !gone}
             placeholder="0.00"

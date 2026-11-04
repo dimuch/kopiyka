@@ -32,10 +32,11 @@ describe('/mcp limits', () => {
   let api: ReturnType<typeof fakeApi>;
   let logs: string;
   const held: (() => void)[] = [];
+  let holding: boolean;
 
   /** Holds every `/api/ledgers` call until `releaseAll`, as a slow API would. */
   function holdLedgers(call: RecordedCall): Answer | Promise<Answer> {
-    if (call.path !== '/api/ledgers') return { json: { tokens: [] } };
+    if (call.path !== '/api/ledgers' || !holding) return answerAtOnce(call);
     return new Promise((resolve, reject) => {
       held.push(() => resolve({ json: LEDGERS }));
       call.signal?.addEventListener('abort', () => reject(new Error('aborted')));
@@ -50,6 +51,7 @@ describe('/mcp limits', () => {
 
   async function start(limits: Partial<Limits>, answer: (call: RecordedCall) => Answer | Promise<Answer>) {
     logs = '';
+    holding = true;
     api = fakeApi(answer);
     app = await buildApp({
       config,
@@ -67,9 +69,10 @@ describe('/mcp limits', () => {
     url = `http://127.0.0.1:${(app.server.address() as AddressInfo).port}/mcp`;
   }
 
-  const listLedgers = (token: string) =>
+  const listLedgers = (token: string, signal?: AbortSignal) =>
     fetch(url, {
       method: 'POST',
+      signal: signal ?? null,
       headers: {
         accept: 'application/json, text/event-stream',
         'content-type': 'application/json',
@@ -128,13 +131,13 @@ describe('/mcp limits', () => {
     expect(await first).toEqual({ ended: 'early', text: '' });
     expect(ledgerCalls()[0]!.signal?.aborted).toBe(true);
     await vi.waitFor(() => expect(ledgerCalls()).toHaveLength(4));
+    expect(ledgerCalls()[1]!.signal?.aborted).toBe(false);
 
     releaseAll();
     for (const response of [await second, await third, await other]) {
       expect(response.ended).toBe('normally');
       expect(response.text).toContain('olena');
     }
-    expect(ledgerCalls()[1]!.signal?.aborted).toBe(false);
   });
 
   it('ends a response that stays open too long', async () => {
@@ -157,6 +160,78 @@ describe('/mcp limits', () => {
     expect(res.headers.get('retry-after')).toBe('1');
     releaseAll();
     await Promise.all(open);
+
+    holding = false;
+    await vi.waitFor(async () => expect((await listLedgers(token)).status).toBe(200));
+  });
+
+  describe('a client that leaves early', () => {
+    const openOne = { openTotal: 1 };
+
+    it('frees its slot and cancels its API call', async () => {
+      await start(openOne, holdLedgers);
+      const leaving = new AbortController();
+      const response = settled(listLedgers(accessToken('kpk.olena'), leaving.signal));
+      await vi.waitFor(() => expect(ledgerCalls()).toHaveLength(1));
+
+      leaving.abort();
+
+      await response;
+      await vi.waitFor(() => expect(ledgerCalls()[0]!.signal?.aborted).toBe(true));
+      const next = settled(listLedgers(accessToken('kpk.taras')));
+      await vi.waitFor(() => expect(ledgerCalls()).toHaveLength(2));
+      releaseAll();
+      expect((await next).text).toContain('olena');
+    });
+
+    it('takes no slot and runs no tool if it left during the token check', async () => {
+      const tokenChecks: (() => void)[] = [];
+      let holdTokenCheck = true;
+      await start(openOne, (call) => {
+        if (call.path === '/api/api-tokens' && holdTokenCheck) {
+          return new Promise((resolve) => tokenChecks.push(() => resolve({ json: { tokens: [] } })));
+        }
+        return answerAtOnce(call);
+      });
+      const leaving = new AbortController();
+      const response = settled(listLedgers(accessToken('kpk.olena'), leaving.signal));
+      await vi.waitFor(() => expect(tokenChecks).toHaveLength(1));
+
+      leaving.abort();
+      await response;
+      // Long enough for the server to see the socket close before the check finishes.
+      await new Promise((resolve) => setTimeout(resolve, 50));
+      holdTokenCheck = false;
+      tokenChecks[0]!();
+
+      const next = await listLedgers(accessToken('kpk.taras'));
+      expect(next.status).toBe(200);
+      expect(await next.text()).toContain('olena');
+      expect(ledgerCalls()).toHaveLength(1);
+    });
+  });
+
+  it('counts every call in a JSON-RPC batch', async () => {
+    await start({ toolCallBurst: 1 }, answerAtOnce);
+    const call = (id: number) => ({
+      jsonrpc: '2.0',
+      id,
+      method: 'tools/call',
+      params: { name: 'list_ledgers', arguments: {} },
+    });
+
+    const res = await fetch(url, {
+      method: 'POST',
+      headers: {
+        accept: 'application/json, text/event-stream',
+        'content-type': 'application/json',
+        authorization: `Bearer ${accessToken('kpk.olena')}`,
+      },
+      body: JSON.stringify([call(1), call(2)]),
+    });
+
+    expect(await res.text()).toContain('rate_limited');
+    expect(ledgerCalls()).toHaveLength(1);
   });
 
   describe('on the 2026-07-28 revision', () => {

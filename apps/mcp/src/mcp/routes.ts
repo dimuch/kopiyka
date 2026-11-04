@@ -86,16 +86,19 @@ export async function mcpRoutes(app: FastifyInstance, deps: AppDeps): Promise<vo
     method: ['GET', 'POST', 'DELETE'],
     url: '/mcp',
     handler: async (req, reply) => {
-      const authInfo = await authenticate(req, reply);
-      if (!authInfo) return reply;
-
+      // Listening before the token check: a client that leaves during it must not hold a slot, and `close` fires once.
       const cancel = new AbortController();
+      reply.raw.once('close', () => cancel.abort());
+
+      const authInfo = await authenticate(req, reply);
+      if (!authInfo || cancel.signal.aborted) return reply;
+
       const release = open.add(tokenKey(authInfo.token), () => {
         cancel.abort();
         reply.raw.destroy();
       });
       if (!release) return reply.code(503).header('retry-after', '1').send({ error: 'busy' });
-      reply.raw.once('close', release);
+      cancel.signal.addEventListener('abort', release, { once: true });
 
       const request = webRequest(req, resource, cancel.signal);
       return reply.send(await handler.fetch(request, { authInfo, parsedBody: req.body }));

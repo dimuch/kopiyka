@@ -1,9 +1,10 @@
 import { router } from 'expo-router';
 import { useNavigationState } from 'expo-router/react-navigation';
-import { Platform, Pressable, StyleSheet, Text, View } from 'react-native';
+import { Platform, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useColors, useThemedStyles } from '@/appearance/AppearanceContext';
 import { Icon } from '@/components/Icon';
+import { Pressable } from '@/components/Pressable';
 import { useInvites } from '@/data/invites';
 import { readTabs, TABS, tabBadge, type TabName } from '@/tabs';
 import type { Palette } from '@/theme';

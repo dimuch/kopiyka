@@ -1,6 +1,7 @@
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, Text, View } from 'react-native';
 import { useThemedStyles } from '@/appearance/AppearanceContext';
 import { DateField } from '@/components/DateField';
+import { Pressable } from '@/components/Pressable';
 import { addDays } from '@/format';
 import { fonts, type Palette } from '@/theme';
 

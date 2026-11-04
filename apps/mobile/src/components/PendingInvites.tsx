@@ -1,6 +1,7 @@
-import { ActivityIndicator, Pressable, type StyleProp, StyleSheet, Text, View, type ViewStyle } from 'react-native';
+import { ActivityIndicator, type StyleProp, StyleSheet, Text, View, type ViewStyle } from 'react-native';
 import type { Invite } from '@/api/types';
 import { useColors, useThemedStyles } from '@/appearance/AppearanceContext';
+import { Pressable } from '@/components/Pressable';
 import { fonts, type Palette } from '@/theme';
 
 /**

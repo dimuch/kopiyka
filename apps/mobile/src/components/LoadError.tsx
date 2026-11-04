@@ -1,6 +1,7 @@
 import { useEffect } from 'react';
-import { AccessibilityInfo, Pressable, StyleSheet, Text, View } from 'react-native';
+import { AccessibilityInfo, StyleSheet, Text, View } from 'react-native';
 import { useThemedStyles } from '@/appearance/AppearanceContext';
+import { Pressable } from '@/components/Pressable';
 import { fonts, type Palette } from '@/theme';
 
 /** A failed load: the message (announced to screen readers) and Retry, when trying again can help. */

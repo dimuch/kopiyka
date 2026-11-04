@@ -1,6 +1,7 @@
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, Text, View } from 'react-native';
 import { useColors, useThemedStyles } from '@/appearance/AppearanceContext';
 import { Icon } from '@/components/Icon';
+import { Pressable } from '@/components/Pressable';
 import { monthName, shiftMonth } from '@/format';
 import { fonts, type Palette } from '@/theme';
 

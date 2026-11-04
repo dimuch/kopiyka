@@ -1,5 +1,5 @@
 import { useRef, useState } from 'react';
-import { AccessibilityInfo, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { AccessibilityInfo, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useAppearance, useColors, useThemedStyles } from '@/appearance/AppearanceContext';
 import { useSession } from '@/auth/AuthContext';
 import { AppearancePicker } from '@/components/AppearancePicker';
@@ -7,6 +7,7 @@ import { Icon } from '@/components/Icon';
 import { LedgerPicker } from '@/components/LedgerPicker';
 import { PendingInvites } from '@/components/PendingInvites';
 import { PlaceholderPage } from '@/components/PlaceholderPage';
+import { Pressable } from '@/components/Pressable';
 import { useInvites } from '@/data/invites';
 import { usePushOnce } from '@/pushOnce';
 import { fonts, outlinedDangerButton, outlinedDangerText, type Palette } from '@/theme';

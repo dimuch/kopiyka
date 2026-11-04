@@ -1,6 +1,7 @@
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, Text, View } from 'react-native';
 import type { Ledger } from '@/api/types';
 import { useThemedStyles } from '@/appearance/AppearanceContext';
+import { Pressable } from '@/components/Pressable';
 import { fonts, type Palette } from '@/theme';
 
 /** "Yours" for the user's own ledger, else whose it is: until a label is set, every ledger shows as "Home". */

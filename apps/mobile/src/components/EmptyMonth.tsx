@@ -1,6 +1,7 @@
-import { ActivityIndicator, Pressable, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, StyleSheet, Text, View } from 'react-native';
 import { useColors, useThemedStyles } from '@/appearance/AppearanceContext';
 import { LoadError } from '@/components/LoadError';
+import { Pressable } from '@/components/Pressable';
 import { fonts, type Palette } from '@/theme';
 
 /** A month with nothing in it yet ("No budget for November yet"), an optional action and its outcome. */

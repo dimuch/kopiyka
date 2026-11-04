@@ -1,7 +1,8 @@
 import { useEffect } from 'react';
-import { AccessibilityInfo, Pressable, StyleSheet, Text, View } from 'react-native';
+import { AccessibilityInfo, StyleSheet, Text, View } from 'react-native';
 import type { NotionStatus } from '@/api/types';
 import { useThemedStyles } from '@/appearance/AppearanceContext';
+import { Pressable } from '@/components/Pressable';
 import { statusText, syncErrorText, syncReport } from '@/data/notionSync';
 import type { SyncOutcome } from '@/data/useNotionSync';
 import { fonts, type Palette } from '@/theme';

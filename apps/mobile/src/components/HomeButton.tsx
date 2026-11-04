@@ -1,7 +1,8 @@
 import { router } from 'expo-router';
-import { Pressable, StyleSheet } from 'react-native';
+import { StyleSheet } from 'react-native';
 import { useColors } from '@/appearance/AppearanceContext';
 import { Icon } from '@/components/Icon';
+import { Pressable } from '@/components/Pressable';
 
 /** The header's house button: same action as the Home tab icon — switches tabs, pushes nothing. */
 export function HomeButton() {

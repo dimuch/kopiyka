@@ -100,11 +100,12 @@ describe.skipIf(!(await testDbReachable()))('categories API (MySQL)', () => {
     ledgerId = owner.ledgerId,
     month = '2026-10',
     name: unknown = 'pets',
+    amount?: unknown,
   ) =>
     app.inject({
       method: 'POST',
       url: `/api/ledgers/${ledgerId}/months/${month}/categories`,
-      payload: { name },
+      payload: { name, amount },
       headers,
     });
 
@@ -1008,6 +1009,30 @@ describe.skipIf(!(await testDbReachable()))('categories API (MySQL)', () => {
       expect(category).toEqual({ display_name: 'Dog Food' });
     });
 
+    it('plans the given amount in that month only', async () => {
+      const res = await add(auth, owner.ledgerId, '2026-10', 'pets', '120.5');
+      expect(res.statusCode).toBe(201);
+      expect(res.json()).toMatchObject({ displayName: 'pets', plannedEur: '120.50' });
+      const [rows] = await db.query<RowDataPacket[]>(
+        'SELECT planned_eur FROM category_budgets WHERE category_id = ?',
+        [res.json().categoryId],
+      );
+      expect(rows.map((row) => row.planned_eur)).toEqual(['120.50']);
+      expect((await one(`${res.json().categoryId}?month=2026-10`)).json()).toMatchObject({ plannedEur: '120.50' });
+
+      const zero = await add(auth, owner.ledgerId, '2026-10', 'fish', '0');
+      expect(zero.json()).toMatchObject({ displayName: 'fish', plannedEur: '0.00' });
+    });
+
+    it('rejects a malformed amount, adding nothing', async () => {
+      const before = await categoryCount();
+      for (const amount of ['-1', '1.234', 'abc', '', 12]) {
+        const res = await add(auth, owner.ledgerId, '2026-10', 'pets', amount);
+        expect([res.statusCode, res.json().error]).toEqual([400, 'invalid_request']);
+      }
+      expect(await categoryCount()).toBe(before);
+    });
+
     it('starts an empty month', async () => {
       expect((await add(auth, owner.ledgerId, '2026-11')).statusCode).toBe(201);
       expect(await listOf('2026-11')).toEqual(['pets']);
@@ -1177,8 +1202,99 @@ describe.skipIf(!(await testDbReachable()))('categories API (MySQL)', () => {
     const planNovember = async (techName: string, amount: string, headers = auth) =>
       plan(await idOf(techName), headers, owner.ledgerId, '2026-11', amount);
 
+    const addNovember = (name: string, amount?: string, headers = auth) =>
+      add(headers, owner.ledgerId, '2026-11', name, amount);
+
+    /** When a category left November's list, or null when it's in it. */
+    async function removedAt(categoryId: number): Promise<Date | null> {
+      const [[row]] = await db.query<RowDataPacket[]>(
+        "SELECT deleted_at FROM category_months WHERE category_id = ? AND list_month = '2026-11-01'",
+        [categoryId],
+      );
+      return row!.deleted_at;
+    }
+
     beforeEach(async () => {
       await storeMonthList(db, owner.ledgerId, '2026-11', []);
+    });
+
+    it('refuses an add above income, adding nothing, and takes a smaller amount', async () => {
+      await storeIncome('2026-11', '100.00');
+      expect((await planNovember('rent', '80')).statusCode).toBe(204);
+      const before = await categoryCount();
+
+      const refused = await addNovember('pets', '20.01');
+      expect([refused.statusCode, refused.json()]).toEqual([409, { error: 'over_income', overEur: '0.01' }]);
+      expect(await categoryCount()).toBe(before);
+      expect(await listOf('2026-11')).not.toContain('pets');
+
+      const added = await addNovember('pets', '20');
+      expect(added.statusCode).toBe(201);
+      expect(added.json()).toMatchObject({ plannedEur: '20.00' });
+    });
+
+    it('plans the given amount when reusing a removed category, without counting its old one', async () => {
+      await storeIncome('2026-11', '100.00');
+      expect((await planNovember('rent', '80')).statusCode).toBe(204);
+      const rent = await idOf('rent');
+      expect((await removeFrom(rent, auth, owner.ledgerId, '2026-11')).statusCode).toBe(204);
+
+      // 50 would be refused if the removed row's 80 still counted.
+      const res = await addNovember('rent', '50');
+      expect(res.statusCode).toBe(201);
+      expect(res.json()).toMatchObject({ categoryId: rent, plannedEur: '50.00' });
+      expect(await storedPlan('rent')).toBe('50.00');
+    });
+
+    it('leaves a removed category as it was when the add is refused', async () => {
+      await storeIncome('2026-11', '100.00');
+      expect((await planNovember('rent', '80')).statusCode).toBe(204);
+      const rent = await idOf('rent');
+      expect((await removeFrom(rent, auth, owner.ledgerId, '2026-11')).statusCode).toBe(204);
+      const stamp = await removedAt(rent);
+
+      const refused = await addNovember('rent', '101');
+      expect([refused.statusCode, refused.json()]).toEqual([409, { error: 'over_income', overEur: '1.00' }]);
+      expect(await removedAt(rent)).toEqual(stamp);
+      expect(await storedPlan('rent')).toBe('80.00');
+
+      expect((await restoreTo(rent, auth, owner.ledgerId, '2026-11')).statusCode).toBe(204);
+      expect(await storedPlan('rent')).toBe('80.00');
+    });
+
+    it('adds at €0 to a month that is already over', async () => {
+      await storePlan('rent', '150.00');
+      expect((await addNovember('pets')).statusCode).toBe(201);
+      expect((await addNovember('fish', '0')).statusCode).toBe(201);
+    });
+
+    it('answers name_taken and month_ended before over_income on an add', async () => {
+      await storePlan('rent', '150.00');
+      const taken = await addNovember('rent', '500');
+      expect([taken.statusCode, taken.json()]).toEqual([400, { error: 'name_taken' }]);
+
+      now = new Date('2026-11-30T22:00:00Z'); // 1 December in Kyiv: November has ended.
+      auth = await authHeader(app, owner, now);
+      const ended = await addNovember('pets', '500');
+      expect([ended.statusCode, ended.json()]).toEqual([409, { error: 'month_ended' }]);
+    });
+
+    it('holds when two members add at once', async () => {
+      const member = await makeUser(db, config, 'olena');
+      await addMember(db, owner.ledgerId, member.userId);
+      const memberAuth = await authHeader(app, member, clock);
+      await storeIncome('2026-11', '60.00');
+      const names = ['pets', 'fish', 'birds', 'plants', 'bikes', 'boats'];
+      const codes = await Promise.all(
+        names.map(async (name, index) => (await addNovember(name, '20', index % 2 ? memberAuth : auth)).statusCode),
+      );
+      expect(codes.sort()).toEqual([201, 201, 201, 409, 409, 409]);
+      const [[row]] = await db.query<RowDataPacket[]>(
+        `SELECT SUM(b.planned_eur) AS total FROM category_budgets b JOIN categories c ON c.category_id = b.category_id
+          WHERE c.ledger_id = ? AND b.budget_month = '2026-11-01'`,
+        [owner.ledgerId],
+      );
+      expect(row!.total).toBe('60.00');
     });
 
     it('lets a raise reach the income and refuses one cent more, writing nothing', async () => {

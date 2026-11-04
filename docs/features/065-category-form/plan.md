@@ -111,7 +111,7 @@ Estimates are lines added/deleted, tests included. Total: about +530/−530, net
     four-way reply. Behaviour-preserving.
   - Tests: `categories.int.test.ts`, unedited: `planned amounts`, `rename in a month`, `over-income rule` (including
     `holds when two members raise plans at once`).
-- [ ] 2. Let adding a category set its planned amount (+90/−10)
+- [x] 2. Let adding a category set its planned amount (+90/−10)
   - Files: `monthLists.ts`, `routes.ts`, `apps/api/test/categories.int.test.ts`
   - Change: `AddBody` with `amount` defaulting to `'0'`. After `nameTaken`, `addToMonth` calls `checkIncome` with the
     full amount as the raise, then writes. `storePlanned` runs on both paths and replaces the reuse path's DELETE. The

@@ -221,7 +221,7 @@ export async function editInMonth(
   });
 }
 
-/** A category added to a month: the DTO's fields besides the name and €0. */
+/** A category added to a month: the DTO's fields besides its name and planned amount. */
 export interface AddedCategory {
   categoryId: number;
   techName: string;
@@ -262,29 +262,31 @@ async function findByName(
 }
 
 /**
- * Adds a category called `name` (trimmed) to a 'YYYY-MM' month at €0 (brief 038). It reuses the ledger's category
- * with that name that isn't in the month already (see findByName), so its history stays one category; a removed row
- * comes back, and the expenses removed with it stay deleted. Without a match it creates a category at the end of the
- * ledger's order. 'name_taken', writing nothing, when a category in the month has the name.
+ * Adds a category called `name` (trimmed) to a 'YYYY-MM' month with `amount` planned in EUR ('12.50', ≥ 0; brief 038).
+ * It reuses the ledger's category with that name that isn't in the month already (see findByName), so its history
+ * stays one category; a removed row comes back, and the expenses removed with it stay deleted. Without a match it
+ * creates a category at the end of the ledger's order. Writes nothing on 'name_taken', when a category in the month
+ * has the name, or on the refusal when the amount would plan the month above its income (brief 060).
  */
 export async function addToMonth(
   db: Db,
   ledgerId: number,
   month: string,
   name: string,
-): Promise<AddedCategory | 'name_taken'> {
+  amount: string,
+): Promise<AddedCategory | 'name_taken' | OverIncome> {
   const first = `${month}-01`;
   return withTransaction(db, async (conn) => {
     await lockLedger(conn, ledgerId);
     // Ids are positive, so 0 excludes no category.
     if (await nameTaken(conn, ledgerId, first, name, 0)) return 'name_taken';
+    // All of it is a raise: nothing the category planned before counts until it's back in the month.
+    const over = await checkIncome(conn, ledgerId, month, { plannedCents: toCents(amount), incomeCents: 0n });
+    if (over) return over;
 
     const found = await findByName(conn, ledgerId, first, name);
     if (found) {
-      await conn.query('DELETE FROM category_budgets WHERE category_id = ? AND budget_month = ?', [
-        found.categoryId,
-        first,
-      ]);
+      await storePlanned(conn, found.categoryId, first, amount);
       // No live row can exist: findByName skips categories already in the month.
       await conn.query(
         `INSERT INTO category_months (category_id, list_month, display_name) VALUES (?, ?, ?)
@@ -320,6 +322,7 @@ export async function addToMonth(
       first,
       name,
     ]);
+    await storePlanned(conn, created.insertId, first, amount);
     return { categoryId: created.insertId, techName, sortOrder };
   });
 }

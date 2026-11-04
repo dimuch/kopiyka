@@ -5,8 +5,11 @@ const KEY_BYTES = 32;
 /** A code sent to this machine lands in the address bar, where it can be talked out of a user (plan, Revision 4). */
 const LOOPBACK_HOSTS = new Set(['localhost', '127.0.0.1', '[::1]']);
 
-/** The hosted Claude callback. `claude.com`'s isn't in the docs yet; it's listed so a change there can't lock users out. */
-const CLAUDE_CALLBACKS = 'https://claude.ai/api/mcp/auth_callback,https://claude.com/api/mcp/auth_callback';
+/**
+ * The hosted Claude callback. A URL belongs here only if its page removes the code from the address bar: `claude.com`'s
+ * doesn't, so a stranger could talk the code out of a user there.
+ */
+const CLAUDE_CALLBACK = 'https://claude.ai/api/mcp/auth_callback';
 
 const Env = z.object({
   NODE_ENV: z.enum(['development', 'test', 'production']).default('development'),
@@ -18,7 +21,7 @@ const Env = z.object({
   API_URL: z.url().default('http://127.0.0.1:3000'),
   MCP_SEAL_KEY: z.string().min(1),
   // The only redirects a client may register, exactly as it sends them. Blank means no app can connect.
-  MCP_ALLOWED_REDIRECT_URIS: z.string().default(CLAUDE_CALLBACKS),
+  MCP_ALLOWED_REDIRECT_URIS: z.string().default(CLAUDE_CALLBACK),
 });
 
 export interface Config {

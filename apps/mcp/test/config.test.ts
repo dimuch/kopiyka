@@ -2,7 +2,7 @@ import { randomBytes } from 'node:crypto';
 import { describe, expect, it } from 'vitest';
 import { loadConfig } from '../src/config.js';
 
-const CLAUDE_CALLBACKS = ['https://claude.ai/api/mcp/auth_callback', 'https://claude.com/api/mcp/auth_callback'];
+const CLAUDE_CALLBACK = 'https://claude.ai/api/mcp/auth_callback';
 
 describe('loadConfig', () => {
   const sealKey = randomBytes(32);
@@ -17,7 +17,7 @@ describe('loadConfig', () => {
       publicUrl: 'http://localhost:3200',
       apiUrl: 'http://127.0.0.1:3000',
       sealKey,
-      allowedRedirectUris: CLAUDE_CALLBACKS,
+      allowedRedirectUris: [CLAUDE_CALLBACK],
     });
   });
 

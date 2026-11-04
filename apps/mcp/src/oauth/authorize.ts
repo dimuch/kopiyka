@@ -49,6 +49,8 @@ function requestFault(query: AuthorizeQuery, resource: string): string | null {
   if (query.code_challenge_method !== 'S256' || !CODE_CHALLENGE.test(query.code_challenge ?? '')) {
     return 'invalid_request';
   }
+  // Claude's callback only clears the code from the address bar when it gets a state.
+  if (!query.state) return 'invalid_request';
   if (query.scope !== undefined && query.scope !== '' && query.scope !== 'read') return 'invalid_scope';
   if (query.resource !== undefined && query.resource !== resource) return 'invalid_request';
   return null;

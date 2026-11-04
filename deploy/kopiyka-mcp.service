@@ -1,0 +1,26 @@
+# /etc/systemd/system/kopiyka-mcp.service
+# Runs the MCP connector as the `kopiyka-mcp` user on 127.0.0.1:3200. nginx
+# (kopiyka.englishplus.com.ua.conf) terminates TLS and proxies /mcp and /oauth
+# here. It reaches kopiyka only through the API. Its seal key lives only in
+# /etc/kopiyka/mcp.env (root 0600); see deploy/README.md.
+[Unit]
+Description=Kopiyka MCP connector
+After=network.target kopiyka.service
+
+[Service]
+Type=simple
+User=kopiyka-mcp
+Group=kopiyka-mcp
+WorkingDirectory=/opt/kopiyka/current/apps/mcp
+Environment=NODE_ENV=production HOST=127.0.0.1 PORT=3200 API_URL=http://127.0.0.1:3100
+EnvironmentFile=/etc/kopiyka/mcp.env
+ExecStart=/usr/bin/node dist/src/server.js
+Restart=always
+RestartSec=5
+# Hardening. It writes nothing to disk; logs go to journald.
+NoNewPrivileges=true
+ProtectSystem=strict
+PrivateTmp=true
+
+[Install]
+WantedBy=multi-user.target

@@ -110,7 +110,7 @@ shows one line. It overlaps glyphs on buttons with no side padding, so those get
   - Verify: `rg -n "^\s+Pressable,$|\bPressable\b.*from 'react-native'" apps/mobile/src` lists only `PhoneColumn` and
     the wrapper. Web: press and hold each kind under AC3; then the not-ready Sign in stays at 0.4.
 
-- [ ] 4. Match the selected Appearance option to the category and date chips (~2 lines)
+- [x] 4. Match the selected Appearance option to the category and date chips (~2 lines)
   - Files: `components/AppearancePicker.tsx`.
   - Change: `optionOn` border `accentLine` → `accent`; `labelOn` becomes `{ color: colors.text }` (see Open questions).
     `LedgerPicker` is untouched. `accentLine` stays, the "Added" note uses it.

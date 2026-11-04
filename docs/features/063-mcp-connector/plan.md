@@ -1090,6 +1090,7 @@ Also:
 
 ## Deviations
 
+- slice 14, run against the real API locally (2026-11-04, a throwaway user, since deleted): register, a wrong code, TOTP login, consent, Allow, token, all five tools, a foreign ledger and revocation all behaved as contracted, and `month_summary` matched the seeded data. It found the API sends `label: null`, which the stub didn't; the types now say so. In Chromium the Allow meta refresh ran under the CSP and `claude.ai`'s callback removed the code, not logged in. Safari, a logged-in browser and the tunnel checks are still owed.
 - slice 13: the POST routes live in a new `oauth/signIn.ts`, not `authorize.ts`. The form parser sits in a Fastify scope around them, so `/mcp` keeps answering 415 to forms and these routes refuse JSON with no extra check. API failures answer 502; an expired sign-in or a second Allow answers 400.
 - slice 12b, checked in the browser at 390×844 with a 252-character hostname: the sign-in and fault pages wrap it fully, nothing overflows, the fault page answers 400 with no refresh, and the CSP reports no violation. That hostname has hyphens, which help it wrap; `overflow-wrap: anywhere` covers the case without them.
 - slice 12: the fault page is built here, not in 12a, so no commit on main ever has the 302. `.claude/launch.json` gets an `mcp` entry, to see the pages run. A parameter sent twice counts as an untrusted request (400 page).
@@ -1133,3 +1134,8 @@ Also:
 
 - `escapeHtml` and the `pages.ts` template: nothing like them exists in the repo, and a template library would be a
   dependency for a few small pages. LEAVE.
+
+063e (`origin/main...HEAD`): reused 3 · extracted 2 · left 1.
+
+- `authorizationResponse`, `sendPage` and `sealAccessToken` are reused; `claimedName` and `returnPage` are extracted so sign-in and consent, and the fault and Deny pages, share their wording.
+- The `test/oauthFlow.ts` helpers serve the sign-in and token tests; `flow.test.ts` spells its steps out on purpose, being the one test that reads as the whole journey. LEAVE.

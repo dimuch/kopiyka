@@ -6,7 +6,7 @@ import { monthSummary, sumCents, type ApiCategory } from './summary.js';
 
 interface ApiLedgers {
   user: { username: string };
-  ledgers: { ledgerId: number; name: string; role: string; owner: string; label: string }[];
+  ledgers: { ledgerId: number; name: string; role: string; owner: string; label: string | null }[];
 }
 
 interface ApiExpense {

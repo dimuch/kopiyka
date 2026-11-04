@@ -127,7 +127,7 @@ to Node.
 
 ## Slices
 
-- [ ] 1. Tell the user when sign-in hits the rate limit
+- [x] 1. Tell the user when sign-in hits the rate limit
   - Files: `apps/mobile/src/data/loginError.ts` (new), `apps/mobile/src/app/login.tsx`,
     `apps/mobile/test/loginError.test.ts` (new), `apps/mobile/test/client.test.ts` (new)
   - Change: move `errorText` out of the screen as `loginErrorText`, and add `rate_limited` → "Too many attempts. Wait a

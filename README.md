@@ -114,12 +114,12 @@ To delete it, follow this order: a deploy runs the droplet's own `deploy.sh`, wh
      `apiTokenAuth` import, its line and the comment above it. In `apps/api/src/config.ts`, remove `MCP_ENABLED`,
      `API_TOKEN_TTL_MINUTES` and `apiTokens`. In `apps/api/.env.example`, remove the MCP lines.
    - Add a migration with `DROP TABLE IF EXISTS api_tokens;`.
-   - In `deploy/kopiyka.englishplus.com.ua.conf`, remove the file-level `map`, `limit_*_zone` and `log_format` lines, the
+   - In `deploy/kopiyka.englishplus.com.ua.conf`, remove the file-level `$kopiyka_oauth_post_key` map, `limit_*_zone` and `log_format` lines, the
      server-level `limit_*_status` and `client_header_timeout` lines, and the four locations.
    - Remove `deploy/kopiyka-mcp.service`, the MCP lines in `deploy/deploy.sh` (the build, `MCP_*` and the `if` block in
      `restart_healthy`), the root `mcp` script, the `mcp` entry in `.claude/launch.json`, and the MCP sections in
      `deploy/README.md`, this file and `CLAUDE.md`. Run `yarn install`.
-2. Merge it. On the droplet, **before deploying**:
+2. Merge it. On the droplet, **before deploying**, take `MCP_ENABLED` out of `api.env` with `sudoedit`, then:
 
    ```bash
    sudo systemctl disable --now kopiyka-mcp

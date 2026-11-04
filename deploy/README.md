@@ -118,9 +118,9 @@ so piped `sudo` commands don't prompt twice at once.
 
    ```bash
    cd /opt/kopiyka
-   sudo -u kopiyka git -C repo.git fetch -q origin +refs/heads/main:refs/heads/main
-   sudo -u kopiyka git -C repo.git show main:deploy/kopiyka.service | sudo tee /etc/systemd/system/kopiyka.service >/dev/null
-   sudo -u kopiyka git -C repo.git show main:deploy/deploy.sh | sudo install -m 755 -o root -g root /dev/stdin /usr/local/bin/kopiyka-deploy
+   sudo -u kopiyka git -C /opt/kopiyka/repo.git fetch -q origin +refs/heads/main:refs/heads/main
+   sudo -u kopiyka git -C /opt/kopiyka/repo.git show main:deploy/kopiyka.service | sudo tee /etc/systemd/system/kopiyka.service >/dev/null
+   sudo -u kopiyka git -C /opt/kopiyka/repo.git show main:deploy/deploy.sh | sudo install -m 755 -o root -g root /dev/stdin /usr/local/bin/kopiyka-deploy
    echo 'kopiyka ALL=(root) NOPASSWD: /usr/bin/systemctl restart kopiyka.service' | sudo tee /etc/sudoers.d/kopiyka >/dev/null
    sudo chmod 440 /etc/sudoers.d/kopiyka && sudo visudo -cf /etc/sudoers.d/kopiyka
    sudo systemctl daemon-reload && sudo systemctl enable kopiyka.service   # starts with the first deploy
@@ -309,15 +309,16 @@ connection fails.
 ### One-time setup
 
 Run on the droplet, in this order, after the connector is on `main`. A deploy skips it until step 4 enables it, and none
-of this turns it on: that's the last section.
+of this turns it on: that's "Tests before anyone uses it".
 
-1. **Checks and the sudo rule.** The rule has its own file, so step 6 above can't overwrite it. A fail2ban
-   `nginx-limit-req` jail would turn the 429 check, or real traffic from Anthropic, into a ban on every site: if it's
-   listed, stop and decide.
+1. **Checks and the sudo rule.** The rule has its own file, so step 6 above can't overwrite it. A fail2ban jail
+   that reads nginx's logs would turn the 429 and 403 checks, or real traffic from Anthropic, into a ban on every site. If
+   the list shows any nginx jail, or the `grep` finds one under another name, stop and decide.
 
    ```bash
    ss -ltn | grep ':3200 ' || echo "3200 free"
    sudo fail2ban-client status
+   sudo grep -lE 'nginx-(limit-req|forbidden)|nginx/error' /etc/fail2ban/jail.local /etc/fail2ban/jail.d/* 2>/dev/null
    echo 'kopiyka ALL=(root) NOPASSWD: /usr/bin/systemctl restart kopiyka-mcp.service' |
      sudo tee /etc/sudoers.d/kopiyka-mcp >/dev/null
    sudo chmod 440 /etc/sudoers.d/kopiyka-mcp && sudo visudo -cf /etc/sudoers.d/kopiyka-mcp
@@ -357,8 +358,12 @@ of this turns it on: that's the last section.
    sudo -u kopiyka git -C /opt/kopiyka/repo.git show main:deploy/kopiyka-mcp.service |
      sudo tee /etc/systemd/system/kopiyka-mcp.service >/dev/null
    sudo -u kopiyka-mcp test -r /opt/kopiyka/current/apps/mcp/dist/src/server.js &&
-     sudo systemctl daemon-reload && sudo systemctl enable --now kopiyka-mcp.service && systemctl is-active kopiyka-mcp
+     sudo systemctl daemon-reload && sudo systemctl enable --now kopiyka-mcp.service
+   sleep 5
+   curl -fsS -H 'Host: kopiyka.englishplus.com.ua' -o /dev/null http://127.0.0.1:3200/.well-known/oauth-authorization-server && echo ok
    ```
+
+   It must print `ok`. If not, `journalctl -u kopiyka-mcp` says why: usually `mcp.env`.
 
 5. **vhost.** nginx is shared, and a bad file left in place would stop every site at the next restart, so keep a copy
    outside `sites-enabled` first:
@@ -408,16 +413,19 @@ to do before going on.
    must leave the address bar. If it stays, stop.
 4. **Two browsers:** in browser A, add the connector and click connect, then copy the sign-in page's address and close that
    tab. Open the address in browser B, logged out of Claude, sign in as the test user and click Allow. Start a fresh
-   Connect for each run, and repeat with B on a second Claude account if there is one. Browser A must **not** show
-   Connected, and B's address bar must hold no `code=`. Otherwise, stop.
+   Connect for each run, and repeat with B on a second Claude account if there is one. Reload A's Connectors page before
+   judging, as an open page can be out of date. A must **not** show Connected, and B's address bar must hold no `code=`.
+   Otherwise, stop.
 5. **Hostile metadata:** add a throwaway connector at another `https` address that answers `401` and names kopiyka as both
    its `resource` and its authorization server. Claude must refuse it. If kopiyka's sign-in page opens, stop and don't sign
-   in. The plan's slice 14 has the details.
+   in. It can run on a temporary path or port on the droplet, or behind a tunnel if the owner allows one. The plan's slice
+   14 has the details.
 6. **Then:** connect normally as the test user and ask a budget question, comparing the answer with the Budget screen. Click
    Cancel once. Double-tap Continue and Allow once each. Try Allow in Safari. Wait 61 minutes and check it asks you to sign
    in again, including from Claude mobile. Note what `claude mcp add` from a laptop shows (nginx's 403 at `/oauth/register`),
    and whether the connector appears in Claude Code.
-7. **Clean up:** remove the test connectors in Claude, and delete the test user, ledger first:
+7. **Clean up:** remove the test connectors in Claude, and delete the test user, ledger first, in
+   `mysql -h 127.0.0.1 -u kopiyka -p kopiyka`:
 
    ```sql
    SET @u = (SELECT user_id FROM users WHERE username = 'claude-qa-mcp');
@@ -426,6 +434,9 @@ to do before going on.
    DELETE FROM ledgers WHERE owner_user_id = @u;
    DELETE FROM users WHERE user_id = @u;
    ```
+
+Wrong codes and a second user are covered by automated tests, so they aren't repeated here. Five wrong codes would lock
+your own address for every login for 24 hours.
 
 **To turn it off at any point:** take `MCP_ENABLED` out of `api.env` and run `sudo systemctl restart kopiyka`. Every
 connection stops at once. Leave it on only once all of this has passed.

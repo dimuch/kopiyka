@@ -28,7 +28,7 @@ export async function buildApp(deps: AppDeps): Promise<FastifyInstance> {
     },
   });
 
-  // Against DNS rebinding, which the MCP spec requires a server to stop: only our own host, from our own pages.
+  // Against DNS rebinding, which the MCP spec requires a server to stop: only our own hostname, in Host and in Origin.
   const allowedHosts = [new URL(deps.config.publicUrl).hostname];
   app.addHook('onRequest', async (req, reply) => {
     if (!validateHostHeader(req.headers.host, allowedHosts).ok) {

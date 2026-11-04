@@ -303,13 +303,17 @@ page's own, which is expected: browsers enforce both.
 ## MCP connector
 
 `apps/mcp` lets Claude read a user's budgets (brief 063). It reaches kopiyka only through the API, and the API refuses its
-tokens on every write. `MCP_ENABLED` in `api.env` is the main switch: while it's unset, sign-in can't finish and every
-connection fails.
+tokens on every write. It's live for registered users since 4 November 2026. `MCP_ENABLED` in `api.env` is the main switch:
+while it's unset, sign-in can't finish and every connection fails.
+
+**To turn it off:** take `MCP_ENABLED` out of `api.env` and run `sudo systemctl restart kopiyka`. Every connection stops at
+once.
 
 ### One-time setup
 
-Run on the droplet, in this order, after the connector is on `main`. A deploy skips it until step 4 enables it, and none
-of this turns it on: that's "Tests before anyone uses it".
+This is done on production, and is here for a rebuild. Run on the droplet, in this order. A deploy skips the connector until
+step 4 enables it, and none of this turns it on: add `MCP_ENABLED=true` to `api.env` with `sudoedit`, then
+`sudo systemctl restart kopiyka`.
 
 1. **Checks and the sudo rule.** The rule has its own file, so step 6 above can't overwrite it. A fail2ban jail
    that reads nginx's logs would turn the 429 and 403 checks, or real traffic from Anthropic, into a ban on every site. If
@@ -400,46 +404,32 @@ The second is information only: `client_header_timeout` may come from the defaul
 way the limits above still stop a flood. The access log drops `/oauth/` queries, but nginx's error log still prints the
 full request line on a limit hit.
 
-### Tests before anyone uses it
+### What's been tested
 
-Claude's real connection has worked, but one security question is open: can a stranger's Connect link hijack a connection?
-So nobody gets the URL until this passes (plan, Revision 6). If a test says stop, turn the connector off and decide what
-to do before going on.
+Results of 4 November 2026 are on PR #94. The two-browser test passed: a sign-in and Allow finished in another browser,
+logged in or logged out, and Claude refused the code and never called `/oauth/token`. A normal connection worked on
+production.
 
-1. **Create a test user** with first-deploy step 10's command: `--username claude-qa-mcp --email claude-qa-mcp@example.com
---ledger "QA"`. Never test with a real account.
-2. **Turn it on:** add `MCP_ENABLED=true` to `api.env` with `sudoedit`, then `sudo systemctl restart kopiyka`.
-3. **Callback, in a browser logged in to Claude:** open `https://claude.ai/api/mcp/auth_callback?code=x&state=y`. The code
-   must leave the address bar. If it stays, stop.
-4. **Two browsers:** in browser A, add the connector and click connect, then copy the sign-in page's address and close that
-   tab. Open the address in browser B, logged out of Claude, sign in as the test user and click Allow. Start a fresh
-   Connect for each run, and repeat with B on a second Claude account if there is one. Reload A's Connectors page before
-   judging, as an open page can be out of date. A must **not** show Connected, and B's address bar must hold no `code=`.
-   Otherwise, stop.
-5. **Hostile metadata:** add a throwaway connector at another `https` address that answers `401` and names kopiyka as both
-   its `resource` and its authorization server. Claude must refuse it. If kopiyka's sign-in page opens, stop and don't sign
-   in. It can run on a temporary path or port on the droplet, or behind a tunnel if the owner allows one. The plan's slice
-   14 has the details.
-6. **Then:** connect normally as the test user and ask a budget question, comparing the answer with the Budget screen. Click
-   Cancel once. Double-tap Continue and Allow once each. Try Allow in Safari. Wait 61 minutes and check it asks you to sign
-   in again, including from Claude mobile. Note what `claude mcp add` from a laptop shows (nginx's 403 at `/oauth/register`),
-   and whether the connector appears in Claude Code.
-7. **Clean up:** remove the test connectors in Claude, and delete the test user, ledger first, in
-   `mysql -h 127.0.0.1 -u kopiyka -p kopiyka`:
+Not run, by the owner's decision, so these are open if the connector's use grows or Claude changes:
 
-   ```sql
-   SET @u = (SELECT user_id FROM users WHERE username = 'claude-qa-mcp');
-   DELETE e FROM expenses e JOIN categories c ON c.category_id = e.category_id JOIN ledgers l ON l.ledger_id = c.ledger_id WHERE l.owner_user_id = @u;
-   DELETE i FROM income_items i JOIN ledgers l ON l.ledger_id = i.ledger_id WHERE l.owner_user_id = @u;
-   DELETE FROM ledgers WHERE owner_user_id = @u;
-   DELETE FROM users WHERE user_id = @u;
-   ```
+- **Hostile metadata:** a stranger's connector that names kopiyka as its `resource`. Claude's docs say the value must equal
+  the connector's URL, but that isn't confirmed. To test, add a connector at another `https` address that answers `401` and
+  names kopiyka as both its `resource` and its authorization server: Claude must refuse it. If kopiyka's sign-in page opens,
+  don't sign in, and turn the connector off.
+- A second Claude account in the two-browser test.
+- Cancel and double taps against the real API, Safari, the hourly expiry, and hourly sign-in from mobile.
 
-Wrong codes and a second user are covered by automated tests, so they aren't repeated here. Five wrong codes would lock
-your own address for every login for 24 hours.
+For a test, use a throwaway user, never a real account: first-deploy step 10's command with `--username claude-qa-mcp --email
+claude-qa-mcp@example.com --ledger "QA"`. Delete it afterwards, ledger first, in `sudo mysql kopiyka`:
 
-**To turn it off at any point:** take `MCP_ENABLED` out of `api.env` and run `sudo systemctl restart kopiyka`. Every
-connection stops at once. Leave it on only once all of this has passed.
+```sql
+SET @u = (SELECT user_id FROM users WHERE username = 'claude-qa-mcp');
+DELETE e FROM expenses e JOIN categories c ON c.category_id = e.category_id JOIN ledgers l ON l.ledger_id = c.ledger_id WHERE l.owner_user_id = @u;
+DELETE i FROM income_items i JOIN ledgers l ON l.ledger_id = i.ledger_id WHERE l.owner_user_id = @u;
+DELETE FROM ledgers WHERE owner_user_id = @u;
+DELETE FROM users WHERE user_id = @u;
+DELETE FROM login_throttle WHERE key_type = 'username' AND key_value = 'claude-qa-mcp';
+```
 
 ### The address limit
 

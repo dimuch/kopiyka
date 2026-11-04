@@ -2,6 +2,7 @@ import cookie from '@fastify/cookie';
 import cors from '@fastify/cors';
 import Fastify, { type FastifyInstance, type FastifyReply } from 'fastify';
 import { ZodError } from 'zod';
+import { apiTokenRoutes } from './apiTokens/routes.js';
 import { authRoutes } from './auth/routes.js';
 import { categoryRoutes } from './categories/routes.js';
 import { expenseRoutes } from './expenses/routes.js';
@@ -83,6 +84,7 @@ export async function buildApp(deps: AppDeps): Promise<FastifyInstance> {
   await rateRoutes(app, deps);
   await expenseRoutes(app, deps);
   await notionRoutes(app, deps);
+  await apiTokenRoutes(app, deps);
 
   return app;
 }

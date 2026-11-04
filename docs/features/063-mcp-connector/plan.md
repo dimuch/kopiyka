@@ -326,7 +326,7 @@ now());` goes before the session lookup. `apiTokenAuth` looks the hash up live (
       Each authed write route is then injected with the read token (`:id` → the user's ledger, `:month` → `2026-10`,
       others → `1`, body `{}`) and must give 403 `insufficient_scope`.
   - ~150 lines
-- [ ] 3. Add routes to exchange a session for an API token, list and revoke tokens
+- [x] 3. Add routes to exchange a session for an API token, list and revoke tokens
   - Files: `apps/api/src/apiTokens/routes.ts` (new), `apps/api/src/app.ts` (an import and
     `if (deps.config.apiTokens) await apiTokenRoutes(app, deps);`), `apps/api/test/apiTokens.routes.int.test.ts`
   - Change: the three routes as in Contracts. Issuing prunes expired rows first, like `createSession`, and deletes
@@ -732,7 +732,7 @@ I also took these of the skeptic's suggestions:
 
 ## Deviations
 
-<filled by the developer during build>
+- slice 3: `app.ts` calls `apiTokenRoutes(app, deps)` unconditionally and the switch check sits inside it — still one line in `app.ts`, and `ttlMinutes` needs no `!`.
 
 ## Consolidate
 

@@ -403,7 +403,7 @@ now());` goes before the session lookup. `apiTokenAuth` looks the hash up live (
 
 ### PR 063c: tools and limits (`apps/mcp`)
 
-- [ ] 8. Cap tool calls and open requests per token, and log refusals
+- [x] 8. Cap tool calls and open requests per token, and log refusals
   - Files: `apps/mcp/src/limits.ts` (token bucket, open-request registry), `apps/mcp/src/mcp/routes.ts`,
     `apps/mcp/src/mcp/tools.ts` (wrapper), `apps/mcp/src/app.ts` (`onResponse` hook: `warn {statusCode, route}` for
     401/403/413/429/503; tool rate limits logged as `{tool}` only), `apps/mcp/test/limits.test.ts`,
@@ -704,7 +704,6 @@ No text in the brief tried to change this process.
 
 ## Follow-ups
 
-- 063c, slice 8: test `onerror` (with `logStream`) and the `preClose` `handler.close()` (with the real listen). Both were added in 063b's review, and neither can be tested until slice 8's tools exist. Also decide whether `responseMode: 'json'` stays: it changes nothing today and warns on every start.
 - Support CIMD (`client_id_metadata_document_supported`), with an allowlist of client hosts, once Claude or the spec
   drops DCR.
 - Proposal: add an `apps/mcp` row group to conventions §2 (route modules, `seal.ts`, `limits.ts`, the boundary rule).
@@ -733,6 +732,7 @@ I also took these of the skeptic's suggestions:
 
 ## Deviations
 
+- slice 8: `responseMode: 'json'` is gone. It changed nothing, since no tool emits a message before its result, and it printed a warning on every start; the SDK's default `auto` answers the same. The 10-minute close is tested with fake timers in `limits.test.ts` and a 30 ms cap over real HTTP, because fake timers don't mix with a real listen. The tool's API call is cancelled through `requestInfo.signal`, so `ApiClient.get` takes an optional signal.
 - slice 7: the wrapper lives in a new `src/mcp/auth.ts`. Its fields are `aud`, `apiToken`, `clientId` and `expMs`: the SDK's `AuthInfo` needs a client id and an expiry, and the sealed `exp` isn't handed back by `open`.
 - slice 7: when the API has `MCP_ENABLED` off, `GET /api/api-tokens` is a 404, so `/mcp` answers 503 and clients retry. That keeps people signed in through a mistaken restart; it's the contract's "any other failure".
 - slice 7: the 503 test uses a network failure and a 502 from the stub rather than a hung API, since slice 6 already proves a hang becomes the same `ApiError`. The `aud` check sits in `verifyAccessToken`, before the API call, not in `expectedResource`. The PRM is written out by hand: the SDK builder wants the full AS metadata, which arrives in 063d.

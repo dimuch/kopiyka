@@ -12,6 +12,12 @@
       "runtimeExecutable": "yarn",
       "runtimeArgs": ["mobile", "expo", "start", "--web", "--port", "8081"],
       "port": 8081
+    },
+    {
+      "name": "mcp",
+      "runtimeExecutable": "yarn",
+      "runtimeArgs": ["mcp", "dev"],
+      "port": 3200
     }
   ]
 }

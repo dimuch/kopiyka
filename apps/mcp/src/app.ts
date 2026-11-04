@@ -4,6 +4,7 @@ import Fastify, { type FastifyInstance, type FastifyReply } from 'fastify';
 import type { Config } from './config.js';
 import type { Limits } from './limits.js';
 import { mcpRoutes } from './mcp/routes.js';
+import { authorizeRoutes } from './oauth/authorize.js';
 import { metadataRoutes } from './oauth/metadata.js';
 import { registerRoutes } from './oauth/register.js';
 
@@ -70,6 +71,7 @@ export async function buildApp(deps: AppDeps): Promise<FastifyInstance> {
   await mcpRoutes(app, deps);
   await metadataRoutes(app, deps);
   await registerRoutes(app, deps);
+  await authorizeRoutes(app, deps);
 
   return app;
 }

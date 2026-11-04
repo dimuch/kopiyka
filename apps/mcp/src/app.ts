@@ -1,6 +1,8 @@
 import { validateHostHeader, validateOriginHeader } from '@modelcontextprotocol/server';
+import type { Writable } from 'node:stream';
 import Fastify, { type FastifyInstance, type FastifyReply } from 'fastify';
 import type { Config } from './config.js';
+import type { Limits } from './limits.js';
 import { mcpRoutes } from './mcp/routes.js';
 
 export interface AppDeps {
@@ -8,14 +10,23 @@ export interface AppDeps {
   now: () => Date;
   /** Reaches the kopiyka API; tests pass a stub. */
   fetch: typeof fetch;
+  /** Tests shrink the caps. */
+  limits?: Partial<Limits>;
+  /** Tests read the logs. */
+  logStream?: Writable;
 }
 
 const BODY_LIMIT_BYTES = 65_536;
 const REQUEST_TIMEOUT_MS = 30_000;
+/** Refusals worth seeing in `journalctl`: a burst of these means someone is probing or a client is stuck. */
+const REFUSALS = new Set([401, 403, 413, 429, 503]);
 
 export async function buildApp(deps: AppDeps): Promise<FastifyInstance> {
   const app = Fastify({
-    logger: deps.config.env === 'test' ? false : { level: deps.config.logLevel },
+    logger:
+      deps.config.env === 'test' && !deps.logStream
+        ? false
+        : { level: deps.config.logLevel, ...(deps.logStream ? { stream: deps.logStream } : {}) },
     // Only the local nginx may set the client address, as in apps/api.
     trustProxy: 'loopback',
     bodyLimit: BODY_LIMIT_BYTES,
@@ -36,6 +47,12 @@ export async function buildApp(deps: AppDeps): Promise<FastifyInstance> {
     }
     if (!validateOriginHeader(req.headers.origin, allowedHosts).ok) {
       return reply.code(403).send({ error: 'invalid_origin' });
+    }
+  });
+
+  app.addHook('onResponse', async (req, reply) => {
+    if (REFUSALS.has(reply.statusCode)) {
+      req.log.warn({ statusCode: reply.statusCode, route: req.routeOptions.url }, 'request refused');
     }
   });
 

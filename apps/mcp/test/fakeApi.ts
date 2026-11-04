@@ -3,12 +3,16 @@ export interface RecordedCall {
   path: string;
   headers: Headers;
   body: unknown;
+  signal: AbortSignal | undefined;
 }
 
 export type Answer = { status?: number; json?: unknown; text?: string } | 'hang' | 'network_failure';
 
 /** A `fetch` stub for the kopiyka API: `answer` decides each response, and every call is recorded. */
-export function fakeApi(answer: (call: RecordedCall) => Answer): { fetch: typeof fetch; calls: RecordedCall[] } {
+export function fakeApi(answer: (call: RecordedCall) => Answer | Promise<Answer>): {
+  fetch: typeof fetch;
+  calls: RecordedCall[];
+} {
   const calls: RecordedCall[] = [];
   const stub: typeof fetch = async (input, init) => {
     const url = new URL(String(input));
@@ -17,9 +21,10 @@ export function fakeApi(answer: (call: RecordedCall) => Answer): { fetch: typeof
       path: `${url.pathname}${url.search}`,
       headers: new Headers(init?.headers),
       body: typeof init?.body === 'string' ? JSON.parse(init.body) : undefined,
+      signal: init?.signal ?? undefined,
     };
     calls.push(call);
-    const result = answer(call);
+    const result = await answer(call);
     if (result === 'network_failure') throw new TypeError('fetch failed');
     if (result === 'hang') {
       return new Promise((_resolve, reject) => {

@@ -1,23 +1,40 @@
 import { McpServer, type CallToolResult } from '@modelcontextprotocol/server';
-import { ApiError, type ApiClient } from '../api.js';
+import { ApiError } from '../api.js';
 
 interface ApiLedgers {
   user: { username: string };
   ledgers: { ledgerId: number; name: string; role: string; owner: string; label: string }[];
 }
 
-/** Runs a tool, handing an API error to the LLM as a result it can read rather than a protocol failure. */
-async function toolResult(read: () => Promise<Record<string, unknown>>): Promise<CallToolResult> {
+/** What one `/mcp` request may do: read as its user, and spend that user's tool calls. */
+export interface RequestScope {
+  read<T>(path: string): Promise<T>;
+  /** Takes one tool call: 0 when allowed, otherwise the seconds until one is free. */
+  takeToolCall(tool: string): number;
+}
+
+const errorResult = (text: string): CallToolResult => ({ content: [{ type: 'text', text }], isError: true });
+
+/** Runs a tool, handing a refusal or an API error to the LLM as a result it can read, not a protocol failure. */
+async function toolResult(
+  scope: RequestScope,
+  tool: string,
+  read: () => Promise<Record<string, unknown>>,
+): Promise<CallToolResult> {
+  const waitSeconds = scope.takeToolCall(tool);
+  if (waitSeconds > 0) {
+    return errorResult(`rate_limited: too many requests from this connection; try again in ${waitSeconds} s`);
+  }
   try {
     return { content: [{ type: 'text', text: JSON.stringify(await read()) }] };
   } catch (err) {
-    if (err instanceof ApiError) return { content: [{ type: 'text', text: err.code }], isError: true };
+    if (err instanceof ApiError) return errorResult(err.code);
     throw err;
   }
 }
 
-/** A server for one request: `apiToken` is its user's, so a tool can only reach what that user can. */
-export function buildServer(api: ApiClient, apiToken: string): McpServer {
+/** A server for one request: `scope` is its user's, so a tool can only reach what that user can. */
+export function buildServer(scope: RequestScope): McpServer {
   const server = new McpServer({ name: 'kopiyka', version: '0.1.0' });
 
   server.registerTool(
@@ -29,8 +46,8 @@ export function buildServer(api: ApiClient, apiToken: string): McpServer {
       annotations: { readOnlyHint: true },
     },
     () =>
-      toolResult(async () => {
-        const { user, ledgers } = await api.get<ApiLedgers>('/api/ledgers', apiToken);
+      toolResult(scope, 'list_ledgers', async () => {
+        const { user, ledgers } = await scope.read<ApiLedgers>('/api/ledgers');
         return {
           user: { username: user.username },
           ledgers: ledgers.map(({ ledgerId, name, label, role, owner }) => ({

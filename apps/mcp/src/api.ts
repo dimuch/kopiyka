@@ -11,7 +11,8 @@ export class ApiError extends Error {
 }
 
 export interface ApiClient {
-  get<T>(path: string, token: string): Promise<T>;
+  /** `signal` ends the call early, when the client's own request has been closed. */
+  get<T>(path: string, token: string, signal?: AbortSignal): Promise<T>;
   post<T>(path: string, token: string | null, body: object, options?: { forwardedFor?: string }): Promise<T>;
 }
 
@@ -30,11 +31,15 @@ function errorCode(body: unknown): string {
 
 /** This app's only way to the data: the API keeps every access rule, so nothing here repeats them. */
 export function apiClient(baseUrl: string, fetchImpl: typeof fetch, timeoutMs = API_TIMEOUT_MS): ApiClient {
-  async function request<T>(path: string, init: RequestInit): Promise<T> {
+  async function request<T>(path: string, init: RequestInit, signal?: AbortSignal): Promise<T> {
     let status: number;
     let text: string;
     try {
-      const res = await fetchImpl(`${baseUrl}${path}`, { ...init, signal: AbortSignal.timeout(timeoutMs) });
+      const timeout = AbortSignal.timeout(timeoutMs);
+      const res = await fetchImpl(`${baseUrl}${path}`, {
+        ...init,
+        signal: signal ? AbortSignal.any([timeout, signal]) : timeout,
+      });
       status = res.status;
       text = await res.text();
     } catch {
@@ -49,7 +54,7 @@ export function apiClient(baseUrl: string, fetchImpl: typeof fetch, timeoutMs = 
   const bearer = (token: string | null) => (token ? { authorization: `Bearer ${token}` } : {});
 
   return {
-    get: (path, token) => request(path, { method: 'GET', headers: bearer(token) }),
+    get: (path, token, signal) => request(path, { method: 'GET', headers: bearer(token) }, signal),
     post: (path, token, body, options) =>
       request(path, {
         method: 'POST',

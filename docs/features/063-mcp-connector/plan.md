@@ -745,3 +745,9 @@ I also took these of the skeptic's suggestions:
   `auth/sessions.ts` to a module that must stay deletable. `hashToken` and `deleteSession` are already called, not copied.
 - `expiresAt` and the `DELETE … expires_at <= ?` prune vs `createSession`: LEAVE. One line each, second copy, and the
   same deletability reason.
+
+063b (`origin/main...HEAD`): reused 0 · extracted 0 · left 2.
+
+- `app.ts`'s `frameworkErrors`, error and not-found handlers vs `apps/api/src/app.ts`: LEAVE. `apps/mcp` may not import
+  from the API, so the copy is deliberate (conventions §1: no DRY across a runtime boundary).
+- `parseSealKey` vs `parseKey` in `auth/secretBox.ts`: LEAVE, same reason.

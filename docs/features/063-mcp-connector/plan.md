@@ -754,3 +754,10 @@ I also took these of the skeptic's suggestions:
 - `app.ts`'s `frameworkErrors`, error and not-found handlers vs `apps/api/src/app.ts`: LEAVE. `apps/mcp` may not import
   from the API, so the copy is deliberate (conventions §1: no DRY across a runtime boundary).
 - `parseSealKey` vs `parseKey` in `auth/secretBox.ts`: LEAVE, same reason.
+
+063c (`origin/main...HEAD`): reused 1 · extracted 1 · left 2.
+
+- `sumCents` from `mcp/summary.ts` is reused by `list_income`, not written twice.
+- `test/rpc.ts`: `rpcResult` and `toolData` extracted once `tools.test.ts` needed them too.
+- `money.ts` and `dates.ts` vs `apps/api/src/money.ts` and `dates.ts`: LEAVE, the runtime boundary, as the plan says.
+- The `Money` formatting vs `apps/mobile/src/format.ts`: LEAVE, same reason.

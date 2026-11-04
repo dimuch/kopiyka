@@ -85,7 +85,8 @@ the Budget tables at a time.
 `apps/mcp` lets Claude read a user's budgets. In Claude, add a custom connector with the URL `https://<host>/mcp` at
 claude.ai > Customize > Connectors; it then works in Claude Desktop and Claude mobile. Sign in with your username and
 authenticator code, and allow it. It's read-only, and sign-in comes back every hour. Free plans allow one custom
-connector; on Team and Enterprise an Owner adds it.
+connector; on Team and Enterprise an Owner adds it. After 90 days its registration ends: remove the connector and add it
+again.
 
 Claude Code can't connect directly (`claude mcp add`), because it uses a loopback redirect. A connector added on claude.ai
 may still appear in it for a claude.ai login. Claude Desktop on third-party inference can't connect either.
@@ -105,18 +106,35 @@ run `yarn mcp dev`. Claude itself needs a public `https` address.
 ### Removing the connector
 
 To switch it off, take `MCP_ENABLED` out of `api.env` and restart the API, then `sudo systemctl disable --now kopiyka-mcp`.
-To delete it:
+To delete it, follow this order: a deploy runs the droplet's own `deploy.sh`, which would fail once `apps/mcp` is gone.
 
-1. Delete `apps/mcp/` and `apps/api/src/apiTokens/`, and `apps/api/test/apiTokens.*`.
-2. Remove the `apiTokenRoutes` import and line in `apps/api/src/app.ts`, the `apiTokenAuth` import and line in
-   `apps/api/src/auth/routes.ts`, the `MCP_ENABLED`, `API_TOKEN_TTL_MINUTES` and `apiTokens` lines in
-   `apps/api/src/config.ts`, and the lines in `apps/api/.env.example`.
-3. Add a migration with `DROP TABLE IF EXISTS api_tokens;`.
-4. Remove the root `mcp` script, the `mcp` entry in `.claude/launch.json`, the MCP block in
-   `deploy/kopiyka.englishplus.com.ua.conf`, `deploy/kopiyka-mcp.service`, the MCP lines in `deploy/deploy.sh`, and the MCP
-   sections in `deploy/README.md`, this file and `CLAUDE.md`. Run `yarn install`.
-5. On the droplet: remove the unit, `/etc/kopiyka/mcp.env`, the second sudo rule and the `kopiyka-mcp` user, then re-install
-   the vhost and `deploy.sh`.
+1. In one PR:
+   - Delete `apps/mcp/`, `apps/api/src/apiTokens/` and `apps/api/test/apiTokens.*`.
+   - In `apps/api/src/app.ts`, remove the `apiTokenRoutes` import and line. In `apps/api/src/auth/routes.ts`, remove the
+     `apiTokenAuth` import, its line and the comment above it. In `apps/api/src/config.ts`, remove `MCP_ENABLED`,
+     `API_TOKEN_TTL_MINUTES` and `apiTokens`. In `apps/api/.env.example`, remove the MCP lines.
+   - Add a migration with `DROP TABLE IF EXISTS api_tokens;`.
+   - In `deploy/kopiyka.englishplus.com.ua.conf`, remove the file-level `map`, `limit_*_zone` and `log_format` lines, the
+     server-level `limit_*_status` and `client_header_timeout` lines, and the four locations.
+   - Remove `deploy/kopiyka-mcp.service`, the MCP lines in `deploy/deploy.sh` (the build, `MCP_*` and the `if` block in
+     `restart_healthy`), the root `mcp` script, the `mcp` entry in `.claude/launch.json`, and the MCP sections in
+     `deploy/README.md`, this file and `CLAUDE.md`. Run `yarn install`.
+2. Merge it. On the droplet, **before deploying**:
+
+   ```bash
+   sudo systemctl disable --now kopiyka-mcp
+   sudo rm /etc/systemd/system/kopiyka-mcp.service /etc/sudoers.d/kopiyka-mcp /etc/kopiyka/mcp.env
+   sudo systemctl daemon-reload
+   sudo userdel kopiyka-mcp
+   sudo -u kopiyka git -C /opt/kopiyka/repo.git fetch -q origin +refs/heads/main:refs/heads/main
+   f=$(mktemp)
+   sudo -u kopiyka git -C /opt/kopiyka/repo.git show main:deploy/deploy.sh > "$f" && ! grep -q 'mcp build' "$f" &&
+     sudo install -m 755 -o root -g root "$f" /usr/local/bin/kopiyka-deploy && echo ok
+   rm -f "$f"
+   ```
+
+3. Run **Deploy**, which runs the migration, then re-install the vhost ("After changing the vhost" in
+   `deploy/README.md`).
 
 ## Tests
 

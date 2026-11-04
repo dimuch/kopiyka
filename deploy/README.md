@@ -2,7 +2,8 @@
 
 Production is `https://kopiyka.englishplus.com.ua` on the DigitalOcean droplet (`ssh do`, 1 vCPU, 2 GB RAM, shared
 with other sites). nginx serves the web app and proxies `/api` to the API on `127.0.0.1:3100`, run by systemd as the
-`kopiyka` user. It also proxies the MCP connector (`/mcp`, `/oauth/`) to `127.0.0.1:3200`, run as `kopiyka-mcp`.
+`kopiyka` user. It also proxies the MCP connector (`/mcp`, `/oauth/`, `/.well-known/oauth-*`) to `127.0.0.1:3200`, run as
+`kopiyka-mcp`.
 
 | File                              | Installed as                                                   |
 | --------------------------------- | -------------------------------------------------------------- |
@@ -21,17 +22,19 @@ Actions → **Deploy** → Run workflow on `main`. Merging never deploys by itse
 2. The runner SSHes in as `kopiyka` with the deploy key. The key's forced command runs `kopiyka-deploy <sha>`, which
    only accepts a commit that is on `main`.
 3. On the droplet: `git archive` of the commit into `/opt/kopiyka/releases/<time>-<sha7>`, then `yarn install`, the API
-   build and the web export, one at a time under `nice` with memory caps.
+   build, the MCP build and the web export, one at a time under `nice` with memory caps.
 4. `current` is switched to the new release and `kopiyka.service` restarted. Pending migrations run first
-   (`ExecStartPre`); then `/api/health` is polled.
-5. If the restart or health check fails, `current` goes back to the previous release and the API is restarted on it.
+   (`ExecStartPre`); then `/api/health` is polled. Once it's set up, `kopiyka-mcp.service` is restarted and checked the
+   same way.
+5. If a restart or health check fails, `current` goes back to the previous release and the services restart on it.
    The workflow fails either way. The newest 3 releases are kept.
 
 Migrations are forward-only and a rollback runs the previous code on the new schema, so every migration must stay
 compatible with the release before it.
 
 A deploy never updates the files in this folder on the droplet, `deploy.sh` included: they're root-owned on purpose.
-After changing one, re-run its install line below (step 6 or 8), always with `nginx -t` before a reload.
+After changing one, re-run its install line below (step 6 or 8), always with `nginx -t` before a reload. The bare repo's
+`main` only moves on a deploy or an explicit fetch, so fetch first, or the line installs the old file with no error.
 
 ## One-time setup
 
@@ -305,19 +308,32 @@ connection fails.
 
 ### One-time setup
 
-Run on the droplet, in this order. A deploy skips the connector until step 4 enables it.
+Run on the droplet, in this order, after the connector is on `main`. A deploy skips it until step 4 enables it, and none
+of this turns it on: that's the last section.
 
-1. **Check the port is free** (`ss -ltn | grep ':3200 ' || echo "3200 free"`), and add the second sudo rule, keeping the
-   first:
+1. **Checks and the sudo rule.** The rule has its own file, so step 6 above can't overwrite it. A fail2ban
+   `nginx-limit-req` jail would turn the 429 check, or real traffic from Anthropic, into a ban on every site: if it's
+   listed, stop and decide.
 
    ```bash
-   printf '%s\n' 'kopiyka ALL=(root) NOPASSWD: /usr/bin/systemctl restart kopiyka.service' \
-     'kopiyka ALL=(root) NOPASSWD: /usr/bin/systemctl restart kopiyka-mcp.service' | sudo tee /etc/sudoers.d/kopiyka >/dev/null
-   sudo chmod 440 /etc/sudoers.d/kopiyka && sudo visudo -cf /etc/sudoers.d/kopiyka
+   ss -ltn | grep ':3200 ' || echo "3200 free"
+   sudo fail2ban-client status
+   echo 'kopiyka ALL=(root) NOPASSWD: /usr/bin/systemctl restart kopiyka-mcp.service' |
+     sudo tee /etc/sudoers.d/kopiyka-mcp >/dev/null
+   sudo chmod 440 /etc/sudoers.d/kopiyka-mcp && sudo visudo -cf /etc/sudoers.d/kopiyka-mcp
    ```
 
-2. **Re-install `deploy.sh`** with step 6's install line, then run **Deploy** from Actions. A deploy never updates the
-   root-owned script, so without this `apps/mcp` isn't built.
+2. **Re-install `deploy.sh`.** The guard stops an old copy or an empty file from being installed. It must print `ok`:
+
+   ```bash
+   sudo -u kopiyka git -C /opt/kopiyka/repo.git fetch -q origin +refs/heads/main:refs/heads/main
+   f=$(mktemp)
+   sudo -u kopiyka git -C /opt/kopiyka/repo.git show main:deploy/deploy.sh > "$f" && grep -q 'mcp build' "$f" &&
+     sudo install -m 755 -o root -g root "$f" /usr/local/bin/kopiyka-deploy && echo ok
+   rm -f "$f"
+   ```
+
+   Then run **Deploy** from Actions, which builds `apps/mcp`.
 
 3. **User and secrets.**
 
@@ -335,36 +351,84 @@ Run on the droplet, in this order. A deploy skips the connector until step 4 ena
 
    Changing the key signs everyone out of the connector.
 
-4. **Service.**
+4. **Service.** It only starts if the last deploy really built `apps/mcp`:
 
    ```bash
    sudo -u kopiyka git -C /opt/kopiyka/repo.git show main:deploy/kopiyka-mcp.service |
      sudo tee /etc/systemd/system/kopiyka-mcp.service >/dev/null
-   sudo -u kopiyka-mcp test -r /opt/kopiyka/current/apps/mcp/dist/src/server.js && echo ok
-   sudo systemctl daemon-reload && sudo systemctl enable --now kopiyka-mcp.service
+   sudo -u kopiyka-mcp test -r /opt/kopiyka/current/apps/mcp/dist/src/server.js &&
+     sudo systemctl daemon-reload && sudo systemctl enable --now kopiyka-mcp.service && systemctl is-active kopiyka-mcp
    ```
 
-5. **vhost.** "After changing the vhost", above. `nginx -t` must pass before the reload.
+5. **vhost.** nginx is shared, and a bad file left in place would stop every site at the next restart, so keep a copy
+   outside `sites-enabled` first:
 
-6. **Turn it on**, only when you mean to: add `MCP_ENABLED=true` to `api.env` with `sudoedit`, then
-   `sudo systemctl restart kopiyka`. Taking the line out and restarting stops every connection at once.
+   ```bash
+   sudo cp /etc/nginx/sites-available/kopiyka.englishplus.com.ua.conf /root/kopiyka.conf.bak
+   ```
+
+   Then follow "After changing the vhost", above. If `nginx -t` fails, restore the copy straight away:
+   `sudo cp /root/kopiyka.conf.bak /etc/nginx/sites-available/kopiyka.englishplus.com.ua.conf && sudo nginx -t`.
 
 ### Checks after setup
 
-Wait a minute after the 429 check, or the next ones answer 429, not 403.
+None of these needs the connector turned on.
 
 ```bash
 site=https://kopiyka.englishplus.com.ua
 for i in $(seq 20); do curl -s -o /dev/null -w '%{http_code}\n' -X POST -H 'content-type: application/json' -d '{}' $site/oauth/register; done | sort | uniq -c
-# → at least 14 × 429, the rest 403
+# → about 14 × 429, the rest 403. On a slow link a few more can pass as 403.
+sleep 60
 curl -s -o /dev/null -w '%{http_code}\n' -X POST $site/oauth/token       # → 403 from anywhere but Anthropic
 curl -s -o /dev/null -w '%{http_code}\n' -X POST $site/oauth/register    # → 403
-curl -s -o /dev/null -w '%{http_code}\n' "$site/oauth/authorize"         # → 400, its page: the browser route stays open
-sudo nginx -T | grep -n 'client_header_timeout\|default_server'
-sudo tail -n 200 /var/log/nginx/access.log | grep '/oauth/authorize' | grep -c '?'   # → 0
+curl -s -o /dev/null -w '%{http_code}\n' "$site/oauth/authorize?probe=1" # → 400, its page: the browser route stays open
 ```
 
-The access log drops `/oauth/` queries, but nginx's error log still prints the full request line on a limit hit.
+On the droplet, after that last request:
+
+```bash
+sudo tail -n 200 /var/log/nginx/access.log | grep '/oauth/authorize' | tail -1   # → a line, with no `?` or `probe`
+sudo nginx -T | grep -n 'client_header_timeout\|default_server'
+```
+
+The second is information only: `client_header_timeout` may come from the default server instead of this vhost, and either
+way the limits above still stop a flood. The access log drops `/oauth/` queries, but nginx's error log still prints the
+full request line on a limit hit.
+
+### Tests before anyone uses it
+
+Claude's real connection has worked, but one security question is open: can a stranger's Connect link hijack a connection?
+So nobody gets the URL until this passes (plan, Revision 6). If a test says stop, turn the connector off and decide what
+to do before going on.
+
+1. **Create a test user** with first-deploy step 10's command: `--username claude-qa-mcp --email claude-qa-mcp@example.com
+--ledger "QA"`. Never test with a real account.
+2. **Turn it on:** add `MCP_ENABLED=true` to `api.env` with `sudoedit`, then `sudo systemctl restart kopiyka`.
+3. **Callback, in a browser logged in to Claude:** open `https://claude.ai/api/mcp/auth_callback?code=x&state=y`. The code
+   must leave the address bar. If it stays, stop.
+4. **Two browsers:** in browser A, add the connector and click connect, then copy the sign-in page's address and close that
+   tab. Open the address in browser B, logged out of Claude, sign in as the test user and click Allow. Start a fresh
+   Connect for each run, and repeat with B on a second Claude account if there is one. Browser A must **not** show
+   Connected, and B's address bar must hold no `code=`. Otherwise, stop.
+5. **Hostile metadata:** add a throwaway connector at another `https` address that answers `401` and names kopiyka as both
+   its `resource` and its authorization server. Claude must refuse it. If kopiyka's sign-in page opens, stop and don't sign
+   in. The plan's slice 14 has the details.
+6. **Then:** connect normally as the test user and ask a budget question, comparing the answer with the Budget screen. Click
+   Cancel once. Double-tap Continue and Allow once each. Try Allow in Safari. Wait 61 minutes and check it asks you to sign
+   in again, including from Claude mobile. Note what `claude mcp add` from a laptop shows (nginx's 403 at `/oauth/register`),
+   and whether the connector appears in Claude Code.
+7. **Clean up:** remove the test connectors in Claude, and delete the test user, ledger first:
+
+   ```sql
+   SET @u = (SELECT user_id FROM users WHERE username = 'claude-qa-mcp');
+   DELETE e FROM expenses e JOIN categories c ON c.category_id = e.category_id JOIN ledgers l ON l.ledger_id = c.ledger_id WHERE l.owner_user_id = @u;
+   DELETE i FROM income_items i JOIN ledgers l ON l.ledger_id = i.ledger_id WHERE l.owner_user_id = @u;
+   DELETE FROM ledgers WHERE owner_user_id = @u;
+   DELETE FROM users WHERE user_id = @u;
+   ```
+
+**To turn it off at any point:** take `MCP_ENABLED` out of `api.env` and run `sudo systemctl restart kopiyka`. Every
+connection stops at once. Leave it on only once all of this has passed.
 
 ### The address limit
 
@@ -377,8 +441,8 @@ refusal here never reaches `journalctl -u kopiyka-mcp`; find it with `sudo grep 
 
 Only an app with a fixed `https` callback can be added, so one with a `localhost` redirect can't.
 
-1. Find its exact callback URL in its docs, or in the `redirect URIs refused` line it leaves in
-   `journalctl -u kopiyka-mcp`, which has the origin and path.
+1. Find its exact callback URL in its docs. Once step 4 is done, the `redirect URIs refused` line it leaves in
+   `journalctl -u kopiyka-mcp` also has the origin and path; before that, nginx refuses it first.
 2. Only list a URL whose page removes the code. `curl -sI '<url>?code=x&state=y'` must answer a redirect with no `code` in
    `Location`. Otherwise a stranger could talk the code out of a user.
 3. `sudoedit /etc/kopiyka/mcp.env` and set `MCP_ALLOWED_REDIRECT_URIS` to Claude's callback plus the new one, comma-separated:

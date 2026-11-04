@@ -792,7 +792,7 @@ The connector lives in these places only:
   - `.env.example`: 3 comment lines.
   - `test/apiTokens.*.test.ts` (new files).
 - `apps/mcp/` (whole workspace), root `package.json` (`mcp` script), `yarn.lock`.
-- `deploy/kopiyka-mcp.service`, the MCP block in `deploy/kopiyka.englishplus.com.ua.conf` (zones + 3 locations +
+- `deploy/kopiyka-mcp.service`, the MCP block in `deploy/kopiyka.englishplus.com.ua.conf` (zones + 4 locations +
   `client_header_timeout`), the MCP lines in `deploy/deploy.sh`, and sections in `deploy/README.md`, `README.md` and
   `CLAUDE.md`.
 
@@ -1111,6 +1111,7 @@ longer gates 063e. It runs after 063f is deployed, against the real address, wit
 
 ## Deviations
 
+- slice 16: the sudo rule has its own file, `/etc/sudoers.d/kopiyka-mcp`, so step 6 can't overwrite it. The post-deploy test list lives in `deploy/README.md`, "Tests before anyone uses it", not only here. The setup and removal steps fetch `main` first and guard the `deploy.sh` install, because the droplet's `main` only moves on a deploy.
 - slice 14, tunnel run 2026-11-04, stopped early when the user removed `cloudflared`. Done: a real connection from Claude through OAuth, TOTP sign-in, consent and token; tools answered in claude.ai and in Claude Code. Measured: Claude registered only `https://claude.ai/api/mcp/auth_callback`; `/oauth/register`, `/oauth/token` and `/mcp` came from `160.79.106.x`; the browser steps came from the user's own address. **Not done, and still owed before 063e merges:** the two-browser `state` test, the hostile-metadata test, Cancel and double taps against the real API, Safari, and the hourly expiry.
 - slice 13: API 400 on login counts as a wrong code; a login whose ledger read fails ends the session; `username`, `code` and `code_verifier` have upper bounds. `apiClient` takes 204 as success: the real logout answers 204, which the stub hid. Deny against the real API is owed in the tunnel run.
 - slice 14, run against the real API locally (2026-11-04, a throwaway user, since deleted): register, a wrong code, TOTP login, consent, Allow, token, all five tools, a foreign ledger and revocation all behaved as contracted, and `month_summary` matched the seeded data. It found the API sends `label: null`, which the stub didn't; the types now say so. In Chromium the Allow meta refresh ran under the CSP and `claude.ai`'s callback removed the code, not logged in. Safari, a logged-in browser and the tunnel checks are still owed.

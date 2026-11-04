@@ -109,14 +109,14 @@ switch_to "$release"
 
 if ! restart_healthy; then
   if [[ -z $prev ]]; then
-    echo "health check failed on the first deploy, nothing to roll back to; see journalctl -u kopiyka" >&2
+    echo "health check failed on the first deploy, nothing to roll back to; see journalctl -u kopiyka and -u kopiyka-mcp" >&2
     exit 1
   fi
   switch_to "$prev"
   if restart_healthy; then
     echo "health check failed; rolled back to $prev" >&2
   else
-    echo "health check failed; rolled back to $prev, which is also unhealthy, see journalctl -u kopiyka" >&2
+    echo "health check failed; rolled back to $prev, which is also unhealthy, see journalctl -u kopiyka and -u kopiyka-mcp" >&2
   fi
   exit 1
 fi

@@ -343,7 +343,7 @@ now());` goes before the session lookup. `apiTokenAuth` looks the hash up live (
 
 ### PR 063b: `apps/mcp` workspace and `/mcp` (`apps/mcp`)
 
-- [ ] 4. Add the apps/mcp workspace with an import boundary test
+- [x] 4. Add the apps/mcp workspace with an import boundary test
   - Files: `apps/mcp/{package.json,tsconfig.json,tsconfig.build.json,eslint.config.js,vitest.config.ts}`,
     `apps/mcp/test/boundary.test.ts`, root `package.json` (`"mcp": "yarn workspace @kopiyka/mcp"`), `yarn.lock`
   - Change: `@kopiyka/mcp` gets `dev`/`build`/`start`/`typecheck`/`test`/`lint` scripts matching `apps/api`'s, so

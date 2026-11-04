@@ -736,4 +736,9 @@ I also took these of the skeptic's suggestions:
 
 ## Consolidate
 
-<filled in /kopiyka-hos Phase 3a: CONSOLIDATE line, each reuse/extract, each LEAVE + reason>
+063a (`origin/main...HEAD`): reused 0 · extracted 0 · left 2.
+
+- `apiTokenAuth`'s lookup vs `findSession`: LEAVE. Different table and a scope rule, and sharing them would tie
+  `auth/sessions.ts` to a module that must stay deletable. `hashToken` and `deleteSession` are already called, not copied.
+- `expiresAt` and the `DELETE … expires_at <= ?` prune vs `createSession`: LEAVE. One line each, second copy, and the
+  same deletability reason.

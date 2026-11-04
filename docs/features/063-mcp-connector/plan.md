@@ -368,7 +368,7 @@ now());` goes before the session lookup. `apiTokenAuth` looks the hash up live (
   - Tests (table): round trip; wrong `typ` → null; `now` = exp → null and exp − 1 ms → payload; one flipped byte →
     null; another key → null; non-base64 → null.
   - ~90 lines
-- [ ] 6. Call the kopiyka API with a timeout
+- [x] 6. Call the kopiyka API with a timeout
   - Files: `apps/mcp/src/api.ts`, `apps/mcp/test/fakeApi.ts`, `apps/mcp/test/api.test.ts`
   - Change: `apiClient(baseUrl, fetch)` exposes `get<T>(path, token)` and `post<T>(path, token | null, body,
 { forwardedFor? })`. Each call gets a 5 s `AbortSignal.timeout`. Non-2xx → `ApiError { status, code }`, where
@@ -732,6 +732,7 @@ I also took these of the skeptic's suggestions:
 
 ## Deviations
 
+- slice 6: `apiClient` takes an optional `timeoutMs`, and the test uses 5 ms instead of fake timers, which can't advance `AbortSignal.timeout` (the repo's idiom). A 2xx that isn't JSON is `ApiError 502 api_error`.
 - slice 1: the migration is `014_api_tokens.sql`, because main took 013 for `known_devices` (brief 064) while this was built.
 - slice 3: `app.ts` calls `apiTokenRoutes(app, deps)` unconditionally and the switch check sits inside it — still one line in `app.ts`, and `ttlMinutes` needs no `!`.
 

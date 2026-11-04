@@ -186,6 +186,8 @@ no new test file. Gates run per slice, as in conventions §7.
 
 - slice 1: no `useState(!!autoFocus)` fallback. `onFocus` fires for `autoFocus` on web when the page has focus (checked by opening `income-item` from the Income tab); it looked missing only in a test pane without focus. iPhone is checked at Gate B.
 
+- Web results for the conditional checks: a 120 ms press shows the dim from about 50 ms, so no `:active` rule was added. NotionSyncPanel's Retry text is 35 px in a 44 px button, 4.5 px each side against the ring's 4 px, measured with the font rather than rendered. `delete-category` in its `gone` state didn't overflow even at 90 px high, so the focusable-scroller case was not exercised.
+
 ## Consolidate
 
 CONSOLIDATE: reused 0 · extracted 0 · left 3.

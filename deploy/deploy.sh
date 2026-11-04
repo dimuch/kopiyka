@@ -7,8 +7,9 @@
 #
 # Builds in a new release dir, one capped step at a time (the droplet has
 # 2 GB RAM shared with other sites), switches `current`, restarts the API
-# (which runs pending migrations first) and checks health. If the new release
-# is unhealthy it switches back to the previous one. Exit 0 = deployed and healthy.
+# (which runs pending migrations first) and the MCP connector once it's set up,
+# and checks health. If the new release is unhealthy it switches back to the
+# previous one. Exit 0 = deployed and healthy.
 set -euo pipefail
 
 BASE=/opt/kopiyka
@@ -16,6 +17,8 @@ REPO=$BASE/repo.git
 RELEASES=$BASE/releases
 CURRENT=$BASE/current
 HEALTH_URL=http://127.0.0.1:3100/api/health
+MCP_HEALTH_URL=http://127.0.0.1:3200/.well-known/oauth-authorization-server
+MCP_HOST=kopiyka.englishplus.com.ua
 KEEP=3
 
 export PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
@@ -69,6 +72,7 @@ step() {
 # ~450 MB with one Metro worker and a 700 MB heap (~1.8 GB with defaults).
 step install corepack yarn install --immutable
 step "api build" env NODE_OPTIONS=--max-old-space-size=700 corepack yarn api build
+step "mcp build" env NODE_OPTIONS=--max-old-space-size=700 corepack yarn mcp build
 step "web export" env NODE_OPTIONS=--max-old-space-size=700 \
   corepack yarn mobile expo export -p web --max-workers 1
 
@@ -77,17 +81,27 @@ switch_to() {
   mv -T "$BASE/current.new" "$CURRENT"
 }
 
-# The restart runs migrations (ExecStartPre) and fails if they fail.
-restart_healthy() {
-  sudo -n /usr/bin/systemctl restart kopiyka.service || return 1
+# Polls a URL for up to 30 s; the rest of the arguments go to curl.
+wait_healthy() {
   local _
   for _ in $(seq 15); do
-    if curl -fsS -m 5 -o /dev/null "$HEALTH_URL" 2>/dev/null; then
+    if curl -fsS -m 5 -o /dev/null "$@" 2>/dev/null; then
       return 0
     fi
     sleep 2
   done
   return 1
+}
+
+# The API restart runs migrations (ExecStartPre) and fails if they fail. The
+# connector is skipped until its one-time setup enables it (deploy/README.md).
+restart_healthy() {
+  sudo -n /usr/bin/systemctl restart kopiyka.service || return 1
+  wait_healthy "$HEALTH_URL" || return 1
+  if systemctl is-enabled --quiet kopiyka-mcp.service; then
+    sudo -n /usr/bin/systemctl restart kopiyka-mcp.service || return 1
+    wait_healthy -H "Host: $MCP_HOST" "$MCP_HEALTH_URL" || return 1
+  fi
 }
 
 prev=$(readlink "$CURRENT" || true)

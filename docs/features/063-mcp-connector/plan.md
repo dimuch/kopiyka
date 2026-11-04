@@ -678,7 +678,7 @@ frame-ancestors 'none'; base-uri 'none'` and `Cache-Control: no-store`.
 
 ### PR 063f: deploy and docs (`deploy/`, docs)
 
-- [ ] 15. Deploy apps/mcp behind nginx with rate limits
+- [x] 15. Deploy apps/mcp behind nginx with rate limits
   - Files: `deploy/kopiyka.englishplus.com.ua.conf`, `deploy/kopiyka-mcp.service` (new), `deploy/deploy.sh`
   - Change:
     - nginx, at file level (http context; every name has the `kopiyka_` prefix because that context is shared with

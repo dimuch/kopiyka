@@ -663,7 +663,7 @@ frame-ancestors 'none'; base-uri 'none'` and `Cache-Control: no-store`.
     - flow: register → authorize → sign in → allow → token → `month_summary`, with a log stream. The captured logs
       contain none of: the TOTP code, the session, API or access token, the code, or any amount string (`'1250.00'`).
   - ~150 lines
-  - Verify, before 063e merges: run `api` with `MCP_ENABLED=true` and `apps/mcp` with `PUBLIC_URL=https://<tunnel>`, add
+  - Verify (moved to after deploy by Revision 6; partly done, see Deviations): run `api` with `MCP_ENABLED=true` and `apps/mcp` with `PUBLIC_URL=https://<tunnel>`, add
     the connector on claude.ai, sign in as `claude-qa`, Allow, ask one question, repeat after 61 min, click Cancel once.
     Record the DCR body, any `Origin`, what shows at expiry, the meta refresh in Chrome and Safari, the `remoteAddress`
     logged for `/oauth/register` and `/oauth/token`, and the `resource` in the authorize URL from the address bar.
@@ -1092,6 +1092,22 @@ Also:
 - **Estimates:** `git diff --shortstat origin/main...HEAD -- apps/mcp` at 7716c56 gives 785 insertions and 112 deletions (897),
   plus 21 uncommitted lines for the `state` cap, so 063d2 is 918, replacing Revision 4's ~460. Slice 15 goes to ~150 and slice 16 to ~170, so 063f is ~320 and the total about
   3,200.
+
+## Revision 6
+
+Status: approved (user, 2026-11-04)
+
+The user removed `cloudflared` during the tunnel run and chose to test after deploy, so the rest of slice 14's Verify no
+longer gates 063e. It runs after 063f is deployed, against the real address, with these rules:
+
+- Deploy with `MCP_ENABLED` unset on the API, so the connector can't sign anyone in, then set it only for the tests.
+- Don't give anyone the URL until the tests pass.
+- Sign in with a throwaway test user, never a real account, and delete it afterwards.
+- Run the two-browser `state` test and the hostile-metadata test first. The hostile server needs a public address of its
+  own: a temporary path or port on the droplet, or a tunnel if the user allows one.
+- If either fails, unset `MCP_ENABLED` and restart the API, which stops everything at once, and ask the user. A bad
+  result can force a redesign on merged code, which is the cost the user accepted.
+- Then Cancel, double taps, Safari and the hourly expiry.
 
 ## Deviations
 

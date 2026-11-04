@@ -21,6 +21,12 @@ describe('isAllowedRedirectUri', () => {
     'https://a.example/cb#',
     'https://user:pass@a.example/',
     'https://user@a.example/',
+    'https://:pass@a.example/',
+    'http://localhost:80@evil.example/cb',
+    'http://localhost.evil/cb',
+    'http://[::ffff:127.0.0.1]/cb',
+    'http://localhost:99999/cb',
+    'ftp://localhost/cb',
     'not a url',
     '',
   ])('refuses %j', (uri) => {
@@ -59,6 +65,8 @@ describe('redirectMatches', () => {
     ['another query', 'http://localhost:3118/callback?x=1'],
     ['another loopback host', 'http://127.0.0.1:3118/callback'],
     ['https', 'https://localhost:3118/callback'],
+    ['a port that can’t exist', 'http://localhost:99999/callback'],
+    ['a user name made to look like the host', 'http://localhost:80@evil.example/callback'],
   ])('still refuses %s on loopback', (_case, uri) => {
     expect(redirectMatches(['http://localhost:5000/callback'], uri)).toBe(false);
   });

@@ -26,6 +26,9 @@ const Env = z.object({
   // Category totals (brief 022): the Expenses and Netto data sources; both or neither, and they need the pair above.
   NOTION_EXPENSES_DATA_SOURCE_ID: z.string().regex(UUID, 'expected the UUID of a collection:// URL').optional(),
   NOTION_NETTO_DATA_SOURCE_ID: z.string().regex(UUID, 'expected the UUID of a collection:// URL').optional(),
+  // MCP connector (brief 063): off unless true; its tokens end this long after they're issued.
+  MCP_ENABLED: z.stringbool().default(false),
+  API_TOKEN_TTL_MINUTES: z.coerce.number().int().positive().default(60),
 });
 
 /** Which ledger and year sync to the Notion Budget tables (brief 020). */
@@ -48,6 +51,8 @@ export interface Config {
   notion: NotionScope | null;
   /** Null when there's no Notion integration to sync through. */
   notionApi: NotionApiConfig | null;
+  /** Set only when the MCP connector is on (brief 063). */
+  apiTokens?: { ttlMinutes: number };
 }
 
 export function loadConfig(source: NodeJS.ProcessEnv = process.env): Config {
@@ -95,5 +100,6 @@ export function loadConfig(source: NodeJS.ProcessEnv = process.env): Config {
                 : null,
           }
         : null,
+    ...(env.MCP_ENABLED ? { apiTokens: { ttlMinutes: env.API_TOKEN_TTL_MINUTES } } : {}),
   };
 }

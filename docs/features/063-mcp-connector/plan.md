@@ -293,7 +293,7 @@ each user's browser.
 
 ### PR 063a: API tokens (`apps/api`)
 
-- [ ] 1. Add the api_tokens table and the MCP_ENABLED switch
+- [x] 1. Add the api_tokens table and the MCP_ENABLED switch
   - Files: `apps/api/migrations/013_api_tokens.sql`, `apps/api/src/config.ts`, `apps/api/.env.example`,
     `apps/api/test/apiTokens.config.test.ts`, `apps/api/test/apiTokens.migration.int.test.ts`
   - Change: the migration as above. `MCP_ENABLED` and `API_TOKEN_TTL_MINUTES` go into the Env schema, and

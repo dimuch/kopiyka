@@ -10,11 +10,17 @@ export function isLoopback(uri: string): boolean {
   return url !== null && url.protocol === 'http:' && LOOPBACK_HOSTS.has(url.hostname);
 }
 
-/** `https://` anywhere, or `http://` on this machine for a local client. Never a fragment or a user name. */
-export function isAllowedRedirectUri(uri: string): boolean {
+/** A listed URL, string for string, or `http://` on this machine for a local client. */
+export function isAllowedRedirectUri(uri: string, allowedUris: string[]): boolean {
   const url = parse(uri);
   if (!url || uri.includes('#') || url.username || url.password) return false;
-  return url.protocol === 'https:' || isLoopback(uri);
+  return allowedUris.includes(uri) || isLoopback(uri);
+}
+
+/** Where a URI points, for the log: its query could carry anything. */
+export function redirectForLog(uri: string): string {
+  const url = parse(uri);
+  return url ? `${url.origin}${url.pathname}` : 'unparseable';
 }
 
 /** Exact, except that a loopback port is ignored: local clients pick a free one each run (RFC 8252 §7.3). */

@@ -21,6 +21,7 @@ const config: Config = {
   publicUrl: PUBLIC_URL,
   apiUrl: 'http://api.test',
   sealKey: randomBytes(32),
+  allowedRedirectUris: [],
 };
 
 const accessToken = (apiToken: string) =>

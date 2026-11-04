@@ -11,6 +11,7 @@ const config: Config = {
   publicUrl: 'https://kopiyka.example',
   apiUrl: 'http://api.test',
   sealKey: randomBytes(32),
+  allowedRedirectUris: [],
 };
 
 describe('buildApp', () => {

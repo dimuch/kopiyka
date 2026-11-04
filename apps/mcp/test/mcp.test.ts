@@ -20,6 +20,7 @@ const config: Config = {
   publicUrl: PUBLIC_URL,
   apiUrl: 'http://api.test',
   sealKey: randomBytes(32),
+  allowedRedirectUris: [],
 };
 
 const LEDGERS: Record<string, unknown> = {

@@ -18,6 +18,7 @@ const config: Config = {
   publicUrl: PUBLIC_URL,
   apiUrl: 'http://api.test',
   sealKey: randomBytes(32),
+  allowedRedirectUris: [],
 };
 
 /** Ledger 1 belongs to olena's token; anything else is the API's `ledger_not_found`. */

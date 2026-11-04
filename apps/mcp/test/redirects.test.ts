@@ -2,35 +2,62 @@ import { describe, expect, it } from 'vitest';
 import { isAllowedRedirectUri, redirectMatches } from '../src/oauth/redirects.js';
 
 describe('isAllowedRedirectUri', () => {
-  it.each([
-    'https://claude.ai/api/mcp/auth_callback',
-    'https://example.com/cb?x=1',
-    'http://localhost:3118/callback',
-    'http://127.0.0.1/callback',
-    'http://[::1]:5000/callback',
-  ])('allows %s', (uri) => {
-    expect(isAllowedRedirectUri(uri)).toBe(true);
+  const claude = 'https://claude.ai/api/mcp/auth_callback';
+  const defaults = [claude, 'https://claude.com/api/mcp/auth_callback'];
+
+  it.each(defaults)('allows the listed %s', (uri) => {
+    expect(isAllowedRedirectUri(uri, defaults)).toBe(true);
   });
 
   it.each([
+    'https://evil.example/cb',
+    'https://sub.claude.ai/api/mcp/auth_callback',
+    'https://claude.ai.evil.example/api/mcp/auth_callback',
+    'https://claude.ai./api/mcp/auth_callback',
+    'https://evil.example\\@claude.ai/cb',
+    'https://сlaude.ai/api/mcp/auth_callback', // the first letter is Cyrillic
+    'https://claude.ai:443/api/mcp/auth_callback',
+    'http://claude.ai/api/mcp/auth_callback',
+    'https://claude.ai/api/mcp/auth_callback/',
+    'https://CLAUDE.ai/api/mcp/auth_callback',
+    'https://claude.ai/other',
+    'https://claude.ai/api/mcp/auth_callback?x=1',
     'http://example.com/cb',
-    'http://localhost.example.com/cb',
     'javascript:alert(1)',
     'data:text/html,hi',
+    'not a url',
+    '',
+  ])('refuses %j, which isn’t on the list', (uri) => {
+    expect(isAllowedRedirectUri(uri, defaults)).toBe(false);
+  });
+
+  // On the list here, so that each is refused by its own check, not for being unlisted.
+  it.each([
     'https://a.example/cb#fragment',
     'https://a.example/cb#',
     'https://user:pass@a.example/',
     'https://user@a.example/',
     'https://:pass@a.example/',
+  ])('refuses %j even when listed', (uri) => {
+    expect(isAllowedRedirectUri(uri, [uri])).toBe(false);
+  });
+
+  it.each(['http://localhost:3118/callback', 'http://127.0.0.1/callback', 'http://[::1]:5000/callback'])(
+    'allows the loopback %s with an empty list',
+    (uri) => {
+      expect(isAllowedRedirectUri(uri, [])).toBe(true);
+    },
+  );
+
+  it.each([
     'http://localhost:80@evil.example/cb',
     'http://localhost.evil/cb',
     'http://[::ffff:127.0.0.1]/cb',
     'http://localhost:99999/cb',
     'ftp://localhost/cb',
-    'not a url',
-    '',
-  ])('refuses %j', (uri) => {
-    expect(isAllowedRedirectUri(uri)).toBe(false);
+    'https://localhost/cb',
+  ])('refuses %j, which only looks like loopback', (uri) => {
+    expect(isAllowedRedirectUri(uri, [])).toBe(false);
   });
 });
 

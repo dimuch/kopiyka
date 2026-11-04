@@ -116,7 +116,7 @@ shows one line. It overlaps glyphs on buttons with no side padding, so those get
     `LedgerPicker` is untouched. `accentLine` stays, the "Added" note uses it.
   - Verify: Settings and the expense form side by side in both themes: same border, tint and text.
 
-- [ ] 5. Say Back instead of Cancel on the income, category and Members screens (~25 lines)
+- [x] 5. Say Back instead of Cancel on the income, category and Members screens (~25 lines)
   - Files: `app/income-item.tsx`, `app/category-form.tsx`, `app/delete-category.tsx`, `app/members.tsx`.
   - Change:
     - Three headers: label to Back, `cancel`/`cancelText` → `back`/`backText`, `back` gains

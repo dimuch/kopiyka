@@ -52,7 +52,7 @@ const makeStyles = (colors: Palette) =>
       backgroundColor: colors.surface,
     },
     option: { flex: 1, minHeight: 44, borderRadius: 14, alignItems: 'center', justifyContent: 'center' },
-    optionOn: { backgroundColor: colors.accentTint, borderWidth: 1, borderColor: colors.accentLine },
+    optionOn: { backgroundColor: colors.accentTint, borderWidth: 1, borderColor: colors.accent },
     label: { fontFamily: fonts.bodyMedium, fontSize: 15, color: colors.muted },
-    labelOn: { fontFamily: fonts.bodySemi, color: colors.accent },
+    labelOn: { color: colors.text },
   });

@@ -15,8 +15,8 @@ import { parseIdParam, parseMonthParam } from '@/linkParams';
 import { usePushOnce } from '@/pushOnce';
 import { dangerText, fonts, type Palette } from '@/theme';
 
-/** Edits a category's name and planned amount in one month only (brief 065): `/rename-category?categoryId=4&month=2026-10`. */
-export default function RenameCategoryScreen() {
+/** Edits a category's name and planned amount in one month only (brief 065): `/category-form?categoryId=4&month=2026-10`. */
+export default function CategoryFormScreen() {
   const styles = useThemedStyles(makeStyles);
   const params = useLocalSearchParams<{
     categoryId?: string | string[];

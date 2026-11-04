@@ -196,7 +196,7 @@ export default function Budget() {
                           accessibilityHint="Edits its planned amount"
                           onPress={() =>
                             pushOnce({
-                              pathname: '/rename-category',
+                              pathname: '/category-form',
                               params: { categoryId: c.categoryId, month, focus: 'amount' },
                             })
                           }
@@ -208,7 +208,7 @@ export default function Budget() {
                           accessibilityRole="button"
                           accessibilityLabel={`Edit ${c.displayName} in ${monthName(month)}`}
                           onPress={() =>
-                            pushOnce({ pathname: '/rename-category', params: { categoryId: c.categoryId, month } })
+                            pushOnce({ pathname: '/category-form', params: { categoryId: c.categoryId, month } })
                           }
                           style={styles.rename}
                         >

@@ -5,6 +5,7 @@ import { buildApp } from '../src/app.js';
 import type { Config } from '../src/config.js';
 import { sealAccessToken } from '../src/mcp/auth.js';
 import { bearerOf, fakeApi, type Answer, type RecordedCall } from './fakeApi.js';
+import { rpcResult, toolData } from './rpc.js';
 
 const PUBLIC_URL = 'https://kopiyka.example';
 const RESOURCE = `${PUBLIC_URL}/mcp`;
@@ -31,14 +32,6 @@ const LEDGERS: Record<string, unknown> = {
     ledgers: [{ ledgerId: 2, name: 'Flat', role: 'member', owner: 'ivan', label: '' }],
   },
 };
-
-/** The JSON-RPC result inside a stateless server's SSE answer. */
-function rpcResult(res: { body: string }) {
-  const data = res.body.split('\n').find((line) => line.startsWith('data: '));
-  return JSON.parse(data!.slice('data: '.length)).result;
-}
-
-const toolData = (result: { content: { text: string }[] }) => JSON.parse(result.content[0]!.text);
 
 function twoUsers(call: RecordedCall): Answer {
   const known = LEDGERS[bearerOf(call) ?? ''];
@@ -161,9 +154,9 @@ describe('/mcp', () => {
       const res = await rpc('tools/list', {}, accessToken('kpk.olena'));
 
       expect(res.statusCode).toBe(200);
-      expect(rpcResult(res).tools).toEqual([
-        expect.objectContaining({ name: 'list_ledgers', annotations: expect.objectContaining({ readOnlyHint: true }) }),
-      ]);
+      const { tools } = rpcResult(res);
+      expect(tools.map((tool: { name: string }) => tool.name)).toContain('list_ledgers');
+      for (const tool of tools) expect(tool.annotations.readOnlyHint).toBe(true);
     });
 
     it('gives each user only their own ledgers', async () => {

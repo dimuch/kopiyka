@@ -1,10 +1,33 @@
 import { McpServer, type CallToolResult } from '@modelcontextprotocol/server';
+import { z } from 'zod';
 import { ApiError } from '../api.js';
+import { eur, toCents } from '../money.js';
+import { monthSummary, sumCents, type ApiCategory } from './summary.js';
 
 interface ApiLedgers {
   user: { username: string };
   ledgers: { ledgerId: number; name: string; role: string; owner: string; label: string }[];
 }
+
+interface ApiExpense {
+  categoryId: number;
+  amountEur: string;
+}
+
+interface ApiIncomeItem {
+  incomeId: number;
+  title: string;
+  amountEur: string;
+  addedBy: string;
+}
+
+const LedgerMonth = {
+  ledgerId: z.number().int().positive().describe('A ledgerId from list_ledgers'),
+  month: z
+    .string()
+    .regex(/^\d{4}-(0[1-9]|1[0-2])$/)
+    .describe('The month, as YYYY-MM'),
+};
 
 /** What one `/mcp` request may do: read as its user, and spend that user's tool calls. */
 export interface RequestScope {
@@ -57,6 +80,52 @@ export function buildServer(scope: RequestScope): McpServer {
             role,
             owner,
             currency: 'EUR',
+          })),
+        };
+      }),
+  );
+
+  server.registerTool(
+    'month_summary',
+    {
+      description:
+        'Sums up one month of a ledger: per category what was planned, spent and is left (negative = overspent), ' +
+        'the totals, the income, and what is left to plan. All amounts are in EUR. Months are YYYY-MM.',
+      inputSchema: LedgerMonth,
+      annotations: { readOnlyHint: true },
+    },
+    ({ ledgerId, month }) =>
+      toolResult(scope, 'month_summary', async () => {
+        const [{ categories }, { expenses }, { items }] = await Promise.all([
+          scope.read<{ categories: ApiCategory[] }>(`/api/ledgers/${ledgerId}/categories?month=${month}`),
+          scope.read<{ expenses: ApiExpense[] }>(`/api/ledgers/${ledgerId}/expenses?month=${month}`),
+          scope.read<{ items: ApiIncomeItem[] }>(`/api/ledgers/${ledgerId}/months/${month}/income`),
+        ]);
+        return { ledgerId, month, currency: 'EUR', ...monthSummary(categories, expenses, items) };
+      }),
+  );
+
+  server.registerTool(
+    'list_income',
+    {
+      description: 'Lists one month’s income in a ledger, with its total. All amounts are in EUR. Months are YYYY-MM.',
+      inputSchema: LedgerMonth,
+      annotations: { readOnlyHint: true },
+    },
+    ({ ledgerId, month }) =>
+      toolResult(scope, 'list_income', async () => {
+        const { items } = await scope.read<{ items: ApiIncomeItem[] }>(
+          `/api/ledgers/${ledgerId}/months/${month}/income`,
+        );
+        return {
+          ledgerId,
+          month,
+          total: eur(sumCents(items)),
+          items: items.map(({ incomeId, title, amountEur, addedBy }) => ({
+            incomeId,
+            title,
+            amount: eur(toCents(amountEur)),
+            addedBy,
           })),
         };
       }),

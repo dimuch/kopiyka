@@ -427,7 +427,7 @@ now());` goes before the session lookup. `apiTokenAuth` looks the hash up live (
     - Global cap 3 → the 4th → 503 `busy`.
     - The log stream shows `statusCode: 401` with no `Bearer`, `kpk.` or sealed token text.
   - ~160 lines
-- [ ] 9. Add month_summary and list_income tools
+- [x] 9. Add month_summary and list_income tools
   - Files: `apps/mcp/src/money.ts` (bigint `toCents`, `centsToString`, `eur`, `uah`), `apps/mcp/src/mcp/summary.ts`
     (pure: categories + expenses + income → summary), `apps/mcp/src/mcp/tools.ts`,
     `apps/mcp/test/{money.test.ts,summary.test.ts,tools.test.ts}`

@@ -7,7 +7,7 @@ Base: origin/main for each PR once the one before it is merged; merge order 063a
 
 ## Approach
 
-The feature is about 2,800 changed lines, seven times the ~400 a plan should hold. It goes out as **seven PRs**, and
+The feature is about 2,900 changed lines, seven times the ~400 a plan should hold. It goes out as **seven PRs**, and
 each one is safe to merge on its own:
 
 | PR    | Branch                 | Base            | What                                                           | ~Lines |
@@ -16,7 +16,7 @@ each one is safe to merge on its own:
 | 063b  | `feat/mcp-server`      | origin/main     | `apps/mcp` workspace, `/mcp` with bearer check, `list_ledgers` |    560 |
 | 063c  | `feat/mcp-tools`       | stacked on 063b | the other four tools, per-token limits and stream caps         |    440 |
 | 063d  | `feat/mcp-oauth`       | origin/main     | OAuth: metadata, registration, the redirect rules              |    290 |
-| 063d2 | `feat/mcp-oauth-pages` | after 063d      | OAuth: the sign-in page (GET), no automatic redirects          |    520 |
+| 063d2 | `feat/mcp-oauth-pages` | after 063d      | OAuth: the sign-in page (GET), no automatic redirects          |    645 |
 | 063e  | `feat/mcp-sign-in`     | after 063d2     | OAuth: TOTP sign-in, consent, code → access token              |    315 |
 | 063f  | `feat/mcp-deploy`      | after 063e      | nginx limits + locations, systemd unit, deploy.sh, docs        |    290 |
 
@@ -175,20 +175,27 @@ response_types: ['code'] }`.
       Zero-width joiners stay allowed: emoji and Persian or Indic names need them, and they spoof nothing a homoglyph
       can't. These two rules land in slice 12a.
     - `client_name` is trimmed first, so a name of only spaces reads as "An app".
+    - Every URI in `redirect_uris` must pass the rules below, or the whole registration gets `invalid_redirect_uri`.
+      A refused URI logs its origin and path at `warn`, never the raw URI; an unparseable one logs that it was
+      unparseable. A successful registration logs each URI's origin and path at `info`, never its query. So a lockout
+      can be diagnosed, and slice 16's AC1 check can record what clients send (slice 12b).
   - Redirect URI rules (`oauth/redirects.ts`):
-    - Allowed: `https://` with any host, or `http://` with host `localhost`, `127.0.0.1` or `[::1]`.
-    - Refused: a fragment, userinfo, or any other scheme.
+    - Allowed: an entry on `MCP_ALLOWED_REDIRECT_URIS`, string-equal, or `http://` with host `localhost`, `127.0.0.1`
+      or `[::1]`. Slice 12b adds the list; until then any `https` URI passes.
+    - Refused: everything else, and any URI with a fragment or userinfo.
     - Matching: an exact string compare with the registered value, except that for loopback `http` the port is
       ignored (scheme, host, path and query still exact), per RFC 8252 §7.3 and Claude Code.
   - `GET /oauth/authorize?response_type&client_id&redirect_uri&code_challenge&code_challenge_method&state&scope&resource`:
-    - Unreadable or expired client, or a `redirect_uri` that doesn't match → `400` HTML error page, **never a
-      redirect**.
+    - Unreadable or expired client, a `redirect_uri` that doesn't match, or a requested `redirect_uri` that the
+      redirect rules no longer allow → `400` HTML error page with no link, **never a redirect**. The last case is
+      needed as well as the check at registration, because a sealed `client_id` lives 90 days: new sign-ins stop at
+      once; one already past authorize can finish within 20 minutes.
     - Other faults, for a known client and a matching `redirect_uri` → `400` HTML page, **no 302 and no
       `<meta refresh>`**. It names the redirect **hostname** and has a "Return to <host>" link carrying the error
       response (`error=invalid_request|invalid_scope|unsupported_response_type&state&iss`, built by
       `authorizationResponse`), so the user decides.
-      - Why: with open DCR anyone can register `https://evil.example/login`, and a bad `scope` would otherwise send
-        visitors from kopiyka's real domain straight there, with no user action. RFC 9700 §4.11.2 names this attack
+      - Why: registration stays open to any loopback URI and to the listed URLs, and a bad `scope` would otherwise send
+        visitors from kopiyka's real domain to one of them with no user action. RFC 9700 §4.11.2 names this attack
         and says the server "MUST take precautions" and "SHOULD only automatically redirect the user agent if it
         trusts the redirection URI"; if it doesn't, it MAY inform the user and leave the decision to them. The MCP spec
         2026-07-28, security considerations, "Open Redirection", says the same.
@@ -197,9 +204,7 @@ response_types: ['code'] }`.
         absent `resource` is accepted; the access token's `aud` is always `<PUBLIC_URL>/mcp`.
     - OK → `200` sign-in page. It says "An app calling itself <name>" (the name is self-declared; `<bdi>` wraps it;
       with no name, "An app"), shows the redirect **hostname**, and warns if the **requested** redirect URI is
-      loopback. The warning is best effort: it covers literal loopback hosts, not a public name that resolves to one, and the
-      redirect hostname is always shown. For this warning only,
-      `https` on a loopback host counts too (`https://localhost`); the allowed and matching rules above don't change.
+      loopback. The warning is plain `isLoopback(redirectUri)`, and the redirect hostname is always shown.
       The warning is derived from `redirectUri` at render time, not sealed, so it also survives the 401 re-render. The
       page holds a sealed `{typ:'signin', …request, exp: +10 min}`.
   - `POST /oauth/authorize` (form `request, username, code`):
@@ -218,7 +223,8 @@ response_types: ['code'] }`.
       `redirect_uri?code…&state&iss`. A 302 straight after a form POST would be blocked by the `form-action 'self'`
       CSP in Chrome (see Risks). The automatic redirect is fine here: the user has signed in and seen the hostname on
       the consent page. Allow is RFC 9700's "inform the user" branch, none of its three attacks is an Allow, and a
-      cross-site POST is refused by the Origin check.
+      cross-site POST is refused by the Origin check. Since Revision 3 it also only goes to a listed URL or to this
+      machine, so it's a URI the server trusts.
     - Deny: `POST /api/auth/logout` with the session → `200` page, **no automatic redirect**: it names the hostname
       and has a "Return to <host>" link carrying `error=access_denied&state&iss`. Declining says nothing about
       trusting the URI, and this is RFC 9700 §4.11.2's second variant, where a declined consent still lands on the
@@ -233,6 +239,9 @@ response_types: ['code'] }`.
     - Errors: 400 `{ error: 'invalid_request' | 'invalid_grant' | 'unsupported_grant_type' }`. `invalid_grant` covers
       an unknown, expired or reused code, a wrong verifier, and a `redirect_uri`, `client_id` or `resource` mismatch.
       There is no refresh token.
+    - No list check here or in `POST /oauth/consent`. The list is checked at `GET /oauth/authorize`, so removing a URI
+      means new sign-ins stop at once; one already past authorize can finish within 20 minutes. Tokens already issued
+      run out within the hour, or are revoked with `DELETE /api/api-tokens/:tokenId`.
   - `POST /mcp` (and `GET`/`DELETE`, which the SDK answers with 405):
     - Bearer check: `verifyBearerToken`. A bad, expired or wrong-`aud` wrapper, or the API answering 401, throws
       `OAuthError(InvalidToken)` → `401` with
@@ -270,6 +279,12 @@ again in N s`.
   - `PUBLIC_URL`: an origin, no path; must be https in production.
   - `API_URL`, default `http://127.0.0.1:3000`.
   - `MCP_SEAL_KEY`: 32 bytes, base64.
+  - `MCP_ALLOWED_REDIRECT_URIS`: comma-separated exact URLs, default
+    `https://claude.ai/api/mcp/auth_callback,https://claude.com/api/mcp/auth_callback` (Revision 3 says why both) →
+    `Config.allowedRedirectUris: string[]`.
+    - A set value replaces the default. A blank value gives `[]`, so loopback only.
+    - Parsing splits on `,` and trims. Every other entry must be https, have no fragment, userinfo or query, and
+      satisfy `new URL(entry).href === entry`, or startup throws, so `https://claude.ai/api/mcp/auth_callback,` throws.
 - `AppDeps` (`apps/mcp`): `{ config, now: () => Date, fetch: typeof fetch /* the API */, limits?: Partial<Limits>
 /* tests shrink the caps */, logStream?: Writable /* tests read the logs */ }`.
 - App (`apps/mobile`): none.
@@ -517,15 +532,15 @@ frame-ancestors 'none'; base-uri 'none'` and `Cache-Control: no-store`.
     - Happy → 200, the page says "An app calling itself" with the name in `<bdi>`, shows the redirect host, and the
       CSP header is exact.
     - Loopback warning follows the requested URI: a client registered with an `https` and a loopback URI gets the
-      warning on the loopback one and not on the `https` one; `https://localhost/cb` gets it too.
+      warning on the loopback one and not on the `https` one.
     - A `redirect_uri` one character off → 400 page, no `Location`.
     - Expired client (fake clock + 91 d) → 400 page.
     - No `code_challenge`, or `method=plain` → 400 page naming the host, with a "Return to <host>" link carrying
       `error=invalid_request`, `state` and `iss`; no `Location`, no `http-equiv`.
     - `scope=write` → the same page with `invalid_scope`. `response_type=token` → `unsupported_response_type`.
     - `resource=https://other/mcp` → the same page with `invalid_request`. No `resource` → 200 sign-in page.
-    - The attack: register `https://evil.example/login`, then `scope=x` → 400, no `Location`, and `evil.example` only
-      in the page's text and link.
+    - No redirect without the user: register a listed URI, then `scope=x` → 400, no `Location`, the host only in the
+      page's text and link.
     - `<script>` in the client name is shown escaped; the HTML has no `style=` attribute.
     - `register.test.ts`: a `client_name` with U+202E or a newline inside it → 400 `invalid_client_metadata`; a
       Cyrillic name, a ZWJ emoji name and a Persian name with ZWNJ still register; a name of only spaces becomes `''`.
@@ -537,9 +552,43 @@ frame-ancestors 'none'; base-uri 'none'` and `Cache-Control: no-store`.
     `apps/mcp/test/{authorize,redirects,register}.test.ts`
   - Change: Revision 2, as in Contracts. `loopbackOnly` leaves `AuthorizationRequest`: the warning is derived from
     `redirectUri` at render time, so it also survives the 401 re-render.
-  - Tests: the Revision 2 cases listed under slice 12, plus a `redirects.test.ts` row for the warning's loopback
-    check.
-  - ~70 lines
+  - Tests: the Revision 2 cases listed under slice 12.
+  - ~60 lines
+- [ ] 12b. Accept redirects only to listed URLs
+  - Files: `apps/mcp/src/config.ts`, `apps/mcp/.env.example`, `apps/mcp/src/oauth/{authorize,redirects,register}.ts`,
+    `apps/mcp/test/{config,redirects,register,authorize}.test.ts`, `apps/mcp/test/helpers.ts`,
+    `apps/mcp/test/{app,mcp,mcpLimits,tools}.test.ts`
+  - Change: as in Contracts. `isAllowedRedirectUri(uri, allowedUris)` takes the list: its fragment and userinfo guards
+    stay, and the `https` branch becomes one `includes`. `register.ts` and `authorize.ts` pass
+    `config.allowedRedirectUris`. `redirectMatches` and `isLoopback` don't change.
+  - Tests:
+    - config: unset → the two default URLs; two URLs with spaces around them → both, trimmed; blank → `[]`. These throw:
+      a trailing comma (`https://claude.ai/api/mcp/auth_callback,`), `http://claude.ai/cb`, `https://claude.ai/cb#f`,
+      `https://u:p@claude.ai/cb`, `https://claude.ai/cb?x=1`, `https://claude.ai:443/cb`, `https://CLAUDE.ai/cb`,
+      `https://claude.ai` (its `href` adds a `/`) and `not a url`.
+    - `redirects.test.ts`, with the default list: both listed URLs pass, and these are refused, not being string-equal:
+      - `https://evil.example/cb`, `https://sub.claude.ai/api/mcp/auth_callback`,
+        `https://claude.ai.evil.example/api/mcp/auth_callback`, `https://claude.ai./api/mcp/auth_callback`;
+      - `https://evil.example\@claude.ai/cb`, and a Cyrillic lookalike of `claude.ai`, with `а` for `a`;
+      - `https://claude.ai:443/api/mcp/auth_callback`, `http://claude.ai/api/mcp/auth_callback`;
+      - `https://claude.ai/api/mcp/auth_callback/`, `https://claude.ai/other`,
+        `https://claude.ai/api/mcp/auth_callback?x=1`.
+    - `http://localhost:3118/callback`, `http://127.0.0.1/callback` and `http://[::1]/callback` still pass with an
+      empty list.
+    - register:
+      - An unlisted URI → 400 `invalid_redirect_uri`, with its origin and path in the log and never its query.
+      - A URI that doesn't parse → 400, and the log says it was unparseable.
+      - A listed URI → 201, with its origin and path in the log.
+      - A body with one listed and one unlisted URI → 400. Loopback → 201.
+    - authorize: a client sealed while its URI was listed, opened by an app whose list no longer has it → 400 error
+      page, no link, no `Location`, even with a fault such as `scope=x`.
+  - Knock-on:
+    - `redirects.test.ts` is on main after #91. Its existing rows pass a list holding those exact URLs, so each row is
+      refused for its own reason.
+    - `testConfig()` gets `allowedRedirectUris`, listing only URIs the tests register successfully, including
+      `https://second.example/cb`; `evil.example` stays unlisted.
+    - `app`, `mcp`, `mcpLimits` and `tools` tests build their own `Config`, and each gets `allowedRedirectUris: []`.
+  - ~135 lines
 
 ### PR 063e: TOTP sign-in, consent and the token endpoint (`apps/mcp`)
 
@@ -630,6 +679,11 @@ frame-ancestors 'none'; base-uri 'none'` and `Cache-Control: no-store`.
       - "After changing the vhost": `/mcp` and `/oauth/authorize` added to the `curl -sI` loop, plus a check for the
         sign-in CSP. `/oauth/authorize` shows **two** `content-security-policy` lines (nginx's and the page's), which
         is expected.
+      - "Adding another LLM app": find its exact callback URL in its docs, or in the `warn` line a refused
+        registration leaves in `journalctl -u kopiyka-mcp`, which has the origin and path. Run
+        `sudoedit /etc/kopiyka/mcp.env` and set `MCP_ALLOWED_REDIRECT_URIS` to the two default URLs plus the new one,
+        keeping the defaults because the setting replaces them. Then `sudo systemctl restart kopiyka-mcp`. Removing a
+        URL works the same way: new sign-ins stop at the restart.
       - The 429 check: `for i in $(seq 20); do curl -s -o /dev/null -w '%{http_code}\n' -X POST -H 'content-type:
 application/json' -d '{}' $site/oauth/register; done | sort | uniq -c`, which should show ≥ 14 × 429.
       - Post-deploy checklist items.
@@ -641,7 +695,8 @@ application/json' -d '{}' $site/oauth/register; done | sort | uniq -c`, which sh
       - "Removing the connector": the section below.
       - The env vars.
   - Verify: `yarn format:check`; the commands run once on the droplet after deploy (AC10, AC14), and their output goes
-    in the PR.
+    in the PR. AC1 with the default list: claude.ai in Chrome, Claude Desktop and Claude Code each connect, and the PR
+    records the `redirect_uris` each one registered and any refused URI, from the log.
   - ~150 lines
 
 ## Touch points and how to remove
@@ -711,22 +766,35 @@ To delete it:
 - **A form POST followed by a 302 to `claude.ai` is blocked by `form-action 'self'` in Chrome.** Disproven by design
   in slice 13: the consent response is a 200 page, never a 302: Allow has a meta refresh and a link, Deny has only a link. This must be confirmed
   in Chrome and Safari during the AC1 manual check. If the meta refresh is blocked too, the link is the fallback.
-- **DCR phishing.** Anyone can register a client with an `https` redirect to their own host, then send a victim the
-  authorize link.
+- **DCR phishing.** A stranger can no longer receive a code at their own host: `https` redirects go only to string-equal
+  listed URLs, checked at registration and at authorize (Revision 3).
   - Mitigated: no automatic redirect happens before the user's Allow. A bad request or a Deny gives a page with a
     "Return to <host>" link (RFC 9700 §4.11.2; MCP spec "Open Redirection"), and the code only goes to the registered
     URI.
   - Mitigated: the pages show the redirect **hostname**, say "An app calling itself <name>" with the name in
     `<bdi>`, refuse control and bidi characters in `client_name`, and warn when the requested URI is loopback.
     Slices 12 and 13 test this.
-  - **Residual risk:** a hostile client can still reach the real sign-in page, and a user who ignores the hostname
-    can Allow it. So the hostname must stay readable however long it is (`overflow-wrap: anywhere`), on every page
-    that shows it.
+  - **Residual risk:** registration stays open to loopback URIs and the listed URLs, so anyone can still show the real
+    sign-in page for those. What that gains them is limited.
+    - A listed URL: the code goes to Claude's callback, not to them. A stranger with their own Claude account can
+      still send a victim the authorize link from their own Connect. Whether the code then joins the stranger's
+      connection rests on claude.ai tying `state` to the browser that started it. Its docs don't say so, and kopiyka
+      can't check it.
+    - Loopback: see the next risk.
+    - The hostname stays readable (`overflow-wrap: anywhere`) on every page that shows it.
+- **Loopback `http://` stays allowed, with its warning.** Claude Code needs it. It's safe enough because the code
+  lands on the user's own machine, so abusing it takes a process already running there, which any local client can
+  claim to be (the spec's "Localhost Redirect URI Risks"). That's why the page warns and doesn't refuse.
+- **If Claude changes its callback path, the connector stops until the setting is updated.** A client that lists one
+  unlisted URI loses the whole registration. It shows as `invalid_redirect_uri` at Connect, with the URI's origin and
+  path in the log, and the fix is one setting. `claude.com`'s path is unconfirmed, listed as a precaution: slice 16's
+  AC1 check records what clients send, and it stays unless a reason appears, because one AC1 run can't prove Claude
+  never sends it.
 - **What a client shows after Cancel is unknown.** Deny now stops on a page with a link. In the AC1 check for 063f,
   click Cancel in Claude Desktop and Claude Code, then record what the client shows before and after the "Return to"
   link.
 - Real clients could be refused outright: a `scope` other than empty or `read`, or a `token_endpoint_auth_method` other
-  than `none`, fails the request or the registration. Claude's docs suggest neither happens, but check it with Claude
+  than `none`, fails the request or the registration. Claude picks the method from our metadata, which lists only `none` (#1043, #962, #970), but check it with Claude
   Desktop, claude.ai and Claude Code during the AC1 manual check in 063f. A refusal fails loudly, so it can't slip by.
 - **Claude might send an `Origin` header on `/mcp` or `/oauth/token`.** That would give 403. Checked by the AC1
   manual check (journalctl shows `invalid_origin`). The fix would be adding that origin to the allowlist.
@@ -817,6 +885,48 @@ take precautions" and that the server SHOULD only redirect automatically to a UR
 The user split 063d in two: 063d is slice 11 and the redirect rules, and 063d2 is slices 12 and 12a (~70 lines), on `feat/mcp-oauth-pages`. Slice 13
 goes from ~150 to ~165 lines. Together they measured 734 lines before the split, so ~800 with slice 12a. 063e is ~315 by the old estimate, but slices 11 and 12 came in at about twice theirs, so expect more. Slices
 14–16 keep their estimates.
+
+## Revision 3
+
+Status: approved (user, 2026-11-04, exact URLs)
+
+The user approved a redirect allowlist of exact URLs. After Revision 2 a hostile self-registered client could still
+show the real sign-in page, and a tricked user who clicked Allow gave it 1 hour of read access. Restricting redirects to
+known URLs stops a stranger receiving a code at their own host, and Allow's automatic redirect then goes only to a URI
+the server trusts (RFC 9700 §4.11.2; MCP spec 2026-07-28, "Open Redirection"). The accepted cost: adding another LLM app
+means changing a setting.
+
+- **Config:** `MCP_ALLOWED_REDIRECT_URIS`, default the two Claude callback URLs. Exact URLs, parsed in `config.ts`.
+- **Enforced at:** `POST /oauth/register` (`invalid_redirect_uri`) and `GET /oauth/authorize` (error page, no link). Not
+  at `POST /oauth/consent` or `POST /oauth/token`: new sign-ins stop at once; one already past authorize can finish
+  within 20 minutes.
+- **Loopback** `http://` stays allowed with its warning.
+- **Dropped:** the `https`-loopback case of the warning from Revision 2. An `https` URI must now be on the list, so the
+  warning is plain `isLoopback(redirectUri)`.
+- **Not reopened:** Revision 2's fault and Deny pages stay. The user approved them, and loopback URIs remain
+  stranger-chosen.
+- **Slices:** 12b (~135 lines) joins 063d2, now ~645, and 12a drops to ~60. Slice 16 says how to add a URL and has the
+  AC1 check, kept out of the AC table.
+
+What the default rests on, checked 2026-11-04:
+
+| Client                                       | Redirect                                   | Status                                                                                                                                                                                        |
+| -------------------------------------------- | ------------------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| claude.ai web, Desktop, mobile, Cowork       | `https://claude.ai/api/mcp/auth_callback`  | Confirmed: claude.com/docs/connectors/building/authentication, "Callback URLs": "register exactly this redirect URI"                                                                          |
+| Claude Code                                  | `http://localhost:<port>/callback`         | Confirmed: same page, and code.claude.com/docs/en/mcp. Its metadata document (claude.ai/oauth/claude-code-client-metadata) also declares `http://127.0.0.1/callback`; v2.1.229 sent that form |
+| Claude Desktop on third-party inference      | `http://127.0.0.1:53280/callback`          | Confirmed: claude.com/docs/third-party/claude-desktop/extensions. Loopback, so the list doesn't apply                                                                                         |
+| Anything hosted, on `https://claude.com/...` | `https://claude.com/api/mcp/auth_callback` | **Not confirmed.** In none of the 9 Claude docs pages read. The support article on custom connectors returned 404, so it couldn't be checked                                                  |
+
+Why `claude.com` is in the default anyway:
+
+- A search of `anthropics/claude-ai-mcp` finds 52 issues with `redirect_uri=https://claude.ai…` sent, and none with `claude.com`.
+  Real DCR bodies quoted there (#690 July, #962 August, #970 September) list only `claude.ai`.
+- But users there register both hosts (#632, #739, #984, #1080, #1147, #1155), and a third party, formbricks'
+  `mcp-dcr-redirect-policy.ts` (2026-10-06), says Claude's DCR body now lists `claude.com` too, and that refusing it
+  stops claude.ai registering at all. Unconfirmed, and newer than those bodies.
+- The costs are lopsided. Both hosts are Anthropic's, so listing the `claude.com` URL admits no stranger, while leaving
+  it out could lock out the user's own connector. Its path is unconfirmed too. Slice 16's AC1 check records what clients
+  send, and it stays unless a reason appears, because one AC1 run can't prove Claude never sends it.
 
 ## Deviations
 

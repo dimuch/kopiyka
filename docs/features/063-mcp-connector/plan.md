@@ -455,7 +455,7 @@ now());` goes before the session lookup. `apiTokenAuth` looks the hash up live (
 
 ### PR 063d: OAuth metadata, registration and the sign-in page (`apps/mcp`)
 
-- [ ] 11. Publish authorization server metadata and dynamic client registration
+- [x] 11. Publish authorization server metadata and dynamic client registration
   - Files: `apps/mcp/src/oauth/redirects.ts`, `apps/mcp/src/oauth/register.ts` (register route + `openClient`),
     `apps/mcp/src/oauth/metadata.ts` (AS metadata), `apps/mcp/src/app.ts` (`application/x-www-form-urlencoded`
     parser via `URLSearchParams`, register routes), `apps/mcp/test/{redirects.test.ts,register.test.ts}`
@@ -732,6 +732,7 @@ I also took these of the skeptic's suggestions:
 
 ## Deviations
 
+- slice 11: the form body parser moves to slice 13, its first user, so `/mcp` keeps answering 415 to forms until then. `test/helpers.ts` holds the test config for the OAuth tests.
 - slice 8: `responseMode: 'json'` is gone. It changed nothing, since no tool emits a message before its result, and it printed a warning on every start; the SDK's default `auto` answers the same. The 10-minute close is tested with fake timers in `limits.test.ts` and a 30 ms cap over real HTTP, because fake timers don't mix with a real listen. The tool's API call is cancelled through `requestInfo.signal`, so `ApiClient.get` takes an optional signal.
 - slice 7: the wrapper lives in a new `src/mcp/auth.ts`. Its fields are `aud`, `apiToken`, `clientId` and `expMs`: the SDK's `AuthInfo` needs a client id and an expiry, and the sealed `exp` isn't handed back by `open`.
 - slice 7: when the API has `MCP_ENABLED` off, `GET /api/api-tokens` is a 404, so `/mcp` answers 503 and clients retry. That keeps people signed in through a mistaken restart; it's the contract's "any other failure".

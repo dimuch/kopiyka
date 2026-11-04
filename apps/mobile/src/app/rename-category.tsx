@@ -6,7 +6,7 @@ import { useThemedStyles } from '@/appearance/AppearanceContext';
 import { useSession } from '@/auth/AuthContext';
 import { closeToBudget } from '@/closeToBudget';
 import { CategoryInMonth } from '@/components/CategoryInMonth';
-import { CategoryNameForm } from '@/components/CategoryNameForm';
+import { CategoryForm } from '@/components/CategoryForm';
 import { renameInMonth } from '@/data/categories';
 import { useCategoryTotals } from '@/data/useCategoryTotals';
 import { kyivMonth, monthName } from '@/format';
@@ -47,7 +47,7 @@ export default function RenameCategoryScreen() {
 
       <CategoryInMonth totals={totals}>
         {(category, month) => (
-          <CategoryNameForm
+          <CategoryForm
             month={month}
             current={category.displayName}
             caption={`Only for ${monthName(month)}. Other months keep their names.`}
@@ -74,7 +74,7 @@ export default function RenameCategoryScreen() {
                 <Text style={styles.removeText}>{`Remove from ${monthName(month)}`}</Text>
               </Pressable>
             )}
-          </CategoryNameForm>
+          </CategoryForm>
         )}
       </CategoryInMonth>
     </SafeAreaView>

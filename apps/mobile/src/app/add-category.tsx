@@ -5,7 +5,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useThemedStyles } from '@/appearance/AppearanceContext';
 import { useSession } from '@/auth/AuthContext';
 import { closeToBudget } from '@/closeToBudget';
-import { CategoryNameForm } from '@/components/CategoryNameForm';
+import { CategoryForm } from '@/components/CategoryForm';
 import { LoadError } from '@/components/LoadError';
 import { addToMonth } from '@/data/categories';
 import { monthName } from '@/format';
@@ -39,7 +39,7 @@ export default function AddCategoryScreen() {
       </View>
 
       {month ? (
-        <CategoryNameForm
+        <CategoryForm
           month={month}
           current={null}
           caption={`Planned at €0 in ${monthName(month)}`}

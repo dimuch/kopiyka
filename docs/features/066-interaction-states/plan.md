@@ -187,3 +187,8 @@ no new test file. Gates run per slice, as in conventions §7.
 - slice 1: no `useState(!!autoFocus)` fallback. `onFocus` fires for `autoFocus` on web when the page has focus (checked by opening `income-item` from the Income tab); it looked missing only in a test pane without focus. iPhone is checked at Gate B.
 
 ## Consolidate
+
+CONSOLIDATE: reused 0 · extracted 0 · left 3.
+
+- `TextField`, `Pressable`, `FocusStyles`: LEAVE, no twin. Nothing else tracks focus or pressed state, and there is no other `<style>`.
+- The header `back`/`backText` styles repeat in four screens: LEAVE. The copies were already on main as `cancel`. This branch renames them and adds the same side padding to each, and the plan rules out a shared header Back.

@@ -12,6 +12,7 @@ import {
 import { ApiError } from '@/api/client';
 import type { Category } from '@/api/types';
 import { useColors, useThemedStyles } from '@/appearance/AppearanceContext';
+import { TextField } from '@/components/TextField';
 import { type CategoryFields, checkFields } from '@/data/categoryForm';
 import { nameRefusedText } from '@/data/categoryName';
 import { overIncomeText } from '@/data/overIncome';
@@ -98,7 +99,7 @@ export function CategoryForm({
 
       <View style={styles.field}>
         <Text style={styles.label}>Name</Text>
-        <TextInput
+        <TextField
           accessibilityLabel="Category name"
           value={nameText}
           onChangeText={(typed) => {
@@ -121,7 +122,7 @@ export function CategoryForm({
         <Text style={styles.label}>Planned amount</Text>
         <View>
           <Text style={styles.symbol}>€</Text>
-          <TextInput
+          <TextField
             ref={amountInput}
             accessibilityLabel="Planned amount in EUR"
             value={amountText}

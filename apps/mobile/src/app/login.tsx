@@ -1,18 +1,10 @@
 import { useState } from 'react';
-import {
-  ActivityIndicator,
-  KeyboardAvoidingView,
-  Platform,
-  Pressable,
-  StyleSheet,
-  Text,
-  TextInput,
-  View,
-} from 'react-native';
+import { ActivityIndicator, KeyboardAvoidingView, Platform, Pressable, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { ApiError } from '@/api/client';
 import { useColors, useThemedStyles } from '@/appearance/AppearanceContext';
 import { useAuth } from '@/auth/AuthContext';
+import { TextField } from '@/components/TextField';
 import { fonts, type Palette } from '@/theme';
 
 function errorText(err: unknown): string {
@@ -56,7 +48,7 @@ export default function Login() {
         <View style={{ gap: 14 }}>
           <View style={styles.field}>
             <Text style={styles.label}>Username</Text>
-            <TextInput
+            <TextField
               accessibilityLabel="Username"
               value={username}
               onChangeText={setUsername}
@@ -71,7 +63,7 @@ export default function Login() {
           </View>
           <View style={styles.field}>
             <Text style={styles.label}>Password</Text>
-            <TextInput
+            <TextField
               accessibilityLabel="Password"
               value={password}
               onChangeText={setPassword}

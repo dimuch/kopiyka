@@ -9,7 +9,6 @@ import {
   ScrollView,
   StyleSheet,
   Text,
-  TextInput,
   View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -23,6 +22,7 @@ import { DateChips } from '@/components/DateChips';
 import { Icon } from '@/components/Icon';
 import { LoadError } from '@/components/LoadError';
 import { TabBar } from '@/components/TabBar';
+import { TextField } from '@/components/TextField';
 import { expenseLocked, firstOpenDate } from '@/data/expenseLock';
 import { lockedText, restoreRefusedText } from '@/data/monthEnded';
 import { deleteExpense, restoreExpense, saveExpense } from '@/data/expenses';
@@ -319,7 +319,7 @@ function ExpenseForm({ draft, ledgerId }: { draft: ExpenseDraftData; ledgerId: n
 
         <View style={styles.group}>
           <Text style={styles.label}>What was it?</Text>
-          <TextInput
+          <TextField
             accessibilityLabel="What was it?"
             value={name}
             onChangeText={(text) => edit(setName, text)}

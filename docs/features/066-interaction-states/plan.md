@@ -74,7 +74,7 @@ shows one line. It overlaps glyphs on buttons with no side padding, so those get
 
 ## Slices
 
-- [ ] 1. Show an accent border on focused text fields, without the browser ring (~60 lines)
+- [x] 1. Show an accent border on focused text fields, without the browser ring (~60 lines)
   - Files: new `components/TextField.tsx`, `components/FocusStyles.tsx`; `app/_layout.tsx` (render `<FocusStyles />` as
     the first child of `SafeAreaProvider`); swap the tag in `AmountFields`, `CategoryForm` (2), `login` (2), `members`
     (2), `expense`, `income-item`.
@@ -183,5 +183,7 @@ no new test file. Gates run per slice, as in conventions §7.
   did by more. Left as is.
 
 ## Deviations
+
+- slice 1: no `useState(!!autoFocus)` fallback. `onFocus` fires for `autoFocus` on web when the page has focus (checked by opening `income-item` from the Income tab); it looked missing only in a test pane without focus. iPhone is checked at Gate B.
 
 ## Consolidate

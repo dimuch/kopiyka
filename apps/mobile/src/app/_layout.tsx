@@ -11,6 +11,7 @@ import { ActivityIndicator, View } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { AppearanceProvider, useAppearance, useColors } from '@/appearance/AppearanceContext';
 import { AuthProvider, useAuth } from '@/auth/AuthContext';
+import { FocusStyles } from '@/components/FocusStyles';
 import { PhoneColumn } from '@/components/PhoneColumn';
 import { InvitesProvider } from '@/data/invites';
 
@@ -62,6 +63,7 @@ function Root() {
   return (
     // The background shows on web around the phone-width column.
     <SafeAreaProvider style={{ backgroundColor: palette.bg }}>
+      <FocusStyles />
       <PhoneColumn>
         <AuthProvider>
           <StatusBar style={scheme === 'dark' ? 'light' : 'dark'} />

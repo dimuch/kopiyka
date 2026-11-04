@@ -7,7 +7,7 @@ Base: origin/main for each PR once the one before it is merged; merge order 063a
 
 ## Approach
 
-The feature is about 2,900 changed lines, seven times the ~400 a plan should hold. It goes out as **seven PRs**, and
+The feature is about 2,700 changed lines, seven times the ~400 a plan should hold. It goes out as **seven PRs**, and
 each one is safe to merge on its own:
 
 | PR    | Branch                 | Base            | What                                                           | ~Lines |
@@ -16,7 +16,7 @@ each one is safe to merge on its own:
 | 063b  | `feat/mcp-server`      | origin/main     | `apps/mcp` workspace, `/mcp` with bearer check, `list_ledgers` |    560 |
 | 063c  | `feat/mcp-tools`       | stacked on 063b | the other four tools, per-token limits and stream caps         |    440 |
 | 063d  | `feat/mcp-oauth`       | origin/main     | OAuth: metadata, registration, the redirect rules              |    290 |
-| 063d2 | `feat/mcp-oauth-pages` | after 063d      | OAuth: the sign-in page (GET), no automatic redirects          |    645 |
+| 063d2 | `feat/mcp-oauth-pages` | after 063d      | OAuth: the sign-in page (GET), no automatic redirects          |    460 |
 | 063e  | `feat/mcp-sign-in`     | after 063d2     | OAuth: TOTP sign-in, consent, code → access token              |    315 |
 | 063f  | `feat/mcp-deploy`      | after 063e      | nginx limits + locations, systemd unit, deploy.sh, docs        |    290 |
 
@@ -82,7 +82,8 @@ so the bolt-on stays.
   - Issuer without a path: `/.well-known/oauth-authorization-server`.
 - Security: `…/authorization/security-considerations`.
   - Exact redirect URI match MUST.
-  - The redirect hostname MUST be displayed, with a warning for loopback-only clients.
+  - The redirect hostname MUST be displayed, with a warning for loopback-only clients (kopiyka takes none since
+    Revision 4).
   - Token passthrough is forbidden.
   - Audience validation MUST.
 - Streamable HTTP: `…/basic/transports/streamable-http`.
@@ -94,7 +95,8 @@ so the bolt-on stays.
   - `oauth_dcr` and `oauth_cimd` are both "Supported by default".
   - CIMD only with both metadata values, else fallback to DCR.
   - Hosted callback is `https://claude.ai/api/mcp/auth_callback`.
-  - Claude Code uses a loopback `http://localhost:<any port>/callback`, so ports MUST be matched port-agnostically.
+  - Claude Code uses a loopback `http://localhost:<any port>/callback`, and Claude Desktop on third-party inference
+    `http://127.0.0.1:53280/callback`. Revision 4 refuses loopback, so neither can connect.
   - A 401 with `resource_metadata` is required.
   - The token endpoint must accept `application/x-www-form-urlencoded`.
   - Endpoints get 10 s.
@@ -175,27 +177,25 @@ response_types: ['code'] }`.
       Zero-width joiners stay allowed: emoji and Persian or Indic names need them, and they spoof nothing a homoglyph
       can't. These two rules land in slice 12a.
     - `client_name` is trimmed first, so a name of only spaces reads as "An app".
-    - Every URI in `redirect_uris` must pass the rules below, or the whole registration gets `invalid_redirect_uri`.
+    - Every URI in `redirect_uris` must pass the rule below, or the whole registration gets `invalid_redirect_uri`.
       A refused URI logs its origin and path at `warn`, never the raw URI; an unparseable one logs that it was
       unparseable. A successful registration logs each URI's origin and path at `info`, never its query. So a lockout
       can be diagnosed, and slice 16's AC1 check can record what clients send (slice 12b).
-  - Redirect URI rules (`oauth/redirects.ts`):
-    - Allowed: an entry on `MCP_ALLOWED_REDIRECT_URIS`, string-equal, or `http://` with host `localhost`, `127.0.0.1`
-      or `[::1]`. Slice 12b adds the list; until then any `https` URI passes.
-    - Refused: everything else, and any URI with a fragment or userinfo.
-    - Matching: an exact string compare with the registered value, except that for loopback `http` the port is
-      ignored (scheme, host, path and query still exact), per RFC 8252 §7.3 and Claude Code.
+  - Redirect URI rule (`includes` in `register.ts` and `authorize.ts`, Revision 4): a redirect URI is allowed only if
+    it's string-equal to an entry on `MCP_ALLOWED_REDIRECT_URIS`. A requested URI must be string-equal to one the
+    client registered and to a listed one. There's no loopback exception, port rule or RFC 8252 matching.
   - `GET /oauth/authorize?response_type&client_id&redirect_uri&code_challenge&code_challenge_method&state&scope&resource`:
-    - Unreadable or expired client, a `redirect_uri` that doesn't match, or a requested `redirect_uri` that the
-      redirect rules no longer allow → `400` HTML error page with no link, **never a redirect**. The last case is
+    - Unreadable or expired client, a `redirect_uri` that doesn't match, or a requested `redirect_uri` that is no
+      longer on the list → `400` HTML error page with no link, **never a redirect**. The last case is
       needed as well as the check at registration, because a sealed `client_id` lives 90 days: new sign-ins stop at
       once; one already past authorize can finish within 20 minutes.
     - Other faults, for a known client and a matching `redirect_uri` → `400` HTML page, **no 302 and no
       `<meta refresh>`**. It names the redirect **hostname** and has a "Return to <host>" link carrying the error
       response (`error=invalid_request|invalid_scope|unsupported_response_type&state&iss`, built by
       `authorizationResponse`), so the user decides.
-      - Why: registration stays open to any loopback URI and to the listed URLs, and a bad `scope` would otherwise send
-        visitors from kopiyka's real domain to one of them with no user action. RFC 9700 §4.11.2 names this attack
+      - Why: Revision 2 made this page because a bad `scope` would otherwise send visitors from kopiyka's real domain
+        to a stranger's host with no user action. Since Revision 4 the target is always a listed URL, so it's trusted
+        and a redirect would be safe too; the page and the Deny page are approved, so they stay. RFC 9700 §4.11.2 names this attack
         and says the server "MUST take precautions" and "SHOULD only automatically redirect the user agent if it
         trusts the redirection URI"; if it doesn't, it MAY inform the user and leave the decision to them. The MCP spec
         2026-07-28, security considerations, "Open Redirection", says the same.
@@ -203,10 +203,7 @@ response_types: ['code'] }`.
         or `read`, a `response_type` other than `code`, and a `resource` that is present but not `<PUBLIC_URL>/mcp`. An
         absent `resource` is accepted; the access token's `aud` is always `<PUBLIC_URL>/mcp`.
     - OK → `200` sign-in page. It says "An app calling itself <name>" (the name is self-declared; `<bdi>` wraps it;
-      with no name, "An app"), shows the redirect **hostname**, and warns if the **requested** redirect URI is
-      loopback. The warning is plain `isLoopback(redirectUri)`, and the redirect hostname is always shown.
-      The warning is derived from `redirectUri` at render time, not sealed, so it also survives the 401 re-render. The
-      page holds a sealed `{typ:'signin', …request, exp: +10 min}`.
+      with no name, "An app"), and shows the redirect **hostname**. The page holds a sealed `{typ:'signin', …request, exp: +10 min}`.
   - `POST /oauth/authorize` (form `request, username, code`):
     - It calls `POST <API_URL>/api/auth/login` with `{username, code, client: 'native'}` and
       `X-Forwarded-For: <req.ip>`. That's the client address nginx gave `apps/mcp`, which the API trusts from loopback,
@@ -223,8 +220,8 @@ response_types: ['code'] }`.
       `redirect_uri?code…&state&iss`. A 302 straight after a form POST would be blocked by the `form-action 'self'`
       CSP in Chrome (see Risks). The automatic redirect is fine here: the user has signed in and seen the hostname on
       the consent page. Allow is RFC 9700's "inform the user" branch, none of its three attacks is an Allow, and a
-      cross-site POST is refused by the Origin check. Since Revision 3 it also only goes to a listed URL or to this
-      machine, so it's a URI the server trusts.
+      cross-site POST is refused by the Origin check. Since Revision 4 it only goes to a listed URL, which the server
+      trusts.
     - Deny: `POST /api/auth/logout` with the session → `200` page, **no automatic redirect**: it names the hostname
       and has a "Return to <host>" link carrying `error=access_denied&state&iss`. Declining says nothing about
       trusting the URI, and this is RFC 9700 §4.11.2's second variant, where a declined consent still lands on the
@@ -282,7 +279,7 @@ again in N s`.
   - `MCP_ALLOWED_REDIRECT_URIS`: comma-separated exact URLs, default
     `https://claude.ai/api/mcp/auth_callback,https://claude.com/api/mcp/auth_callback` (Revision 3 says why both) →
     `Config.allowedRedirectUris: string[]`.
-    - A set value replaces the default. A blank value gives `[]`, so loopback only.
+    - A set value replaces the default. A blank value gives `[]`, so no app can connect.
     - Parsing splits on `,` and trims. Every other entry must be https, have no fragment, userinfo or query, and
       satisfy `new URL(entry).href === entry`, or startup throws, so `https://claude.ai/api/mcp/auth_callback,` throws.
 - `AppDeps` (`apps/mcp`): `{ config, now: () => Date, fetch: typeof fetch /* the API */, limits?: Partial<Limits>
@@ -589,6 +586,20 @@ frame-ancestors 'none'; base-uri 'none'` and `Cache-Control: no-store`.
       `https://second.example/cb`; `evil.example` stays unlisted.
     - `app`, `mcp`, `mcpLimits` and `tools` tests build their own `Config`, and each gets `allowedRedirectUris: []`.
   - ~135 lines
+- [x] 12c. Refuse every redirect that isn't on the list
+  - Files: delete `apps/mcp/src/oauth/redirects.ts` and `apps/mcp/test/redirects.test.ts`;
+    `apps/mcp/src/oauth/{authorize,pages,register}.ts`, `apps/mcp/src/config.ts`, `apps/mcp/.env.example`,
+    `apps/mcp/test/{authorize,config,register}.test.ts`
+  - Change: Revision 4, as in Contracts. Slices 12, 12a and 12b are built with loopback, and this removes it. The checks
+    become `includes`, `redirectForLog` moves into `register.ts`, and `isLoopback`, the warning and its `.warning` CSS
+    go. The blank-value wording changes to "no app can connect".
+  - Tests:
+    - register: `http://localhost:5000/callback`, `http://127.0.0.1/callback` and `http://[::1]/callback` → 400
+      `invalid_redirect_uri`. The string-equal rows from `redirects.test.ts` move here. With a blank list, every
+      registration → 400.
+    - authorize: a sealed client with a loopback URI → 400 error page, no link. A listed URI the client didn't register,
+      and a registered URI that isn't listed → the same. A listed and registered URI → 200, with no warning text.
+  - Net negative: about −185 lines as it stands on `feat/mcp-oauth-pages`.
 
 ### PR 063e: TOTP sign-in, consent and the token endpoint (`apps/mcp`)
 
@@ -683,20 +694,22 @@ frame-ancestors 'none'; base-uri 'none'` and `Cache-Control: no-store`.
         registration leaves in `journalctl -u kopiyka-mcp`, which has the origin and path. Run
         `sudoedit /etc/kopiyka/mcp.env` and set `MCP_ALLOWED_REDIRECT_URIS` to the two default URLs plus the new one,
         keeping the defaults because the setting replaces them. Then `sudo systemctl restart kopiyka-mcp`. Removing a
-        URL works the same way: new sign-ins stop at the restart.
+        URL works the same way: new sign-ins stop at the restart. Only a fixed `https` callback can be added, so an app
+        with a loopback redirect can't.
       - The 429 check: `for i in $(seq 20); do curl -s -o /dev/null -w '%{http_code}\n' -X POST -H 'content-type:
 application/json' -d '{}' $site/oauth/register; done | sort | uniq -c`, which should show ≥ 14 × 429.
       - Post-deploy checklist items.
     - README:
       - A path table row for `apps/mcp`.
-      - "Connect from Claude": Desktop/claude.ai custom connector URL `https://<host>/mcp`; Claude Code
-        `claude mcp add --transport http kopiyka https://<host>/mcp` then `/mcp` to sign in. Check the current UI
-        wording in https://claude.com/docs/connectors. Sign-in comes back every hour.
+      - "Connect from Claude": claude.ai, Claude Desktop or Claude mobile, custom connector URL `https://<host>/mcp`.
+        Check the current UI wording in https://claude.com/docs/connectors. Sign-in comes back every hour.
+      - Say plainly that Claude Code and Claude Desktop on third-party inference can't connect: they use a loopback
+        redirect, which is off on purpose (Revision 4).
       - "Removing the connector": the section below.
       - The env vars.
   - Verify: `yarn format:check`; the commands run once on the droplet after deploy (AC10, AC14), and their output goes
-    in the PR. AC1 with the default list: claude.ai in Chrome, Claude Desktop and Claude Code each connect, and the PR
-    records the `redirect_uris` each one registered and any refused URI, from the log.
+    in the PR. AC1 with the default list: claude.ai in Chrome, Claude Desktop and Claude mobile each connect, Claude
+    Code is refused with `invalid_redirect_uri`, and the PR records what it shows, and the `redirect_uris` each one registered and any refused URI, from the log.
   - ~150 lines
 
 ## Touch points and how to remove
@@ -733,7 +746,7 @@ To delete it:
 
 | AC                                                                                                  | Evidence                                                                                                                                                                                                                                                                 |
 | --------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| Claude Desktop custom connector runs OAuth, sign-in asks username + TOTP, tools work                | Manual after 063f deploy: Claude Desktop (and claude.ai in Chrome, and Claude Code) add `https://<host>/mcp`, sign in, Allow, ask "how much is left in groceries this month?" — in the PR test plan; plus `flow.test.ts` (slice 14)                                      |
+| Claude Desktop custom connector runs OAuth, sign-in asks username + TOTP, tools work                | Manual after 063f deploy: Claude Desktop (and claude.ai in Chrome, and Claude mobile) add `https://<host>/mcp`, sign in, Allow, ask "how much is left in groceries this month?" — in the PR test plan; plus `flow.test.ts` (slice 14)                                    |
 | Two users see only own + shared ledgers; inaccessible id → same not-found                           | `mcp.test.ts` A/B `list_ledgers` (7); `tools.test.ts` ledger B with A's token → `ledger_not_found` (9); `apiTokens.auth.int.test.ts` other user's ledger → 404 `ledger_not_found` (2); manual with a second user (`claude-qa`)                                           |
 | Month summary matches the Budget screen                                                             | `summary.test.ts` table (9); manual: one month in Claude vs the web app's Budget and Expenses tabs at phone width (planned, spent, over/left, income, left to plan)                                                                                                      |
 | `read` token → 403 on every POST/PUT/DELETE; test walks registered routes                           | `apiTokens.auth.int.test.ts` route walk (2), plus 403 on the token routes (3)                                                                                                                                                                                            |
@@ -745,7 +758,7 @@ To delete it:
 | Hammering sign-in POST, token, registration from one IP → 429 from nginx                            | slice 15/16: `nginx -t` + the curl loop against the deployed config, output in PR 063f                                                                                                                                                                                   |
 | Per-token tool limit → rate-limit tool error, others unaffected                                     | `mcpLimits.test.ts` A vs B (8)                                                                                                                                                                                                                                           |
 | Oversized body → 413; foreign Origin → 403; extra streams closed/refused                            | `mcp.test.ts` 413 + `invalid_origin` (7); `mcpLimits.test.ts` oldest closed per token, 503 overall (8)                                                                                                                                                                   |
-| Code once / reuse fails / expiry fails; `redirect_uri` off by one char refused                      | `token.test.ts` (14); `authorize.test.ts` (12); `redirects.test.ts` (11)                                                                                                                                                                                                 |
+| Code once / reuse fails / expiry fails; `redirect_uri` off by one char refused                      | `token.test.ts` (14); `authorize.test.ts` (12); `register.test.ts` (12c)                                                                                                                                                                                                 |
 | `curl -sI` on `/mcp` and sign-in page shows security headers + sign-in CSP                          | `authorize.test.ts` CSP header (12); deployed `curl -sI` loop (16), output in PR 063f                                                                                                                                                                                    |
 | Root gates cover `apps/mcp`                                                                         | slice 4: `yarn lint`, `yarn typecheck` and `yarn test` output lists `@kopiyka/mcp`; `prettier --check .` already covers `apps/`                                                                                                                                          |
 | Deploy docs (unit, nginx, env); README connect + remove                                             | slices 15, 16                                                                                                                                                                                                                                                            |
@@ -760,6 +773,7 @@ To delete it:
 - A `date` argument on `eur_uah_rate`, and any write tool or `write` scope.
 - Storage for clients or codes; CORS for browser-based MCP clients; a `deviceId` from the sign-in page.
 - nginx limits on `/api/`; pruning `login_throttle`; local stdio mode.
+- Loopback redirects, so Claude Code and Claude Desktop on third-party inference (Revision 4).
 
 ## Risks
 
@@ -772,30 +786,27 @@ To delete it:
     "Return to <host>" link (RFC 9700 §4.11.2; MCP spec "Open Redirection"), and the code only goes to the registered
     URI.
   - Mitigated: the pages show the redirect **hostname**, say "An app calling itself <name>" with the name in
-    `<bdi>`, refuse control and bidi characters in `client_name`, and warn when the requested URI is loopback.
+    `<bdi>`, and refuse control and bidi characters in `client_name`.
     Slices 12 and 13 test this.
-  - **Residual risk:** registration stays open to loopback URIs and the listed URLs, so anyone can still show the real
-    sign-in page for those. What that gains them is limited.
-    - A listed URL: the code goes to Claude's callback, not to them. A stranger with their own Claude account can
-      still send a victim the authorize link from their own Connect. Whether the code then joins the stranger's
-      connection rests on claude.ai tying `state` to the browser that started it. Its docs don't say so, and kopiyka
-      can't check it.
-    - Loopback: see the next risk.
-    - The hostname stays readable (`overflow-wrap: anywhere`) on every page that shows it.
-- **Loopback `http://` stays allowed, with its warning.** Claude Code needs it. It's safe enough because the code
-  lands on the user's own machine, so abusing it takes a process already running there, which any local client can
-  claim to be (the spec's "Localhost Redirect URI Risks"). That's why the page warns and doesn't refuse.
+  - **Residual risk:** anyone can still show the real sign-in page for a listed URL. The code goes to Claude's
+    callback, not to them, but a stranger with their own Claude account can
+    still send a victim the authorize link from their own Connect. Whether the code then joins the stranger's
+    connection rests on claude.ai tying `state` to the browser that started it. Its docs don't say so, and kopiyka
+    can't check it.
+- **Supporting Claude Code later would need its own decision.** Local clients are off because of the pasted-code attack
+  in Revision 4, and that risk comes back with them.
 - **If Claude changes its callback path, the connector stops until the setting is updated.** A client that lists one
   unlisted URI loses the whole registration. It shows as `invalid_redirect_uri` at Connect, with the URI's origin and
   path in the log, and the fix is one setting. `claude.com`'s path is unconfirmed, listed as a precaution: slice 16's
   AC1 check records what clients send, and it stays unless a reason appears, because one AC1 run can't prove Claude
   never sends it.
 - **What a client shows after Cancel is unknown.** Deny now stops on a page with a link. In the AC1 check for 063f,
-  click Cancel in Claude Desktop and Claude Code, then record what the client shows before and after the "Return to"
+  click Cancel in Claude Desktop and claude.ai, then record what the client shows before and after the "Return to"
   link.
 - Real clients could be refused outright: a `scope` other than empty or `read`, or a `token_endpoint_auth_method` other
   than `none`, fails the request or the registration. Claude picks the method from our metadata, which lists only `none` (#1043, #962, #970), but check it with Claude
-  Desktop, claude.ai and Claude Code during the AC1 manual check in 063f. A refusal fails loudly, so it can't slip by.
+  Desktop, claude.ai and Claude mobile during the AC1 manual check in 063f. Claude Code is refused by design, at
+  registration. A refusal fails loudly, so it can't slip by.
 - **Claude might send an `Origin` header on `/mcp` or `/oauth/token`.** That would give 403. Checked by the AC1
   manual check (journalctl shows `invalid_origin`). The fix would be adding that origin to the allowlist.
 - **Claude's behaviour at the hourly expiry without a refresh token is unknown.** It may re-prompt sign-in, or show
@@ -824,9 +835,6 @@ To delete it:
 - Settled at the gates: the split, now seven PRs (the user chose to split 063d).
 - No — Brief Q1: should `apps/mcp` get a "revoke this connector" tool? Meanwhile: **no**. Tokens last 1 h, and a
   read token can't call `DELETE`, by design; revoking takes a session (curl now, app UI later).
-- No — The brief says `redirect_uri` is matched "exactly". Meanwhile: exact for everything, except that loopback
-  `http` ignores the port, which RFC 8252 §7.3 and Claude Code need. Without this exception, Claude Code can't
-  connect.
 - No — `config.ts` is a touch point the brief didn't list (conventions §2: env is parsed only there). Meanwhile it
   gets 2 keys and an optional field, listed in "Touch points".
 - No — The brief prefers the API token itself as the OAuth access token. Meanwhile it's a sealed wrapper, because the
@@ -928,6 +936,37 @@ Why `claude.com` is in the default anyway:
   it out could lock out the user's own connector. Its path is unconfirmed too. Slice 16's AC1 check records what clients
   send, and it stays unless a reason appears, because one AC1 run can't prove Claude never sends it.
 
+## Revision 4
+
+Status: approved (user, 2026-11-04)
+
+The user turned local (loopback) clients off completely. Revision 3's Risks said abusing loopback "takes a process
+already running there". That was false:
+
+1. A stranger registers `http://localhost:9/cb` and sends a victim the authorize link.
+2. The victim signs in and clicks Allow. The browser fails to connect, and `?code=…` is in the address bar.
+3. The stranger's page says "paste that address to finish", and redeems the code within 60 s with their own PKCE
+   verifier: 1 hour of read access.
+
+It needs no client secret and nothing running on the machine. This is the publicly reported "ConsentFix" pattern.
+
+- **Rule:** a redirect URI is allowed only if it's string-equal to an entry on `MCP_ALLOWED_REDIRECT_URIS`, and a
+  requested URI must be string-equal to one the client registered and to a listed one. No loopback exception, port rule
+  or RFC 8252 matching. A blank list means no app can connect.
+- **Removed:** `oauth/redirects.ts` and its test, `isLoopback`, the loopback warning and its `.warning` CSS.
+  `redirectForLog` moves into `register.ts`.
+- **Who can connect:** claude.ai on the web, Claude Desktop and Claude mobile, through the hosted callback. Claude Code
+  and Claude Desktop on third-party inference can't, as both use loopback. The brief is updated to say so.
+- **Not reopened:** Revision 2's fault and Deny pages stay. They're approved and safe, though with only listed URLs the
+  target is always trusted.
+- **What remains in Risks:** a stranger with their own Claude account, and the callback-path lockout. Supporting Claude
+  Code later would need its own decision, because this risk comes back.
+- **Slices:** 12, 12a and 12b are built with loopback and stay as written, so new slice 12c removes it on
+  `feat/mcp-oauth-pages`, about −185 lines. 063d2 is now ~460, and the total about 2,700. Slices 13–16 keep their
+  estimates; slice 16 swaps its Claude Code instructions for a note about the same length.
+
+Revision 3 stays as history, and this revision supersedes it.
+
 ## Deviations
 
 - slice 12b, checked in the browser at 390×844 with a 252-character hostname: the sign-in and fault pages wrap it fully, nothing overflows, the fault page answers 400 with no refresh, and the CSP reports no violation. That hostname has hyphens, which help it wrap; `overflow-wrap: anywhere` covers the case without them.
@@ -968,10 +1007,7 @@ Why `claude.com` is in the default anyway:
 - `test/helpers.ts`: the OAuth tests share one `testConfig`, instead of another copy. `mcp.test.ts`, `mcpLimits.test.ts`
   and `tools.test.ts` keep their own: `mcpLimits` needs another host, and moving the others is churn in merged tests.
 
-063d2 (`origin/main...HEAD`): reused 1 · extracted 0 · left 2.
+063d2 (`origin/main...HEAD`): reused 0 · extracted 0 · left 1.
 
-- `isAllowedRedirectUri` is reused at `GET /oauth/authorize` rather than a second check.
 - `escapeHtml` and the `pages.ts` template: nothing like them exists in the repo, and a template library would be a
   dependency for a few small pages. LEAVE.
-- `parseAllowedRedirectUri` in `config.ts` vs `isAllowedRedirectUri`: LEAVE. One checks an operator's entry at startup
-  and throws, the other a client's input per request; a shared helper would have to do both jobs.

@@ -185,8 +185,25 @@ describe('OAuth discovery and registration', () => {
       expect(res.json().error).toBe('invalid_redirect_uri');
     });
 
-    it('registers a local client without a list entry', async () => {
-      expect((await registerLogged(['http://localhost:5000/callback'])).statusCode).toBe(201);
+    it.each(['http://localhost:5000/callback', 'http://127.0.0.1/callback', 'http://[::1]/callback'])(
+      'refuses the local %s: a code in the address bar can be talked out of a user',
+      async (uri) => {
+        const res = await registerLogged([uri]);
+
+        expect(res.statusCode).toBe(400);
+        expect(res.json().error).toBe('invalid_redirect_uri');
+      },
+    );
+
+    it.each([
+      ['user details', 'https://user:pass@evil.example/cb', 'https://evil.example/cb'],
+      ['an opaque URI', 'data:text/html,<h1>hi</h1>', 'data:'],
+    ])('logs a refused URI without %s', async (_case, uri, logged) => {
+      await registerLogged([uri]);
+
+      expect(logs).toContain(logged);
+      expect(logs).not.toContain('pass');
+      expect(logs).not.toContain('<h1>');
     });
   });
 });

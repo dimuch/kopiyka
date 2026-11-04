@@ -92,7 +92,6 @@ describe('GET /oauth/authorize', () => {
       expect(res.body).toContain('autocomplete="username"');
       expect(res.body).toContain('autocomplete="one-time-code"');
       expect(res.body).toContain('inputmode="numeric"');
-      expect(res.body).not.toContain('only on this computer');
     });
 
     it('seals the whole request for the next step, for ten minutes', async () => {
@@ -149,34 +148,6 @@ describe('GET /oauth/authorize', () => {
       expect(res.body).not.toContain('calling itself');
     });
 
-    describe('the loopback warning follows where this request goes', () => {
-      const local = 'http://localhost:5000/callback';
-      const WARNING = 'only on this computer';
-
-      it('warns for a loopback URI, even if the client also registered another', async () => {
-        const res = await authorize({ client_id: await register([CALLBACK, local]), redirect_uri: local });
-
-        expect(res.statusCode).toBe(200);
-        expect(res.body).toContain(WARNING);
-      });
-
-      it('doesn’t warn for the https one of the same client', async () => {
-        const res = await authorize({ client_id: await register([CALLBACK, local]), redirect_uri: CALLBACK });
-
-        expect(res.statusCode).toBe(200);
-        expect(res.body).not.toContain(WARNING);
-      });
-
-      it('warns on another port of a registered loopback URI', async () => {
-        const res = await authorize({
-          client_id: await register([local]),
-          redirect_uri: 'http://localhost:3118/callback',
-        });
-
-        expect(res.body).toContain(WARNING);
-      });
-    });
-
     it('shows a hostile client name as text', async () => {
       const res = await authorize({ client_id: await register([CALLBACK], '<script>alert("x")</script>') });
 
@@ -192,26 +163,8 @@ describe('GET /oauth/authorize', () => {
       expectErrorPage(res);
     });
 
-    it('for a loopback path one character off, though loopback is allowed', async () => {
-      const res = await authorize({
-        client_id: await register(['http://localhost:5000/callback']),
-        redirect_uri: 'http://localhost:5000/callback/',
-      });
-
-      expectErrorPage(res);
-    });
-
     it('for a listed URI this client didn’t register', async () => {
       const res = await authorize({ client_id: await register([CALLBACK]), redirect_uri: 'https://second.example/cb' });
-
-      expectErrorPage(res);
-    });
-
-    it('for a loopback port that can’t exist', async () => {
-      const res = await authorize({
-        client_id: await register(['http://localhost:5000/callback']),
-        redirect_uri: 'http://localhost:99999/callback',
-      });
 
       expectErrorPage(res);
     });
@@ -300,18 +253,10 @@ describe('GET /oauth/authorize', () => {
       expect(res.headers['cache-control']).toBe('no-store');
     });
 
-    it('keeps what the redirect URI already carries, and leaves out a state it wasn’t given', async () => {
-      const local = 'http://localhost:5000/cb?keep=1';
-
-      const res = await authorize({
-        client_id: await register([local]),
-        redirect_uri: local,
-        state: undefined,
-        scope: 'write',
-      });
+    it('leaves out a state it wasn’t given', async () => {
+      const res = await authorize({ client_id: await register([CALLBACK]), state: undefined, scope: 'write' });
 
       expect(Object.fromEntries(returnLink(res.body).searchParams)).toEqual({
-        keep: '1',
         error: 'invalid_scope',
         iss: PUBLIC_URL,
       });

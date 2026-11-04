@@ -3,7 +3,6 @@ import { z } from 'zod';
 import type { AppDeps } from '../app.js';
 import { seal } from '../seal.js';
 import { errorPage, faultPage, sendPage, signInPage } from './pages.js';
-import { isAllowedRedirectUri, isLoopback, redirectMatches } from './redirects.js';
 import { openClient } from './register.js';
 
 const SIGN_IN_TTL_MS = 10 * 60_000;
@@ -70,8 +69,8 @@ export async function authorizeRoutes(app: FastifyInstance, { config, now }: App
       !client ||
       !clientId ||
       !redirectUri ||
-      !redirectMatches(client.redirectUris, redirectUri) ||
-      !isAllowedRedirectUri(redirectUri, config.allowedRedirectUris)
+      !client.redirectUris.includes(redirectUri) ||
+      !config.allowedRedirectUris.includes(redirectUri)
     ) {
       return sendPage(reply, 400, errorPage('This sign-in link isn’t valid, or the app’s registration has expired.'));
     }
@@ -95,7 +94,6 @@ export async function authorizeRoutes(app: FastifyInstance, { config, now }: App
       signInPage({
         clientName: request.clientName,
         redirectHost: new URL(redirectUri).hostname,
-        loopback: isLoopback(redirectUri),
         request: seal(config.sealKey, 'signin', request, now().getTime() + SIGN_IN_TTL_MS),
       }),
     );

@@ -2,7 +2,6 @@ import type { FastifyInstance } from 'fastify';
 import { z } from 'zod';
 import type { AppDeps } from '../app.js';
 import { open, seal } from '../seal.js';
-import { isAllowedRedirectUri, redirectForLog } from './redirects.js';
 
 const CLIENT_TTL_MS = 90 * 86_400_000;
 
@@ -24,6 +23,13 @@ export interface Client {
   clientName: string;
 }
 
+/** Where a URI points, for the log: its query and user details could carry anything. */
+function redirectForLog(uri: string): string {
+  if (!URL.canParse(uri)) return 'unparseable';
+  const url = new URL(uri);
+  return url.origin === 'null' ? url.protocol : `${url.origin}${url.pathname}`;
+}
+
 /** The client behind a `client_id`, or null if it's forged or has expired. */
 export function openClient(sealKey: Buffer, clientId: string, now: Date): Client | null {
   return open<Client>(sealKey, 'client', clientId, now);
@@ -40,13 +46,13 @@ export async function registerRoutes(app: FastifyInstance, { config, now }: AppD
       });
     }
     const { redirect_uris: redirectUris, client_name: clientName } = body.data;
-    const refused = redirectUris.filter((uri) => !isAllowedRedirectUri(uri, config.allowedRedirectUris));
+    const refused = redirectUris.filter((uri) => !config.allowedRedirectUris.includes(uri));
     if (refused.length) {
       // A real client refused here is the lockout to look for: the fix is MCP_ALLOWED_REDIRECT_URIS.
       req.log.warn({ redirectUris: refused.map(redirectForLog) }, 'client registration refused');
       return reply.code(400).send({
         error: 'invalid_redirect_uri',
-        error_description: 'This server only accepts its listed redirect URIs, or http on localhost',
+        error_description: 'This server only accepts its listed redirect URIs',
       });
     }
     req.log.info({ redirectUris: redirectUris.map(redirectForLog) }, 'client registered');

@@ -3,10 +3,10 @@ import type { FastifyReply } from 'fastify';
 
 const CSS = `
 :root { color-scheme: light dark; --bg: #f6f5f2; --card: #fff; --text: #1d1d1b; --muted: #5f5f5a; --line: #d9d7d0;
-  --accent: #1f6f5c; --on-accent: #fff; --warn-bg: #fdf3dc; --warn-text: #6b4e00; --error: #a4262c; }
+  --accent: #1f6f5c; --on-accent: #fff; --error: #a4262c; }
 @media (prefers-color-scheme: dark) {
   :root { --bg: #161615; --card: #22221f; --text: #f1f0ec; --muted: #aaa9a2; --line: #3b3a36;
-    --accent: #5cc0a5; --on-accent: #10201b; --warn-bg: #3a2f12; --warn-text: #f3d98b; --error: #ff8f8f; }
+    --accent: #5cc0a5; --on-accent: #10201b; --error: #ff8f8f; }
 }
 * { box-sizing: border-box; }
 body { margin: 0; min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 16px;
@@ -16,7 +16,6 @@ main { width: 100%; max-width: 380px; padding: 24px; background: var(--card); bo
 h1 { margin: 0 0 12px; font-size: 22px; line-height: 1.3; }
 p { margin: 0 0 16px; overflow-wrap: anywhere; }
 .muted { color: var(--muted); }
-.warning { padding: 10px 12px; border-radius: 8px; background: var(--warn-bg); color: var(--warn-text); }
 .error { color: var(--error); font-weight: 600; }
 a { color: var(--accent); font-weight: 600; }
 label { display: block; margin-bottom: 4px; font-weight: 600; }
@@ -88,22 +87,19 @@ export function faultPage(redirectHost: string, returnUrl: string): string {
 export interface SignInView {
   clientName: string;
   redirectHost: string;
-  /** Where this request goes, not what the client registered: one extra URI mustn't hide the warning. */
-  loopback: boolean;
   /** The sealed authorization request. */
   request: string;
   username?: string;
   error?: string;
 }
 
-export function signInPage({ clientName, redirectHost, loopback, request, username, error }: SignInView): string {
+export function signInPage({ clientName, redirectHost, request, username, error }: SignInView): string {
   // A client picks its own name, so the page never states it as fact.
   const client = clientName ? `An app calling itself <bdi>${escapeHtml(clientName)}</bdi>` : 'An app';
   return page(
     'Sign in to Kopiyka',
     `<h1>Sign in to Kopiyka</h1>
 <p>${client} wants to read your budgets. You’ll go back to <strong>${escapeHtml(redirectHost)}</strong> afterwards.</p>
-${loopback ? '<p class="warning">This app runs only on this computer. Continue only if you started it yourself.</p>' : ''}
 ${error ? `<p class="error" role="alert">${escapeHtml(error)}</p>` : ''}
 <form method="post" action="/oauth/authorize">
 <input type="hidden" name="request" value="${escapeHtml(request)}">

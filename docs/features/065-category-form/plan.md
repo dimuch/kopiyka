@@ -158,7 +158,7 @@ Estimates are lines added/deleted, tests included. Total: about +530/−530, net
     - The pencil's screen is titled "Edit category". Its save sends `changedFields`, and sends nothing when empty.
   - Verify: web 390×844 and iPhone: add with and without an amount; pencil changes name, amount, both; each refusal
     keeps the fields and can be fixed; keyboards; Return; Save reachable with the number keyboard open.
-- [ ] 6. Open the edit screen with the amount focused from a Budget row (+20/−235)
+- [x] 6. Open the edit screen with the amount focused from a Budget row (+20/−235)
   - Files: `apps/mobile/src/app/(tabs)/budget.tsx`, `rename-category.tsx`, `apps/mobile/src/components/CategoryForm.tsx`,
     `apps/mobile/src/app/_layout.tsx`, `apps/mobile/src/data/categories.ts`, delete `apps/mobile/src/app/planned-amount.tsx`
   - Change: the row pushes with `focus: 'amount'`; `focusAmount` picks which field autofocuses; new accessibility text;
@@ -253,7 +253,8 @@ None found.
 
 ## Deviations
 
-<filled by the developer during build>
+- Slice 6: on web the amount is focused but its text isn't selected, with the same `autoFocus` and `selectTextOnFocus`
+  props as the old Planned amount screen. Selection is left to the iPhone check.
 
 ## Consolidate
 

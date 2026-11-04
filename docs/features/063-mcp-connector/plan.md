@@ -1109,6 +1109,15 @@ longer gates 063e. It runs after 063f is deployed, against the real address, wit
   result can force a redesign on merged code, which is the cost the user accepted.
 - Then Cancel, double taps, Safari and the hourly expiry.
 
+## Revision 7
+
+Status: approved (user, 2026-11-04)
+
+After the two-browser test passed on production, the user chose to keep the connector on for registered users and stop
+testing. This supersedes Revision 6's rule that nobody gets the URL until every test passes. Not run: the hostile-metadata
+test, a second Claude account, Cancel and double taps against the real API, Safari, the hourly expiry and hourly sign-in
+from mobile. `deploy/README.md` lists them, and results are on PR #94.
+
 ## Deviations
 
 - slice 16: the sudo rule has its own file, `/etc/sudoers.d/kopiyka-mcp`, so step 6 can't overwrite it. The post-deploy test list lives in `deploy/README.md`, "Tests before anyone uses it", not only here. The setup and removal steps fetch `main` first and guard the `deploy.sh` install, because the droplet's `main` only moves on a deploy.

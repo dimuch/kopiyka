@@ -50,7 +50,7 @@ describe('GET /oauth/authorize', () => {
     return new URL(href.replaceAll('&amp;', '&'));
   }
 
-  /** The user decides: anyone can register a client, so kopiyka never sends a visitor to one by itself. */
+  /** The user decides: kopiyka never sends a visitor to a client by itself on a bad request. */
   function expectFaultPage(res: { statusCode: number; headers: Record<string, unknown>; body: string }, error: string) {
     expect(res.statusCode).toBe(400);
     expect(res.headers.location).toBeUndefined();
@@ -286,6 +286,8 @@ describe('GET /oauth/authorize', () => {
 
     expect(res.statusCode).toBe(400);
     expect(logs).toContain('"url":"/oauth/authorize"');
+    expect(logs).toContain(`"host":"${HOST}"`);
+    expect(logs).toContain('"remoteAddress"');
     for (const leak of ['a-state', 'secret', 'u%3Ap', 'evil.example', 'made-up', 'client_id']) {
       expect(logs).not.toContain(leak);
     }

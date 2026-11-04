@@ -75,6 +75,10 @@ describe('loadConfig', () => {
       'https://claude.ai:443/cb',
       'https://CLAUDE.ai/cb',
       'https://claude.ai',
+      'https://localhost/cb',
+      'https://localhost:8443/cb',
+      'https://127.0.0.1/cb',
+      'https://[::1]/cb',
       'not a url',
     ])('refuses to start with %s', (value) => {
       expect(() => load(value)).toThrow(/MCP_ALLOWED_REDIRECT_URIS/);

@@ -258,4 +258,12 @@ None found.
 
 ## Consolidate
 
-<filled in /kopiyka-hos Phase 3a: CONSOLIDATE line, each reuse/extract, each LEAVE + reason>
+CONSOLIDATE: reused 1 · extracted 0 · left 3
+
+- REUSE: `storePlanned` serves both `addToMonth` and `editInMonth`, and `sendEdit` went back into the PATCH route once
+  slice 8 left it one caller.
+- LEAVE: the € symbol and amount input in `CategoryForm` against `AmountFields`. Reuse would need four new props, as the
+  plan's Contracts say, for two copies.
+- LEAVE: "Couldn’t save…" in `CategoryForm`, `income-item.tsx` and `members.tsx`. Errors map to text at each screen by
+  convention.
+- LEAVE: the Cancel header in `category-form.tsx` against the other modals. Per-screen by convention, and existing code.

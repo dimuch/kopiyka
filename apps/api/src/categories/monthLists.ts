@@ -173,8 +173,6 @@ export interface CategoryEdit {
   amount?: string;
 }
 
-export type EditResult = 'edited' | 'not_found' | 'name_taken' | OverIncome;
-
 /**
  * Changes a category's name, planned amount or both in a 'YYYY-MM' month only (briefs 036, 037), all or nothing.
  * 'not_found' when it isn't in the month's list (unknown, foreign, deleted, removed, or the month has no budget);
@@ -187,7 +185,7 @@ export async function editInMonth(
   categoryId: number,
   month: string,
   { name, amount }: CategoryEdit,
-): Promise<EditResult> {
+): Promise<'edited' | 'not_found' | 'name_taken' | OverIncome> {
   const first = `${month}-01`;
   return withTransaction(db, async (conn) => {
     await lockLedger(conn, ledgerId);

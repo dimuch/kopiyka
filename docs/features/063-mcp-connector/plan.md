@@ -378,7 +378,7 @@ now());` goes before the session lookup. `apiTokenAuth` looks the hash up live (
   - Tests: 200 JSON; 404 `ledger_not_found` → that code; 500 with an HTML body → `api_error`; the stub never answers
     → `api_unreachable` (fake timers); `forwardedFor` sent as `X-Forwarded-For`; the bearer sent.
   - ~120 lines
-- [ ] 7. Serve /mcp behind the bearer check, with a list_ledgers tool
+- [x] 7. Serve /mcp behind the bearer check, with a list_ledgers tool
   - Files: `apps/mcp/src/mcp/routes.ts`, `apps/mcp/src/mcp/tools.ts`, `apps/mcp/src/app.ts` (Host/Origin `onRequest`
     hook using `validateHostHeader`/`validateOriginHeader`, register the routes), `apps/mcp/test/mcp.test.ts`,
     `apps/mcp/package.json` + `yarn.lock` (add `@modelcontextprotocol/server`)
@@ -732,6 +732,7 @@ I also took these of the skeptic's suggestions:
 
 ## Deviations
 
+- slice 7: the 503 test uses a network failure and a 502 from the stub rather than a hung API, since slice 6 already proves a hang becomes the same `ApiError`. The `aud` check sits in `verifyAccessToken`, before the API call, not in `expectedResource`. The PRM is written out by hand: the SDK builder wants the full AS metadata, which arrives in 063d.
 - slice 6: `apiClient` takes an optional `timeoutMs`, and the test uses 5 ms instead of fake timers, which can't advance `AbortSignal.timeout` (the repo's idiom). A 2xx that isn't JSON is `ApiError 502 api_error`.
 - slice 1: the migration is `014_api_tokens.sql`, because main took 013 for `known_devices` (brief 064) while this was built.
 - slice 3: `app.ts` calls `apiTokenRoutes(app, deps)` unconditionally and the switch check sits inside it — still one line in `app.ts`, and `ttlMinutes` needs no `!`.

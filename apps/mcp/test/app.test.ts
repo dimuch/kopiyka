@@ -17,7 +17,7 @@ describe('buildApp', () => {
   it('answers an unknown path with the { error } shape', async () => {
     const app = await buildApp({ config, now: () => new Date(), fetch });
 
-    const res = await app.inject({ url: '/nothing-here' });
+    const res = await app.inject({ url: '/nothing-here', headers: { host: 'kopiyka.example' } });
 
     expect(res.statusCode).toBe(404);
     expect(res.json()).toEqual({ error: 'not_found' });

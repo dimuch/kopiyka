@@ -158,18 +158,36 @@ export async function restoreToMonth(
   });
 }
 
+/** Stores a category's planned EUR for a month (first day); the caller has checked the income rule. */
+async function storePlanned(conn: PoolConnection, categoryId: number, first: string, amount: string): Promise<void> {
+  await conn.query(
+    `INSERT INTO category_budgets (category_id, budget_month, planned_eur) VALUES (?, ?, ?)
+     ON DUPLICATE KEY UPDATE planned_eur = ?`,
+    [categoryId, first, amount, amount],
+  );
+}
+
+/** What an edit changes; a field left out stays as it is. `name` is trimmed, `amount` is EUR ('12.50', ≥ 0). */
+export interface CategoryEdit {
+  name?: string;
+  amount?: string;
+}
+
+export type EditResult = 'edited' | 'not_found' | 'name_taken' | OverIncome;
+
 /**
- * Sets a category's planned EUR ('12.50', ≥ 0) for a 'YYYY-MM' month (brief 036). 'not_found', writing nothing, when
- * the category isn't in the month's list (unknown, foreign, deleted, removed, or the month has no budget); the
- * refusal, writing nothing, when the raise would plan the month above its income (brief 060).
+ * Changes a category's name, planned amount or both in a 'YYYY-MM' month only (briefs 036, 037), all or nothing.
+ * 'not_found' when it isn't in the month's list (unknown, foreign, deleted, removed, or the month has no budget);
+ * 'name_taken' when another category there has the name; the refusal when the raise would plan the month above its
+ * income (brief 060).
  */
-export async function setPlanned(
+export async function editInMonth(
   db: Db,
   ledgerId: number,
   categoryId: number,
   month: string,
-  amount: string,
-): Promise<'set' | 'not_found' | OverIncome> {
+  { name, amount }: CategoryEdit,
+): Promise<EditResult> {
   const first = `${month}-01`;
   return withTransaction(db, async (conn) => {
     await lockLedger(conn, ledgerId);
@@ -182,45 +200,24 @@ export async function setPlanned(
     );
     const current = rows[0];
     if (!current) return 'not_found';
-    // Brief 060: from 2026-11 a raise may not leave the month planned above its income.
-    const raise = toCents(amount) - toCents(current.planned_eur);
-    const over = await checkIncome(conn, ledgerId, month, { plannedCents: raise, incomeCents: 0n });
-    if (over) return over;
-    await conn.query(
-      `INSERT INTO category_budgets (category_id, budget_month, planned_eur) VALUES (?, ?, ?)
-       ON DUPLICATE KEY UPDATE planned_eur = ?`,
-      [categoryId, first, amount, amount],
-    );
-    return 'set';
-  });
-}
 
-/**
- * Renames a category in a 'YYYY-MM' month only (brief 037); `name` is already trimmed. 'not_found', writing nothing,
- * when it isn't in the month's list; 'name_taken' when another category there has the name.
- */
-export async function renameInMonth(
-  db: Db,
-  ledgerId: number,
-  categoryId: number,
-  month: string,
-  name: string,
-): Promise<'renamed' | 'not_found' | 'name_taken'> {
-  const first = `${month}-01`;
-  return withTransaction(db, async (conn) => {
-    await lockLedger(conn, ledgerId);
-    const [rows] = await conn.query<RowDataPacket[]>(
-      `SELECT 1 FROM categories c
-        WHERE c.category_id = ? AND c.ledger_id = ? AND c.deleted_at IS NULL AND ${inMonthList('?')}`,
-      [categoryId, ledgerId, first],
-    );
-    if (!rows.length) return 'not_found';
-    if (await nameTaken(conn, ledgerId, first, name, categoryId)) return 'name_taken';
-    await conn.query(
-      'UPDATE category_months SET display_name = ? WHERE category_id = ? AND list_month = ? AND deleted_at IS NULL',
-      [name, categoryId, first],
-    );
-    return 'renamed';
+    // Every check comes before the first write: a normal return commits, so a later refusal would keep that write.
+    if (name !== undefined && (await nameTaken(conn, ledgerId, first, name, categoryId))) return 'name_taken';
+    if (amount !== undefined) {
+      // Brief 060: from 2026-11 a raise may not leave the month planned above its income.
+      const raise = toCents(amount) - toCents(current.planned_eur);
+      const over = await checkIncome(conn, ledgerId, month, { plannedCents: raise, incomeCents: 0n });
+      if (over) return over;
+    }
+
+    if (name !== undefined) {
+      await conn.query(
+        'UPDATE category_months SET display_name = ? WHERE category_id = ? AND list_month = ? AND deleted_at IS NULL',
+        [name, categoryId, first],
+      );
+    }
+    if (amount !== undefined) await storePlanned(conn, categoryId, first, amount);
+    return 'edited';
   });
 }
 

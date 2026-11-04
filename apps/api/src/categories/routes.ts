@@ -1,4 +1,4 @@
-import type { FastifyInstance } from 'fastify';
+import type { FastifyInstance, FastifyReply } from 'fastify';
 import type { RowDataPacket } from 'mysql2/promise';
 import { z } from 'zod';
 import type { AppDeps } from '../app.js';
@@ -8,12 +8,12 @@ import { AMOUNT_RE } from '../money.js';
 import {
   addToMonth,
   copyPreviousMonth,
+  editInMonth,
+  type EditResult,
   inMonthList,
   NAME_IN_MONTH,
   removeFromMonth,
-  renameInMonth,
   restoreToMonth,
-  setPlanned,
 } from './monthLists.js';
 
 export const QUICK_CATEGORY_COUNT = 5;
@@ -60,6 +60,14 @@ function toDto(r: RowDataPacket): CategoryDto {
     sortOrder: r.sort_order,
     plannedEur: r.planned_eur,
   };
+}
+
+/** The reply to an edit of a category in a month. */
+function sendEdit(reply: FastifyReply, result: EditResult): FastifyReply {
+  if (result === 'not_found') return reply.code(404).send({ error: 'not_found' });
+  if (result === 'name_taken') return reply.code(400).send({ error: 'name_taken' });
+  if (result !== 'edited') return reply.code(409).send(overIncomeError(result));
+  return reply.code(204).send();
 }
 
 /**
@@ -172,10 +180,7 @@ export async function categoryRoutes(app: FastifyInstance, { db, now }: AppDeps)
     const { categoryId, month } = MonthParams.parse(req.params);
     const { amount } = PlannedBody.parse(req.body);
     if (monthEnded(month, now())) return reply.code(409).send({ error: 'month_ended' });
-    const result = await setPlanned(db, req.ledger!.ledgerId, categoryId, month, amount);
-    if (result === 'not_found') return reply.code(404).send({ error: 'not_found' });
-    if (result !== 'set') return reply.code(409).send(overIncomeError(result));
-    return reply.code(204).send();
+    return sendEdit(reply, await editInMonth(db, req.ledger!.ledgerId, categoryId, month, { amount }));
   });
 
   // Brief 037. An ended month is read-only, so it's refused before anything is read.
@@ -183,10 +188,7 @@ export async function categoryRoutes(app: FastifyInstance, { db, now }: AppDeps)
     const { categoryId, month } = MonthParams.parse(req.params);
     const { name } = NameBody.parse(req.body);
     if (monthEnded(month, now())) return reply.code(409).send({ error: 'month_ended' });
-    const result = await renameInMonth(db, req.ledger!.ledgerId, categoryId, month, name);
-    if (result === 'not_found') return reply.code(404).send({ error: 'not_found' });
-    if (result === 'name_taken') return reply.code(400).send({ error: 'name_taken' });
-    return reply.code(204).send();
+    return sendEdit(reply, await editInMonth(db, req.ledger!.ledgerId, categoryId, month, { name }));
   });
 
   // Brief 033: sets up a month with no budget from the month before it.

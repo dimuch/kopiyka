@@ -104,7 +104,7 @@ the field the user didn't touch.
 
 Estimates are lines added/deleted, tests included. Total: about +530/−530, net about 0.
 
-- [ ] 1. Merge renaming and planning into one transaction (+50/−70)
+- [x] 1. Merge renaming and planning into one transaction (+50/−70)
   - Files: `apps/api/src/categories/monthLists.ts`, `apps/api/src/categories/routes.ts`
   - Change: replace `setPlanned` and `renameInMonth` with `editInMonth` and `storePlanned`. Lock, read the row with its
     planned amount, then all checks, then the writes. `/planned` and `/name` call it with one field and share the same

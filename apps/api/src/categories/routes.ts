@@ -4,7 +4,7 @@ import { z } from 'zod';
 import type { AppDeps } from '../app.js';
 import { MONTH_RE, monthEnded, nextMonthStart } from '../dates.js';
 import { overIncomeError } from '../income/limit.js';
-import { AMOUNT_RE } from '../money.js';
+import { AMOUNT_RE, centsToString, toCents } from '../money.js';
 import {
   addToMonth,
   copyPreviousMonth,
@@ -50,7 +50,9 @@ const MonthParams = CategoryParams.extend(Month.shape);
 // 1–40 characters after trimming (brief 037).
 const NameBody = z.object({ name: z.string().trim().min(1).max(40) });
 // Money crosses the wire as decimal strings; €0 is a plan.
-const PlannedBody = z.object({ amount: z.string().regex(AMOUNT_RE, 'expected an amount ≥ 0, 2 decimals at most') });
+const Amount = z.string().regex(AMOUNT_RE, 'expected an amount ≥ 0, 2 decimals at most');
+const PlannedBody = z.object({ amount: Amount });
+const AddBody = NameBody.extend({ amount: Amount.default('0') });
 
 function toDto(r: RowDataPacket): CategoryDto {
   return {
@@ -202,11 +204,12 @@ export async function categoryRoutes(app: FastifyInstance, { db, now }: AppDeps)
   // Brief 038. An ended month is read-only, so it's refused before anything is read.
   app.post('/api/ledgers/:id/months/:month/categories', guards, async (req, reply) => {
     const { month } = Month.parse(req.params);
-    const { name } = NameBody.parse(req.body);
+    const { name, amount } = AddBody.parse(req.body);
     if (monthEnded(month, now())) return reply.code(409).send({ error: 'month_ended' });
-    const added = await addToMonth(db, req.ledger!.ledgerId, month, name);
+    const added = await addToMonth(db, req.ledger!.ledgerId, month, name, amount);
     if (added === 'name_taken') return reply.code(400).send({ error: 'name_taken' });
-    const dto: CategoryDto = { ...added, displayName: name, plannedEur: '0.00' };
+    if ('overCents' in added) return reply.code(409).send(overIncomeError(added));
+    const dto: CategoryDto = { ...added, displayName: name, plannedEur: centsToString(toCents(amount)) };
     return reply.code(201).send(dto);
   });
 }

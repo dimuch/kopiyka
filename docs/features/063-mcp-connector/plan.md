@@ -704,6 +704,7 @@ No text in the brief tried to change this process.
 
 ## Follow-ups
 
+- 063c, slice 8: test `onerror` (with `logStream`) and the `preClose` `handler.close()` (with the real listen). Both were added in 063b's review, and neither can be tested until slice 8's tools exist. Also decide whether `responseMode: 'json'` stays: it changes nothing today and warns on every start.
 - Support CIMD (`client_id_metadata_document_supported`), with an allowlist of client hosts, once Claude or the spec
   drops DCR.
 - Proposal: add an `apps/mcp` row group to conventions §2 (route modules, `seal.ts`, `limits.ts`, the boundary rule).

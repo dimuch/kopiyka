@@ -1,6 +1,6 @@
 import { createHash } from 'node:crypto';
 import type { FastifyInstance } from 'fastify';
-import { HOST, LISTED_REDIRECTS } from './helpers.js';
+import { HOST, LISTED_REDIRECTS, PUBLIC_URL } from './helpers.js';
 
 export const CALLBACK = LISTED_REDIRECTS[0]!;
 export const VERIFIER = 'a-verifier-long-enough-to-pass-the-rules-of-pkce';
@@ -38,6 +38,7 @@ export async function startSignIn(app: FastifyInstance, clientId: string): Promi
       code_challenge: CHALLENGE,
       code_challenge_method: 'S256',
       state: 'xyz',
+      resource: `${PUBLIC_URL}/mcp`,
     },
   });
   return hidden(res.body, 'request');

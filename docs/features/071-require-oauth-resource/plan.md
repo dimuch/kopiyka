@@ -92,7 +92,7 @@ Filled in by slice 2, before any refusal is built.
 - [x] 2. Record what Claude sends on a real Connect
   - Files: this plan. Change: fill in the table, tick the row that applies, set PR B's final slices in a `## Revision` note.
   - Verify: `yarn format:check`. Yes, no and counts only: no URL, no value.
-- [ ] 3. Refuse a sign-in with no `resource`
+- [x] 3. Refuse a sign-in with no `resource`
   - Files: `apps/mcp/src/oauth/authorize.ts`, `apps/mcp/test/oauthFlow.ts`, `apps/mcp/test/authorize.test.ts`
   - Change: `if (query.resource !== resource) return 'invalid_request';`, with a why comment. `startSignIn` sends
     `` resource: `${PUBLIC_URL}/mcp` ``. Only those two test files change: checked in a scratch copy, which left 1 failure of

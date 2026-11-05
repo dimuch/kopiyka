@@ -48,7 +48,7 @@ nginx limits per client address on `location /api/`, reusing the connector's app
 
 ## Out of scope
 
-- Changing the API's login throttle, its 24-hour lock, or pruning `login_throttle`: that's brief 071.
+- Changing the API's login throttle, its 24-hour lock, or pruning `login_throttle`: that's brief 072.
 - Limits inside Node, such as `@fastify/rate-limit`. nginx refuses earlier and cheaper, and the app has one entry point.
 - Per-user limits. nginx sees addresses, not users.
 - Network-level DDoS, as in brief 063.

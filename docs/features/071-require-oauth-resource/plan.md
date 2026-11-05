@@ -74,11 +74,11 @@ mean any value sent was kopiyka's own.
 
 Filled in by slice 2, before any refusal is built.
 
-| Question                                      | Answer  |
-| --------------------------------------------- | ------- |
-| `resource` in the address bar on `/authorize` | not yet |
-| `resourcePresent` counts on `/oauth/token`    | not yet |
-| The Connect ended in "Connected"              | not yet |
+| Question                                      | Answer              |
+| --------------------------------------------- | ------------------- |
+| `resource` in the address bar on `/authorize` | yes, kopiyka's own  |
+| `resourcePresent` counts on `/oauth/token`    | `true` 1, `false` 0 |
+| The Connect ended in "Connected"              | yes                 |
 
 | What step 1 showed                                     | What PR B does                                                 |
 | ------------------------------------------------------ | -------------------------------------------------------------- |
@@ -89,7 +89,7 @@ Filled in by slice 2, before any refusal is built.
 
 ### PR B: the refusal (~60 lines, about half of them PR A's log coming out)
 
-- [ ] 2. Record what Claude sends on a real Connect
+- [x] 2. Record what Claude sends on a real Connect
   - Files: this plan. Change: fill in the table, tick the row that applies, set PR B's final slices in a `## Revision` note.
   - Verify: `yarn format:check`. Yes, no and counts only: no URL, no value.
 - [ ] 3. Refuse a sign-in with no `resource`
@@ -194,3 +194,9 @@ None new. The stranger's sign-in service is already a follow-up in plan 068.
 From the skeptic's approval, all five suggestions taken: a recount before PR B merges, the one-PR departure named, the first
 commit reworded, 4a and 4b pointing to the expression (slice 1 moves the line), and 4a's test proving the code isn't used up.
 Added the real-account question for Gate A, so step 2 no longer settles it.
+
+## Revision 2
+
+Step 1's answers came from one Connect on 5 November 2026, from the desktop app through Chrome, on the owner's account. The first
+try left no log line because it ran before the Deploy restarted `kopiyka-mcp`, so it was repeated. Address bar yes, every line
+`true`, Connected: PR B's final slices are 3, **4a**, 5 and 6.

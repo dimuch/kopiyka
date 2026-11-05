@@ -112,7 +112,7 @@ Filled in by slice 2, before any refusal is built.
     [Why optional is safe](#why-optional-is-safe), and the test "accepts a request with no resource, from a client on an older
     revision" renamed, as "older revision" would no longer be the reason.
   - Tests: that test stays as it is otherwise.
-- [ ] 5. Stop logging the token request's `resource`
+- [x] 5. Stop logging the token request's `resource`
   - Files: `apps/mcp/src/oauth/token.ts`, `apps/mcp/test/token.test.ts`
   - Change: remove slice 1's line and its test. `flow.test.ts`'s list keeps `${PUBLIC_URL}/mcp`: the rule outlives the log.
   - Tests: `yarn test`, and `rg resourcePresent apps` finds nothing.

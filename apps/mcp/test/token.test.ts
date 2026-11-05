@@ -1,4 +1,3 @@
-import { Writable } from 'node:stream';
 import type { FastifyInstance } from 'fastify';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { buildApp } from '../src/app.js';
@@ -126,41 +125,6 @@ describe('POST /oauth/token', () => {
     expect(res.statusCode).toBe(400);
     expect(res.json()).toEqual({ error: 'invalid_grant' });
     expect((await exchange(code)).statusCode).toBe(200);
-  });
-
-  it('logs whether a request carried a resource, and never its value', async () => {
-    let logs = '';
-    await app.close();
-    app = await buildApp({
-      config: { ...config, logLevel: 'info' },
-      now: () => clock,
-      fetch: fakeApi(api).fetch,
-      logStream: new Writable({
-        write(chunk, _encoding, done) {
-          logs += String(chunk);
-          done();
-        },
-      }),
-    });
-    clientId = await registerClient(app);
-
-    await exchange(await getCode(), { resource: 'https://other.example/mcp' });
-    expect(logs).toContain('"resourcePresent":true');
-    expect(logs).not.toContain('"resourcePresent":false');
-
-    await app.inject({
-      method: 'POST',
-      url: '/oauth/token',
-      ...form({
-        grant_type: 'authorization_code',
-        code: await getCode(),
-        redirect_uri: CALLBACK,
-        client_id: clientId,
-        code_verifier: VERIFIER,
-      }),
-    });
-    expect(logs).toContain('"resourcePresent":false');
-    expect(logs).not.toContain('other.example');
   });
 
   describe('a code works once', () => {

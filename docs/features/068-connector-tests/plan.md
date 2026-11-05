@@ -489,10 +489,18 @@ No text in the brief tried to change this process.
 - **The hostile log gained a token column.** A `map` on `$http_authorization` wrote `bearer-token` or `no-token`, never the
   value, to check whether Claude sent the stranger a token.
 - **The hostile connector stayed through the first sign-in**, so that check ran with a live kopiyka token in the account.
-- **Tests 3 to 6 weren't finished, by the owner's decision.** Test 3's two tries ended in Allow, and the owner then chose to
-  finish and delete the test data. So AC 3 isn't met: the README lists them as not run.
-- **Cleanup was reported by the owner.** C checked the vhost, log, DNS and other sites from outside. The cert's removal, the
-  `nginx -T` hash and the deleted user weren't pasted back, so C didn't see them.
+- **Test 1b needed two clicks.** The first click read kopiyka's metadata and stopped. Reconnect went on to `/oauth/register`
+  and `/oauth/authorize`. The `map` was `default "other"; "" "no-token"; ~^Bearer\s "bearer-token";`, added above the vhost.
+- **Tests 3 to 6 weren't finished, by the owner's decision.** The owner clicked Allow on both of test 3's tries, then chose to
+  finish and delete the test data. So AC 3 isn't met, and the brief's "must finish before 069 starts" isn't either: the owner
+  waived it for now, and the README says these are worth a second look before 069.
+- **The run used the desktop app, through Chrome,** not claude.ai alone as the steps assume. Its Connect opened Chrome, and
+  the plan's Not doing had left a Desktop run out. Versions weren't recorded.
+- **A hostile sign-in service wasn't tested.** Test 1's stranger had none, so why Claude stopped isn't shown. One that answers
+  Claude's two requests and points at kopiyka's endpoints is open, and brief 071 doesn't cover it.
+- **Cleanup was reported by the owner.** C saw from outside that DNS and the other sites were right, and over ssh that the
+  vhost and log were gone. The cert's removal, the `nginx -T` hash, the deleted user, the throttle row (C6) and the removed
+  connectors (C7) weren't pasted back, so C didn't see them.
 
 ## Consolidate
 

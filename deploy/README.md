@@ -521,22 +521,28 @@ production.
 
 Results of 5 November 2026 (brief 068), on a Claude Max account, connecting from the desktop app through Chrome:
 
-- **Hostile metadata, `resource` naming kopiyka:** passed. Claude read the metadata and made no request to kopiyka. It looked
-  for a sign-in service on the stranger's address and stopped with "Couldn't register with … sign-in service".
-- **Hostile metadata, `resource` naming the stranger (added during the run):** Claude doesn't stop this one. It read kopiyka's
+- **Hostile metadata, `resource` naming kopiyka:** passed as set up. Claude read the metadata and made no request to kopiyka.
+  It looked for a sign-in service on the stranger's address and stopped with "Couldn't register with … sign-in service". Why
+  isn't shown: that address had no sign-in service. **Not tested:** one that answers those requests and points at kopiyka's
+  endpoints. If Claude accepted that, every kopiyka check would pass and the real sign-in page would open, and brief 071
+  wouldn't change it.
+- **Hostile metadata, `resource` naming the stranger (added during the run):** Claude didn't stop this one. It read kopiyka's
   metadata, registered at `/oauth/register`, and opened `/oauth/authorize` with the stranger's `resource`. Kopiyka refused it
-  with "Kopiyka can't continue", so the sign-in page never opened. Kopiyka's `resource` check is the only guard here, and a
-  request with no `resource` still passes it: brief 071 makes it required, before any write tool.
+  with "Kopiyka can't continue", so the sign-in page never opened. Kopiyka's `resource` check is what stopped it, and a request
+  with no `resource` still passes that check: brief 071 makes it required, before any write tool.
 - **A token sent to the stranger:** none seen. With a live kopiyka token in the same account, a Reconnect sent the stranger's
   server no token, and asking for the connector in a chat didn't reach it. Two `Claude-User` calls came earlier, before the
-  header was logged, so those two are unknown. They didn't come back.
-- **A normal connection:** worked twice, as `claude-qa-mcp`, with no `code=` left in the address bar.
+  header was logged, so those two are unknown; the log shows no later ones. The stranger's connector never held a token of
+  its own, so this doesn't cover that case.
+- **A normal connection:** `claude-qa-mcp` signed in and allowed, and Claude showed "Connected" with no `code=` in the address
+  bar. Nobody asked it a question through the connector.
 
-Not run, by the owner's decision on 5 November, so these are open if the connector's use grows or Claude changes:
+Not run, by the owner's decision on 5 November. The owner stopped here knowing brief 068 wanted them done before write
+tools, so these are open, and worth a second look before brief 069:
 
 - A second Claude account in the two-browser test: the owner has one. It needs browser B signed in to that account (063
   plan, slice 14).
-- Cancel against the real API: both tries ended in Allow, so it's unconfirmed.
+- Cancel against the real API: the owner clicked Allow on both tries, so Cancel never ran.
 - Double taps, Safari, the hourly expiry, and hourly sign-in from mobile.
 
 To repeat the hostile tests, for example if Claude changes how it adds connectors, follow

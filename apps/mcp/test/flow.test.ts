@@ -117,7 +117,18 @@ describe('the whole connection', () => {
 
     expect(toolData(rpcResult(summary)).totals.planned).toEqual({ amount: '1250.00', formatted: '€1,250.00' });
     expect(logs).toContain('"url":"/oauth/token"');
-    for (const secret of [TOTP_CODE, SESSION, API_TOKEN, code, accessToken, clientId, VERIFIER, 'a-state-value']) {
+    const secrets = [
+      TOTP_CODE,
+      SESSION,
+      API_TOKEN,
+      code,
+      accessToken,
+      clientId,
+      VERIFIER,
+      'a-state-value',
+      `${PUBLIC_URL}/mcp`,
+    ];
+    for (const secret of secrets) {
       expect(logs).not.toContain(secret);
     }
     for (const amount of ['1250.00', '1,250.00', '30.50']) expect(logs).not.toContain(amount);

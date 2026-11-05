@@ -42,6 +42,9 @@ export async function tokenRoutes(app: FastifyInstance, { config, now, limits }:
     }
     const form = TokenForm.safeParse(req.body);
     if (!form.success) return reply.code(400).send({ error: 'invalid_request' });
+    // Brief 071, step 1: whether Claude sends `resource` here decides if it can be required. Presence only, and it goes
+    // when that's settled.
+    req.log.info({ resourcePresent: form.data.resource !== undefined }, 'token request');
 
     const at = now();
     const { code: sealed, redirect_uri: redirectUri, client_id: clientId, code_verifier: verifier } = form.data;

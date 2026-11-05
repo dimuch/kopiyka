@@ -149,7 +149,7 @@ to Node.
       tap Retry: the month loads.
   - ~90 lines
 
-- [ ] 2. Limit the app's API in nginx, answering with a JSON 429
+- [x] 2. Limit the app's API in nginx, answering with a JSON 429
   - Files: `deploy/kopiyka.englishplus.com.ua.conf`
   - Change: the Contracts' blocks, and the comment above the connector's map now says login reuses it. Comments say why:
     `error_page` stays in the location, the API's `blocked` passes through, and `default_type` rather than `add_header`.

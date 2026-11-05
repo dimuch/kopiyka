@@ -157,7 +157,7 @@ to Node.
   - Tests: no nginx locally. Read the diff against the Contracts; `nginx -t` runs on the droplet in the rollout.
   - ~25 lines
 
-- [ ] 3. Document the API limits and the vhost's backup step
+- [x] 3. Document the API limits and the vhost's backup step
   - Files: `deploy/README.md`
   - Change:
     - "After changing the vhost" gets the backup before the install and the restore on failure. Connector step 5 now

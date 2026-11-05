@@ -280,9 +280,11 @@ only. Turning sync back on (both lines back, restart the API) needs a sync to `u
 ## After changing the vhost
 
 Step 8's install without certbot, then a check that every kind of answer carries the security headers and no nginx
-version (`Server: nginx` only):
+version (`Server: nginx` only). nginx is shared, and a bad file left in place would stop every site at the next restart,
+so a copy goes outside `sites-enabled` first:
 
 ```bash
+sudo cp /etc/nginx/sites-available/kopiyka.englishplus.com.ua.conf /root/kopiyka.conf.bak
 sudo -u kopiyka git -C /opt/kopiyka/repo.git fetch -q origin +refs/heads/main:refs/heads/main
 sudo -u kopiyka git -C /opt/kopiyka/repo.git show main:deploy/kopiyka.englishplus.com.ua.conf |
   sudo tee /etc/nginx/sites-available/kopiyka.englishplus.com.ua.conf >/dev/null
@@ -299,6 +301,103 @@ done
 Each path shows the six security headers. `/`, `/index.html` and `/budget` show `Cache-Control: no-cache`, the bundle
 `…, immutable`, and `/api/health` none. `/oauth/authorize` shows **two** `content-security-policy` lines, nginx's and the
 page's own, which is expected: browsers enforce both.
+
+If `nginx -t` fails, restore the copy straight away:
+
+```bash
+sudo cp /root/kopiyka.conf.bak /etc/nginx/sites-available/kopiyka.englishplus.com.ua.conf && sudo nginx -t
+```
+
+If the new file went live and misbehaves, run the same line, then `sudo systemctl reload nginx`.
+
+## API limits
+
+nginx limits the app's `/api/` per address (brief 067), so a flood stops before Node and the database. Each refusal is a
+429 with the body `{"error":"rate_limited"}` and the security headers.
+
+| Limit                  | Rate       | Burst | Why                                                      |
+| ---------------------- | ---------- | ----: | -------------------------------------------------------- |
+| All of `/api/`         | 300 a min  |   100 | A normal session is about 42 requests, counted from code |
+| `POST /api/auth/login` | 20 a min   |    10 | Two people's typos fit; the API's lockout comes first    |
+| Requests in flight     | 30 at once |     — | One person peaks at 6, at launch                         |
+
+Two people on one address fit: both doing that session inside a minute is 84 requests. `/api/health` is inside the limit,
+but `deploy.sh` goes straight to 127.0.0.1, as does `apps/mcp`, so neither is limited. The API's own 429 (`blocked`, after
+five wrong codes) passes through unchanged.
+
+### Rollout
+
+The app must be live before nginx sends the new 429, so keep this order:
+
+1. Merge, then run the Deploy workflow.
+2. Confirm the live bundle has the new text. With `site` and `bundle` set as in "After changing the vhost", this must
+   print 1 or more:
+
+   ```bash
+   curl -s "$site$bundle" | grep -c 'Wait a minute'
+   ```
+
+3. On the droplet, check that nothing turns this limit into something worse. The first line must print nothing: otherwise
+   nginx would catch the API's `blocked`. The other two must show no nginx jail, which would turn a refusal into a ban on
+   every site. If either fails, stop and decide.
+
+   ```bash
+   sudo nginx -T 2>/dev/null | grep -n proxy_intercept_errors
+   sudo fail2ban-client status
+   sudo grep -lE 'nginx-(limit-req|forbidden)|nginx/error' /etc/fail2ban/jail.local /etc/fail2ban/jail.d/* 2>/dev/null
+   ```
+
+4. Follow "After changing the vhost".
+5. Run the checks below.
+
+An iPhone build reads the 429 the same way, but it shows "Can't reach the server" at the limit until it's rebuilt:
+`deploy.sh` doesn't ship it.
+
+### Checks after rollout
+
+From the laptop:
+
+```bash
+site=https://kopiyka.englishplus.com.ua
+body='{"username":"limit-check"}'   # no code, on purpose: see below
+for i in $(seq 30); do
+  curl -s -o /dev/null -w '%{http_code}\n' -X POST -H 'content-type: application/json' -d "$body" $site/api/auth/login
+done | sort | uniq -c    # → about 12 × 400, the rest 429
+curl -si -X POST -H 'content-type: application/json' -d "$body" $site/api/auth/login
+# → 429, content-type: application/json, the six security headers, {"error":"rate_limited"}. If it's a 400, run it again.
+```
+
+If every answer is 400, the reload didn't apply: look for `[emerg]` in `/var/log/nginx/error.log`, and don't go on.
+
+**Never hammer with a well-formed wrong code.** The burst lets 11 reach the API, and five failures lock the laptop's
+address for 24 hours, for every account. With no `code`, the API answers 400 before its throttle. And `curl -sI` won't
+do for the 429's headers: it's a HEAD, which the login limit doesn't count.
+
+On the droplet, this must equal the number of 400s you saw, not the total sent. If it prints 0, the API's request log is
+off, and the `rate_limited` body is the proof instead: only nginx sends that code.
+
+```bash
+sudo journalctl -u kopiyka --since '2 minutes ago' | grep -c '"url":"/api/auth/login"'
+```
+
+In a browser, wait a minute, then sign in, walk all six tabs and switch the month twice on Budget, Expenses and Income,
+with the network panel open. There should be no 429 and about 42 requests. Then, on the droplet, this must print 0:
+
+```bash
+sudo tail -n 300 /var/log/nginx/access.log | grep '/api/[^"]*" 429 ' | grep -vc 'POST /api/auth/login'
+```
+
+At the next deploy, poll `/api/health` from the laptop once a second. It may give 502s during the restart, but no 429.
+
+### If real use meets a limit
+
+```bash
+sudo grep 'limiting ' /var/log/nginx/error.log | tail
+```
+
+Each line names the zone: `kopiyka_api`, `kopiyka_login` or `kopiyka_api_conn`. Raise `burst` first for short spikes, and
+`rate` for steady use, then install the vhost again. Keep the zones' names and keys: a reload refuses a changed key, and
+`nginx -t` doesn't catch it. A new `rate` or `burst` is fine.
 
 ## MCP connector
 
@@ -369,15 +468,7 @@ step 4 enables it, and none of this turns it on: add `MCP_ENABLED=true` to `api.
 
    It must print `ok`. If not, `journalctl -u kopiyka-mcp` says why: usually `mcp.env`.
 
-5. **vhost.** nginx is shared, and a bad file left in place would stop every site at the next restart, so keep a copy
-   outside `sites-enabled` first:
-
-   ```bash
-   sudo cp /etc/nginx/sites-available/kopiyka.englishplus.com.ua.conf /root/kopiyka.conf.bak
-   ```
-
-   Then follow "After changing the vhost", above. If `nginx -t` fails, restore the copy straight away:
-   `sudo cp /root/kopiyka.conf.bak /etc/nginx/sites-available/kopiyka.englishplus.com.ua.conf && sudo nginx -t`.
+5. **vhost.** Follow "After changing the vhost", above, which keeps a copy of the file first.
 
 ### Checks after setup
 

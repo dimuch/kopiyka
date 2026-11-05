@@ -386,7 +386,7 @@ If every answer is 400, the reload didn't apply, though the file on disk passes 
 address for 24 hours, for every account. With no `code`, the API answers 400 before its throttle. And `curl -sI` won't
 do for the 429's headers: it's a HEAD, which the login limit doesn't count.
 
-On the droplet, this must equal the number of 400s you saw, not the total sent. If it prints 0, the API's request log is
+On the droplet, this must equal the number of 400s you saw, plus any real sign-ins, not the total sent. If it prints 0, the API's request log is
 off, and the `rate_limited` body is the proof instead: only nginx sends that code.
 
 ```bash
@@ -401,6 +401,9 @@ from before the walk: the log keeps old lines.
 ```bash
 sudo grep -c 'zone "kopiyka_api' /var/log/nginx/error.log
 ```
+
+To be sure that 0 means something, `sudo grep -c 'zone "kopiyka_login"' /var/log/nginx/error.log` must print more than 0
+after the login check: it shows refusals reach this log.
 
 At the next deploy, poll `/api/health` from the laptop once a second. It may give 502s during the restart, but no 429.
 

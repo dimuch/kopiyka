@@ -55,7 +55,7 @@ export async function tokenRoutes(app: FastifyInstance, { config, now, limits }:
       !used.has(code.jti) &&
       code.redirectUri === redirectUri &&
       code.clientIdHash === hashClientId(clientId) &&
-      (form.data.resource === undefined || form.data.resource === resource) &&
+      form.data.resource === resource &&
       code.codeChallenge === createHash('sha256').update(verifier).digest('base64url');
     if (!valid) return reply.code(400).send({ error: 'invalid_grant' });
 

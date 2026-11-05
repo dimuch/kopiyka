@@ -99,7 +99,7 @@ Filled in by slice 2, before any refusal is built.
     246, the test below.
   - Tests: `authorize.test.ts:144` keeps its `scope` half, as "accepts a request with no scope". New test next to "needs a
     state", failing before the change: no `resource` → `expectFaultPage(res, 'invalid_request')` and no `name="request"`.
-- [ ] 4a. Refuse a token request with no `resource` (if every line said `true`)
+- [x] 4a. Refuse a token request with no `resource` (if every line said `true`)
   - Files: `apps/mcp/src/oauth/token.ts`, `apps/mcp/test/token.test.ts`
   - Change: in `valid`, `(form.data.resource === undefined || form.data.resource === resource) &&` becomes
     `form.data.resource === resource &&`.

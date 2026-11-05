@@ -141,8 +141,8 @@ describe('GET /oauth/authorize', () => {
       expect(res.statusCode).toBe(200);
     });
 
-    it('accepts a request with no resource or scope, from a client on an older revision', async () => {
-      const res = await authorize({ client_id: await register([CALLBACK]), resource: undefined, scope: undefined });
+    it('accepts a request with no scope', async () => {
+      const res = await authorize({ client_id: await register([CALLBACK]), scope: undefined });
 
       expect(res.statusCode).toBe(200);
     });
@@ -269,6 +269,13 @@ describe('GET /oauth/authorize', () => {
       expect(res.statusCode).toBe(400);
       expect(res.body).not.toContain('name="request"');
       expect(returnLink(res.body).searchParams.get('error')).toBe('invalid_request');
+    });
+
+    it('needs a resource: without one, a stranger’s connector could reach the sign-in page', async () => {
+      const res = await authorize({ client_id: await register([CALLBACK]), resource: undefined });
+
+      expectFaultPage(res, 'invalid_request');
+      expect(res.body).not.toContain('name="request"');
     });
 
     it('needs a state: without one, Claude’s callback leaves the code in the address bar', async () => {

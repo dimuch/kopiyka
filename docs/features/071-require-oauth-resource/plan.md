@@ -82,7 +82,7 @@ Filled in by slice 2, before any refusal is built.
 
 | What step 1 showed                                     | What PR B does                                                 |
 | ------------------------------------------------------ | -------------------------------------------------------------- |
-| Address bar yes, every line `true`, Connected          | Slices 2, 3, **4a**, 5, 6                                      |
+| Address bar yes, every line `true`, Connected (this)   | Slices 2, 3, **4a**, 5, 6                                      |
 | Address bar yes, any line `false`, Connected           | Slices 2, 3, **4b**, 5, 6                                      |
 | Address bar no                                         | Stop. The refusal would break every connection: owner decides. |
 | No log line, sign-in page didn't open, or no Connected | Stop. The answers aren't valid: find out why first.            |
@@ -170,8 +170,7 @@ already past authorize at the deploy, which has at most about 20 minutes left, a
 
 ## Open questions
 
-- Yes, for PR B only — Step 1's answers. Slice 4a or 4b can't be chosen, and slice 3 can't start, until the owner sends them.
-  Nothing blocks PR A.
+- Settled — Step 1's answers. The owner sent them, and Revision 2 chose slice 4a.
 - Settled at Gate A — The two production Connects use the owner's real account, and the second asks a question of it, while
   `deploy/README.md` says to use a throwaway user for a test, never a real account. The orchestrator recommended the owner's
   own account, as a normal Connect, and the owner approved the plan without asking for the throwaway user.

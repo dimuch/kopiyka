@@ -233,6 +233,7 @@ describe('GET /oauth/authorize', () => {
       ['a short challenge', { code_challenge: 'abc' }, 'invalid_request'],
       ['a challenge that isn’t base64url', { code_challenge: `${'x'.repeat(42)}!` }, 'invalid_request'],
       ['another resource', { resource: 'https://other.example/mcp' }, 'invalid_request'],
+      ['an empty resource', { resource: '' }, 'invalid_request'],
       ['a write scope', { scope: 'write' }, 'invalid_scope'],
       ['another response type', { response_type: 'token' }, 'unsupported_response_type'],
     ])('for %s', async (_case, params, error) => {

@@ -13,6 +13,7 @@ const TokenForm = z.object({
   redirect_uri: z.string(),
   client_id: z.string(),
   code_verifier: z.string().max(128),
+  // Required, but by the `valid` check: failing here would answer `invalid_request`, not `invalid_grant`.
   resource: z.string().optional(),
 });
 

@@ -33,8 +33,9 @@ Migrations are forward-only and a rollback runs the previous code on the new sch
 compatible with the release before it.
 
 A deploy never updates the files in this folder on the droplet, `deploy.sh` included: they're root-owned on purpose.
-After changing one, re-run its install line below (step 6 or 8), always with `nginx -t` before a reload. The bare repo's
-`main` only moves on a deploy or an explicit fetch, so fetch first, or the line installs the old file with no error.
+After changing one, re-run its install line below (step 6, or "After changing the vhost"), always with `nginx -t` before
+a reload. The bare repo's `main` only moves on a deploy or an explicit fetch, so fetch first, or the line installs the old
+file with no error.
 
 ## One-time setup
 
@@ -281,15 +282,33 @@ only. Turning sync back on (both lines back, restart the API) needs a sync to `u
 
 Step 8's install without certbot, then a check that every kind of answer carries the security headers and no nginx
 version (`Server: nginx` only). nginx is shared, and a bad file left in place would stop every site at the next restart,
-so a copy goes outside `sites-enabled` first:
+so a copy goes outside `sites-enabled` first. Run this once per change, while the live file is good. Running it again
+later would overwrite the good copy:
 
 ```bash
 sudo cp /etc/nginx/sites-available/kopiyka.englishplus.com.ua.conf /root/kopiyka.conf.bak
+```
+
+Then install:
+
+```bash
 sudo -u kopiyka git -C /opt/kopiyka/repo.git fetch -q origin +refs/heads/main:refs/heads/main
 sudo -u kopiyka git -C /opt/kopiyka/repo.git show main:deploy/kopiyka.englishplus.com.ua.conf |
   sudo tee /etc/nginx/sites-available/kopiyka.englishplus.com.ua.conf >/dev/null
 sudo nginx -t && sudo systemctl reload nginx
+```
 
+If `nginx -t` fails, restore the copy straight away, and don't go on:
+
+```bash
+sudo cp /root/kopiyka.conf.bak /etc/nginx/sites-available/kopiyka.englishplus.com.ua.conf && sudo nginx -t
+```
+
+If the new file went live and misbehaves, run the same line, then `sudo systemctl reload nginx`.
+
+Then check:
+
+```bash
 site=https://kopiyka.englishplus.com.ua
 bundle=$(curl -s "$site/" | grep -o '/_expo/static/[^"]*' | head -1)
 for path in / /index.html /budget "$bundle" /api/health /mcp /oauth/authorize; do
@@ -301,14 +320,6 @@ done
 Each path shows the six security headers. `/`, `/index.html` and `/budget` show `Cache-Control: no-cache`, the bundle
 `…, immutable`, and `/api/health` none. `/oauth/authorize` shows **two** `content-security-policy` lines, nginx's and the
 page's own, which is expected: browsers enforce both.
-
-If `nginx -t` fails, restore the copy straight away:
-
-```bash
-sudo cp /root/kopiyka.conf.bak /etc/nginx/sites-available/kopiyka.englishplus.com.ua.conf && sudo nginx -t
-```
-
-If the new file went live and misbehaves, run the same line, then `sudo systemctl reload nginx`.
 
 ## API limits
 
@@ -330,10 +341,11 @@ five wrong codes) passes through unchanged.
 The app must be live before nginx sends the new 429, so keep this order:
 
 1. Merge, then run the Deploy workflow.
-2. Confirm the live bundle has the new text. With `site` and `bundle` set as in "After changing the vhost", this must
-   print 1 or more:
+2. Confirm the live bundle has the new text. The last line must print 1 or more:
 
    ```bash
+   site=https://kopiyka.englishplus.com.ua
+   bundle=$(curl -s "$site/" | grep -o '/_expo/static/[^"]*' | head -1)
    curl -s "$site$bundle" | grep -c 'Wait a minute'
    ```
 
@@ -364,10 +376,11 @@ for i in $(seq 30); do
   curl -s -o /dev/null -w '%{http_code}\n' -X POST -H 'content-type: application/json' -d "$body" $site/api/auth/login
 done | sort | uniq -c    # → about 12 × 400, the rest 429
 curl -si -X POST -H 'content-type: application/json' -d "$body" $site/api/auth/login
-# → 429, content-type: application/json, the six security headers, {"error":"rate_limited"}. If it's a 400, run it again.
+# → 429, content-type: application/json, the six security headers, {"error":"rate_limited"}. On a 400, run it again.
 ```
 
-If every answer is 400, the reload didn't apply: look for `[emerg]` in `/var/log/nginx/error.log`, and don't go on.
+If every answer is 400, the reload didn't apply, though the file on disk passes `nginx -t`: look for `[emerg]` in
+`/var/log/nginx/error.log`, restore the copy as in "After changing the vhost", and don't go on.
 
 **Never hammer with a well-formed wrong code.** The burst lets 11 reach the API, and five failures lock the laptop's
 address for 24 hours, for every account. With no `code`, the API answers 400 before its throttle. And `curl -sI` won't
@@ -377,14 +390,16 @@ On the droplet, this must equal the number of 400s you saw, not the total sent. 
 off, and the `rate_limited` body is the proof instead: only nginx sends that code.
 
 ```bash
-sudo journalctl -u kopiyka --since '2 minutes ago' | grep -c '"url":"/api/auth/login"'
+sudo journalctl -u kopiyka --since '10 minutes ago' | grep -c '"url":"/api/auth/login"'
 ```
 
-In a browser, wait a minute, then sign in, walk all six tabs and switch the month twice on Budget, Expenses and Income,
-with the network panel open. There should be no 429 and about 42 requests. Then, on the droplet, this must print 0:
+In a browser, wait a minute, then sign in, walk the other five tabs, switch the month twice on Budget, Expenses and
+Income, and go back to Home, with the network panel open. There should be no 429 and about 42 requests. Then, on the
+droplet, this must print 0, because the checks above only reach the login limit. On a later run, compare it with a count
+from before the walk: the log keeps old lines.
 
 ```bash
-sudo tail -n 300 /var/log/nginx/access.log | grep '/api/[^"]*" 429 ' | grep -vc 'POST /api/auth/login'
+sudo grep -c 'zone "kopiyka_api' /var/log/nginx/error.log
 ```
 
 At the next deploy, poll `/api/health` from the laptop once a second. It may give 502s during the restart, but no 429.

@@ -264,4 +264,14 @@ An iPhone build reads the 429 the same way but shows "Can't reach the server" at
 
 ## Deviations
 
+- Rollout 7's check reads `error.log` for the `kopiyka_api` zones, not `access.log`: that log is shared with the other
+  sites, and 300 lines can miss the session. The login hammer stays under the general burst, so it can't trip that zone.
+- Rollout 6 looks back 10 minutes, not 2, so a slow operator doesn't read a 0 as "the log is off".
+- Rollout 5's failure now says to restore the copy, and the README's backup is its own block, run once per change.
+- The vhost comment avoids the word `proxy_intercept_errors`, or Rollout 3's check would match it on every later run.
+
 ## Consolidate
+
+One new function, `loginErrorText`, moved from `login.tsx`. Reused 0, extracted 0, left 1: the other `*Text` helpers
+(`syncErrorText`, `errorText` in `expense.tsx`) map different codes to different words, and the shared "reach the server"
+sentence differs in tense. nginx reuses the connector's POST map and `limit_*_status`.

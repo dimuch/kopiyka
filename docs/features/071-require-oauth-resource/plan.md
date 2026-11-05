@@ -116,7 +116,7 @@ Filled in by slice 2, before any refusal is built.
   - Files: `apps/mcp/src/oauth/token.ts`, `apps/mcp/test/token.test.ts`
   - Change: remove slice 1's line and its test. `flow.test.ts`'s list keeps `${PUBLIC_URL}/mcp`: the rule outlives the log.
   - Tests: `yarn test`, and `rg resourcePresent apps` finds nothing.
-- [ ] 6. Say `resource` is now required in the connector notes
+- [x] 6. Say `resource` is now required in the connector notes
   - Files: `deploy/README.md`, "What's been tested", the second hostile bullet.
   - Change: its last sentence says a request with no `resource` still passes. Say it's refused since brief 071, add step 1's
     answers with the date, and for 4b the reason the token check stays optional. The first bullet stays true.

@@ -109,20 +109,23 @@ describe('POST /oauth/token', () => {
     expect(res.body).not.toContain('isError');
   });
 
-  it('accepts a request with no resource, from a client on an older revision', async () => {
+  it('refuses a request with no resource, without using up the code', async () => {
+    const code = await getCode();
     const res = await app.inject({
       method: 'POST',
       url: '/oauth/token',
       ...form({
         grant_type: 'authorization_code',
-        code: await getCode(),
+        code,
         redirect_uri: CALLBACK,
         client_id: clientId,
         code_verifier: VERIFIER,
       }),
     });
 
-    expect(res.statusCode).toBe(200);
+    expect(res.statusCode).toBe(400);
+    expect(res.json()).toEqual({ error: 'invalid_grant' });
+    expect((await exchange(code)).statusCode).toBe(200);
   });
 
   it('logs whether a request carried a resource, and never its value', async () => {

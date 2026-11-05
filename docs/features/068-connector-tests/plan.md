@@ -32,7 +32,7 @@ it runs once, by hand, under the owner's `sudo`, and a script adds code to revie
 
 The brief and this plan are the branch's first commit, at Gate A, as for every brief.
 
-- [ ] 1. Record the connector's manual test results
+- [x] 1. Record the connector's manual test results
   - Files: `deploy/README.md`, "What's been tested" (~40 lines). The commit comes after the whole run and cleanup, or after
     a stop.
   - Change: keep the 4 November paragraph, the throwaway-user command and the delete SQL. Replace the "Not run" list with
@@ -42,7 +42,7 @@ The brief and this plan are the branch's first commit, at Gate A, as for every b
     say when to: if Claude changes how it adds connectors.
   - Verify: `yarn format:check && yarn lint && yarn typecheck && yarn test`, not piped. Read the diff for private details:
     no IP, no admin username, no full authorize URL, no code or `state`.
-- [ ] 2. Add a brief for each unacceptable result (only if there is one)
+- [x] 2. Add a brief for each unacceptable result (only if there is one)
   - Files: `docs/features/<NNN>-<slug>/brief.md`, ~40 lines each. 069 and 070 are taken, so numbers start at 071.
   - Change: one brief per result the owner won't accept and won't settle with a written decision (which goes in the README
     under slice 1). Each brief says whether it blocks 069.
@@ -483,8 +483,17 @@ No text in the brief tried to change this process.
 
 ## Deviations
 
-<filled by the developer during build>
+- **Test 1b, added during the run with the owner's OK.** Test 1 passed, so the stranger's next move was tried too: the vhost's
+  metadata `resource` changed to `https://mcp-test-068.englishplus.com.ua/mcp`, and a second connector added. Claude followed it
+  to kopiyka, and kopiyka's `resource` check refused it. That result is what brief 071 comes from.
+- **The hostile log gained a token column.** A `map` on `$http_authorization` wrote `bearer-token` or `no-token`, never the
+  value, to check whether Claude sent the stranger a token.
+- **The hostile connector stayed through the first sign-in**, so that check ran with a live kopiyka token in the account.
+- **Tests 3 to 6 weren't finished, by the owner's decision.** Test 3's two tries ended in Allow, and the owner then chose to
+  finish and delete the test data. So AC 3 isn't met: the README lists them as not run.
+- **Cleanup was reported by the owner.** C checked the vhost, log, DNS and other sites from outside. The cert's removal, the
+  `nginx -T` hash and the deleted user weren't pasted back, so C didn't see them.
 
 ## Consolidate
 
-<filled in /kopiyka-hos Phase 3a: CONSOLIDATE line, each reuse/extract, each LEAVE + reason>
+Skipped: docs only, no new function, hook, component, route or query.

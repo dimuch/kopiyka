@@ -519,14 +519,28 @@ Results of 4 November 2026 are on PR #94. The two-browser test passed: a sign-in
 logged in or logged out, and Claude refused the code and never called `/oauth/token`. A normal connection worked on
 production.
 
-Not run, by the owner's decision, so these are open if the connector's use grows or Claude changes:
+Results of 5 November 2026 (brief 068), on a Claude Max account, connecting from the desktop app through Chrome:
 
-- **Hostile metadata:** a stranger's connector that names kopiyka as its `resource`. Claude's docs say the value must equal
-  the connector's URL, but that isn't confirmed. To test, add a connector at another `https` address that answers `401` and
-  names kopiyka as both its `resource` and its authorization server: Claude must refuse it. If kopiyka's sign-in page opens,
-  don't sign in, and turn the connector off.
-- A second Claude account in the two-browser test.
-- Cancel and double taps against the real API, Safari, the hourly expiry, and hourly sign-in from mobile.
+- **Hostile metadata, `resource` naming kopiyka:** passed. Claude read the metadata and made no request to kopiyka. It looked
+  for a sign-in service on the stranger's address and stopped with "Couldn't register with … sign-in service".
+- **Hostile metadata, `resource` naming the stranger (added during the run):** Claude doesn't stop this one. It read kopiyka's
+  metadata, registered at `/oauth/register`, and opened `/oauth/authorize` with the stranger's `resource`. Kopiyka refused it
+  with "Kopiyka can't continue", so the sign-in page never opened. Kopiyka's `resource` check is the only guard here, and a
+  request with no `resource` still passes it: brief 071 makes it required, before any write tool.
+- **A token sent to the stranger:** none seen. With a live kopiyka token in the same account, a Reconnect sent the stranger's
+  server no token, and asking for the connector in a chat didn't reach it. Two `Claude-User` calls came earlier, before the
+  header was logged, so those two are unknown. They didn't come back.
+- **A normal connection:** worked twice, as `claude-qa-mcp`, with no `code=` left in the address bar.
+
+Not run, by the owner's decision on 5 November, so these are open if the connector's use grows or Claude changes:
+
+- A second Claude account in the two-browser test: the owner has one. It needs browser B signed in to that account (063
+  plan, slice 14).
+- Cancel against the real API: both tries ended in Allow, so it's unconfirmed.
+- Double taps, Safari, the hourly expiry, and hourly sign-in from mobile.
+
+To repeat the hostile tests, for example if Claude changes how it adds connectors, follow
+`docs/features/068-connector-tests/plan.md`, with its Deviations for the second one.
 
 For a test, use a throwaway user, never a real account: first-deploy step 10's command with `--username claude-qa-mcp --email
 claude-qa-mcp@example.com --ledger "QA"`. Delete it afterwards, ledger first, in `sudo mysql kopiyka`:

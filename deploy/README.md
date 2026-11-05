@@ -528,8 +528,9 @@ Results of 5 November 2026 (brief 068), on a Claude Max account, connecting from
   page would open, and brief 071 wouldn't change it.
 - **Hostile metadata, `resource` naming the stranger (added during the run):** Claude didn't stop this one. It read kopiyka's
   metadata, registered at `/oauth/register`, and opened `/oauth/authorize` with the stranger's `resource`. Kopiyka refused it
-  with "Kopiyka can't continue", so the sign-in page never opened. Kopiyka's `resource` check is what stopped it, and a request
-  with no `resource` still passes that check: brief 071 makes it required, before any write tool.
+  with "Kopiyka can't continue", so the sign-in page never opened. Kopiyka's `resource` check is what stopped it. Since brief
+  071 a request with no `resource` is refused too, on `/oauth/authorize` and `/oauth/token`: on one real Connect on 5
+  November, Claude sent kopiyka's own `resource` on both.
 - **A token sent to the stranger:** none seen. With a live kopiyka token in the same account, a Reconnect sent the stranger's
   server no token, and asking for the connector in a chat didn't reach it. Two `Claude-User` calls came earlier, before the
   header was logged, so those two are unknown; the log shows no later ones. The stranger's connector never held a token of

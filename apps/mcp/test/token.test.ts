@@ -171,6 +171,7 @@ describe('POST /oauth/token', () => {
     ['a redirect URI one character off', { redirect_uri: `${CALLBACK}/` }],
     ['another client', { client_id: 'another-client' }],
     ['another resource', { resource: 'https://other.example/mcp' }],
+    ['an empty resource', { resource: '' }],
   ])('refuses %s', async (_case, fields) => {
     const res = await exchange(await getCode(), fields);
 

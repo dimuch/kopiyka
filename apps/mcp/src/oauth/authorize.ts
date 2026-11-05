@@ -18,6 +18,7 @@ const AuthorizeQuery = z.object({
   // A stranger picks this value, and it reaches Claude's callback, whose page must stay the one that clears the code.
   state: z.string().max(1024).optional(),
   scope: z.string().optional(),
+  // Required, but by `requestFault`: failing here would show the page with no link back.
   resource: z.string().optional(),
 });
 type AuthorizeQuery = z.infer<typeof AuthorizeQuery>;

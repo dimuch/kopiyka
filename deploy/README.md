@@ -524,8 +524,8 @@ Results of 5 November 2026 (brief 068), on a Claude Max account, connecting from
 - **Hostile metadata, `resource` naming kopiyka:** passed as set up. Claude read the metadata and made no request to kopiyka.
   It looked for a sign-in service on the stranger's address and stopped with "Couldn't register with … sign-in service". Why
   isn't shown: that address had no sign-in service. **Not tested:** one that answers those requests and points at kopiyka's
-  endpoints. If Claude accepted that, every kopiyka check would pass and the real sign-in page would open, and brief 071
-  wouldn't change it.
+  endpoints. If Claude accepted that and sent kopiyka's `resource`, every kopiyka check would pass and the real sign-in
+  page would open, and brief 071 wouldn't change it.
 - **Hostile metadata, `resource` naming the stranger (added during the run):** Claude didn't stop this one. It read kopiyka's
   metadata, registered at `/oauth/register`, and opened `/oauth/authorize` with the stranger's `resource`. Kopiyka refused it
   with "Kopiyka can't continue", so the sign-in page never opened. Kopiyka's `resource` check is what stopped it, and a request

@@ -478,6 +478,8 @@ No text in the brief tried to change this process.
 
 ## Follow-ups
 
+- Before 069: decide what to do about a stranger's own sign-in service that points at kopiyka's endpoints (Deviations). Brief
+  071 doesn't cover it, and no 069 draft exists yet to carry it.
 - `apps/api/src/auth/throttle.ts` says "Failures older than 24 h no longer count", but `afterFailure` restarts the count only
   after 24 hours with no failure at all, so failures less than a day apart keep adding up. The wording, or the rule, needs a look.
 

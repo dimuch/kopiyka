@@ -42,6 +42,10 @@ brief/plan → review anyway, mark spec compliance `UNVERIFIED`.
    touched by the branch (`rg -n "<symbol>|<path>" apps`) and check they
    still hold — compiling is not working (e.g. a new error code the app
    doesn't map; a DTO field the app mirror lacks).
+   Then **version**: judge the level from the real diff against conventions
+   §8b, not from `## Version`. The root `package.json` and
+   `apps/mobile/app.json` show one bump to the same number, or none for a
+   `none` PR. A level too low is Important.
 6. **Review axes**, on the diff plus the surrounding code:
    - **Spec**: each AC met / partly / not, with evidence (test name, code
      line, or manual check from the PR test plan). Scope creep: changes no
@@ -102,6 +106,7 @@ GATES: format ✔/✘ · lint ✔/✘ · typecheck ✔/✘ · tests ✔/✘ (<n>
 SPEC: <AC → met/partly/not — evidence>  | UNVERIFIED — no brief
 PLAN: <followed | deviations: list, each justified? | scope creep: list>
 BLAST RADIUS: <contract → untouched dependents → ok/at risk> | none
+VERSION: <level, from → to: matches the diff | should be <level>, because <row>>
 
 CRITICAL (<n>)
 IMPORTANT (<n>)

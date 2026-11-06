@@ -42,7 +42,9 @@ Add these checks to the `kopiyka-review` process:
    (over-engineering or churn). Inlined helpers that named a concept count
    as a regression.
 6. **Scope** — files outside the plan, bug fixes or new behaviour slipped in
-   are **Important** (move to Follow-ups / a separate brief).
+   are **Important** (move to Follow-ups / a separate brief). Shipped code
+   changed means one `patch` bump (conventions §8b); a higher level means
+   behaviour changed.
 
 Then the skeptic pass from `kopiyka-review` step 8 on your own findings.
 

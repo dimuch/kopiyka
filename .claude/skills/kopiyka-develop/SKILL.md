@@ -22,7 +22,8 @@ scope; `kopiyka-conventions` is the style; the gates are the definition of
 
 ## The slice loop
 
-For each unticked slice, in order:
+For each unticked slice, in order. Slice 0, the version bump, needs only its
+two-line edit, the gates and the commit (conventions §8b).
 
 1. **Load context**: re-read the slice, the contracts it touches, and the
    files listed. Load the library skill for the surface (conventions §8a)
@@ -80,7 +81,8 @@ The plan was approved; changing it silently breaks that approval.
   the plan, ≤ ~30 extra lines): do it, and add a line to the plan's
   `## Deviations` (`slice n: <what> — <why>`) in the same commit.
 - **Material** (new/changed contract, new dependency, extra slice,
-  different approach, an AC that can't be met as planned): **stop**.
+  different approach, an AC that can't be met as planned, anything that moves
+  the PR to another conventions §8b row): **stop**.
   Describe the delta and why, and hand back to the orchestrator for a
   re-plan of the delta (planner → skeptic → user). Don't build ahead.
 - **Found an unrelated problem** (bug, smell, missing test elsewhere):

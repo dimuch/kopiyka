@@ -10,7 +10,7 @@ developer who never saw the conversation can build it slice by slice, every
 slice ends green, and nothing in it exists "just in case".
 
 Apply `kopiyka-conventions` throughout — placement (§2), invariants (§3),
-tests (§6), gates (§7), commits (§8).
+tests (§6), gates (§7), commits (§8), versioning (§8b).
 
 ## Inputs and output
 
@@ -78,12 +78,20 @@ tests (§6), gates (§7), commits (§8).
    (web at phone width / iPhone) for UI-only behaviour.
 7. **List risks** that would change the plan if true, each with how the
    first relevant slice proves or disproves it.
-8. **Self-check** against the Approval checklist below; fix what fails
+8. **Decide the version** (conventions §8b), once the slices are settled:
+   - Go through the slices and Contracts, and name the highest §8b row any of
+     them reaches. The PR gets one bump, however many slices it has.
+   - Read the current version with `git show <Base>:package.json`, and write
+     the level, `from → to` and the reason in `## Version`.
+   - Anything but `none` gets slice 0 from the template, so the bump lands
+     first and doesn't count towards the size limits.
+9. **Self-check** against the Approval checklist below; fix what fails
    before handing over. Set `Status: draft`.
 
 When revising: change only what the feedback is about, add a short
 `## Revision N` note at the bottom (what changed, why), keep slice numbers
-stable where possible.
+stable where possible. If the revision changes what ships, decide the version
+again.
 
 ## Plan template
 
@@ -108,8 +116,18 @@ Alternative considered: <one line + why not>.
 - Reuses: <existing functions, hooks, components the slices call instead of rewriting (`.claude/skills/kopiyka-refactoring/SKILL.md` §8) | none>
 - New dependencies: <name@range — why — or none>
 
+## Version
+
+Bump: <major | minor | patch | none> — <x.y.z> → <x.y.z>
+Why: <the conventions §8b row, and the change in this plan that reaches it>
+
 ## Slices
 
+<!-- slice 0 only when Bump is not none -->
+
+- [ ] 0. Bump version to <x.y.z>
+  - Files: package.json, apps/mobile/app.json
+  - Change: set both to <x.y.z>
 - [ ] 1. <commit subject, imperative>
   - Files: <paths>
   - Change: <what, in 1–3 lines>
@@ -172,6 +190,11 @@ A plan is **blocked** if any of these fail:
    columns and DTO changes are written down, with their consumers.
 10. **Risks and questions honest**: blocking questions are marked; no
     assumption that changes behaviour is hidden in a slice.
+11. **Versioned**: `## Version` names one level and the reason; the level is
+    the highest conventions §8b row the slices and Contracts reach (too low
+    or too high both fail); `from` is the Base's version; slice 0 exists
+    unless the bump is `none`; a `major` says what breaks and is a question
+    for the user.
 
 Docs updates are part of the change when it makes a stated fact stale
 (e.g. adding a test runner updates conventions §6) — in their own slice

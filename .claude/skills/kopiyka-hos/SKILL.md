@@ -95,8 +95,8 @@ the brief can't answer, ask the user now — before the skeptic.
 
 ### ⛔ Gate A — user approves the plan (never skipped)
 
-Present ≤25 lines: approach, contracts, slices (subjects + est. lines), AC
-→ evidence, Not doing, risks, new dependencies, skeptic verdict (and any
+Present ≤25 lines: approach, contracts, version bump (level, `from → to`,
+why), slices (subjects + est. lines), AC → evidence, Not doing, risks, new dependencies, skeptic verdict (and any
 blocker the user must rule on). Ask: approve / change / stop.
 
 On approve: set `Status: approved`, commit brief + plan as the branch's
@@ -158,6 +158,8 @@ Before Gate B, answer honestly, in the report:
   add a guard that hides a cause (conventions §1)? Fix it now, same way.
 - Are all commits atomic, green, well-named, authored by dimuch, without
   Co-Authored-By trailers (`git log --format='%an <%ae>%n%B' origin/main..HEAD`)?
+- Does the branch still earn the level in `## Version`, after any deviations
+  and review fixes (conventions §8b)?
 - Any follow-ups or risks the user should know?
 
 ### ⛔ Gate B — user approves the push (never skipped, also in `auto`)

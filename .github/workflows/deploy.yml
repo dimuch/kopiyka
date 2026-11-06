@@ -22,7 +22,9 @@ jobs:
     needs: gates
     runs-on: ubuntu-24.04
     # Restricted to main in the repo settings, so its secrets reach no other ref.
-    environment: production
+    environment:
+      name: production
+      url: https://kopiyka.englishplus.com.ua
     timeout-minutes: 30
     steps:
       - name: Build and switch on the droplet

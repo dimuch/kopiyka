@@ -1,6 +1,6 @@
 ---
 name: kopiyka-conventions
-description: The kopiyka repo's engineering rules — where logic lives per domain, money and date handling, API and Expo app patterns, testing, quality gates, and git/PR conventions — plus which vendored library skill to load for what. Use whenever planning, writing or reviewing code in the kopiyka monorepo (apps/api, apps/mobile), and before deciding where a new piece of logic belongs.
+description: The kopiyka repo's engineering rules — where logic lives per domain, money and date handling, API and Expo app patterns, testing, quality gates, git/PR conventions, and versioning and releases — plus which vendored library skill to load for what. Use whenever planning, writing or reviewing code in the kopiyka monorepo (apps/api, apps/mobile), and before deciding where a new piece of logic belongs.
 ---
 
 # Kopiyka conventions
@@ -221,6 +221,74 @@ State it in the plan and the PR.
 - PR: title like the main commit; body `## Summary` (what users get, how),
   `## Test plan` (checkboxes of what was actually verified, incl. web/iPhone
   checks), link to the feature brief/plan. Stacked PRs say so on top.
+
+## 8b. Versioning and releases
+
+Kopiyka has one product version, semver `MAJOR.MINOR.PATCH`, in the root
+`package.json`. The API, app and connector ship from the same commit, so they
+share it. `expo.version` in `apps/mobile/app.json` holds the same number,
+because the stores show it. The workspace `package.json` versions and the MCP
+server's `version` in `apps/mcp/src/mcp/tools.ts` are not the product version:
+leave them. The store build counters (iOS `buildNumber`, Android `versionCode`)
+are not semver either: raise them per upload.
+
+An app has no library API, so the contract is what people and clients rely on:
+app builds already installed (a phone or an open tab can lag the API), the MCP
+connector's tools and sign-in, people's accounts and ledger data, and rollback,
+which runs the previous release on the new schema (`deploy/README.md`).
+
+Judge the whole PR by what changes in production, not by its size or commit
+count. The highest row that applies wins.
+
+| Bump    | When                                                                                    | Examples                                                                                                                                                                                                     |
+| ------- | --------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `major` | Something that works today stops working for a real client or user, or rollback is lost | API route or field a shipped app build uses removed or reshaped; MCP tool removed, renamed or given a new required input; people must re-enrol or lose access; a migration the previous release can't run on |
+| `minor` | A new capability, and everything that exists keeps working                              | New screen, tab or user action; new API route or optional field; new MCP tool; additive migration                                                                                                            |
+| `patch` | Production changes, with no new capability                                              | Bug fix, copy, styling, performance, security fix, behaviour-preserving refactor, dependency update, `deploy/` config or scripts                                                                             |
+| `none`  | Nothing reaches production                                                              | Only `docs/`, `.claude/`, `.github/`, `CLAUDE.md`, READMEs, or tests                                                                                                                                         |
+
+Close calls:
+
+- Check real clients before calling a stricter rule `major`: refusing input
+  that no shipped app or connector client sends is `patch`.
+- A fix that removes something people rely on is `major`, even though it's a fix.
+- A deploy step (a new `api.env` line, a one-off command) doesn't raise the
+  level by itself; losing rollback does.
+- A framework or SDK upgrade is `patch` unless the product behaves differently.
+- A refactor that touches shipped code is `patch`, never `none`.
+- `major` is rare: name what breaks, and ask the user about it at Gate A.
+
+How it runs:
+
+1. **Plan**: the planner decides the level in the plan's `## Version` and adds
+   slice 0, so the user approves the version with the plan.
+2. **Bump**: slice 0 sets the new number in the root `package.json` and in
+   `apps/mobile/app.json`, nothing else. One bump per PR, however many slices.
+3. **Review**: the reviewer checks the level against the real diff and that
+   both files agree. If it's wrong, fix both in a new commit,
+   `Bump version to <x.y.z>`, and update `## Version`.
+4. **Main moved**: if another PR took the version first, rebase, take `main`'s
+   number and bump it once again.
+
+A release is what went live, so merging doesn't release anything. Deploys are
+manual, and one can carry several merged PRs. After a green Deploy, with the
+user's OK, and only if the deployed version has no tag yet:
+
+```bash
+git tag -a v<x.y.z> -m "Release <x.y.z>" <deployed sha>   # version from that commit's package.json
+git push origin v<x.y.z>
+gh release create v<x.y.z> --verify-tag --title v<x.y.z> --notes-file <notes.md>
+gh api repos/dimuch/kopiyka/deployments/<id>/statuses -f state=success \
+  -f description="v<x.y.z> live on kopiyka.englishplus.com.ua" \
+  -f environment_url=https://kopiyka.englishplus.com.ua -f log_url=<Deploy run url>
+```
+
+The Deploy run creates the deployment record; `<id>` is the newest one in
+`gh api repos/dimuch/kopiyka/deployments`. Notes go in a public repo, so no
+IP addresses, Notion ids or local paths: a line on what people get, one linked
+line per PR since the last tag, then
+`**Full changelog:** https://github.com/dimuch/kopiyka/compare/v<previous>...v<x.y.z>`.
+Versions merged but never deployed on their own get no tag. Numbers can skip.
 
 ## 8a. Library skills (vendored in `.claude/skills/`, load on demand)
 

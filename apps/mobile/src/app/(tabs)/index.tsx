@@ -89,18 +89,18 @@ export default function Home() {
         onDecline={invites.decline}
       />
       <View style={styles.grid}>
-        {cards.map((c) => (
+        {cards.map((card) => (
           <Pressable
-            key={c.title}
+            key={card.title}
             accessibilityRole="button"
-            accessibilityLabel={`${c.title}, ${c.figure ?? (c.failed ? 'not available' : 'loading')}`}
-            onPress={() => router.navigate(c.href)}
+            accessibilityLabel={`${card.title}, ${card.figure ?? (card.failed ? 'not available' : 'loading')}`}
+            onPress={() => router.navigate(card.href)}
             style={styles.card}
           >
-            <Icon name={c.icon} color={colors.accent} size={24} />
-            <Text style={styles.cardTitle}>{c.title}</Text>
-            <Text numberOfLines={1} style={[styles.figure, c.figure === null && { color: colors.muted }]}>
-              {c.figure ?? '—'}
+            <Icon name={card.icon} color={colors.accent} size={24} />
+            <Text style={styles.cardTitle}>{card.title}</Text>
+            <Text numberOfLines={1} style={[styles.figure, card.figure === null && { color: colors.muted }]}>
+              {card.figure ?? '—'}
             </Text>
           </Pressable>
         ))}

@@ -1,18 +1,8 @@
-import { BricolageGrotesque_500Medium, BricolageGrotesque_700Bold } from '@expo-google-fonts/bricolage-grotesque';
-import {
-  IBMPlexSans_400Regular,
-  IBMPlexSans_500Medium,
-  IBMPlexSans_600SemiBold,
-} from '@expo-google-fonts/ibm-plex-sans';
-import { useFonts } from 'expo-font';
 import { Stack } from 'expo-router';
-import { StatusBar } from 'expo-status-bar';
 import { ActivityIndicator, View } from 'react-native';
-import { SafeAreaProvider } from 'react-native-safe-area-context';
-import { AppearanceProvider, useAppearance, useColors } from '@/appearance/AppearanceContext';
+import { useColors } from '@/appearance/AppearanceContext';
 import { AuthProvider, useAuth } from '@/auth/AuthContext';
-import { FocusStyles } from '@/components/FocusStyles';
-import { PhoneColumn } from '@/components/PhoneColumn';
+import { AppShell } from '@/components/AppShell';
 import { InvitesProvider } from '@/data/invites';
 
 function Screens() {
@@ -48,38 +38,14 @@ function Screens() {
   );
 }
 
-function Root() {
-  const { scheme } = useAppearance();
-  const palette = useColors();
-  const [fontsLoaded] = useFonts({
-    BricolageGrotesque_500Medium,
-    BricolageGrotesque_700Bold,
-    IBMPlexSans_400Regular,
-    IBMPlexSans_500Medium,
-    IBMPlexSans_600SemiBold,
-  });
-  if (!fontsLoaded) return <View style={{ flex: 1, backgroundColor: palette.bg }} />;
-
-  return (
-    // The background shows on web around the phone-width column.
-    <SafeAreaProvider style={{ backgroundColor: palette.bg }}>
-      <FocusStyles />
-      <PhoneColumn>
-        <AuthProvider>
-          <StatusBar style={scheme === 'dark' ? 'light' : 'dark'} />
-          <InvitesProvider>
-            <Screens />
-          </InvitesProvider>
-        </AuthProvider>
-      </PhoneColumn>
-    </SafeAreaProvider>
-  );
-}
-
 export default function RootLayout() {
   return (
-    <AppearanceProvider>
-      <Root />
-    </AppearanceProvider>
+    <AppShell>
+      <AuthProvider>
+        <InvitesProvider>
+          <Screens />
+        </InvitesProvider>
+      </AuthProvider>
+    </AppShell>
   );
 }

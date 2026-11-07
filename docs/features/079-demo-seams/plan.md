@@ -141,7 +141,7 @@ checked through the stub only.
   - Files: `src/app/(tabs)/index.tsx`
   - Change: `(c)` → `(card)` in the grid, ahead of the move, so the extract is a pure move and adds no single-letter name.
   - Tests: typecheck and lint; `find-short-names.sh 'apps/mobile/src/app/(tabs)/index.tsx'` exits 0.
-- [ ] 7. Make Home's card grid a component (101 lines, extract)
+- [x] 7. Make Home's card grid a component (101 lines, extract)
   - Files: new `src/components/HomeCards.tsx`; `src/app/(tabs)/index.tsx`
   - Change: move the grid JSX and its `grid`, `card`, `cardTitle`, `figure` styles (comment included) as they are. Home
     keeps the `cards` array, invites, Notion panel and Undo toast, and renders `<HomeCards cards={cards} />` in the same

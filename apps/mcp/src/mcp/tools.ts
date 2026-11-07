@@ -246,7 +246,7 @@ export function buildServer(scope: RequestScope): McpServer {
         'Adds one expense to a ledger, and answers with what was saved. The other currency comes from the National ' +
         'Bank of Ukraine rate of the date. An identical call within 10 minutes adds nothing, so a retry is safe.',
       inputSchema: {
-        ledgerId: z.number().int().positive().describe('A ledgerId from list_ledgers'),
+        ledgerId: LedgerMonth.ledgerId,
         categoryId: z.number().int().positive().describe('A categoryId from month_summary, for the month of the date'),
         date: z.string().optional().describe('The date, as YYYY-MM-DD. Leave it out for today in Kyiv'),
         name: z.string().describe('What it was, like "Silpo"'),

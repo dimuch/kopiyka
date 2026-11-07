@@ -314,6 +314,8 @@ decision, so it comes back to the owner.
 - Two real identical purchases within 10 minutes — by design, visible, disproven as silent by slice 5's `note` test.
 - A rolled-back connector answers `invalid_scope` to `scope=read write`, so after a rollback of PR B the user may have to disconnect
   and connect again.
+- Both amounts are part of a repeat, so it depends on the rate. On a date the NBU hasn't published yet, a retry across the publication
+  gets another derived amount and saves a second expense. The window is narrow, and the app's delete covers it.
 - The transaction now wraps the app's add too — `expenses.int.test.ts` still has to pass unchanged in slice 3. The lock order
   matches `monthLists.ts`: ledger first, then expenses.
 
@@ -336,10 +338,15 @@ decision, so it comes back to the owner.
 - Limit `/mcp` to Anthropic's ranges in the vhost, as `/oauth/token` and `/oauth/register` are. A stolen sealed token then couldn't
   be used from anywhere else, which matters more with write tokens.
 - `errForLog` also covers every other API route, which had the same leak: slice 1 fixes it for all, and the PR should say so.
+- `errForLog` drops `cause`, which the default folded into the log, so an NBU connection failure logs "fetch failed" without the root
+  reason. Logs only. Worth adding if an NBU outage is ever hard to read.
+- For PR B, slice 6: a retry across a month's end gets `month_ended` though the first call saved. "This call saved nothing" is true, but
+  reads as if the expense is missing. No duplicate is added. Decide the wording there.
 
 ## Deviations
 
 - slice 1: `errForLog` logs `type` as the error's class name, as the default did, so `RateUnavailableError` stays readable, and `stack` falls back to `''` because Fastify's type requires a string.
+- slice 2: `API_TOKEN_WRITE_ROUTES` is named `WRITE_TOKEN_ROUTES` in the code and stays private, because the test keeps its own list.
 
 ## Consolidate
 

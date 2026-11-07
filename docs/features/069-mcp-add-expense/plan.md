@@ -161,7 +161,7 @@ Nothing changes for users until PR B: no client asks for `write`.
 - [x] 0A. Bump version to 1.1.0
   - Files: package.json, apps/mobile/app.json
   - Change: set both to 1.1.0
-- [ ] 1. Keep query values out of the API's error logs (~40)
+- [x] 1. Keep query values out of the API's error logs (~40)
   - Files: `apps/api/src/errForLog.ts`, `apps/api/src/app.ts`, `apps/api/test/errForLog.test.ts`
   - Change: `errForLog(err)` keeps `type`, `code`, `message` and `stack`, so not `sql`. It's the logger's `err` serializer. The comment
     says why: mysql2 puts the values in `sql`, and its `sqlMessage` equals `message`, so `sql` is the real leak. `AppDeps` gains

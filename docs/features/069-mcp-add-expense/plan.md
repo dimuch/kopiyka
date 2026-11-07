@@ -183,7 +183,7 @@ Nothing changes for users until PR B: no client asks for `write`.
     - A write token saves an expense with `created_by` its user. Expired → 401. Non-member → 404 `ledger_not_found`. It reads like a
       read token. The suite needs a real `fetchRate` stub for this.
     - `POST /api/api-tokens`: `write` is stored, listed and has the same lifetime; no `scope` → `read`; a bad one → 400.
-- [ ] 3. Keep a repeated add from an API token from saving twice (~140)
+- [x] 3. Keep a repeated add from an API token from saving twice (~140)
   - Files: `apps/api/src/expenses/repeatCall.ts`, `apps/api/src/expenses/routes.ts`, `apps/api/test/expenses.repeat.int.test.ts`
   - Change: `findRepeat(conn, ledgerId, row, at)` takes `lockLedger`, then looks for the repeat. The POST wraps the insert in
     `withTransaction`, calls `findRepeat` first when `req.auth!.apiTokenScope` is set, and loads the expense after the commit. Pricing

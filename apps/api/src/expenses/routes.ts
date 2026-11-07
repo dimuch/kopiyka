@@ -3,9 +3,11 @@ import type { ResultSetHeader, RowDataPacket } from 'mysql2/promise';
 import { z } from 'zod';
 import type { AppDeps } from '../app.js';
 import { MONTH_RE, monthEnded, nextMonthStart } from '../dates.js';
+import { withTransaction } from '../db.js';
 import { inMonthList } from '../categories/monthLists.js';
 import { AMOUNT_RE, centsToString, convert, e4ToString, rateToE4, toCents } from '../money.js';
 import { getEurUahRate, isAfterRateHorizon, RateDate, rateUnavailableReason } from '../rates/service.js';
+import { findRepeat } from './repeatCall.js';
 
 export interface ExpenseDto {
   expenseId: number;
@@ -145,24 +147,49 @@ export async function expenseRoutes(app: FastifyInstance, deps: AppDeps): Promis
     if (!priced) return reply;
 
     const at = now();
-    const [res] = await db.query<ResultSetHeader>(
-      `INSERT INTO expenses (category_id, expense_date, name, amount_eur, amount_uah, eur_uah_rate,
-                             entered_currency, created_by, created_at, updated_at)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-      [
-        input.categoryId,
-        input.expenseDate,
-        input.name,
-        priced.amountEur,
-        priced.amountUah,
-        priced.rate,
-        input.currency,
-        req.auth!.userId,
-        at,
-        at,
-      ],
-    );
-    return reply.code(201).send(await loadExpense(req.ledger!.ledgerId, res.insertId));
+    const ledgerId = req.ledger!.ledgerId;
+    const saved = await withTransaction(db, async (conn) => {
+      // Only a connector's call: the app has no retries, and two identical coffees there are two coffees.
+      const repeatId = req.auth!.apiTokenScope
+        ? await findRepeat(
+            conn,
+            ledgerId,
+            {
+              userId: req.auth!.userId,
+              categoryId: input.categoryId,
+              expenseDate: input.expenseDate,
+              name: input.name,
+              currency: input.currency,
+              amountEur: priced.amountEur,
+              amountUah: priced.amountUah,
+            },
+            at,
+          )
+        : null;
+      if (repeatId) return { expenseId: repeatId, alreadySaved: true };
+      const [res] = await conn.query<ResultSetHeader>(
+        `INSERT INTO expenses (category_id, expense_date, name, amount_eur, amount_uah, eur_uah_rate,
+                               entered_currency, created_by, created_at, updated_at)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        [
+          input.categoryId,
+          input.expenseDate,
+          input.name,
+          priced.amountEur,
+          priced.amountUah,
+          priced.rate,
+          input.currency,
+          req.auth!.userId,
+          at,
+          at,
+        ],
+      );
+      return { expenseId: res.insertId, alreadySaved: false };
+    });
+    const expense = await loadExpense(ledgerId, saved.expenseId);
+    return saved.alreadySaved
+      ? reply.code(200).send({ ...expense, alreadySaved: true })
+      : reply.code(201).send(expense);
   });
 
   app.put('/api/ledgers/:id/expenses/:expenseId', guards, async (req, reply) => {

@@ -540,15 +540,30 @@ Results of 5 November 2026 (brief 068), on a Claude Max account, connecting from
   header was logged, so those two are unknown; the log shows no later ones. The stranger's connector never held a token of
   its own, so this doesn't cover that case.
 - **A normal connection:** `claude-qa-mcp` signed in and allowed, and Claude showed "Connected" with no `code=` in the address
-  bar. Nobody asked it a question through the connector.
+  bar. Nobody asked it a question through the connector on 5 November.
 
-Not run, by the owner's decision on 5 November. The owner stopped here knowing brief 068 wanted them done before write
-tools, so these are open, and worth a second look before brief 069:
+Results of 7 November 2026, on the read-only connector, before brief 069 was deployed:
+
+- **First tool call:** at 14:45:50 UTC `list_ledgers`, called from a Claude Code session on the same account, returned
+  `claude-qa-mcp`'s QA ledger. It's the first recorded call through the connector.
+- **The hourly expiry:** passed. About 64 minutes after that sign-in, the same call was refused with "The user's connection to
+  this connector was invalidated. The user needs to reconnect it from connector settings." In a new Claude chat, Claude then
+  asked the owner to reconnect. The exact minute it stopped wasn't measured, and the reconnect itself wasn't run.
+
+The owner's decisions of 7 November, before brief 069 was deployed:
+
+- **The stranger's sign-in service:** accepted with write tokens. Kopiyka still depends on the `resource` check above, and no
+  test made a stranger's connector send kopiyka's own `resource`. Brief 072 limits `/mcp` to Anthropic's ranges in the vhost.
+- **The tests below:** Cancel, double taps, Safari and sign-in from mobile run right after the deploy, not before it.
+- **The second Claude account:** stays not run.
+
+Not run. The owner stopped here on 5 November knowing brief 068 wanted them done before write tools, and looked at them again
+on 7 November, with the decisions above:
 
 - A second Claude account in the two-browser test: the owner has one. It needs browser B signed in to that account (063
   plan, slice 14).
 - Cancel against the real API: the owner clicked Allow on both tries, so Cancel never ran.
-- Double taps, Safari, the hourly expiry, and hourly sign-in from mobile.
+- Double taps, Safari, and hourly sign-in from mobile.
 
 To repeat the hostile tests, for example if Claude changes how it adds connectors, follow
 `docs/features/068-connector-tests/plan.md`, with its Deviations for the second one.

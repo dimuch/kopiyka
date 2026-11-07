@@ -109,7 +109,7 @@ checked through the stub only.
     `instanceof`); `apiError.test.ts` both cases.
   - Verify (web): sign in with a wrong code → "Wrong username or password."; on Budget, add a category with a name the
     month already has → the same name refusal as the Base, not "Couldn’t save. Check your connection and try again."
-- [ ] 3. Keep the Notion outcome type with the Notion text (8 lines, mechanical)
+- [x] 3. Keep the Notion outcome type with the Notion text (8 lines, mechanical)
   - Files: `src/data/notionSync.ts`, `src/data/useNotionSync.ts`, `src/components/NotionSyncPanel.tsx`
   - Change: move `SyncOutcome`, so `components/` has no import of `useNotionSync`, even a type-only one.
   - Tests: `notionSync.test.ts` unchanged. Type-only, nothing reaches the bundle; `yarn typecheck` is the proof.

@@ -6,7 +6,10 @@ import type { AppDeps } from '../app.js';
 import { deleteSession, hashToken } from '../auth/sessions.js';
 import { API_TOKEN_PREFIX } from './auth.js';
 
-const CreateBody = z.object({ label: z.string().trim().max(100).default('') });
+const CreateBody = z.object({
+  label: z.string().trim().max(100).default(''),
+  scope: z.enum(['read', 'write']).default('read'),
+});
 const TokenParams = z.object({ tokenId: z.coerce.number().int().positive() });
 
 /** The MCP connector's tokens (brief 063): nothing is registered while it's switched off. */
@@ -23,12 +26,14 @@ export async function apiTokenRoutes(app: FastifyInstance, deps: AppDeps): Promi
     await db.query('DELETE FROM api_tokens WHERE expires_at <= ?', [at]);
     const [res] = await db.query<ResultSetHeader>(
       `INSERT INTO api_tokens (token_hash, user_id, scope, label, expires_at, created_at)
-       VALUES (?, ?, 'read', ?, ?, ?)`,
-      [hashToken(token), req.auth!.userId, body.label, expiresAt, at],
+       VALUES (?, ?, ?, ?, ?, ?)`,
+      [hashToken(token), req.auth!.userId, body.scope, body.label, expiresAt, at],
     );
     // The session only proved the login; the connector keeps the token and nobody needs the session.
     await deleteSession(db, req.auth!.tokenHash);
-    return reply.code(201).send({ tokenId: res.insertId, token, scope: 'read', expiresAt: expiresAt.toISOString() });
+    return reply
+      .code(201)
+      .send({ tokenId: res.insertId, token, scope: body.scope, expiresAt: expiresAt.toISOString() });
   });
 
   app.get('/api/api-tokens', { preHandler: app.requireAuth }, async (req) => {

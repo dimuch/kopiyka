@@ -3,7 +3,7 @@ import { describe, expect, it } from 'vitest';
 import { runMigrations } from '../src/migrate.js';
 import { resetSchema, TEST_DB_URL, testDbReachable } from './helpers.js';
 
-describe.skipIf(!(await testDbReachable()))('migration 014_api_tokens (MySQL)', () => {
+describe.skipIf(!(await testDbReachable()))('migrations 014_api_tokens and 015_api_token_write_scope (MySQL)', () => {
   it('creates api_tokens, and running the migrations again changes nothing', async () => {
     await resetSchema();
 
@@ -15,7 +15,7 @@ describe.skipIf(!(await testDbReachable()))('migration 014_api_tokens (MySQL)', 
       ['token_id', 'int unsigned', 'NO'],
       ['token_hash', 'char(64)', 'NO'],
       ['user_id', 'int unsigned', 'NO'],
-      ['scope', "enum('read')", 'NO'],
+      ['scope', "enum('read','write')", 'NO'],
       ['label', 'varchar(100)', 'NO'],
       ['expires_at', 'datetime', 'NO'],
       ['created_at', 'datetime', 'NO'],

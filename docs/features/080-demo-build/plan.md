@@ -2,8 +2,8 @@
 
 Status: approved
 Brief: ./brief.md
-Branch: feat/demo-build
-Base: origin/main (8d94237)
+Branch: feat/demo-store-expenses (PR 1; each later PR gets its own branch from main)
+Base: origin/main (a8bd244)
 
 ## Approach
 
@@ -191,7 +191,7 @@ Alternatives considered:
 
 ## Version
 
-Bump: patch — 1.2.1 → 1.2.2
+Bump: patch, in PR 4 only — main's number then, plus one patch (1.2.2 → 1.2.3 if main hasn't moved)
 Why: conventions §8b, "a refactor that touches shipped code is `patch`, never `none`". `moneyCards` is a behaviour-preserving
 move in production Home. Nothing else reaches production: without the flag `expo config` output is identical and the
 production bundle is byte-identical (measured). The demo isn't deployed here, so no capability reaches anyone, which keeps

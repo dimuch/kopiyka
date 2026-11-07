@@ -13,6 +13,8 @@ describe('POST /oauth/token', () => {
   let app: FastifyInstance;
   let clock: Date;
   let clientId: string;
+  /** What the API says it issued, when that isn't what it was asked for. */
+  let issuedScope: string | undefined;
 
   function api(call: RecordedCall): Answer {
     if (call.path === '/api/auth/login') return { json: { token: 'session-token' } };
@@ -22,7 +24,7 @@ describe('POST /oauth/token', () => {
     if (call.path === '/api/api-tokens' && call.method === 'POST') {
       const expiresAt = new Date(clock.getTime() + API_TOKEN_LIFE_MS).toISOString();
       const { scope } = call.body as { scope: string };
-      return { status: 201, json: { tokenId: 1, token: 'kpk.new', scope, expiresAt } };
+      return { status: 201, json: { tokenId: 1, token: 'kpk.new', scope: issuedScope ?? scope, expiresAt } };
     }
     return { json: { tokens: [] } };
   }
@@ -65,6 +67,7 @@ describe('POST /oauth/token', () => {
 
   beforeEach(async () => {
     clock = new Date();
+    issuedScope = undefined;
     await start();
   });
 
@@ -93,6 +96,14 @@ describe('POST /oauth/token', () => {
     const res = await exchange(await getCode('read write'));
 
     expect(res.json().scope).toBe('read write');
+  });
+
+  it('says what the API issued, not what was asked for', async () => {
+    issuedScope = 'read';
+
+    const res = await exchange(await getCode('read write'));
+
+    expect(res.json().scope).toBe('read');
   });
 
   it('gives a token that /mcp accepts', async () => {

@@ -372,7 +372,8 @@ describe('the budget tools', () => {
       expect(lost.isError).toBe(true);
       expect(lost.content[0].text).toBe(`api_unreachable: ${LOST_ANSWER}`);
       expect(toolData(repeat)).toMatchObject({ expenseId: 9, alreadySaved: true });
-      expect(kept).toHaveLength(1);
+      const [first, second] = posts();
+      expect(second!.body).toEqual(first!.body);
     });
 
     it('names the date it used when the call gave none and the answer was lost', async () => {

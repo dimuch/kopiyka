@@ -25,7 +25,7 @@ Process:
    exists **on the plan's Base** and behaves as claimed (`git ls-tree` /
    `git show <base>:<path>`, `rg`, migrations). Running repo code read-only
    to check claimed values is fine (scratch files in the system temp dir).
-   Check Expo/RN usage against SDK 57 docs when in doubt.
+   Check Expo/RN usage against SDK 58 docs when in doubt.
 2. Walk the Approval checklist (10 items) and record pass/fail per item with
    evidence.
 3. Attack it from four angles, briefly:

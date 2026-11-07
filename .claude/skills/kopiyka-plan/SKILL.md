@@ -185,7 +185,7 @@ A plan is **blocked** if any of these fail:
 7. **Sized**: slices ≤ ~150 lines, total ≤ ~400, or a split is proposed.
 8. **Grounded**: APIs, files and functions referenced exist **on the
    plan's Base** (or are created in an earlier slice); Expo/RN usage
-   matches SDK 57 docs, or the plan states why it departs from them.
+   matches SDK 58 docs, or the plan states why it departs from them.
 9. **Contracts explicit**: request/response/error shapes, migration
    columns and DTO changes are written down, with their consumers.
 10. **Risks and questions honest**: blocking questions are marked; no

@@ -123,7 +123,7 @@ database, not that this change broke something.
       `NODE_OPTIONS=--max-old-space-size=700 /usr/bin/time -l yarn mobile expo export -p web --max-workers 1 --clear`. Expect one
       JS file and the same `index.html` structure. Compare the peak RSS with the 564 MB in Findings: 700 MB caps the heap, not RSS.
     - Web check, in slice 2's real-data list below.
-- [ ] 3. Record SDK 58 in the conventions and docs
+- [x] 3. Record SDK 58 in the conventions and docs
   - Files: .claude/skills/kopiyka-conventions/SKILL.md, .claude/skills/kopiyka-plan/SKILL.md,
     .claude/agents/kopiyka-plan-skeptic.md, README.md, deploy/README.md (~7 lines)
   - Change: conventions §5 heading to `Expo SDK 58, React 19, RN 0.88` and its docs link to `v58.0.0`. "SDK 57 docs" to "SDK

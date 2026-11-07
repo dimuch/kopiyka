@@ -113,7 +113,7 @@ checked through the stub only.
   - Files: `src/data/notionSync.ts`, `src/data/useNotionSync.ts`, `src/components/NotionSyncPanel.tsx`
   - Change: move `SyncOutcome`, so `components/` has no import of `useNotionSync`, even a type-only one.
   - Tests: `notionSync.test.ts` unchanged. Type-only, nothing reaches the bundle; `yarn typecheck` is the proof.
-- [ ] 4. Read the tab routes without the tab list (86 lines, extract)
+- [x] 4. Read the tab routes without the tab list (86 lines, extract)
   - Files: new `src/tabRoutes.ts`; `src/tabs.ts`; `test/tabs.test.ts` (import line for `StackRoutes` only)
   - Change: move `StackRoutes` and the reader with its doc comment; `isTab` becomes a local closure over `tabNames`;
     `tabs.ts` keeps `readTabs(routes, fallback)` calling `readTabRoutes` with `TABS`' names.

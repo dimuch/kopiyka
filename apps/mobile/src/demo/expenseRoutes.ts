@@ -101,4 +101,49 @@ export const expenseRoutes: Route[] = [
       return toDto(expense);
     },
   },
+  {
+    method: 'PUT',
+    pattern: EXPENSE,
+    answer: (data, { body, now }, [expenseId]) => {
+      const input = body as ExpenseInput;
+      const expense = liveExpense(data, Number(expenseId)) ?? refuse(404, 'not_found');
+      // Both ends: an expense can neither change inside an ended month nor move into or out of one.
+      refuseIfEnded(expense.expenseDate.slice(0, 7), now);
+      refuseIfEnded(input.expenseDate.slice(0, 7), now);
+      checkCategory(data, input.categoryId, input.expenseDate);
+      Object.assign(expense, {
+        categoryId: input.categoryId,
+        expenseDate: input.expenseDate,
+        name: input.name.trim(),
+        ...price(input, now),
+        enteredCurrency: input.currency,
+        updatedAt: now.toISOString(),
+      });
+      return toDto(expense);
+    },
+  },
+  {
+    method: 'DELETE',
+    pattern: EXPENSE,
+    answer: (data, { now }, [expenseId]) => {
+      const expense = liveExpense(data, Number(expenseId)) ?? refuse(404, 'not_found');
+      refuseIfEnded(expense.expenseDate.slice(0, 7), now);
+      // Its own removal number, so a category's restore never brings it back.
+      expense.removal = data.nextId++;
+    },
+  },
+  {
+    method: 'POST',
+    pattern: /^\/api\/ledgers\/\d+\/expenses\/(\d+)\/restore$/,
+    answer: (data, { now }, [expenseId]) => {
+      const expense =
+        data.expenses.find((candidate) => candidate.expenseId === Number(expenseId) && candidate.removal !== null) ??
+        refuse(404, 'not_found');
+      refuseIfEnded(expense.expenseDate.slice(0, 7), now);
+      // Only into a month that still lists its category (the API's `setDeleted`).
+      if (!inMonth(data, expense.categoryId, expense.expenseDate.slice(0, 7))) refuse(404, 'not_found');
+      expense.removal = null;
+      return toDto(expense);
+    },
+  },
 ];

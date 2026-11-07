@@ -137,7 +137,7 @@ checked through the stub only.
     - Budget, go to last month, then open the Expenses tab and a category: the pushed-page bar shows the same six tabs and the same badge; Expenses is active (`aria-selected`); tapping Budget returns on last month. Open the same page by URL: `expenses` is active.
     - Decline the invite on Home: the badge goes at once, and Settings' list empties.
     - Console has no errors.
-- [ ] 6. Name Home's card variable (16 lines, rename only)
+- [x] 6. Name Home's card variable (16 lines, rename only)
   - Files: `src/app/(tabs)/index.tsx`
   - Change: `(c)` → `(card)` in the grid, ahead of the move, so the extract is a pure move and adds no single-letter name.
   - Tests: typecheck and lint; `find-short-names.sh 'apps/mobile/src/app/(tabs)/index.tsx'` exits 0.

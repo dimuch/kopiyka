@@ -162,7 +162,7 @@ checked through the stub only.
       With no stub (404 `notion_not_configured`): no panel.
     - Open `/expense?expenseId=<id>` by URL and press Delete: it lands on Home, the Undo toast shows, and Undo updates the figures.
     - Light and Dark (Settings): card colours follow with no reload.
-- [ ] 8. Put the app shell in one component (99 lines, extract)
+- [x] 8. Put the app shell in one component (99 lines, extract)
   - Files: new `src/components/AppShell.tsx`; `src/app/_layout.tsx`
   - Change: move `Root` as it is (name included), and add `AppShell` as `AppearanceProvider` around it, with `children`
     where `AuthProvider` was. `RootLayout` becomes `AppShell` > `AuthProvider` > `InvitesProvider` > `Screens`; `Screens`

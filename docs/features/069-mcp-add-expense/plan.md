@@ -259,9 +259,9 @@ With `claude-qa-mcp`. Results go in `deploy/README.md`, "What's been tested", in
 3. Check the sign-in and consent pages name adding expenses, and Allow.
 4. Under Tool permissions, note `add_expense`'s group and setting.
 5. In a new chat, ask "add 12.50 EUR for groceries today". Note whether Claude asked first.
-6. In the app, check the amounts, rate, date and category. `created_by` isn't shown in the app, so check it with a read-only
-   `SELECT created_by` in `sudo mysql kopiyka`.
-7. Ask for exactly the same again. Claude should say it's already saved, and the app should still show one.
+6. Within 10 minutes, ask for exactly the same again. Claude should say it's already saved.
+7. In the app, check there's one, with the right amounts, rate, date and category. `created_by` isn't shown in the app, so check it
+   with a read-only `SELECT created_by` in `sudo mysql kopiyka`.
 8. Delete it in the app.
 9. Connect once more and press Cancel, then leave a connection past its hour and note what Claude shows. `deploy/README.md`
    lists both as not run.
@@ -274,7 +274,7 @@ decision, so it comes back to the owner.
 
 | AC                                                    | Evidence                                                                              |
 | ----------------------------------------------------- | ------------------------------------------------------------------------------------- |
-| Saves one expense with the right fields               | Slice 2 `created_by` test, slice 5 path and result tests, owner steps 5 and 6         |
+| Saves one expense with the right fields               | Slice 2 `created_by` test, slice 5 path and result tests, owner steps 5 and 7         |
 | `write` gets 403 on every other write, by route walk  | Slice 2 `every write route`                                                           |
 | `read` still gets 403 on every write route            | The read case in `every write route`, kept and still naming this route                |
 | Consent names the write, unchanged for `read`         | Slice 4 `signIn.test.ts`, `authorize.test.ts`                                         |

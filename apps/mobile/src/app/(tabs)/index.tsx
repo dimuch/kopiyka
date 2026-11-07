@@ -1,14 +1,12 @@
-import { type Href, router } from 'expo-router';
 import { useState } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useColors, useThemedStyles } from '@/appearance/AppearanceContext';
+import { useThemedStyles } from '@/appearance/AppearanceContext';
 import { useSession } from '@/auth/AuthContext';
-import { Icon, type IconName } from '@/components/Icon';
+import { type HomeCard, HomeCards } from '@/components/HomeCards';
 import { LoadError } from '@/components/LoadError';
 import { NotionSyncPanel } from '@/components/NotionSyncPanel';
 import { PendingInvites } from '@/components/PendingInvites';
-import { Pressable } from '@/components/Pressable';
 import { UndoToast } from '@/components/UndoToast';
 import { useInvites } from '@/data/invites';
 import { expenseCount, incomeCents, plannedCents, sumCents } from '@/data/monthSummary';
@@ -20,7 +18,6 @@ import { eur, kyivMonth, monthLabel } from '@/format';
 import { fonts, type Palette } from '@/theme';
 
 export default function Home() {
-  const colors = useColors();
   const styles = useThemedStyles(makeStyles);
   const { ledger, user } = useSession();
   const [month] = useState(() => kyivMonth(new Date()));
@@ -38,7 +35,7 @@ export default function Home() {
     notion.reload();
   });
 
-  const cards: { title: string; href: Href; icon: IconName; figure: string | null; failed: boolean }[] = [
+  const cards: HomeCard[] = [
     {
       title: 'Income',
       href: '/income',
@@ -88,23 +85,7 @@ export default function Home() {
         onAccept={invites.accept}
         onDecline={invites.decline}
       />
-      <View style={styles.grid}>
-        {cards.map((card) => (
-          <Pressable
-            key={card.title}
-            accessibilityRole="button"
-            accessibilityLabel={`${card.title}, ${card.figure ?? (card.failed ? 'not available' : 'loading')}`}
-            onPress={() => router.navigate(card.href)}
-            style={styles.card}
-          >
-            <Icon name={card.icon} color={colors.accent} size={24} />
-            <Text style={styles.cardTitle}>{card.title}</Text>
-            <Text numberOfLines={1} style={[styles.figure, card.figure === null && { color: colors.muted }]}>
-              {card.figure ?? '—'}
-            </Text>
-          </Pressable>
-        ))}
-      </View>
+      <HomeCards cards={cards} />
       {/* Hidden while loading and for a ledger Notion doesn't sync. */}
       {notion.state.status === 'ready' ? (
         <NotionSyncPanel
@@ -127,19 +108,4 @@ const makeStyles = (colors: Palette) =>
     header: { gap: 2 },
     title: { fontFamily: fonts.display, fontSize: 22, color: colors.text },
     caption: { fontFamily: fonts.body, fontSize: 13, color: colors.muted },
-    grid: { flexDirection: 'row', flexWrap: 'wrap', gap: 12 },
-    card: {
-      // Two per row: each starts just under half the width and grows into the gap.
-      flexBasis: '45%',
-      flexGrow: 1,
-      backgroundColor: colors.surface,
-      borderColor: colors.border,
-      borderWidth: 1,
-      borderRadius: 22,
-      paddingVertical: 16,
-      paddingHorizontal: 18,
-      gap: 8,
-    },
-    cardTitle: { fontFamily: fonts.bodyMedium, fontSize: 15, color: colors.text },
-    figure: { fontFamily: fonts.display, fontSize: 20, color: colors.text, fontVariant: ['tabular-nums'] },
   });

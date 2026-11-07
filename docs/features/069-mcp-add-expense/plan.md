@@ -202,7 +202,7 @@ Nothing changes for users until PR B: no client asks for `write`.
 
 Starts once PR A is merged. Its tests stub the API.
 
-- [ ] 0B. Bump version to 1.2.0
+- [x] 0B. Bump version to 1.2.0
   - Files: package.json, apps/mobile/app.json
   - Change: set both to 1.2.0
 - [ ] 4. Let a connection ask for write, and say so at sign-in (~150)

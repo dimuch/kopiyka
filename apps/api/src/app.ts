@@ -1,5 +1,6 @@
 import cookie from '@fastify/cookie';
 import cors from '@fastify/cors';
+import type { Writable } from 'node:stream';
 import Fastify, { type FastifyInstance, type FastifyReply } from 'fastify';
 import { ZodError } from 'zod';
 import { apiTokenRoutes } from './apiTokens/routes.js';
@@ -10,6 +11,7 @@ import { incomeRoutes } from './income/routes.js';
 import { inviteRoutes } from './invites/routes.js';
 import type { Config } from './config.js';
 import type { Db } from './db.js';
+import { errForLog } from './errForLog.js';
 import { ledgerAccess } from './ledgers/access.js';
 import { ledgerRoutes } from './ledgers/routes.js';
 import type { ExpensesTable, GroceriesTable } from './notion/client.js';
@@ -28,11 +30,20 @@ export interface AppDeps {
   notionGroceries?: GroceriesTable;
   /** The Notion Expenses table, for category totals; absent when it isn't configured, tests pass a fake. */
   notionExpenses?: ExpensesTable;
+  /** Tests read the logs. */
+  logStream?: Writable;
 }
 
 export async function buildApp(deps: AppDeps): Promise<FastifyInstance> {
   const app = Fastify({
-    logger: deps.config.env === 'test' ? false : { level: deps.config.logLevel },
+    logger:
+      deps.config.env === 'test' && !deps.logStream
+        ? false
+        : {
+            level: deps.config.logLevel,
+            serializers: { err: errForLog },
+            ...(deps.logStream ? { stream: deps.logStream } : {}),
+          },
     // Only the local nginx may set the client address: it appends the real one to X-Forwarded-For, and
     // `true` would take the left-most, client-written entry. A hop count fails closed in Fastify 5
     // (every client becomes 127.0.0.1, one shared throttle key).

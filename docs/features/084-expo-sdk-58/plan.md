@@ -87,7 +87,7 @@ DATABASE_URL_TEST="$(grep '^DATABASE_URL_TEST=' /Users/dmytro.kostylov/home/kopi
 Report "integration ran: yes". A mass of "table doesn't exist" failures means another session is using the shared test
 database, not that this change broke something.
 
-- [ ] 0. Bump version to 1.2.2
+- [x] 0. Bump version to 1.2.2
   - Files: package.json, apps/mobile/app.json
   - Change: set both to 1.2.2
 - [ ] 1. Keep the web app in one bundle

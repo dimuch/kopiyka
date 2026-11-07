@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import { readTabs, type StackRoutes, tabBadge } from '@/tabs';
+import type { StackRoutes } from '@/tabRoutes';
+import { readTabs, tabBadge } from '@/tabs';
 
 describe('tabBadge', () => {
   it.each([

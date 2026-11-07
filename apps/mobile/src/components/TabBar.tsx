@@ -8,7 +8,7 @@ import { Pressable } from '@/components/Pressable';
 import { readTabs, type TabName, useTabItems } from '@/data/tabItems';
 import type { Palette } from '@/theme';
 
-// The library bar's phone metrics (expo-router 57, BottomTabBar.js, TabBarIcon.js, Badge.js), so this copy lines up
+// The library bar's phone metrics (expo-router 58, BottomTabBar.js, TabBarIcon.js, Badge.js), so this copy lines up
 // with the bar on the tab pages. Recheck them after an expo-router upgrade.
 const BAR_HEIGHT = 49;
 const ICON_BOX = { width: 31, height: 28 };

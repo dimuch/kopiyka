@@ -96,7 +96,7 @@ database, not that this change broke something.
     accepts the option and still exports one bundle, so nothing changes yet.
   - Verify: `yarn mobile expo export -p web --max-workers 1 --clear` writes exactly one file under
     `apps/mobile/dist/_expo/static/js/web/`.
-- [ ] 2. Move the app to Expo SDK 58
+- [x] 2. Move the app to Expo SDK 58
   - Why one commit: `useRef<TextInput>` fails on SDK 58 (TS2339, TS2322), `TextInputInstance` doesn't exist in SDK 57's types
     (TS2694), and `Stack.Protected` has no `redirectTo` in expo-router 57. So the ref fix can't come first or later and stay green. `redirectTo` could follow as its own commit, but it stays here so that no commit changes URLs.
   - Files: apps/mobile/package.json, yarn.lock (generated, ~2,350 lines), apps/mobile/app.json,

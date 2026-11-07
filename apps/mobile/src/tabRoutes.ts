@@ -11,7 +11,7 @@ export type StackRoutes = readonly {
  * come from the URL and `setParams`, so only strings are kept. With no tabs underneath (a page opened from a link),
  * `fallback` is the active tab.
  *
- * After a page load the tabs keep the partial state built from the URL (no `index`) until a tab is switched, so a
+ * Expo Router 58 always sets `index`, but the state type keeps it optional (SDK 57 left it out after a page load), so a
  * missing `index` means the first route, as React Navigation's TabRouter reads it.
  */
 export function readTabRoutes<Name extends string>(

@@ -3,7 +3,7 @@
 Status: approved
 Brief: ./brief.md
 Branch: chore/demo-seams
-Base: origin/main (d2e321c)
+Base: origin/main (a70dd47)
 
 ## Approach
 
@@ -62,7 +62,7 @@ app's Vitest all passed, and the line counts are from that copy.
 
 ## Version
 
-Bump: patch — 1.1.0 → 1.1.1
+Bump: patch — 1.2.0 → 1.2.1
 Why: conventions §8b, "a refactor that touches shipped code is `patch`, never `none`". Every slice is a behaviour-preserving
 change to the shipped app, with no new capability and no API, schema or MCP change.
 
@@ -84,9 +84,9 @@ then tap Home. A reload clears it. **Don't set `NOTION_LEDGER_ID` on the API to 
 `apps/api/.env` holds a real `NOTION_TOKEN`, so a Sync press would send QA data to the real Notion tables. The panel is
 checked through the stub only.
 
-- [x] 0. Bump version to 1.1.1
+- [x] 0. Bump version to 1.2.1
   - Files: package.json, apps/mobile/app.json
-  - Change: set both to 1.1.1
+  - Change: set both to 1.2.1
 - [x] 1. Pin the tab list and what ApiError carries (58 lines)
   - Files: apps/mobile/test/tabList.test.ts, apps/mobile/test/apiError.test.ts (both new)
   - Change: characterization tests only, passing on the Base. New files, so no existing test is touched.
@@ -183,7 +183,7 @@ checked through the stub only.
 
 | AC                                                       | Evidence                                                                                                                                                                                                                                                                                                           |
 | -------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| Gates pass, no test changed apart from import paths      | Gates on every slice. `git diff origin/main -- apps/mobile/test/client.test.ts apps/mobile/test/tabs.test.ts` shows only `import` lines. Root total goes 535 → 550 (app 217 → 232) passed, 1 skipped; integration tests must have run                                                                              |
+| Gates pass, no test changed apart from import paths      | Gates on every slice. `git diff origin/main -- apps/mobile/test/client.test.ts apps/mobile/test/tabs.test.ts` shows only `import` lines. App tests go 217 → 232, API tests stay as on the Base; integration tests must have run                                                                                    |
 | Home, tabs, badge, Notion panel, sign in/out as before   | Web checks in slices 5, 7, 8 against the notes taken on the Base; iPhone check in slice 8                                                                                                                                                                                                                          |
 | No imports left in `components/` and shared screens      | `rg -n "data/invites" apps/mobile/src` lists only `data/tabItems.ts`, `app/(tabs)/index.tsx`, and the three in the first open question. `rg -n "from '@/data/useNotionSync'" apps/mobile/src` lists only `app/(tabs)/index.tsx`. `rg -n "api/client" apps/mobile/src/components apps/mobile/src/app` lists nothing |
 | Home cards as props                                      | Slice 7: `HomeCards` takes `cards`; Home keeps its cards, invites and Notion panel                                                                                                                                                                                                                                 |
@@ -239,5 +239,8 @@ checked through the stub only.
 - 080's demo `readTabs` should type its names as `TabName` so the module fits `typeof import('@/data/tabItems')`.
 
 ## Deviations
+
+- Rebased twice as main moved (conventions §8b): base d2e321c, then a70dd47, so the bump is 1.2.0 → 1.2.1.
+- Slice 5: the Budget-on-last-month check ran with a category of this month, since a fresh ledger has no list last month.
 
 ## Consolidate

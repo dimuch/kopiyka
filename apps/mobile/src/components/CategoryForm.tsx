@@ -1,5 +1,13 @@
 import { type ReactNode, useRef, useState } from 'react';
-import { AccessibilityInfo, ActivityIndicator, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
+import {
+  AccessibilityInfo,
+  ActivityIndicator,
+  ScrollView,
+  StyleSheet,
+  Text,
+  type TextInputInstance,
+  View,
+} from 'react-native';
 import { ApiError } from '@/api/apiError';
 import type { Category } from '@/api/types';
 import { useColors, useThemedStyles } from '@/appearance/AppearanceContext';
@@ -45,7 +53,7 @@ export function CategoryForm({
   const [gone, setGone] = useState(false);
   // `busy` disables the button only after a re-render; two presses in one tick would both get here.
   const inFlight = useRef(false);
-  const amountInput = useRef<TextInput>(null);
+  const amountInput = useRef<TextInputInstance>(null);
 
   // The alert role covers web; VoiceOver needs an explicit announcement.
   function showError(message: string) {

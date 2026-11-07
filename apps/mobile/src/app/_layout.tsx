@@ -16,10 +16,12 @@ function Screens() {
     );
   }
   const signedIn = state.status === 'signedIn';
+  // Without an explicit target the library picks the route and carries the old URL's params along.
+  const landing = signedIn ? '/' : state.status === 'noLedger' ? '/no-ledger' : '/login';
   // Three groups so a user who loses their last ledger lands on no-ledger, not on login (they're still signed in).
   return (
     <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: colors.bg } }}>
-      <Stack.Protected guard={signedIn}>
+      <Stack.Protected guard={signedIn} redirectTo={landing}>
         <Stack.Screen name="(tabs)" />
         <Stack.Screen name="category/[categoryId]" />
         <Stack.Screen name="members" />
@@ -28,10 +30,10 @@ function Screens() {
         <Stack.Screen name="category-form" options={{ presentation: 'modal' }} />
         <Stack.Screen name="income-item" options={{ presentation: 'modal' }} />
       </Stack.Protected>
-      <Stack.Protected guard={state.status === 'noLedger'}>
+      <Stack.Protected guard={state.status === 'noLedger'} redirectTo={landing}>
         <Stack.Screen name="no-ledger" />
       </Stack.Protected>
-      <Stack.Protected guard={state.status === 'signedOut'}>
+      <Stack.Protected guard={state.status === 'signedOut'} redirectTo={landing}>
         <Stack.Screen name="login" />
       </Stack.Protected>
     </Stack>

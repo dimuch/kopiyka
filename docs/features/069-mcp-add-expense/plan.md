@@ -233,7 +233,7 @@ Starts once PR A is merged. Its tests stub the API.
     - It takes a tool call from the limit.
     - `flow.test.ts`: the whole flow with `read write` ends in `add_expense` at log level `trace`, and the logs hold neither its name
       nor its amount, nor the secrets the test already lists.
-- [ ] 6. Explain add_expense's refusals (~70)
+- [x] 6. Explain add_expense's refusals (~70)
   - Files: `apps/mcp/src/mcp/tools.ts`, `apps/mcp/test/tools.test.ts`
   - Change: the optional map in `toolResult`, and the table above, with the lost-answer sentence built from the date the handler
     resolved.
@@ -340,12 +340,11 @@ decision, so it comes back to the owner.
 - `errForLog` also covers every other API route, which had the same leak: slice 1 fixes it for all, and the PR should say so.
 - `errForLog` drops `cause`, which the default folded into the log, so an NBU connection failure logs "fetch failed" without the root
   reason. Logs only. Worth adding if an NBU outage is ever hard to read.
-- For PR B, slice 6: a retry across a month's end gets `month_ended` though the first call saved. "This call saved nothing" is true, but
-  reads as if the expense is missing. No duplicate is added. Decide the wording there.
 
 ## Deviations
 
 - slice 1: `errForLog` logs `type` as the error's class name, as the default did, so `RateUnavailableError` stays readable, and `stack` falls back to `''` because Fastify's type requires a string.
+- slice 6: `month_ended` also says an earlier call with no answer may have saved, and to check with `list_expenses`, because a repeat just after a month's end gets this answer though the first call saved. It's the wording the first review asked to settle here.
 - slice 2: `API_TOKEN_WRITE_ROUTES` is named `WRITE_TOKEN_ROUTES` in the code and stays private, because the test keeps its own list.
 
 ## Consolidate

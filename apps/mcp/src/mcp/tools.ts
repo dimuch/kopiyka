@@ -48,6 +48,29 @@ const ALREADY_SAVED_NOTE =
   'An identical expense was saved in the last 10 minutes, so no second one was added. ' +
   'To add another on purpose, give it a name that tells them apart.';
 
+const SAVED_NOTHING = 'This call saved nothing.';
+
+/** What the LLM can do about each API code. `date` is the one this call used, so a repeat can't land on another day. */
+function addExpenseRefusals(date: string): Record<string, string> {
+  const lostAnswer =
+    'The answer was lost, so it may be saved. Repeat within 10 minutes with the same inputs and date set to ' +
+    `${date}: it’s safe.`;
+  return {
+    insufficient_scope: `This connection can only read. Disconnect Kopiyka in Claude’s connectors, connect, and allow it. ${SAVED_NOTHING}`,
+    // A repeat just after the month's end comes here too, though the first call saved: the month check goes first.
+    month_ended: `That month has ended and is read-only. ${SAVED_NOTHING} If an earlier call for this expense got no answer, it may have been saved: check with list_expenses.`,
+    category_not_in_month: `That category isn’t in that month’s list; use a categoryId from month_summary for that month. ${SAVED_NOTHING}`,
+    unknown_category: `That isn’t a category of this ledger. ${SAVED_NOTHING}`,
+    ledger_not_found: `No such ledger for this user; use list_ledgers. ${SAVED_NOTHING}`,
+    invalid_request: `The amount must be positive with at most 2 decimals, the date a real YYYY-MM-DD, and the name at most 200 characters. ${SAVED_NOTHING}`,
+    date_in_future: `The date is too far ahead. ${SAVED_NOTHING}`,
+    rate_unavailable: `The NBU rate isn’t available; try later. ${SAVED_NOTHING}`,
+    api_unreachable: lostAnswer,
+    api_error: lostAnswer,
+    internal: lostAnswer,
+  };
+}
+
 /** What one `/mcp` request may do: read and write as its user, and spend that user's tool calls. */
 export interface RequestScope {
   read<T>(path: string): Promise<T>;
@@ -66,6 +89,7 @@ async function toolResult(
   scope: RequestScope,
   tool: string,
   read: () => Promise<Record<string, unknown>>,
+  refusals: Record<string, string> = {},
 ): Promise<CallToolResult> {
   const waitSeconds = scope.takeToolCall(tool);
   if (waitSeconds > 0) {
@@ -74,7 +98,10 @@ async function toolResult(
   try {
     return { content: [{ type: 'text', text: JSON.stringify(await read()) }] };
   } catch (err) {
-    if (err instanceof ApiError) return errorResult(err.code);
+    if (err instanceof ApiError) {
+      const sentence = refusals[err.code];
+      return errorResult(sentence ? `${err.code}: ${sentence}` : err.code);
+    }
     throw err;
   }
 }
@@ -231,28 +258,36 @@ export function buildServer(scope: RequestScope): McpServer {
     },
     ({ ledgerId, categoryId, date, name, amount, currency }) => {
       const expenseDate = date ?? scope.today();
-      return toolResult(scope, 'add_expense', async () => {
-        const saved = await scope.write<ApiExpense & { alreadySaved?: boolean }>(`/api/ledgers/${ledgerId}/expenses`, {
-          categoryId,
-          expenseDate,
-          name,
-          amount,
-          currency,
-        });
-        return {
-          ledgerId,
-          expenseId: saved.expenseId,
-          date: saved.expenseDate,
-          name: saved.name,
-          categoryId: saved.categoryId,
-          amountEur: eur(toCents(saved.amountEur)),
-          amountUah: uah(toCents(saved.amountUah)),
-          enteredCurrency: saved.enteredCurrency,
-          eurUahRate: saved.eurUahRate,
-          alreadySaved: saved.alreadySaved === true,
-          ...(saved.alreadySaved ? { note: ALREADY_SAVED_NOTE } : {}),
-        };
-      });
+      return toolResult(
+        scope,
+        'add_expense',
+        async () => {
+          const saved = await scope.write<ApiExpense & { alreadySaved?: boolean }>(
+            `/api/ledgers/${ledgerId}/expenses`,
+            {
+              categoryId,
+              expenseDate,
+              name,
+              amount,
+              currency,
+            },
+          );
+          return {
+            ledgerId,
+            expenseId: saved.expenseId,
+            date: saved.expenseDate,
+            name: saved.name,
+            categoryId: saved.categoryId,
+            amountEur: eur(toCents(saved.amountEur)),
+            amountUah: uah(toCents(saved.amountUah)),
+            enteredCurrency: saved.enteredCurrency,
+            eurUahRate: saved.eurUahRate,
+            alreadySaved: saved.alreadySaved === true,
+            ...(saved.alreadySaved ? { note: ALREADY_SAVED_NOTE } : {}),
+          };
+        },
+        addExpenseRefusals(expenseDate),
+      );
     },
   );
 

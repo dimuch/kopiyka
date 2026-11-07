@@ -107,6 +107,7 @@ describe('GET /oauth/authorize', () => {
         redirectUri: CALLBACK,
         codeChallenge: CHALLENGE,
         state: 'xyz',
+        scope: 'read',
       });
       expect(open(config.sealKey, 'signin', sealed, tenMinutes)).toBeNull();
       expect(open(config.sealKey, 'consent', sealed, T)).toBeNull();
@@ -139,6 +140,20 @@ describe('GET /oauth/authorize', () => {
       const res = await authorize({ client_id: await register([CALLBACK]), state: 'x'.repeat(1024) });
 
       expect(res.statusCode).toBe(200);
+    });
+
+    it.each(['read write', 'write read', 'write'])('says a request for “%s” can add expenses', async (scope) => {
+      const res = await authorize({ client_id: await register([CALLBACK]), scope });
+
+      expect(res.statusCode).toBe(200);
+      expect(res.body).toContain('wants to read your budgets and add expenses.');
+    });
+
+    it.each([['read'], [''], [undefined]])('asks only to read for a scope of %j', async (scope) => {
+      const res = await authorize({ client_id: await register([CALLBACK]), scope });
+
+      expect(res.statusCode).toBe(200);
+      expect(res.body).toContain('wants to read your budgets.');
     });
 
     it('accepts a request with no scope', async () => {
@@ -234,7 +249,8 @@ describe('GET /oauth/authorize', () => {
       ['a challenge that isn’t base64url', { code_challenge: `${'x'.repeat(42)}!` }, 'invalid_request'],
       ['another resource', { resource: 'https://other.example/mcp' }, 'invalid_request'],
       ['an empty resource', { resource: '' }, 'invalid_request'],
-      ['a write scope', { scope: 'write' }, 'invalid_scope'],
+      ['an unknown scope', { scope: 'x' }, 'invalid_scope'],
+      ['an unknown scope beside a known one', { scope: 'read x' }, 'invalid_scope'],
       ['another response type', { response_type: 'token' }, 'unsupported_response_type'],
     ])('for %s', async (_case, params, error) => {
       const res = await authorize({ client_id: await register([CALLBACK]), ...params });

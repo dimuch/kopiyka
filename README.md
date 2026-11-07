@@ -4,11 +4,11 @@ A small shared budget app: monthly category budgets, expenses in EUR with the UA
 National Bank of Ukraine rate of the day. One Expo codebase serves the iPhone app and the web app;
 a Fastify API sits in front of MySQL.
 
-| Path          | What                                                 |
-| ------------- | ---------------------------------------------------- |
-| `apps/api`    | Node 24 + TypeScript + Fastify + Zod, MySQL 8.4      |
-| `apps/mobile` | Expo (React Native) app, iOS + web                   |
-| `apps/mcp`    | MCP connector for Claude: Fastify, reads via the API |
+| Path          | What                                                                   |
+| ------------- | ---------------------------------------------------------------------- |
+| `apps/api`    | Node 24 + TypeScript + Fastify + Zod, MySQL 8.4                        |
+| `apps/mobile` | Expo (React Native) app, iOS + web                                     |
+| `apps/mcp`    | MCP connector for Claude: Fastify, reads and adds expenses via the API |
 
 ## Local setup
 
@@ -82,11 +82,14 @@ the Budget tables at a time.
 
 ## Connecting Claude
 
-`apps/mcp` lets Claude read a user's budgets. In Claude, add a custom connector with the URL `https://<host>/mcp` at
-claude.ai > Customize > Connectors; it then works in Claude Desktop and Claude mobile. Sign in with your username and
-authenticator code, and allow it. It's read-only, and sign-in comes back every hour. Free plans allow one custom
-connector; on Team and Enterprise an Owner adds it. After 90 days its registration ends: remove the connector and add it
-again.
+`apps/mcp` lets Claude read a user's budgets and add expenses. It can't edit or delete anything. In Claude, add a custom
+connector with the URL `https://<host>/mcp` at claude.ai > Customize > Connectors; it then works in Claude Desktop and Claude
+mobile. Sign in with your username and authenticator code, and allow it. Sign-in comes back every hour. Free plans allow one
+custom connector; on Team and Enterprise an Owner adds it. After 90 days its registration ends: remove the connector and add
+it again.
+
+A connection made before this can only read until its next sign-in. If adding an expense says the connection can only read,
+disconnect Kopiyka in Claude's connectors, connect, and allow it.
 
 Claude Code can't connect directly (`claude mcp add`), because it uses a loopback redirect. A connector added on claude.ai
 may still appear in it for a claude.ai login. Claude Desktop on third-party inference can't connect either.

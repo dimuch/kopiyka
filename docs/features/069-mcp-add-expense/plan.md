@@ -202,10 +202,10 @@ Nothing changes for users until PR B: no client asks for `write`.
 
 Starts once PR A is merged. Its tests stub the API.
 
-- [ ] 0B. Bump version to 1.2.0
+- [x] 0B. Bump version to 1.2.0
   - Files: package.json, apps/mobile/app.json
   - Change: set both to 1.2.0
-- [ ] 4. Let a connection ask for write, and say so at sign-in (~150)
+- [x] 4. Let a connection ask for write, and say so at sign-in (~150)
   - Files: `apps/mcp/src/oauth/metadata.ts`, `apps/mcp/src/oauth/authorize.ts`, `apps/mcp/src/oauth/signIn.ts`,
     `apps/mcp/src/oauth/token.ts`, `apps/mcp/src/oauth/pages.ts`, `apps/mcp/src/mcp/routes.ts`, `apps/mcp/src/mcp/auth.ts`, and in
     `apps/mcp/test/`: `oauthFlow.ts`, `authorize.test.ts`, `signIn.test.ts`, `token.test.ts`, `mcp.test.ts`, `register.test.ts`
@@ -219,7 +219,7 @@ Starts once PR A is merged. Its tests stub the API.
     - `token.test.ts`: `scope` is `read write` for a write code and `read` for a read one.
     - `mcp.test.ts`, `register.test.ts`: both metadata documents list both scopes; both 401s carry `scope="read write"`; a read
       token still gets through.
-- [ ] 5. Add the add_expense tool (~130)
+- [x] 5. Add the add_expense tool (~130)
   - Files: `apps/mcp/src/mcp/tools.ts`, `apps/mcp/src/mcp/routes.ts`, `apps/mcp/test/tools.test.ts`, `apps/mcp/test/flow.test.ts`,
     `apps/mcp/test/mcp.test.ts`
   - Change: `write` on `RequestScope`, the tool, and the `note`. The handler resolves the date once, `date ?? scope.today()`. The description says what it adds, that the other currency comes from
@@ -233,7 +233,7 @@ Starts once PR A is merged. Its tests stub the API.
     - It takes a tool call from the limit.
     - `flow.test.ts`: the whole flow with `read write` ends in `add_expense` at log level `trace`, and the logs hold neither its name
       nor its amount, nor the secrets the test already lists.
-- [ ] 6. Explain add_expense's refusals (~70)
+- [x] 6. Explain add_expense's refusals (~70)
   - Files: `apps/mcp/src/mcp/tools.ts`, `apps/mcp/test/tools.test.ts`
   - Change: the optional map in `toolResult`, and the table above, with the lost-answer sentence built from the date the handler
     resolved.
@@ -243,7 +243,7 @@ Starts once PR A is merged. Its tests stub the API.
       The first result says it may be saved, the second gives the expense, and the fake holds one.
     - A call with no `date`, a lost answer, and the sentence names that date.
     - A read tool's refusal is still the bare code.
-- [ ] 7. Say the connector can add expenses (~15)
+- [x] 7. Say the connector can add expenses (~15)
   - Files: `README.md`, `deploy/README.md`
   - Change: "Connecting Claude" stops saying read-only. It says what can be added, that existing connections stay read-only until
     their next sign-in, and how to reconnect. `MCP connector` says it reads and can add expenses, and that the API refuses its tokens
@@ -259,9 +259,9 @@ With `claude-qa-mcp`. Results go in `deploy/README.md`, "What's been tested", in
 3. Check the sign-in and consent pages name adding expenses, and Allow.
 4. Under Tool permissions, note `add_expense`'s group and setting.
 5. In a new chat, ask "add 12.50 EUR for groceries today". Note whether Claude asked first.
-6. In the app, check the amounts, rate, date and category. `created_by` isn't shown in the app, so check it with a read-only
-   `SELECT created_by` in `sudo mysql kopiyka`.
-7. Ask for exactly the same again. Claude should say it's already saved, and the app should still show one.
+6. Within 10 minutes, ask for exactly the same again. Claude should say it's already saved.
+7. In the app, check there's one, with the right amounts, rate, date and category. `created_by` isn't shown in the app, so check it
+   with a read-only `SELECT created_by` in `sudo mysql kopiyka`.
 8. Delete it in the app.
 9. Connect once more and press Cancel, then leave a connection past its hour and note what Claude shows. `deploy/README.md`
    lists both as not run.
@@ -274,7 +274,7 @@ decision, so it comes back to the owner.
 
 | AC                                                    | Evidence                                                                              |
 | ----------------------------------------------------- | ------------------------------------------------------------------------------------- |
-| Saves one expense with the right fields               | Slice 2 `created_by` test, slice 5 path and result tests, owner steps 5 and 6         |
+| Saves one expense with the right fields               | Slice 2 `created_by` test, slice 5 path and result tests, owner steps 5 and 7         |
 | `write` gets 403 on every other write, by route walk  | Slice 2 `every write route`                                                           |
 | `read` still gets 403 on every write route            | The read case in `every write route`, kept and still naming this route                |
 | Consent names the write, unchanged for `read`         | Slice 4 `signIn.test.ts`, `authorize.test.ts`                                         |
@@ -340,12 +340,11 @@ decision, so it comes back to the owner.
 - `errForLog` also covers every other API route, which had the same leak: slice 1 fixes it for all, and the PR should say so.
 - `errForLog` drops `cause`, which the default folded into the log, so an NBU connection failure logs "fetch failed" without the root
   reason. Logs only. Worth adding if an NBU outage is ever hard to read.
-- For PR B, slice 6: a retry across a month's end gets `month_ended` though the first call saved. "This call saved nothing" is true, but
-  reads as if the expense is missing. No duplicate is added. Decide the wording there.
 
 ## Deviations
 
 - slice 1: `errForLog` logs `type` as the error's class name, as the default did, so `RateUnavailableError` stays readable, and `stack` falls back to `''` because Fastify's type requires a string.
+- slice 6: `month_ended` also says an earlier call with no answer may have saved, and to check with `list_expenses`, because a repeat just after a month's end gets this answer though the first call saved. It's the wording the first review asked to settle here.
 - slice 2: `API_TOKEN_WRITE_ROUTES` is named `WRITE_TOKEN_ROUTES` in the code and stays private, because the test keeps its own list.
 
 ## Consolidate
@@ -356,3 +355,9 @@ PR A. CONSOLIDATE: reused 3 · extracted 0 · left 3.
 - LEAVE `logStream`, twin in `apps/mcp/src/app.ts`: a different app, and `apps/mcp` must stay deletable.
 - LEAVE `errForLog`: `apps/mcp` has no database, so it has no `sql` to drop.
 - LEAVE the test helper `writeToken`, twin `issueToken` in `apiTokens.auth.int.test.ts`: two copies, and only one takes a scope.
+
+PR B. CONSOLIDATE: reused 1 · extracted 0 · left 2.
+
+- REUSE `LedgerMonth.ledgerId` in `add_expense`.
+- LEAVE the expense mapping in `add_expense`, twin in `list_expenses`: two copies, and they differ (`categoryName`, `alreadySaved`).
+- LEAVE the `scope === 'write'` choices in `signInPage` and `consentPage`: two different sentences, and `read` must stay as it was.

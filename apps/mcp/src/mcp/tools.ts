@@ -44,9 +44,38 @@ const LedgerMonth = {
     .describe('The month, as YYYY-MM'),
 };
 
-/** What one `/mcp` request may do: read as its user, and spend that user's tool calls. */
+const ALREADY_SAVED_NOTE =
+  'An identical expense was saved in the last 10 minutes, so no second one was added. ' +
+  'To add another on purpose, give it a name that tells them apart.';
+
+const SAVED_NOTHING = 'This call saved nothing.';
+
+/** What the LLM can do about each API code. `date` is the one this call used, so a repeat can't land on another day. */
+function addExpenseRefusals(date: string): Record<string, string> {
+  const lostAnswer =
+    'The answer was lost, so it may be saved. Repeat within 10 minutes with the same inputs and date set to ' +
+    `${date}: it’s safe.`;
+  return {
+    insufficient_scope: `This connection can only read. Disconnect Kopiyka in Claude’s connectors, connect, and allow it. ${SAVED_NOTHING}`,
+    // A repeat just after the month's end comes here too, though the first call saved: the month check goes first.
+    month_ended: `That month has ended and is read-only. ${SAVED_NOTHING} If an earlier call for this expense got no answer, it may have been saved: check with list_expenses.`,
+    category_not_in_month: `That category isn’t in that month’s list; use a categoryId from month_summary for that month. ${SAVED_NOTHING}`,
+    unknown_category: `That isn’t a category of this ledger. ${SAVED_NOTHING}`,
+    ledger_not_found: `No such ledger for this user; use list_ledgers. ${SAVED_NOTHING}`,
+    invalid_request: `The amount must be positive with at most 8 digits and 2 decimals, the date a real YYYY-MM-DD from 2000 on, and the name at most 200 characters. ${SAVED_NOTHING}`,
+    date_in_future: `The date is too far ahead. ${SAVED_NOTHING}`,
+    rate_unavailable: `The NBU rate isn’t available; try later. ${SAVED_NOTHING}`,
+    api_unreachable: lostAnswer,
+    api_error: lostAnswer,
+    internal: lostAnswer,
+  };
+}
+
+/** What one `/mcp` request may do: read and write as its user, and spend that user's tool calls. */
 export interface RequestScope {
   read<T>(path: string): Promise<T>;
+  /** The API decides what this token may write. */
+  write<T>(path: string, body: object): Promise<T>;
   /** Today in Kyiv, as 'YYYY-MM-DD'. */
   today(): string;
   /** Takes one tool call: 0 when allowed, otherwise the seconds until one is free. */
@@ -59,16 +88,20 @@ const errorResult = (text: string): CallToolResult => ({ content: [{ type: 'text
 async function toolResult(
   scope: RequestScope,
   tool: string,
-  read: () => Promise<Record<string, unknown>>,
+  run: () => Promise<Record<string, unknown>>,
+  refusals: Record<string, string> = {},
 ): Promise<CallToolResult> {
   const waitSeconds = scope.takeToolCall(tool);
   if (waitSeconds > 0) {
     return errorResult(`rate_limited: too many requests from this connection; try again in ${waitSeconds} s`);
   }
   try {
-    return { content: [{ type: 'text', text: JSON.stringify(await read()) }] };
+    return { content: [{ type: 'text', text: JSON.stringify(await run()) }] };
   } catch (err) {
-    if (err instanceof ApiError) return errorResult(err.code);
+    if (err instanceof ApiError) {
+      const sentence = refusals[err.code];
+      return errorResult(sentence ? `${err.code}: ${sentence}` : err.code);
+    }
     throw err;
   }
 }
@@ -204,6 +237,58 @@ export function buildServer(scope: RequestScope): McpServer {
         const { date, rateDate, eurUah } = await scope.read<ApiRate>(`/api/rates/eur-uah?date=${scope.today()}`);
         return { date, rateDate, eurUah, formatted: `1 EUR = ${eurUah.toFixed(4)} UAH` };
       }),
+  );
+
+  server.registerTool(
+    'add_expense',
+    {
+      description:
+        'Adds one expense to a ledger, and answers with what was saved. The other currency comes from the National ' +
+        'Bank of Ukraine rate of the date. An identical call within 10 minutes adds nothing, so a retry with the same date is safe.',
+      inputSchema: {
+        ledgerId: LedgerMonth.ledgerId,
+        categoryId: z.number().int().positive().describe('A categoryId from month_summary, for the month of the date'),
+        date: z.string().optional().describe('The date, as YYYY-MM-DD. Leave it out for today in Kyiv'),
+        name: z.string().describe('What it was, like "Silpo"'),
+        amount: z.string().describe('A decimal string, like "12.50"'),
+        currency: z.enum(['EUR', 'UAH']),
+      },
+      // Destructive though it only adds: Claude's docs promise a prompt only for destructive tools.
+      annotations: { title: 'Add an expense', readOnlyHint: false, destructiveHint: true },
+    },
+    ({ ledgerId, categoryId, date, name, amount, currency }) => {
+      const expenseDate = date ?? scope.today();
+      return toolResult(
+        scope,
+        'add_expense',
+        async () => {
+          const saved = await scope.write<ApiExpense & { alreadySaved?: boolean }>(
+            `/api/ledgers/${ledgerId}/expenses`,
+            {
+              categoryId,
+              expenseDate,
+              name,
+              amount,
+              currency,
+            },
+          );
+          return {
+            ledgerId,
+            expenseId: saved.expenseId,
+            date: saved.expenseDate,
+            name: saved.name,
+            categoryId: saved.categoryId,
+            amountEur: eur(toCents(saved.amountEur)),
+            amountUah: uah(toCents(saved.amountUah)),
+            enteredCurrency: saved.enteredCurrency,
+            eurUahRate: saved.eurUahRate,
+            alreadySaved: saved.alreadySaved === true,
+            ...(saved.alreadySaved ? { note: ALREADY_SAVED_NOTE } : {}),
+          };
+        },
+        addExpenseRefusals(expenseDate),
+      );
+    },
   );
 
   return server;

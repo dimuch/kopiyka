@@ -40,5 +40,6 @@ export async function verifyAccessToken(
     if (err instanceof ApiError && err.status === 401) throw invalidToken('The access token has been revoked');
     throw err;
   }
-  return { token: token.apiToken, clientId: token.clientId, scopes: ['read'], expiresAt: token.expMs / 1000 };
+  // No scopes: this server checks none, because the API holds each token's scope and is the only enforcer.
+  return { token: token.apiToken, clientId: token.clientId, scopes: [], expiresAt: token.expMs / 1000 };
 }

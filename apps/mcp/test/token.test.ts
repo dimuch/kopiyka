@@ -13,6 +13,8 @@ describe('POST /oauth/token', () => {
   let app: FastifyInstance;
   let clock: Date;
   let clientId: string;
+  /** What the API says it issued, when that isn't what it was asked for. */
+  let issuedScope: string | undefined;
 
   function api(call: RecordedCall): Answer {
     if (call.path === '/api/auth/login') return { json: { token: 'session-token' } };
@@ -21,14 +23,15 @@ describe('POST /oauth/token', () => {
     }
     if (call.path === '/api/api-tokens' && call.method === 'POST') {
       const expiresAt = new Date(clock.getTime() + API_TOKEN_LIFE_MS).toISOString();
-      return { status: 201, json: { tokenId: 1, token: 'kpk.new', scope: 'read', expiresAt } };
+      const { scope } = call.body as { scope: string };
+      return { status: 201, json: { tokenId: 1, token: 'kpk.new', scope: issuedScope ?? scope, expiresAt } };
     }
     return { json: { tokens: [] } };
   }
 
   /** Signs in and allows, and gives back the one-time code the browser would carry. */
-  async function getCode(): Promise<string> {
-    const request = await startSignIn(app, clientId);
+  async function getCode(scope?: string): Promise<string> {
+    const request = await startSignIn(app, clientId, scope);
     const signIn = await app.inject({
       method: 'POST',
       url: '/oauth/authorize',
@@ -64,6 +67,7 @@ describe('POST /oauth/token', () => {
 
   beforeEach(async () => {
     clock = new Date();
+    issuedScope = undefined;
     await start();
   });
 
@@ -86,6 +90,20 @@ describe('POST /oauth/token', () => {
       scope: 'read',
     });
     expect(res.body).not.toContain('kpk.new');
+  });
+
+  it('says read write for a write code', async () => {
+    const res = await exchange(await getCode('read write'));
+
+    expect(res.json().scope).toBe('read write');
+  });
+
+  it('says what the API issued, not what was asked for', async () => {
+    issuedScope = 'read';
+
+    const res = await exchange(await getCode('read write'));
+
+    expect(res.json().scope).toBe('read');
   });
 
   it('gives a token that /mcp accepts', async () => {

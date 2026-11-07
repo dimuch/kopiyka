@@ -23,7 +23,12 @@ function goodApi(call: RecordedCall): Answer {
   if (call.path === '/api/api-tokens') {
     return {
       status: 201,
-      json: { tokenId: 1, token: 'kpk.new', scope: 'read', expiresAt: minutesAfterT(60).toISOString() },
+      json: {
+        tokenId: 1,
+        token: 'kpk.new',
+        scope: (call.body as { scope: string }).scope,
+        expiresAt: minutesAfterT(60).toISOString(),
+      },
     };
   }
   if (call.path === '/api/auth/logout') return { status: 204, text: '' };
@@ -46,8 +51,8 @@ describe('signing in', () => {
   const consent = (sealed: string, decision: string) =>
     app.inject({ method: 'POST', url: '/oauth/consent', ...form({ consent: sealed, decision }) });
 
-  async function reachConsent(): Promise<string> {
-    const res = await signIn(await startSignIn(app, await registerClient(app)));
+  async function reachConsent(scope?: string): Promise<string> {
+    const res = await signIn(await startSignIn(app, await registerClient(app), scope));
     return hidden(res.body, 'consent');
   }
 
@@ -141,6 +146,24 @@ describe('signing in', () => {
       expect(res.body).not.toContain('session-token');
     });
 
+    it('says a read connection can read, and no more', async () => {
+      const res = await signIn(await startSignIn(app, await registerClient(app), 'read'));
+
+      expect(res.body).toContain('Allow read access?');
+      expect(res.body).toContain('will be able to read these budgets for up to an hour, but not change them:');
+      expect(res.body).not.toContain('add expenses');
+    });
+
+    it('says a write connection can add expenses, but not edit or delete', async () => {
+      const res = await signIn(await startSignIn(app, await registerClient(app), 'read write'));
+
+      expect(res.body).toContain('Allow reading and adding expenses?');
+      expect(res.body).toContain(
+        'will be able to read these budgets and add expenses to them for up to an hour, but not edit or delete anything:',
+      );
+      expect(res.body).not.toContain('Allow read access?');
+    });
+
     it('shows a hostile ledger name as text', async () => {
       answer = (call) =>
         call.path === '/api/ledgers'
@@ -164,6 +187,14 @@ describe('signing in', () => {
       expect(res.body).toContain('value="olena"');
       expect(res.body).not.toContain('654321');
       expect(hidden(res.body, 'request')).toBe(request);
+    });
+
+    it('still names the write after a wrong code', async () => {
+      answer = () => ({ status: 401, json: { error: 'invalid_credentials' } });
+
+      const res = await signIn(await startSignIn(app, await registerClient(app), 'read write'));
+
+      expect(res.body).toContain('wants to read your budgets and add expenses.');
     });
 
     it('treats a code the API can’t read as a wrong one', async () => {
@@ -226,7 +257,7 @@ describe('signing in', () => {
       expect(res.statusCode).toBe(200);
       const exchange = callsTo('/api/api-tokens')[0]!;
       expect(exchange.method).toBe('POST');
-      expect(exchange.body).toEqual({ label: 'Claude' });
+      expect(exchange.body).toEqual({ label: 'Claude', scope: 'read' });
       expect(bearerOf(exchange)).toBe('session-token');
 
       const link = linkOn(res.body);
@@ -240,6 +271,12 @@ describe('signing in', () => {
       expect(refresh.replaceAll('&amp;', '&')).toBe(link.href);
       expect(res.body).toContain('claude.ai');
       expect(res.body).not.toContain('kpk.new');
+    });
+
+    it('Allow on a write connection asks the API for a write token', async () => {
+      await consent(await reachConsent('read write'), 'allow');
+
+      expect(callsTo('/api/api-tokens')[0]!.body).toEqual({ label: 'Claude', scope: 'write' });
     });
 
     it('Deny: ends the session and offers a link, with no automatic redirect', async () => {

@@ -234,6 +234,171 @@ describe('the budget tools', () => {
     });
   });
 
+  describe('add_expense', () => {
+    const SAVED = {
+      expenseId: 9,
+      categoryId: 7,
+      expenseDate: '2026-10-06',
+      name: 'Silpo',
+      amountEur: '12.50',
+      amountUah: '631.04',
+      eurUahRate: '50.4830',
+      enteredCurrency: 'EUR',
+      createdBy: 1,
+    };
+    const INPUT = { ledgerId: 1, categoryId: 7, date: '2026-10-06', name: 'Silpo', amount: '12.50', currency: 'EUR' };
+    const posts = () => api.calls.filter((call) => call.method === 'POST');
+
+    beforeEach(() => {
+      answer = (call) => (call.method === 'POST' ? { status: 201, json: SAVED } : ledgerOne(call));
+    });
+
+    it('calls the API’s add as the token’s user, and answers with what was saved', async () => {
+      const result = await callTool('add_expense', INPUT);
+
+      expect(posts().map((call) => [call.path, call.body, bearerOf(call)])).toEqual([
+        [
+          '/api/ledgers/1/expenses',
+          { categoryId: 7, expenseDate: '2026-10-06', name: 'Silpo', amount: '12.50', currency: 'EUR' },
+          'kpk.olena',
+        ],
+      ]);
+      expect(result.isError).toBeUndefined();
+      expect(toolData(result)).toEqual({
+        ledgerId: 1,
+        expenseId: 9,
+        date: '2026-10-06',
+        name: 'Silpo',
+        categoryId: 7,
+        amountEur: { amount: '12.50', formatted: '€12.50' },
+        amountUah: { amount: '631.04', formatted: '₴631.04' },
+        enteredCurrency: 'EUR',
+        eurUahRate: '50.4830',
+        alreadySaved: false,
+      });
+    });
+
+    it('uses today in Kyiv when no date is given', async () => {
+      clock = new Date('2026-11-02T22:30:00Z');
+      const { ledgerId, categoryId, name, amount, currency } = INPUT;
+
+      await callTool('add_expense', { ledgerId, categoryId, name, amount, currency });
+
+      expect(posts()[0]!.body).toMatchObject({ expenseDate: '2026-11-03' });
+    });
+
+    it('says when an identical expense was already saved, without calling it an error', async () => {
+      answer = (call) => (call.method === 'POST' ? { json: { ...SAVED, alreadySaved: true } } : ledgerOne(call));
+
+      const result = await callTool('add_expense', INPUT);
+
+      expect(result.isError).toBeUndefined();
+      expect(toolData(result)).toMatchObject({
+        expenseId: 9,
+        alreadySaved: true,
+        note: 'An identical expense was saved in the last 10 minutes, so no second one was added. To add another on purpose, give it a name that tells them apart.',
+      });
+    });
+
+    const SAVED_NOTHING = 'This call saved nothing.';
+    const LOST_ANSWER =
+      'The answer was lost, so it may be saved. Repeat within 10 minutes with the same inputs and date set to ' +
+      '2026-10-06: it’s safe.';
+
+    it.each<[string, number, string]>([
+      [
+        'insufficient_scope',
+        403,
+        `This connection can only read. Disconnect Kopiyka in Claude’s connectors, connect, and allow it. ${SAVED_NOTHING}`,
+      ],
+      [
+        'month_ended',
+        409,
+        `That month has ended and is read-only. ${SAVED_NOTHING} If an earlier call for this expense got no answer, it may have been saved: check with list_expenses.`,
+      ],
+      [
+        'category_not_in_month',
+        400,
+        `That category isn’t in that month’s list; use a categoryId from month_summary for that month. ${SAVED_NOTHING}`,
+      ],
+      ['unknown_category', 400, `That isn’t a category of this ledger. ${SAVED_NOTHING}`],
+      ['ledger_not_found', 404, `No such ledger for this user; use list_ledgers. ${SAVED_NOTHING}`],
+      [
+        'invalid_request',
+        400,
+        `The amount must be positive with at most 8 digits and 2 decimals, the date a real YYYY-MM-DD from 2000 on, and the name at most 200 characters. ${SAVED_NOTHING}`,
+      ],
+      ['date_in_future', 400, `The date is too far ahead. ${SAVED_NOTHING}`],
+      ['rate_unavailable', 503, `The NBU rate isn’t available; try later. ${SAVED_NOTHING}`],
+      ['internal', 500, LOST_ANSWER],
+    ])('explains %s', async (code, status, sentence) => {
+      answer = (call) => (call.method === 'POST' ? { status, json: { error: code } } : ledgerOne(call));
+
+      const result = await callTool('add_expense', INPUT);
+
+      expect(result.isError).toBe(true);
+      expect(result.content[0].text).toBe(`${code}: ${sentence}`);
+    });
+
+    it('explains an answer the API sent but nobody could read', async () => {
+      answer = (call) => (call.method === 'POST' ? { status: 502, text: '<html>' } : ledgerOne(call));
+
+      const result = await callTool('add_expense', INPUT);
+
+      expect(result.content[0].text).toBe(`api_error: ${LOST_ANSWER}`);
+    });
+
+    it('gives the bare code for a refusal it has no sentence for', async () => {
+      answer = (call) => (call.method === 'POST' ? { status: 404, json: { error: 'not_found' } } : ledgerOne(call));
+
+      const result = await callTool('add_expense', INPUT);
+
+      expect(result.isError).toBe(true);
+      expect(result.content[0].text).toBe('not_found');
+    });
+
+    it('stays at one expense when the answer is lost and the call repeated', async () => {
+      const kept: object[] = [];
+      answer = (call) => {
+        if (call.method !== 'POST') return ledgerOne(call);
+        if (kept.length) return { json: { ...kept[0], alreadySaved: true } };
+        kept.push(SAVED);
+        return 'network_failure';
+      };
+
+      const lost = await callTool('add_expense', INPUT);
+      const repeat = await callTool('add_expense', INPUT);
+
+      expect(lost.isError).toBe(true);
+      expect(lost.content[0].text).toBe(`api_unreachable: ${LOST_ANSWER}`);
+      expect(toolData(repeat)).toMatchObject({ expenseId: 9, alreadySaved: true });
+      const [first, second] = posts();
+      expect(second!.body).toEqual(first!.body);
+    });
+
+    it('names the date it used when the call gave none and the answer was lost', async () => {
+      clock = new Date('2026-11-02T22:30:00Z');
+      answer = (call) => (call.method === 'POST' ? 'network_failure' : ledgerOne(call));
+      const { ledgerId, categoryId, name, amount, currency } = INPUT;
+
+      const result = await callTool('add_expense', { ledgerId, categoryId, name, amount, currency });
+
+      expect(result.content[0].text).toContain('date set to 2026-11-03');
+    });
+
+    it('takes a tool call from the limit', async () => {
+      await app.close();
+      app = await buildApp({ config, now: () => clock, fetch: api.fetch, limits: { toolCallBurst: 1 } });
+
+      await callTool('add_expense', INPUT);
+      const refused = await callTool('add_expense', INPUT);
+
+      expect(refused.isError).toBe(true);
+      expect(refused.content[0].text).toMatch(/^rate_limited:/);
+      expect(posts()).toHaveLength(1);
+    });
+  });
+
   describe('eur_uah_rate', () => {
     beforeEach(() => {
       answer = (call) =>

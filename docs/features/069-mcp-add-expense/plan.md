@@ -205,7 +205,7 @@ Starts once PR A is merged. Its tests stub the API.
 - [x] 0B. Bump version to 1.2.0
   - Files: package.json, apps/mobile/app.json
   - Change: set both to 1.2.0
-- [ ] 4. Let a connection ask for write, and say so at sign-in (~150)
+- [x] 4. Let a connection ask for write, and say so at sign-in (~150)
   - Files: `apps/mcp/src/oauth/metadata.ts`, `apps/mcp/src/oauth/authorize.ts`, `apps/mcp/src/oauth/signIn.ts`,
     `apps/mcp/src/oauth/token.ts`, `apps/mcp/src/oauth/pages.ts`, `apps/mcp/src/mcp/routes.ts`, `apps/mcp/src/mcp/auth.ts`, and in
     `apps/mcp/test/`: `oauthFlow.ts`, `authorize.test.ts`, `signIn.test.ts`, `token.test.ts`, `mcp.test.ts`, `register.test.ts`

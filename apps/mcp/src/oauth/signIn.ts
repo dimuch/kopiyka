@@ -5,6 +5,7 @@ import { ApiError, apiClient } from '../api.js';
 import type { AppDeps } from '../app.js';
 import { open, seal } from '../seal.js';
 import { authorizationResponse, type AuthorizationRequest } from './authorize.js';
+import type { Scope } from './metadata.js';
 import {
   consentPage,
   declinedPage,
@@ -38,6 +39,7 @@ export interface AuthorizationCode {
   clientIdHash: string;
   redirectUri: string;
   codeChallenge: string;
+  scope: Scope;
 }
 
 export const hashClientId = (clientId: string) => createHash('sha256').update(clientId).digest('hex');
@@ -84,6 +86,7 @@ export async function signInRoutes(app: FastifyInstance, { config, now, fetch }:
       const view = {
         clientName: request.clientName,
         redirectHost: hostOf(request),
+        scope: request.scope,
         request: form.data.request,
         username,
         error: 'Wrong username or code',
@@ -106,6 +109,7 @@ export async function signInRoutes(app: FastifyInstance, { config, now, fetch }:
       consentPage({
         clientName: request.clientName,
         redirectHost: hostOf(request),
+        scope: request.scope,
         ledgers,
         consent: seal(config.sealKey, 'consent', consent, now().getTime() + CONSENT_TTL_MS),
       }),
@@ -124,9 +128,9 @@ export async function signInRoutes(app: FastifyInstance, { config, now, fetch }:
       return sendPage(reply, 200, declinedPage(hostOf(request), returnUrl));
     }
 
-    let issued: { token: string; expiresAt: string };
+    let issued: { token: string; scope: Scope; expiresAt: string };
     try {
-      issued = await api.post('/api/api-tokens', session, { label: request.clientName });
+      issued = await api.post('/api/api-tokens', session, { label: request.clientName, scope: request.scope });
     } catch (err) {
       if (!(err instanceof ApiError)) throw err;
       // A 401 is a second Allow: the first one used the session up.
@@ -140,6 +144,7 @@ export async function signInRoutes(app: FastifyInstance, { config, now, fetch }:
       clientIdHash: hashClientId(request.clientId),
       redirectUri: request.redirectUri,
       codeChallenge: request.codeChallenge,
+      scope: issued.scope,
     };
     const sealedCode = seal(config.sealKey, 'code', code, now().getTime() + CODE_TTL_MS);
     const returnUrl = authorizationResponse(request.redirectUri, issuer, { code: sealedCode }, request.state);

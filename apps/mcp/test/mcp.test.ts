@@ -86,6 +86,7 @@ describe('/mcp', () => {
 
       expect(res.statusCode).toBe(401);
       expect(res.headers['www-authenticate']).toContain(CHALLENGE);
+      expect(res.headers['www-authenticate']).toContain('scope="read write"');
       expect(api.calls).toEqual([]);
     });
 
@@ -120,6 +121,7 @@ describe('/mcp', () => {
       expect(res.statusCode).toBe(401);
       expect(res.headers['www-authenticate']).toContain('error="invalid_token"');
       expect(res.headers['www-authenticate']).toContain(CHALLENGE);
+      expect(res.headers['www-authenticate']).toContain('scope="read write"');
     });
 
     it.each<[string, Answer]>([
@@ -144,7 +146,7 @@ describe('/mcp', () => {
     expect(res.json()).toEqual({
       resource: RESOURCE,
       authorization_servers: [PUBLIC_URL],
-      scopes_supported: ['read'],
+      scopes_supported: ['read', 'write'],
       bearer_methods_supported: ['header'],
       resource_name: 'Kopiyka',
     });

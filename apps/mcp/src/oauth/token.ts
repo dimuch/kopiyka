@@ -67,7 +67,7 @@ export async function tokenRoutes(app: FastifyInstance, { config, now, limits }:
       access_token: accessToken,
       token_type: 'Bearer',
       expires_in: Math.floor((code.apiExpiresMs - at.getTime()) / 1000),
-      scope: 'read',
+      scope: code.scope === 'write' ? 'read write' : 'read',
     });
   });
 }

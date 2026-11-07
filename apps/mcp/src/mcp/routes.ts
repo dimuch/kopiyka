@@ -12,6 +12,7 @@ import { ApiError, apiClient } from '../api.js';
 import type { AppDeps } from '../app.js';
 import { kyivToday } from '../dates.js';
 import { DEFAULT_LIMITS, openRequests, toolCallBuckets } from '../limits.js';
+import { SCOPES } from '../oauth/metadata.js';
 import { verifyAccessToken } from './auth.js';
 import { buildServer } from './tools.js';
 
@@ -63,7 +64,8 @@ export async function mcpRoutes(app: FastifyInstance, deps: AppDeps): Promise<vo
       });
     } catch (err) {
       if (err instanceof OAuthError) {
-        await reply.send(bearerAuthChallengeResponse(err, { resourceMetadataUrl }));
+        // Here and not on `verifyBearerToken`, which would then refuse every read token.
+        await reply.send(bearerAuthChallengeResponse(err, { resourceMetadataUrl, requiredScopes: SCOPES }));
       } else if (err instanceof ApiError) {
         // No invalid_token here: a deploy restarts the API, and a 401 would make every user sign in again.
         await reply.code(503).header('retry-after', '5').send({ error: 'api_unreachable' });
@@ -77,7 +79,7 @@ export async function mcpRoutes(app: FastifyInstance, deps: AppDeps): Promise<vo
   app.get('/.well-known/oauth-protected-resource/mcp', async () => ({
     resource,
     authorization_servers: [config.publicUrl],
-    scopes_supported: ['read'],
+    scopes_supported: SCOPES,
     bearer_methods_supported: ['header'],
     resource_name: 'Kopiyka',
   }));

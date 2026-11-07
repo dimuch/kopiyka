@@ -27,7 +27,7 @@ export async function registerClient(app: FastifyInstance, clientName = 'Claude'
 }
 
 /** Opens the sign-in page, and gives back the sealed request it holds. */
-export async function startSignIn(app: FastifyInstance, clientId: string): Promise<string> {
+export async function startSignIn(app: FastifyInstance, clientId: string, scope?: string): Promise<string> {
   const res = await app.inject({
     url: '/oauth/authorize',
     headers: { host: HOST },
@@ -39,6 +39,7 @@ export async function startSignIn(app: FastifyInstance, clientId: string): Promi
       code_challenge_method: 'S256',
       state: 'xyz',
       resource: `${PUBLIC_URL}/mcp`,
+      ...(scope === undefined ? {} : { scope }),
     },
   });
   return hidden(res.body, 'request');

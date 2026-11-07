@@ -1,5 +1,6 @@
 import { createHash } from 'node:crypto';
 import type { FastifyReply } from 'fastify';
+import type { Scope } from './metadata.js';
 
 const CSS = `
 :root { color-scheme: light dark; --bg: #f6f5f2; --card: #fff; --text: #1d1d1b; --muted: #5f5f5a; --line: #d9d7d0;
@@ -112,17 +113,19 @@ const claimedName = (clientName: string) =>
 export interface SignInView {
   clientName: string;
   redirectHost: string;
+  scope: Scope;
   /** The sealed authorization request. */
   request: string;
   username?: string;
   error?: string;
 }
 
-export function signInPage({ clientName, redirectHost, request, username, error }: SignInView): string {
+export function signInPage({ clientName, redirectHost, scope, request, username, error }: SignInView): string {
+  const wants = scope === 'write' ? 'read your budgets and add expenses' : 'read your budgets';
   return page(
     'Sign in to Kopiyka',
     `<h1>Sign in to Kopiyka</h1>
-<p>${claimedName(clientName)} wants to read your budgets. You’ll go back to <strong>${escapeHtml(redirectHost)}</strong> afterwards.</p>
+<p>${claimedName(clientName)} wants to ${wants}. You’ll go back to <strong>${escapeHtml(redirectHost)}</strong> afterwards.</p>
 ${error ? `<p class="error" role="alert">${escapeHtml(error)}</p>` : ''}
 <form method="post" action="/oauth/authorize">
 <input type="hidden" name="request" value="${escapeHtml(request)}">
@@ -140,20 +143,26 @@ ${error ? `<p class="error" role="alert">${escapeHtml(error)}</p>` : ''}
 export interface ConsentView {
   clientName: string;
   redirectHost: string;
+  scope: Scope;
   ledgers: { name: string; label: string | null; role: string; owner: string }[];
   /** The sealed consent. */
   consent: string;
 }
 
-export function consentPage({ clientName, redirectHost, ledgers, consent }: ConsentView): string {
+export function consentPage({ clientName, redirectHost, scope, ledgers, consent }: ConsentView): string {
+  const heading = scope === 'write' ? 'Allow reading and adding expenses?' : 'Allow read access?';
+  const access =
+    scope === 'write'
+      ? 'read these budgets and add expenses to them for up to an hour, but not edit or delete anything'
+      : 'read these budgets for up to an hour, but not change them';
   const items = ledgers.map(({ name, label, role, owner }) => {
     const whose = role === 'owner' ? 'yours' : `shared by ${owner}`;
     return `<li>${escapeHtml(label || name)} <span class="muted">(${escapeHtml(whose)})</span></li>`;
   });
   return page(
     'Allow access to Kopiyka',
-    `<h1>Allow read access?</h1>
-<p>${claimedName(clientName)} will be able to read these budgets for up to an hour, but not change them:</p>
+    `<h1>${heading}</h1>
+<p>${claimedName(clientName)} will be able to ${access}:</p>
 <ul>${items.join('')}</ul>
 <p>You’ll go back to <strong>${escapeHtml(redirectHost)}</strong>.</p>
 <p class="muted">Kopiyka will never ask you to copy or paste an address.</p>

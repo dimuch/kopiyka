@@ -130,7 +130,8 @@ describe.skipIf(!(await testDbReachable()))('a repeated add from an API token (M
   it.each([
     ['name', { name: 'Novus' }],
     ['amount', { amount: '12.51' }],
-    ['currency', { currency: 'UAH' }],
+    // 631.04 UAH stores the same two amounts as 12.50 EUR at this rate, so only the currency tells them apart.
+    ['currency', { amount: '631.04', currency: 'UAH' }],
     ['date', { expenseDate: '2026-10-05' }],
   ])('saves a call with another %s', async (_, change) => {
     await add(token);

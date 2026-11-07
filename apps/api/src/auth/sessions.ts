@@ -7,6 +7,8 @@ export interface SessionUser {
   username: string;
   tokenHash: string;
   expiresAt: Date;
+  /** Set only for an API token, so a route can tell a connector's call from the app's. */
+  apiTokenScope?: 'read' | 'write';
 }
 
 export function hashToken(token: string): string {

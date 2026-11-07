@@ -1,5 +1,6 @@
 import { randomBytes } from 'node:crypto';
 import type { FastifyInstance } from 'fastify';
+import type { RowDataPacket } from 'mysql2/promise';
 import { afterAll, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
 import { buildApp } from '../src/app.js';
 import { hashToken } from '../src/auth/sessions.js';
@@ -38,6 +39,8 @@ const minutesAfterT = (minutes: number) => new Date(T.getTime() + minutes * 60_0
 
 /** The only write route a client may reach without a session. */
 const PUBLIC_WRITE_ROUTES = ['POST /api/auth/login'];
+/** All a write token may change. Adding a route here is a decision, not a tidy-up. */
+const WRITE_TOKEN_ROUTES = ['POST /api/ledgers/:id/expenses'];
 
 describe.skipIf(!(await testDbReachable()))('API tokens in requireAuth (MySQL)', () => {
   const config: Config = { ...testConfig(), apiTokens: { ttlMinutes: 60 } };
@@ -47,23 +50,43 @@ describe.skipIf(!(await testDbReachable()))('API tokens in requireAuth (MySQL)',
   let user: TestUser;
   let appRoutes: RecordedRoute[];
 
-  async function issueToken(userId: number): Promise<string> {
+  async function issueToken(userId: number, scope: 'read' | 'write' = 'read'): Promise<string> {
     const token = `kpk.${randomBytes(32).toString('base64url')}`;
     await db.query(
-      `INSERT INTO api_tokens (token_hash, user_id, scope, expires_at, created_at) VALUES (?, ?, 'read', ?, ?)`,
-      [hashToken(token), userId, minutesAfterT(60), T],
+      `INSERT INTO api_tokens (token_hash, user_id, scope, expires_at, created_at) VALUES (?, ?, ?, ?, ?)`,
+      [hashToken(token), userId, scope, minutesAfterT(60), T],
     );
     return token;
   }
 
   const bearer = (token: string) => ({ authorization: `Bearer ${token}` });
   const listLedgers = (token: string) => app.inject({ method: 'GET', url: '/api/ledgers', headers: bearer(token) });
+  const groceriesId = async (ledgerId: number) => {
+    const [rows] = await db.query<RowDataPacket[]>(
+      `SELECT category_id FROM categories WHERE ledger_id = ? AND tech_name = 'groceries'`,
+      [ledgerId],
+    );
+    return rows[0]!.category_id as number;
+  };
+  const addExpense = async (token: string, ledgerId = user.ledgerId) =>
+    app.inject({
+      method: 'POST',
+      url: `/api/ledgers/${ledgerId}/expenses`,
+      headers: bearer(token),
+      payload: {
+        categoryId: await groceriesId(user.ledgerId),
+        expenseDate: '2026-10-06',
+        name: 'Silpo',
+        amount: '12.50',
+        currency: 'EUR',
+      },
+    });
 
   beforeAll(async () => {
     await resetSchema();
     db = createDb(TEST_DB_URL!);
     routes.length = 0;
-    app = await buildApp({ config, db, now: () => clock, fetchRate: offlineRates });
+    app = await buildApp({ config, db, now: () => clock, fetchRate: async () => 50.483 });
     await app.ready();
     appRoutes = [...routes];
   });
@@ -148,6 +171,45 @@ describe.skipIf(!(await testDbReachable()))('API tokens in requireAuth (MySQL)',
     expect(res.json()).toEqual({ error: 'unauthorized' });
   });
 
+  describe('a write token', () => {
+    it('adds an expense as the token’s user', async () => {
+      const res = await addExpense(await issueToken(user.userId, 'write'));
+
+      expect(res.statusCode).toBe(201);
+      expect(res.json()).toMatchObject({
+        name: 'Silpo',
+        amountEur: '12.50',
+        amountUah: '631.04', // 12.50 × 50.4830 = 631.0375
+        eurUahRate: '50.4830',
+        createdBy: user.userId,
+      });
+    });
+
+    it('reads like a read token', async () => {
+      const res = await listLedgers(await issueToken(user.userId, 'write'));
+
+      expect(res.statusCode).toBe(200);
+      expect(res.json().user).toEqual({ userId: user.userId, username: 'reader' });
+    });
+
+    it('answers 401 once it has expired', async () => {
+      const token = await issueToken(user.userId, 'write');
+      clock = minutesAfterT(61);
+
+      const res = await addExpense(token);
+
+      expect([res.statusCode, res.json()]).toEqual([401, { error: 'unauthorized' }]);
+    });
+
+    it('can’t add to someone else’s ledger', async () => {
+      const other = await makeUser(db, config, 'stranger');
+
+      const res = await addExpense(await issueToken(user.userId, 'write'), other.ledgerId);
+
+      expect([res.statusCode, res.json()]).toEqual([404, { error: 'ledger_not_found' }]);
+    });
+  });
+
   it('allows HEAD like GET', async () => {
     const res = await app.inject({
       method: 'HEAD',
@@ -211,6 +273,22 @@ describe.skipIf(!(await testDbReachable()))('API tokens in requireAuth (MySQL)',
           body: { error: 'insufficient_scope' },
         });
       }
+    });
+
+    it('refuses a write token, except on its own routes', async () => {
+      const token = await issueToken(user.userId, 'write');
+      const guarded = writeRoutes().filter((route) => !PUBLIC_WRITE_ROUTES.includes(`${route.method} ${route.url}`));
+      const answerTo = async (route: { method: string; url: string }) => {
+        const url = route.url.replace(':id', String(user.ledgerId)).replace(':month', '2026-10').replace(/:\w+/g, '1');
+        const res = await app.inject({ method: route.method as 'POST', url, headers: bearer(token), payload: {} });
+        return { route: `${route.method} ${route.url}`, body: res.json() };
+      };
+
+      const answers = await Promise.all(guarded.map(answerTo));
+
+      const allowed = answers.filter((answer) => answer.body.error !== 'insufficient_scope');
+      expect(allowed.map((answer) => answer.route)).toEqual(WRITE_TOKEN_ROUTES);
+      expect(answers.length).toBeGreaterThan(WRITE_TOKEN_ROUTES.length);
     });
   });
 });

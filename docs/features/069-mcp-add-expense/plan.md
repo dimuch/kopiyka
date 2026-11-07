@@ -170,7 +170,7 @@ Nothing changes for users until PR B: no client asks for `write`.
     - An error with `sql` and `sqlMessage` loses both and keeps the rest. Fails before the fix.
     - `buildApp` with a `logStream` and a `db` whose `query` rejects with an error carrying `sql`: a request gets a 500, and the logs
       hold neither the `sql` value nor the `sql` key.
-- [ ] 2. Add a write scope to API tokens, limited to adding an expense (~130)
+- [x] 2. Add a write scope to API tokens, limited to adding an expense (~130)
   - Files: `apps/api/migrations/015_api_token_write_scope.sql`, `apps/api/src/apiTokens/auth.ts`, `apps/api/src/apiTokens/routes.ts`,
     `apps/api/src/auth/sessions.ts`, `apps/api/test/apiTokens.migration.int.test.ts`, `apps/api/test/apiTokens.auth.int.test.ts`,
     `apps/api/test/apiTokens.routes.int.test.ts`

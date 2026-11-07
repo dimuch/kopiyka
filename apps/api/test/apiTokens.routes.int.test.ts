@@ -102,6 +102,31 @@ describe.skipIf(!(await testDbReachable()))('API token routes (MySQL)', () => {
       }
     });
 
+    it('issues a write token when asked, with the same lifetime', async () => {
+      const res = await exchange(await authHeader(app, user, clock), { scope: 'write' });
+
+      expect(res.statusCode).toBe(201);
+      expect(res.json()).toMatchObject({ scope: 'write', expiresAt: minutesAfterT(60).toISOString() });
+      const listed = await list(bearer(res.json().token));
+      expect(listed.json().tokens.map((token: { scope: string }) => token.scope)).toEqual(['write']);
+    });
+
+    it('issues a read token when no scope is asked for', async () => {
+      const { token } = await issue(user);
+
+      const [rows] = await db.query<RowDataPacket[]>('SELECT scope FROM api_tokens WHERE token_hash = ?', [
+        hashToken(token),
+      ]);
+      expect(rows.map((row) => row.scope)).toEqual(['read']);
+    });
+
+    it('refuses an unknown scope', async () => {
+      const res = await exchange(await authHeader(app, user, clock), { scope: 'admin' });
+
+      expect(res.statusCode).toBe(400);
+      expect(res.json().error).toBe('invalid_request');
+    });
+
     it('stores only the hash', async () => {
       const { token } = await issue(user);
 

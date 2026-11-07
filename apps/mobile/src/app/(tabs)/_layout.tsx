@@ -4,17 +4,14 @@ import { Platform } from 'react-native';
 import { useColors } from '@/appearance/AppearanceContext';
 import { Icon } from '@/components/Icon';
 import { pressedOpacity } from '@/components/Pressable';
-import { useInvites } from '@/data/invites';
-import { TABS, tabBadge } from '@/tabs';
+import { useTabItems } from '@/data/tabItems';
 
 export default function TabsLayout() {
   const colors = useColors();
-  const { invites, reload } = useInvites();
-  const count = invites?.length ?? 0;
+  const { tabs, onTabFocus } = useTabItems();
   return (
     <Tabs
-      // Every tab tap (and the return from a pushed screen) checks for new invites; there's no polling.
-      screenListeners={{ focus: reload }}
+      screenListeners={{ focus: onTabFocus }}
       screenOptions={{
         headerShown: false,
         tabBarShowLabel: false,
@@ -26,8 +23,8 @@ export default function TabsLayout() {
         tabBarButton: (props) => <PlatformPressable {...props} pressOpacity={pressedOpacity} />,
       }}
     >
-      {TABS.map((tab) => {
-        const { badge, label } = tabBadge(tab, count);
+      {tabs.map((tab) => {
+        const { badge, label } = tab;
         return (
           <Tabs.Screen
             key={tab.name}

@@ -1,10 +1,10 @@
 import type { PoolConnection, RowDataPacket } from 'mysql2/promise';
 import { lockLedger } from '../categories/monthLists.js';
 
-/** Twice Claude's 240 s tool timeout, so a retry after a lost answer still counts as a repeat. */
+/** More than two of Claude's 240 s tool timeouts, so a retry after a lost answer still counts as a repeat. */
 const REPEAT_WINDOW_MS = 10 * 60_000;
 
-export interface ExpenseToSave {
+interface ExpenseToSave {
   userId: number;
   categoryId: number;
   expenseDate: string;

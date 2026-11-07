@@ -238,7 +238,7 @@ store. A helper asserts `[status, code, body]` of the `ApiError`.
 - [ ] 0. Bump version to 1.2.2
   - Files: package.json, apps/mobile/app.json
   - Change: set both to 1.2.2
-- [ ] 1. Give the demo a store that fails loudly on an unknown route (~130)
+- [x] 1. Give the demo a store that fails loudly on an unknown route (~130)
   - Files: new `src/demo/{state,store,expenseRoutes}.ts`, `test/demoFixture.ts`, `test/demoExpenses.test.ts`
   - Change: state and helpers, the route table and `createStore`, and the rate route.
   - Tests: "rejects an unknown route with a plain Error and logs it, not an ApiError or an empty reply"; "answers the sample

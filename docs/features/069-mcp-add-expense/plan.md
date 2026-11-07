@@ -339,8 +339,13 @@ decision, so it comes back to the owner.
 
 ## Deviations
 
-<filled by the developer during build>
+- slice 1: `errForLog` logs `type` as the error's class name, as the default did, so `RateUnavailableError` stays readable, and `stack` falls back to `''` because Fastify's type requires a string.
 
 ## Consolidate
 
-<filled in /kopiyka-hos Phase 3a: CONSOLIDATE line, each reuse/extract, each LEAVE + reason>
+PR A. CONSOLIDATE: reused 3 · extracted 0 · left 3.
+
+- REUSE, in the code from the start: `lockLedger`, `withTransaction`, and `loadExpense` for both answers.
+- LEAVE `logStream`, twin in `apps/mcp/src/app.ts`: a different app, and `apps/mcp` must stay deletable.
+- LEAVE `errForLog`: `apps/mcp` has no database, so it has no `sql` to drop.
+- LEAVE the test helper `writeToken`, twin `issueToken` in `apiTokens.auth.int.test.ts`: two copies, and only one takes a scope.

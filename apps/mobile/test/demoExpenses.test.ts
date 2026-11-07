@@ -70,7 +70,7 @@ describe('demo expenses, adding and reading', () => {
     });
   });
 
-  // Each input also breaks every later check, so the code shows which check runs first.
+  // Each input also breaks every later check it can, so the code shows which check runs first.
   it.each([
     ['month_ended', 409, { categoryId: 99, expenseDate: '2026-10-05' }],
     ['unknown_category', 400, { categoryId: 99, expenseDate: '2026-11-20' }],
@@ -246,6 +246,21 @@ describe('demo expenses, deleting and restoring', () => {
       404,
       'not_found',
       { error: 'not_found' },
+    ]);
+  });
+
+  it('refuses a restore into an ended month before checking its category', async () => {
+    let now = NOW;
+    const data = fixtureData();
+    const api = createStore(data, () => now);
+    await api('/api/ledgers/1/expenses/11', { method: 'DELETE' });
+    data.monthRows[1]!.removal = 1;
+    now = new Date('2026-12-01T10:00:00Z');
+
+    expect(await refusal(api('/api/ledgers/1/expenses/11/restore', { method: 'POST' }))).toEqual([
+      409,
+      'month_ended',
+      { error: 'month_ended' },
     ]);
   });
 

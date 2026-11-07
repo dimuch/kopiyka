@@ -248,7 +248,7 @@ store. A helper asserts `[status, code, body]` of the `ApiError`.
   - Tests: "prices EUR and UAH at the sample rate" (the two sums in Contracts); `it.each` refusals of an add (`month_ended`,
     `unknown_category`, `category_not_in_month`, `date_in_future`), in that order; "lists newest first, filtered by category";
     "answers one expense", "404 for an unknown one".
-- [ ] 3. Edit, delete and restore expenses in the store (~105)
+- [x] 3. Edit, delete and restore expenses in the store (~105)
   - Files: `src/demo/expenseRoutes.ts`, `test/demoExpenses.test.ts`
   - Tests: PUT 404, `month_ended` from either end, re-pricing; PUT refused with `unknown_category`,
     `category_not_in_month`, `date_in_future`, in that order, after the 404 and `month_ended` checks; DELETE 404 and `month_ended`, then the GET is 404; restore

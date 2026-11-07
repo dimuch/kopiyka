@@ -139,3 +139,126 @@ describe('demo expenses, adding and reading', () => {
     ]);
   });
 });
+
+const edit = (
+  api: ReturnType<typeof fixtureStore>,
+  expenseId: number,
+  fields: Partial<{ categoryId: number; expenseDate: string; amount: string; currency: 'EUR' | 'UAH' }>,
+) =>
+  api(`/api/ledgers/1/expenses/${expenseId}`, {
+    method: 'PUT',
+    body: { categoryId: 1, expenseDate: '2026-11-03', name: 'Rent', amount: '10', currency: 'EUR', ...fields },
+  });
+
+describe('demo expenses, editing', () => {
+  it('re-prices an edit and keeps when it was created', async () => {
+    const api = createStore(fixtureData(), () => NOW);
+
+    await expect(edit(api, 10, { amount: '1000', currency: 'UAH', categoryId: 2 })).resolves.toMatchObject({
+      expenseId: 10,
+      categoryId: 2,
+      amountEur: '19.81',
+      amountUah: '1000.00',
+      enteredCurrency: 'UAH',
+      createdAt: '2026-11-03T09:00:00.000Z',
+      updatedAt: '2026-11-15T10:00:00.000Z',
+    });
+    await expect(api('/api/ledgers/1/expenses/10')).resolves.toMatchObject({ amountUah: '1000.00' });
+  });
+
+  it('404 for an unknown or deleted expense, before anything else', async () => {
+    const api = fixtureStore();
+    await api('/api/ledgers/1/expenses/11', { method: 'DELETE' });
+
+    expect(await refusal(edit(api, 999, { expenseDate: '2026-10-01' }))).toEqual([
+      404,
+      'not_found',
+      { error: 'not_found' },
+    ]);
+    expect(await refusal(edit(api, 11, {}))).toEqual([404, 'not_found', { error: 'not_found' }]);
+  });
+
+  it.each([
+    ['out of an ended month', 12, '2026-11-03'],
+    ['into an ended month', 10, '2026-10-03'],
+  ])('refuses a move %s with month_ended', async (_case, expenseId, expenseDate) => {
+    expect(await refusal(edit(fixtureStore(), expenseId, { expenseDate, categoryId: 99 }))).toEqual([
+      409,
+      'month_ended',
+      { error: 'month_ended' },
+    ]);
+  });
+
+  // As for an add, each input also breaks every later check.
+  it.each([
+    ['unknown_category', { categoryId: 99, expenseDate: '2026-11-20' }],
+    ['category_not_in_month', { categoryId: 3, expenseDate: '2026-11-20' }],
+    ['date_in_future', { categoryId: 1, expenseDate: '2026-11-20' }],
+  ])('refuses an edit with %s, in the API’s order', async (code, fields) => {
+    expect(await refusal(edit(fixtureStore(), 10, fields))).toEqual([400, code, { error: code }]);
+  });
+});
+
+describe('demo expenses, deleting and restoring', () => {
+  it('deletes, so the expense is gone, and refuses a second delete', async () => {
+    const api = fixtureStore();
+
+    await expect(api('/api/ledgers/1/expenses/11', { method: 'DELETE' })).resolves.toBeUndefined();
+
+    expect(await refusal(api('/api/ledgers/1/expenses/11'))).toEqual([404, 'not_found', { error: 'not_found' }]);
+    expect(await refusal(api('/api/ledgers/1/expenses/11', { method: 'DELETE' }))).toEqual([
+      404,
+      'not_found',
+      { error: 'not_found' },
+    ]);
+  });
+
+  it('refuses to delete in an ended month', async () => {
+    expect(await refusal(fixtureStore()('/api/ledgers/1/expenses/12', { method: 'DELETE' }))).toEqual([
+      409,
+      'month_ended',
+      { error: 'month_ended' },
+    ]);
+  });
+
+  it('restores once, then has nothing to restore', async () => {
+    const api = fixtureStore();
+    await api('/api/ledgers/1/expenses/11', { method: 'DELETE' });
+
+    await expect(api('/api/ledgers/1/expenses/11/restore', { method: 'POST' })).resolves.toMatchObject({
+      expenseId: 11,
+    });
+    await expect(api('/api/ledgers/1/expenses/11')).resolves.toMatchObject({ expenseId: 11 });
+    expect(await refusal(api('/api/ledgers/1/expenses/11/restore', { method: 'POST' }))).toEqual([
+      404,
+      'not_found',
+      { error: 'not_found' },
+    ]);
+  });
+
+  it('404 when the category has left the month', async () => {
+    const data = fixtureData();
+    const api = createStore(data, () => NOW);
+    await api('/api/ledgers/1/expenses/11', { method: 'DELETE' });
+    data.monthRows[1]!.removal = 1;
+
+    expect(await refusal(api('/api/ledgers/1/expenses/11/restore', { method: 'POST' }))).toEqual([
+      404,
+      'not_found',
+      { error: 'not_found' },
+    ]);
+  });
+
+  it('refuses a restore after the month has ended', async () => {
+    let now = NOW;
+    const api = createStore(fixtureData(), () => now);
+    await api('/api/ledgers/1/expenses/11', { method: 'DELETE' });
+    now = new Date('2026-12-01T10:00:00Z');
+
+    expect(await refusal(api('/api/ledgers/1/expenses/11/restore', { method: 'POST' }))).toEqual([
+      409,
+      'month_ended',
+      { error: 'month_ended' },
+    ]);
+  });
+});

@@ -219,7 +219,7 @@ Starts once PR A is merged. Its tests stub the API.
     - `token.test.ts`: `scope` is `read write` for a write code and `read` for a read one.
     - `mcp.test.ts`, `register.test.ts`: both metadata documents list both scopes; both 401s carry `scope="read write"`; a read
       token still gets through.
-- [ ] 5. Add the add_expense tool (~130)
+- [x] 5. Add the add_expense tool (~130)
   - Files: `apps/mcp/src/mcp/tools.ts`, `apps/mcp/src/mcp/routes.ts`, `apps/mcp/test/tools.test.ts`, `apps/mcp/test/flow.test.ts`,
     `apps/mcp/test/mcp.test.ts`
   - Change: `write` on `RequestScope`, the tool, and the `note`. The handler resolves the date once, `date ?? scope.today()`. The description says what it adds, that the other currency comes from

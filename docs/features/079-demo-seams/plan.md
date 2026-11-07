@@ -99,7 +99,7 @@ checked through the stub only.
     drop the `statistics` row; change `'settings'` in `tabBadge` to `'budget'`; make `isTab` true only for `index`; drop
     the third argument of `throw new ApiError(...)`; change `super(...)` to `super(code)`; change `?? 'unknown'`.
   - Home, `TabBar`, both layouts: no test possible (Node-only, no component tests), so their proof is the web checks.
-- [ ] 2. Move ApiError to its own file (52 lines, mechanical, 15 files)
+- [x] 2. Move ApiError to its own file (52 lines, mechanical, 15 files)
   - Files: new `src/api/apiError.ts`; `src/api/client.ts`; `src/data/invites.tsx`, `src/data/useNotionSync.ts` (split the
     import); one-line import change in `src/app/{delete-category,login,members,income-item,expense}.tsx`,
     `src/app/(tabs)/{income,budget}.tsx`, `src/components/{CategoryForm,CategoryInMonth}.tsx`;

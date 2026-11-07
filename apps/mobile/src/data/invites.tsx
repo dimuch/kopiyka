@@ -1,6 +1,7 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { AccessibilityInfo } from 'react-native';
-import { api, ApiError } from '@/api/client';
+import { ApiError } from '@/api/apiError';
+import { api } from '@/api/client';
 import type { Invite } from '@/api/types';
 import { useAuth } from '@/auth/AuthContext';
 

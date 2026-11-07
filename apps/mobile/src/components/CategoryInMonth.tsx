@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react';
 import { ActivityIndicator } from 'react-native';
-import { ApiError } from '@/api/client';
+import { ApiError } from '@/api/apiError';
 import type { CategoryWithTotals } from '@/api/types';
 import { useColors } from '@/appearance/AppearanceContext';
 import { LoadError } from '@/components/LoadError';

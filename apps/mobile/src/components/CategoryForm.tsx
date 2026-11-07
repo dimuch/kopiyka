@@ -1,6 +1,6 @@
 import { type ReactNode, useRef, useState } from 'react';
 import { AccessibilityInfo, ActivityIndicator, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
-import { ApiError } from '@/api/client';
+import { ApiError } from '@/api/apiError';
 import type { Category } from '@/api/types';
 import { useColors, useThemedStyles } from '@/appearance/AppearanceContext';
 import { Pressable } from '@/components/Pressable';

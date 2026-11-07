@@ -158,7 +158,7 @@ five existing tools, their inputs and sign-in keep working, and rollback holds (
 
 Nothing changes for users until PR B: no client asks for `write`.
 
-- [ ] 0A. Bump version to 1.1.0
+- [x] 0A. Bump version to 1.1.0
   - Files: package.json, apps/mobile/app.json
   - Change: set both to 1.1.0
 - [ ] 1. Keep query values out of the API's error logs (~40)

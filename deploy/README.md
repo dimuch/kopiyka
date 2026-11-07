@@ -523,14 +523,18 @@ Results of 5 November 2026 (brief 068), on a Claude Max account, connecting from
 
 - **Hostile metadata, `resource` naming kopiyka:** passed as set up. Claude read the metadata and made no request to kopiyka.
   It looked for a sign-in service on the stranger's address and stopped with "Couldn't register with … sign-in service". Why
-  isn't shown: that address had no sign-in service. **Not tested:** one that answers those requests and points at kopiyka's
-  endpoints. If Claude accepted that and sent kopiyka's `resource`, every kopiyka check would pass and the real sign-in
-  page would open, and brief 071 wouldn't change it.
+  isn't shown: that address had no sign-in service. The next bullet but one tests a stranger that has one.
 - **Hostile metadata, `resource` naming the stranger (added during the run):** Claude didn't stop this one. It read kopiyka's
   metadata, registered at `/oauth/register`, and opened `/oauth/authorize` with the stranger's `resource`. Kopiyka refused it
   with "Kopiyka can't continue", so the sign-in page never opened. Kopiyka's `resource` check is what stopped it. Since brief
   071 a request with no `resource` is refused too, on `/oauth/authorize` and `/oauth/token`: on one real Connect on 5
   November, Claude sent kopiyka's own `resource` on both.
+- **A stranger's own sign-in service (7 November, after brief 071):** the stranger's metadata named kopiyka as `resource`, and
+  its `/.well-known/oauth-authorization-server` named kopiyka's endpoints. Claude trusted that file, registered at kopiyka and
+  opened `/oauth/authorize` with **no `resource`**. Kopiyka refused it. Adding kopiyka's `resource` to that address by hand
+  opened the real sign-in page, so brief 071's refusal is the only thing that stopped it. Before brief 071, a stranger's
+  connector could have shown a real user that page. Nobody signed in, so what Claude does after sign-in wasn't seen. Kopiyka
+  stays safe only while a stranger's connector can't get Claude to send kopiyka's own `resource`: no test made it do that.
 - **A token sent to the stranger:** none seen. With a live kopiyka token in the same account, a Reconnect sent the stranger's
   server no token, and asking for the connector in a chat didn't reach it. Two `Claude-User` calls came earlier, before the
   header was logged, so those two are unknown; the log shows no later ones. The stranger's connector never held a token of

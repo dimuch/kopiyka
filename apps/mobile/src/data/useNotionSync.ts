@@ -1,6 +1,7 @@
 import { useFocusEffect } from 'expo-router';
 import { useCallback, useRef, useState } from 'react';
-import { api, ApiError } from '@/api/client';
+import { ApiError } from '@/api/apiError';
+import { api } from '@/api/client';
 import type { NotionStatus, NotionSyncResult } from '@/api/types';
 
 export type NotionSyncState =

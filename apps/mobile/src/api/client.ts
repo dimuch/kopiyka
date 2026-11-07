@@ -1,5 +1,6 @@
 import * as SecureStore from 'expo-secure-store';
 import { Platform } from 'react-native';
+import { ApiError } from '@/api/apiError';
 import { nativeApiUrl } from '@/api/baseUrl';
 
 const isWeb = Platform.OS === 'web';
@@ -60,17 +61,6 @@ export async function deviceId(): Promise<string> {
   const id = randomId();
   await SecureStore.setItemAsync(DEVICE_KEY, id);
   return id;
-}
-
-export class ApiError extends Error {
-  constructor(
-    readonly status: number,
-    readonly code: string,
-    /** The parsed error body, for refusals that carry more than a code (over_income's overEur, brief 060). */
-    readonly body: Record<string, unknown> = {},
-  ) {
-    super(`${status} ${code}`);
-  }
 }
 
 let onUnauthorized: () => void = () => {};

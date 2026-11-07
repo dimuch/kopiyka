@@ -1,5 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { api, ApiError } from '@/api/client';
+import { ApiError } from '@/api/apiError';
+import { api } from '@/api/client';
 
 vi.hoisted(() => vi.stubGlobal('__DEV__', false));
 vi.mock('react-native', () => ({ Platform: { OS: 'web' } }));

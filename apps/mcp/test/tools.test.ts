@@ -326,7 +326,7 @@ describe('the budget tools', () => {
       [
         'invalid_request',
         400,
-        `The amount must be positive with at most 2 decimals, the date a real YYYY-MM-DD, and the name at most 200 characters. ${SAVED_NOTHING}`,
+        `The amount must be positive with at most 8 digits and 2 decimals, the date a real YYYY-MM-DD from 2000 on, and the name at most 200 characters. ${SAVED_NOTHING}`,
       ],
       ['date_in_future', 400, `The date is too far ahead. ${SAVED_NOTHING}`],
       ['rate_unavailable', 503, `The NBU rate isn’t available; try later. ${SAVED_NOTHING}`],

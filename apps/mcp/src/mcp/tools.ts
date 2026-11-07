@@ -62,7 +62,7 @@ function addExpenseRefusals(date: string): Record<string, string> {
     category_not_in_month: `That category isn’t in that month’s list; use a categoryId from month_summary for that month. ${SAVED_NOTHING}`,
     unknown_category: `That isn’t a category of this ledger. ${SAVED_NOTHING}`,
     ledger_not_found: `No such ledger for this user; use list_ledgers. ${SAVED_NOTHING}`,
-    invalid_request: `The amount must be positive with at most 2 decimals, the date a real YYYY-MM-DD, and the name at most 200 characters. ${SAVED_NOTHING}`,
+    invalid_request: `The amount must be positive with at most 8 digits and 2 decimals, the date a real YYYY-MM-DD from 2000 on, and the name at most 200 characters. ${SAVED_NOTHING}`,
     date_in_future: `The date is too far ahead. ${SAVED_NOTHING}`,
     rate_unavailable: `The NBU rate isn’t available; try later. ${SAVED_NOTHING}`,
     api_unreachable: lostAnswer,
@@ -88,7 +88,7 @@ const errorResult = (text: string): CallToolResult => ({ content: [{ type: 'text
 async function toolResult(
   scope: RequestScope,
   tool: string,
-  read: () => Promise<Record<string, unknown>>,
+  run: () => Promise<Record<string, unknown>>,
   refusals: Record<string, string> = {},
 ): Promise<CallToolResult> {
   const waitSeconds = scope.takeToolCall(tool);
@@ -96,7 +96,7 @@ async function toolResult(
     return errorResult(`rate_limited: too many requests from this connection; try again in ${waitSeconds} s`);
   }
   try {
-    return { content: [{ type: 'text', text: JSON.stringify(await read()) }] };
+    return { content: [{ type: 'text', text: JSON.stringify(await run()) }] };
   } catch (err) {
     if (err instanceof ApiError) {
       const sentence = refusals[err.code];
@@ -244,7 +244,7 @@ export function buildServer(scope: RequestScope): McpServer {
     {
       description:
         'Adds one expense to a ledger, and answers with what was saved. The other currency comes from the National ' +
-        'Bank of Ukraine rate of the date. An identical call within 10 minutes adds nothing, so a retry is safe.',
+        'Bank of Ukraine rate of the date. An identical call within 10 minutes adds nothing, so a retry with the same date is safe.',
       inputSchema: {
         ledgerId: LedgerMonth.ledgerId,
         categoryId: z.number().int().positive().describe('A categoryId from month_summary, for the month of the date'),

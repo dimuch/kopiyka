@@ -157,9 +157,21 @@ describe('/mcp', () => {
       const res = await rpc('tools/list', {}, accessToken('kpk.olena'));
 
       expect(res.statusCode).toBe(200);
-      const { tools } = rpcResult(res);
-      expect(tools.map((tool: { name: string }) => tool.name)).toContain('list_ledgers');
-      for (const tool of tools) expect(tool.annotations.readOnlyHint).toBe(true);
+      const tools: { name: string; annotations: object }[] = rpcResult(res).tools;
+      const readTools = tools.filter((tool) => tool.name !== 'add_expense');
+      expect(readTools.map((tool) => tool.name)).toEqual([
+        'list_ledgers',
+        'month_summary',
+        'list_income',
+        'list_expenses',
+        'eur_uah_rate',
+      ]);
+      for (const tool of readTools) expect(tool.annotations).toMatchObject({ readOnlyHint: true });
+      expect(tools.find((tool) => tool.name === 'add_expense')?.annotations).toEqual({
+        title: 'Add an expense',
+        readOnlyHint: false,
+        destructiveHint: true,
+      });
     });
 
     it('gives each user only their own ledgers', async () => {

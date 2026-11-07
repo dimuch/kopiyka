@@ -44,9 +44,15 @@ const LedgerMonth = {
     .describe('The month, as YYYY-MM'),
 };
 
-/** What one `/mcp` request may do: read as its user, and spend that user's tool calls. */
+const ALREADY_SAVED_NOTE =
+  'An identical expense was saved in the last 10 minutes, so no second one was added. ' +
+  'To add another on purpose, give it a name that tells them apart.';
+
+/** What one `/mcp` request may do: read and write as its user, and spend that user's tool calls. */
 export interface RequestScope {
   read<T>(path: string): Promise<T>;
+  /** The API decides what this token may write. */
+  write<T>(path: string, body: object): Promise<T>;
   /** Today in Kyiv, as 'YYYY-MM-DD'. */
   today(): string;
   /** Takes one tool call: 0 when allowed, otherwise the seconds until one is free. */
@@ -204,6 +210,50 @@ export function buildServer(scope: RequestScope): McpServer {
         const { date, rateDate, eurUah } = await scope.read<ApiRate>(`/api/rates/eur-uah?date=${scope.today()}`);
         return { date, rateDate, eurUah, formatted: `1 EUR = ${eurUah.toFixed(4)} UAH` };
       }),
+  );
+
+  server.registerTool(
+    'add_expense',
+    {
+      description:
+        'Adds one expense to a ledger, and answers with what was saved. The other currency comes from the National ' +
+        'Bank of Ukraine rate of the date. An identical call within 10 minutes adds nothing, so a retry is safe.',
+      inputSchema: {
+        ledgerId: z.number().int().positive().describe('A ledgerId from list_ledgers'),
+        categoryId: z.number().int().positive().describe('A categoryId from month_summary, for the month of the date'),
+        date: z.string().optional().describe('The date, as YYYY-MM-DD. Leave it out for today in Kyiv'),
+        name: z.string().describe('What it was, like "Silpo"'),
+        amount: z.string().describe('A decimal string, like "12.50"'),
+        currency: z.enum(['EUR', 'UAH']),
+      },
+      // Destructive though it only adds: Claude's docs promise a prompt only for destructive tools.
+      annotations: { title: 'Add an expense', readOnlyHint: false, destructiveHint: true },
+    },
+    ({ ledgerId, categoryId, date, name, amount, currency }) => {
+      const expenseDate = date ?? scope.today();
+      return toolResult(scope, 'add_expense', async () => {
+        const saved = await scope.write<ApiExpense & { alreadySaved?: boolean }>(`/api/ledgers/${ledgerId}/expenses`, {
+          categoryId,
+          expenseDate,
+          name,
+          amount,
+          currency,
+        });
+        return {
+          ledgerId,
+          expenseId: saved.expenseId,
+          date: saved.expenseDate,
+          name: saved.name,
+          categoryId: saved.categoryId,
+          amountEur: eur(toCents(saved.amountEur)),
+          amountUah: uah(toCents(saved.amountUah)),
+          enteredCurrency: saved.enteredCurrency,
+          eurUahRate: saved.eurUahRate,
+          alreadySaved: saved.alreadySaved === true,
+          ...(saved.alreadySaved ? { note: ALREADY_SAVED_NOTE } : {}),
+        };
+      });
+    },
   );
 
   return server;

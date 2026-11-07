@@ -90,7 +90,7 @@ database, not that this change broke something.
 - [x] 0. Bump version to 1.2.2
   - Files: package.json, apps/mobile/app.json
   - Change: set both to 1.2.2
-- [ ] 1. Keep the web app in one bundle
+- [x] 1. Keep the web app in one bundle
   - Files: apps/mobile/app.json (~10 lines)
   - Change: replace the plugin entry `"expo-router"` with `["expo-router", { "asyncRoutes": { "web": false } }]`. SDK 57
     accepts the option and still exports one bundle, so nothing changes yet.

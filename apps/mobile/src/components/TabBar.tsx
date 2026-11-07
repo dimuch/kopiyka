@@ -5,8 +5,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useColors, useThemedStyles } from '@/appearance/AppearanceContext';
 import { Icon } from '@/components/Icon';
 import { Pressable } from '@/components/Pressable';
-import { useInvites } from '@/data/invites';
-import { readTabs, TABS, tabBadge, type TabName } from '@/tabs';
+import { readTabs, type TabName, useTabItems } from '@/data/tabItems';
 import type { Palette } from '@/theme';
 
 // The library bar's phone metrics (expo-router 57, BottomTabBar.js, TabBarIcon.js, Badge.js), so this copy lines up
@@ -27,14 +26,13 @@ export function TabBar({ fallback }: { fallback: TabName }) {
   const insets = useSafeAreaInsets();
   const routes = useNavigationState((state) => state.routes);
   const { active, params } = readTabs(routes, fallback);
-  const { invites } = useInvites();
-  const count = invites?.length ?? 0;
+  const { tabs } = useTabItems();
 
   return (
     <View role="tablist" style={[styles.bar, { height: BAR_HEIGHT + insets.bottom, paddingBottom: insets.bottom }]}>
-      {TABS.map((tab, position) => {
+      {tabs.map((tab, position) => {
         const focused = tab.name === active;
-        const { badge, label } = tabBadge(tab, count);
+        const { badge, label } = tab;
         const tabParams = params[tab.name];
         const color = focused ? colors.accent : colors.muted;
         return (
@@ -44,7 +42,7 @@ export function TabBar({ fallback }: { fallback: TabName }) {
             // accessibility*, because react-native-web only renders aria-label and aria-selected from these.
             role={Platform.select({ ios: 'button', default: 'tab' })}
             aria-selected={focused}
-            aria-label={Platform.OS === 'ios' ? `${label}, tab, ${position + 1} of ${TABS.length}` : label}
+            aria-label={Platform.OS === 'ios' ? `${label}, tab, ${position + 1} of ${tabs.length}` : label}
             onPress={() => router.dismissTo(tabParams ? { pathname: tab.href, params: tabParams } : tab.href)}
             style={styles.item}
           >

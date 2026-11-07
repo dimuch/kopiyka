@@ -119,7 +119,7 @@ checked through the stub only.
     `tabs.ts` keeps `readTabs(routes, fallback)` calling `readTabRoutes` with `TABS`' names.
   - Tests: every `describe('readTabs')` case in `tabs.test.ts`, unedited; `tabList.test.ts` "reads %s as a tab".
   - Verify: no web check; `TabBar` still calls the same `readTabs`, and slice 5 walks it.
-- [ ] 5. Give the tab bars one module for their tabs and badges (70 lines, extract)
+- [x] 5. Give the tab bars one module for their tabs and badges (70 lines, extract)
   - Files: new `src/data/tabItems.ts`; `src/components/TabBar.tsx`; `src/app/(tabs)/_layout.tsx`; new
     `test/tabItems.test.ts`
   - Change: add `useTabItems`. In both consumers `TABS.map` becomes `tabs.map` with `tab` kept as the name,

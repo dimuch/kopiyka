@@ -243,7 +243,7 @@ store. A helper asserts `[status, code, body]` of the `ApiError`.
   - Change: state and helpers, the route table and `createStore`, and the rate route.
   - Tests: "rejects an unknown route with a plain Error and logs it, not an ApiError or an empty reply"; "answers the sample
     rate for a date"; "refuses a rate after tomorrow"; "answers tomorrow".
-- [ ] 2. Answer expense lists and new expenses from the store (~150)
+- [x] 2. Answer expense lists and new expenses from the store (~150)
   - Files: `src/demo/expenseRoutes.ts`, `test/demoExpenses.test.ts`
   - Tests: "prices EUR and UAH at the sample rate" (the two sums in Contracts); `it.each` refusals of an add (`month_ended`,
     `unknown_category`, `category_not_in_month`, `date_in_future`), in that order; "lists newest first, filtered by category";
@@ -427,6 +427,12 @@ store. A helper asserts `[status, code, body]` of the `ApiError`.
   each name exists on the demo module. That closes the third risk. No AC asks for it.
 
 ## Deviations
+
+- PR 1 rebased on origin/main f42cc9b, which moved the app to Expo SDK 58 and the version to 1.2.2. The plan was drafted
+  on SDK 57. Before PR 4: recheck Expo Router's `root` option, `cacheVersion` and the bundle and source-map shape on SDK 58
+  (main's b35de77 keeps the web app in one bundle), and take slice 0's number from main then.
+- Slice 2: two extra tests, for a day ordered by creation before id and for a removed month row; without them, breaking
+  either rule passed.
 
 ## Consolidate
 

@@ -131,7 +131,7 @@ database, not that this change broke something.
     newer". `deploy/README.md` step 1 comment `# v24.x` to `# v24.3 or newer`.
   - Verify: `rg -n "SDK 57|v57\.0\.0|RN 0\.86" .claude/agents .claude/skills/kopiyka-* README.md` finds no current-version
     claim left. Gates pass.
-- [ ] 4. No commit: the iPhone check, by the user (see below)
+- [x] 4. No commit: the iPhone check, by the user (see below)
 
 **Slice 2 web check, real data.** Start the API, then Metro from this working copy without `CI=1` (`CI=1` turns off file
 watching): `yarn mobile expo start --web --port 8084`. Open exactly `http://127.0.0.1:8084`, which CORS allows; `localhost:8084`
@@ -234,8 +234,8 @@ version and bump it once again, and rerun the gates, `expo-doctor` and the expor
 
 ## Deviations
 
-<filled by the developer during build>
+None. Slices 0–3 were built as planned; slice 2 kept the `expo-status-bar` plugin entry `expo install` added, as the plan said.
 
 ## Consolidate
 
-<filled in /kopiyka-hos Phase 3a: CONSOLIDATE line, each reuse/extract, each LEAVE + reason>
+CONSOLIDATE: skipped — the branch adds no new function, hook, component, route or query.

@@ -12,7 +12,7 @@ a Fastify API sits in front of MySQL.
 
 ## Local setup
 
-Needs Node 24, Yarn 4 (`corepack enable`), MySQL 8.0 or newer (production runs 8.4), and Xcode for the iPhone app.
+Needs Node 24.3 or newer, Yarn 4 (`corepack enable`), MySQL 8.0 or newer (production runs 8.4), and Xcode for the iPhone app.
 
 ```bash
 yarn install

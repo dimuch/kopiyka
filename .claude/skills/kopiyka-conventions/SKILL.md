@@ -134,11 +134,11 @@ the second consumer appears or `routes.ts` passes ~200 lines.
 - Use `req.log` with structured fields (`req.log.warn({ err, date }, '...')`).
 - New env var → `config.ts` schema + `.env.example` + README if user-facing.
 
-## 5. App patterns (Expo SDK 57, React 19, RN 0.86, Expo Router)
+## 5. App patterns (Expo SDK 58, React 19, RN 0.88, Expo Router)
 
 - **Expo moves fast — don't trust memory.** Before using an Expo/RN API,
   check `apps/mobile/package.json` and the versioned docs
-  (`https://docs.expo.dev/versions/v57.0.0/`), or the `expo-router`
+  (`https://docs.expo.dev/versions/v58.0.0/`), or the `expo-router`
   skill. Add Expo/React Native packages with `npx expo install` (run in
   `apps/mobile`) for SDK-matched versions. Dev tools the monorepo
   already uses (vitest, eslint, typescript) go in with

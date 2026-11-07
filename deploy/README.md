@@ -46,7 +46,7 @@ so piped `sudo` commands don't prompt twice at once.
 
    ```bash
    ss -ltn | grep ':3100 ' || echo "3100 free"
-   /usr/bin/node --version                     # v24.x
+   /usr/bin/node --version                     # v24.3 or newer
    env -i PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin sh -c 'command -v node corepack'
    corepack --version                          # missing: sudo npm i -g corepack@0.36
    /usr/bin/time --version || sudo apt-get install -y time

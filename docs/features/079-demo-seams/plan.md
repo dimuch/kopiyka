@@ -84,7 +84,7 @@ then tap Home. A reload clears it. **Don't set `NOTION_LEDGER_ID` on the API to 
 `apps/api/.env` holds a real `NOTION_TOKEN`, so a Sync press would send QA data to the real Notion tables. The panel is
 checked through the stub only.
 
-- [ ] 0. Bump version to 1.1.1
+- [x] 0. Bump version to 1.1.1
   - Files: package.json, apps/mobile/app.json
   - Change: set both to 1.1.1
 - [ ] 1. Pin the tab list and what ApiError carries (58 lines)

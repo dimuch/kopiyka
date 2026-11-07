@@ -3,11 +3,10 @@ import { useCallback, useRef, useState } from 'react';
 import { ApiError } from '@/api/apiError';
 import { api } from '@/api/client';
 import type { NotionStatus, NotionSyncResult } from '@/api/types';
+import type { SyncOutcome } from '@/data/notionSync';
 
 export type NotionSyncState =
   { status: 'loading' } | { status: 'unconfigured' } | { status: 'failed' } | { status: 'ready'; notion: NotionStatus };
-
-export type SyncOutcome = { kind: 'result'; result: NotionSyncResult } | { kind: 'refused'; code: string };
 
 const notConfigured = (err: unknown) =>
   err instanceof ApiError && err.status === 404 && err.code === 'notion_not_configured';

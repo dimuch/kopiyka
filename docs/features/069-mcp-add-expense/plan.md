@@ -355,3 +355,9 @@ PR A. CONSOLIDATE: reused 3 · extracted 0 · left 3.
 - LEAVE `logStream`, twin in `apps/mcp/src/app.ts`: a different app, and `apps/mcp` must stay deletable.
 - LEAVE `errForLog`: `apps/mcp` has no database, so it has no `sql` to drop.
 - LEAVE the test helper `writeToken`, twin `issueToken` in `apiTokens.auth.int.test.ts`: two copies, and only one takes a scope.
+
+PR B. CONSOLIDATE: reused 1 · extracted 0 · left 2.
+
+- REUSE `LedgerMonth.ledgerId` in `add_expense`.
+- LEAVE the expense mapping in `add_expense`, twin in `list_expenses`: two copies, and they differ (`categoryName`, `alreadySaved`).
+- LEAVE the `scope === 'write'` choices in `signInPage` and `consentPage`: two different sentences, and `read` must stay as it was.

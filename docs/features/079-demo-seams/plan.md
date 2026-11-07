@@ -87,7 +87,7 @@ checked through the stub only.
 - [x] 0. Bump version to 1.1.1
   - Files: package.json, apps/mobile/app.json
   - Change: set both to 1.1.1
-- [ ] 1. Pin the tab list and what ApiError carries (58 lines)
+- [x] 1. Pin the tab list and what ApiError carries (58 lines)
   - Files: apps/mobile/test/tabList.test.ts, apps/mobile/test/apiError.test.ts (both new)
   - Change: characterization tests only, passing on the Base. New files, so no existing test is touched.
   - Tests: `tabList.test.ts`, describe `TABS`: "lists the six tabs in bar order, with their titles, icons and links";

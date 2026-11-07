@@ -2,6 +2,7 @@ import type { FastifyInstance } from 'fastify';
 import { z } from 'zod';
 import type { AppDeps } from '../app.js';
 import { seal } from '../seal.js';
+import { SCOPES, type Scope } from './metadata.js';
 import { errorPage, faultPage, sendPage, signInPage } from './pages.js';
 import { openClient } from './register.js';
 
@@ -30,6 +31,7 @@ export interface AuthorizationRequest {
   redirectUri: string;
   codeChallenge: string;
   state: string;
+  scope: Scope;
 }
 
 /** `redirectUri` with an authorization response on it, including `iss` as RFC 9207 asks. */
@@ -46,6 +48,13 @@ export function authorizationResponse(
   return url.href;
 }
 
+/** What a space-separated `scope` comes to, or null if it names one we don't know. A write token must be asked for. */
+function requestedScope(scope = ''): Scope | null {
+  const asked = scope.split(' ').filter(Boolean);
+  if (!asked.every((name) => (SCOPES as string[]).includes(name))) return null;
+  return asked.includes('write') ? 'write' : 'read';
+}
+
 function requestFault(query: AuthorizeQuery, resource: string): string | null {
   if (query.response_type !== 'code') return 'unsupported_response_type';
   if (query.code_challenge_method !== 'S256' || !CODE_CHALLENGE.test(query.code_challenge ?? '')) {
@@ -53,7 +62,7 @@ function requestFault(query: AuthorizeQuery, resource: string): string | null {
   }
   // Claude's callback only clears the code from the address bar when it gets a state.
   if (!query.state) return 'invalid_request';
-  if (query.scope !== undefined && query.scope !== '' && query.scope !== 'read') return 'invalid_scope';
+  if (!requestedScope(query.scope)) return 'invalid_scope';
   // Required, not just checked: a request without one is how a stranger's connector would reach the sign-in page.
   if (query.resource !== resource) return 'invalid_request';
   return null;
@@ -92,6 +101,7 @@ export async function authorizeRoutes(app: FastifyInstance, { config, now }: App
       redirectUri,
       codeChallenge: query.code_challenge!,
       state: query.state!,
+      scope: requestedScope(query.scope)!,
     };
     return sendPage(
       reply,
@@ -99,6 +109,7 @@ export async function authorizeRoutes(app: FastifyInstance, { config, now }: App
       signInPage({
         clientName: request.clientName,
         redirectHost: new URL(redirectUri).hostname,
+        scope: request.scope,
         request: seal(config.sealKey, 'signin', request, now().getTime() + SIGN_IN_TTL_MS),
       }),
     );

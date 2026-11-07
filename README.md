@@ -82,11 +82,14 @@ the Budget tables at a time.
 
 ## Connecting Claude
 
-`apps/mcp` lets Claude read a user's budgets. In Claude, add a custom connector with the URL `https://<host>/mcp` at
-claude.ai > Customize > Connectors; it then works in Claude Desktop and Claude mobile. Sign in with your username and
-authenticator code, and allow it. It's read-only, and sign-in comes back every hour. Free plans allow one custom
-connector; on Team and Enterprise an Owner adds it. After 90 days its registration ends: remove the connector and add it
-again.
+`apps/mcp` lets Claude read a user's budgets and add expenses. It can't edit or delete anything. In Claude, add a custom
+connector with the URL `https://<host>/mcp` at claude.ai > Customize > Connectors; it then works in Claude Desktop and Claude
+mobile. Sign in with your username and authenticator code, and allow it. Sign-in comes back every hour. Free plans allow one
+custom connector; on Team and Enterprise an Owner adds it. After 90 days its registration ends: remove the connector and add
+it again.
+
+A connection made before this can only read until its next sign-in. If adding an expense says the connection can only read,
+disconnect Kopiyka in Claude's connectors, connect, and allow it.
 
 Claude Code can't connect directly (`claude mcp add`), because it uses a loopback redirect. A connector added on claude.ai
 may still appear in it for a claude.ai login. Claude Desktop on third-party inference can't connect either.

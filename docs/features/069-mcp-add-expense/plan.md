@@ -243,7 +243,7 @@ Starts once PR A is merged. Its tests stub the API.
       The first result says it may be saved, the second gives the expense, and the fake holds one.
     - A call with no `date`, a lost answer, and the sentence names that date.
     - A read tool's refusal is still the bare code.
-- [ ] 7. Say the connector can add expenses (~15)
+- [x] 7. Say the connector can add expenses (~15)
   - Files: `README.md`, `deploy/README.md`
   - Change: "Connecting Claude" stops saying read-only. It says what can be added, that existing connections stay read-only until
     their next sign-in, and how to reconnect. `MCP connector` says it reads and can add expenses, and that the API refuses its tokens

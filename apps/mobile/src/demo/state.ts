@@ -1,5 +1,6 @@
 import { ApiError } from '@/api/apiError';
 import type { Expense, IncomeItem, User } from '@/api/types';
+import { kyivMonth } from '@/format';
 
 /** The one person in the demo, shown as the one who added income. */
 export const DEMO_USER: User = { userId: 1, username: 'you' };
@@ -57,4 +58,14 @@ export interface Route {
 /** Refuses as the API does: the screens read `status`, `code` and the body of an `ApiError`. */
 export function refuse(status: number, code: string, more: Record<string, unknown> = {}): never {
   throw new ApiError(status, code, { error: code, ...more });
+}
+
+/** An ended 'YYYY-MM' month (Kyiv) is read-only: 409 `month_ended`, as apps/api/src/dates.ts `monthEnded`. */
+export function refuseIfEnded(month: string, now: Date): void {
+  if (month < kyivMonth(now)) refuse(409, 'month_ended');
+}
+
+/** Whether the category is listed (not removed) in the 'YYYY-MM' month, as apps/api/src/categories `inMonthList`. */
+export function inMonth(data: StoreData, categoryId: number, month: string): boolean {
+  return data.monthRows.some((row) => row.categoryId === categoryId && row.month === month && row.removal === null);
 }

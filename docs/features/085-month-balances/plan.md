@@ -237,7 +237,7 @@ capability; nothing existing changes.
     - The brief's full table (Notes, read 2026-11-08) gives exactly Jan 0/−180, Feb −180/−52, Mar −52/−115,
       Apr −115/−531, May −531/−177, June −177/0, July 0/−377, Aug 0/−377, Sept −377/0, Oct 0/−35. The only fill
       note is Aug closing `filled from 2026-09 opening`. These values were checked with a scratch script.
-- [ ] 6. Warn when a month's closing doesn't match the next opening (~35)
+- [x] 6. Warn when a month's closing doesn't match the next opening (~35)
   - Files: `apps/api/src/notion/balances.ts` (`continuityWarnings`), `apps/api/test/notionBalances.test.ts`
   - Tests (`continuityWarnings(wantedBalances(…))`):
     - The brief's full table gives exactly `['2026-07 closes at -377.00, but 2026-08 opens at 0.00']`.

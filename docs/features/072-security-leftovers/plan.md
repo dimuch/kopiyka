@@ -225,19 +225,21 @@ or the README: the repo is public.
    `sudo journalctl -u kopiyka-mcp --since '2 minutes ago' | grep -c 'request refused'` → 1 or more. Read-only.
 4. **Backup and dry check.** Back up the live vhost to `/root/kopiyka.conf.bak` (once, while it's good). Then fetch
    main and run `deploy/check-address-key.sh` on main's vhost, saved to a temp file, before installing it → 10 × `PASS`.
-   A `FAIL` means don't install; send the output. Nothing to undo.
+   Exit 1, or exit 2 about the file, means don't install; send the output. Exit 2 about its own setup: fix that, then run
+   it again. Nothing to undo.
 5. **Install**, then `nginx -t` → `syntax is ok` / `test is successful`, then reload. If `nginx -t` fails, restore the
    copy straight away.
 6. **Reload applied.** `sudo tail -n 5 /var/log/nginx/error.log` shows no `[emerg]` from the reload (a refused key would
    show here). Undo: restore the copy, `nginx -t`, reload.
-7. **`/mcp` refused.** The step 3 curl now gives `403`, and step 3's journal `grep -c 'request refused'` gives `0`
-   (real Claude calls may log other lines in that window). `sudo grep 'access forbidden' /var/log/nginx/error.log | tail -1` names `/mcp`.
+7. **`/mcp` refused.** As in the README's "Rolling out the `/mcp` limit": note `t=$(date '+%F %T')` on the droplet, then
+   the step 3 curl gives `403`, `journalctl --since "$t"` with the same `grep -c` gives `0`, and
+   `sudo grep 'access forbidden' /var/log/nginx/error.log | tail -1` names `/mcp`.
 8. **Headers.** The "After changing the vhost" header loop: every path has the six headers. `/mcp` is a 403 now.
 9. **Login limit.** The "Checks after rollout" login check → about 12 × 400, the rest 429 with `rate_limited`.
 10. **IPv6 grouping.** Run `deploy/check-address-key.sh` from the bare repo → 10 × `PASS`, exit 0. It starts and removes
     its own nginx on 127.0.0.1:18064 as you, so there's nothing to undo. If it prints `FAIL`, the live map is wrong:
-    restore the vhost copy and reload. Exit 2 is the script's own setup, not the live map: don't restore the vhost; send
-    the output.
+    restore the vhost copy and reload. Exit 2 about the file (no map, or a limit not keyed on it) is the same: restore
+    the copy. Exit 2 about its own setup isn't the live map: don't restore the vhost; send the output.
 11. **Claude.** Ask the connector a read-only question (for example "list my kopiyka ledgers") → it answers. If not,
     restore the vhost copy and reload.
 12. _(Optional, only if the droplet and the laptop both have IPv6.)_ Run step 9's loop with `curl -6`, `--resolve`

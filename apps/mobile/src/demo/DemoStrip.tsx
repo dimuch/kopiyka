@@ -12,7 +12,7 @@ export function DemoStrip() {
   return (
     <View style={styles.strip}>
       <Text style={styles.text}>Demo: a reload clears your changes.</Text>
-      <Link href={SIGN_IN_URL} accessibilityRole="link" style={styles.link}>
+      <Link href={SIGN_IN_URL} style={styles.link}>
         Sign in
       </Link>
     </View>

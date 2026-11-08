@@ -166,7 +166,7 @@ PR 1 — Bump: minor — 1.4.0 → 1.5.0 (main took 1.3.0 and 1.4.0 while this w
 Why: §8b `minor` (additive migration, `month_balances`). Nothing existing changes for app builds, the connector or
 rollback: the previous release ignores the extra table.
 
-PR 2 — Bump: minor — 1.5.0 → 1.6.0 (or `main`'s number +minor if another PR took a version first, §8b step 4)
+PR 2 — Bump: minor — 1.5.1 → 1.6.0 (main took 1.5.1, a patch, while this was in review) (or `main`'s number +minor if another PR took a version first, §8b step 4)
 Why: §8b `minor`. It adds a new production command (`import-balances`) that writes ledger data. That's a new
 capability; nothing existing changes.
 
@@ -246,7 +246,7 @@ capability; nothing existing changes.
 
 ### PR 2 — the import (`feat/month-balances-import`, from `main` after PR 1 merges, ~375 lines)
 
-- [ ] 7. Bump version to 1.6.0
+- [x] 7. Bump version to 1.6.0
   - Files: package.json, apps/mobile/app.json
   - Change: set both to 1.6.0
 - [ ] 8. Work out which months an import changes (~45)

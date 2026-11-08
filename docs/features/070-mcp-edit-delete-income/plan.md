@@ -179,7 +179,7 @@ migration, so rollback holds.
 - [x] 0A. Bump version to 1.3.0
   - Files: package.json, apps/mobile/app.json
   - Change: set both to 1.3.0
-- [ ] 1. Let a write token change and delete expenses (~95)
+- [x] 1. Let a write token change and delete expenses (~95)
   - Files: `apps/api/src/apiTokens/auth.ts`, `apps/api/test/apiTokens.auth.int.test.ts`
   - Change: the two routes in `WRITE_TOKEN_ROUTES`, and the JSDoc.
   - Tests, in `describe('a write token')`:

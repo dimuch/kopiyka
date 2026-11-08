@@ -6,7 +6,9 @@ import { buildApp } from '../src/app.js';
 import { hashToken } from '../src/auth/sessions.js';
 import type { Config } from '../src/config.js';
 import { createDb, type Db } from '../src/db.js';
+import { addMember } from '../src/ledgers/members.js';
 import {
+  authHeader,
   clearData,
   makeUser,
   offlineRates,
@@ -40,7 +42,11 @@ const minutesAfterT = (minutes: number) => new Date(T.getTime() + minutes * 60_0
 /** The only write route a client may reach without a session. */
 const PUBLIC_WRITE_ROUTES = ['POST /api/auth/login'];
 /** All a write token may change. Adding a route here is a decision, not a tidy-up. */
-const WRITE_TOKEN_ROUTES = ['POST /api/ledgers/:id/expenses'];
+const WRITE_TOKEN_ROUTES = [
+  'POST /api/ledgers/:id/expenses',
+  'PUT /api/ledgers/:id/expenses/:expenseId',
+  'DELETE /api/ledgers/:id/expenses/:expenseId',
+];
 
 describe.skipIf(!(await testDbReachable()))('API tokens in requireAuth (MySQL)', () => {
   const config: Config = { ...testConfig(), apiTokens: { ttlMinutes: 60 } };
@@ -74,13 +80,35 @@ describe.skipIf(!(await testDbReachable()))('API tokens in requireAuth (MySQL)',
       url: `/api/ledgers/${ledgerId}/expenses`,
       headers: bearer(token),
       payload: {
-        categoryId: await groceriesId(user.ledgerId),
+        categoryId: await groceriesId(ledgerId),
         expenseDate: '2026-10-06',
         name: 'Silpo',
         amount: '12.50',
         currency: 'EUR',
       },
     });
+  const changeExpense = async (token: string, expenseId: number, ledgerId = user.ledgerId) =>
+    app.inject({
+      method: 'PUT',
+      url: `/api/ledgers/${ledgerId}/expenses/${expenseId}`,
+      headers: bearer(token),
+      payload: {
+        categoryId: await groceriesId(ledgerId),
+        expenseDate: '2026-10-05',
+        name: 'Silpo, corrected',
+        amount: '14.20',
+        currency: 'EUR',
+      },
+    });
+  const deleteExpense = (token: string, expenseId: number, ledgerId = user.ledgerId) =>
+    app.inject({ method: 'DELETE', url: `/api/ledgers/${ledgerId}/expenses/${expenseId}`, headers: bearer(token) });
+  const expenseRow = async (expenseId: number) => {
+    const [rows] = await db.query<RowDataPacket[]>(
+      `SELECT name, amount_eur, deleted_at FROM expenses WHERE expense_id = ?`,
+      [expenseId],
+    );
+    return rows;
+  };
 
   beforeAll(async () => {
     await resetSchema();
@@ -207,6 +235,98 @@ describe.skipIf(!(await testDbReachable()))('API tokens in requireAuth (MySQL)',
       const res = await addExpense(await issueToken(user.userId, 'write'), other.ledgerId);
 
       expect([res.statusCode, res.json()]).toEqual([404, { error: 'ledger_not_found' }]);
+    });
+
+    it('changes an expense, and the adder stays its creator', async () => {
+      const token = await issueToken(user.userId, 'write');
+      const { expenseId } = (await addExpense(token)).json();
+
+      const res = await changeExpense(token, expenseId);
+
+      expect(res.statusCode).toBe(200);
+      expect(res.json()).toMatchObject({
+        expenseId,
+        expenseDate: '2026-10-05',
+        name: 'Silpo, corrected',
+        amountEur: '14.20',
+        amountUah: '716.86', // 14.20 × 50.4830 = 716.8586
+        eurUahRate: '50.4830',
+        createdBy: user.userId,
+      });
+    });
+
+    it('changes an expense to the same values when the call is repeated', async () => {
+      const token = await issueToken(user.userId, 'write');
+      const { expenseId } = (await addExpense(token)).json();
+
+      const first = await changeExpense(token, expenseId);
+      const again = await changeExpense(token, expenseId);
+
+      expect(again.statusCode).toBe(200);
+      expect(again.json()).toEqual(first.json());
+      expect(await expenseRow(expenseId)).toEqual([
+        { name: 'Silpo, corrected', amount_eur: '14.20', deleted_at: null },
+      ]);
+    });
+
+    it('deletes an expense once: a repeat is not found and keeps the first deletion time', async () => {
+      const token = await issueToken(user.userId, 'write');
+      const { expenseId } = (await addExpense(token)).json();
+
+      const res = await deleteExpense(token, expenseId);
+      const deletedAt = (await expenseRow(expenseId))[0]!.deleted_at;
+      clock = minutesAfterT(1);
+      const again = await deleteExpense(token, expenseId);
+
+      expect(res.statusCode).toBe(204);
+      expect(deletedAt).toEqual(T);
+      expect([again.statusCode, again.json()]).toEqual([404, { error: 'not_found' }]);
+      expect((await expenseRow(expenseId))[0]!.deleted_at).toEqual(T);
+      const list = await app.inject({
+        method: 'GET',
+        url: `/api/ledgers/${user.ledgerId}/expenses?month=2026-10`,
+        headers: bearer(token),
+      });
+      expect(list.json().expenses).toEqual([]);
+    });
+
+    it('leaves a deleted expense restorable by the app', async () => {
+      const token = await issueToken(user.userId, 'write');
+      const added = (await addExpense(token)).json();
+      await deleteExpense(token, added.expenseId);
+
+      const res = await app.inject({
+        method: 'POST',
+        url: `/api/ledgers/${user.ledgerId}/expenses/${added.expenseId}/restore`,
+        headers: await authHeader(app, user, clock),
+      });
+
+      expect(res.statusCode).toBe(200);
+      expect(res.json()).toEqual(added);
+    });
+
+    it('can’t change or delete another ledger’s expense through this ledger, even as a member of both', async () => {
+      const owner = await makeUser(db, config, 'owner');
+      await addMember(db, owner.ledgerId, user.userId);
+      const token = await issueToken(user.userId, 'write');
+      const { expenseId } = (await addExpense(token, owner.ledgerId)).json();
+
+      const changed = await app.inject({
+        method: 'PUT',
+        url: `/api/ledgers/${user.ledgerId}/expenses/${expenseId}`,
+        headers: bearer(token),
+        payload: {
+          categoryId: await groceriesId(user.ledgerId),
+          expenseDate: '2026-10-05',
+          amount: '1',
+          currency: 'EUR',
+        },
+      });
+      const deleted = await deleteExpense(token, expenseId);
+
+      expect([changed.statusCode, changed.json()]).toEqual([404, { error: 'not_found' }]);
+      expect([deleted.statusCode, deleted.json()]).toEqual([404, { error: 'not_found' }]);
+      expect(await expenseRow(expenseId)).toEqual([{ name: 'Silpo', amount_eur: '12.50', deleted_at: null }]);
     });
   });
 

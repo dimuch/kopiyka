@@ -375,7 +375,7 @@ done
 ```
 
 Each path shows the six security headers. `/`, `/index.html` and `/budget` show `Cache-Control: no-cache`, the bundle
-`…, immutable`, and `/api/health` none. `/oauth/authorize` shows **two** `content-security-policy` lines, nginx's and the
+`…, immutable`, and `/api/health` none. From the laptop `/mcp` is a 403 since brief 072, still with the six headers. `/oauth/authorize` shows **two** `content-security-policy` lines, nginx's and the
 page's own, which is expected: browsers enforce both.
 
 ## API limits
@@ -665,10 +665,44 @@ DELETE FROM login_throttle WHERE key_type = 'username' AND key_value = 'claude-q
 
 ### The address limit
 
-`/oauth/token` and `/oauth/register` accept only Anthropic's outbound ranges, the `allow` lines in the vhost. A sign-in code
-therefore can't be redeemed from outside Anthropic's network. The list comes from
-`platform.claude.com/docs/en/api/ip-addresses`: if Anthropic changes it, connecting stops until the vhost is updated. A
-refusal here never reaches `journalctl -u kopiyka-mcp`; find it with `sudo grep 'access forbidden' /var/log/nginx/error.log`.
+`/mcp`, `/oauth/token` and `/oauth/register` accept only Anthropic's outbound ranges, the `allow` lines in the vhost (the
+last two since brief 063, `/mcp` since brief 072). A sign-in code therefore can't be redeemed, and a token copied out of
+Claude can't be used, from outside Anthropic's network. The list comes from `platform.claude.com/docs/en/api/ip-addresses`:
+if Anthropic changes it, every connection stops, not only connecting, until the vhost is updated. Both `allow` lists must
+stay the same. A refusal never reaches `journalctl -u kopiyka-mcp`; find it with
+`sudo grep 'access forbidden' /var/log/nginx/error.log`.
+
+### Rolling out the `/mcp` limit
+
+Once, when the vhost with brief 072's `/mcp` limit is first installed.
+
+Before, read-only: no `/mcp` caller so far came from outside Anthropic's ranges. This prints the other addresses; expect
+none, or only your own probes and scanners. If a Claude call came from elsewhere, stop: the limit would cut it off.
+
+```bash
+sudo zgrep -h ' /mcp ' /var/log/nginx/access.log* | awk '{print $1}' | sort -u |
+  grep -vE '^160\.79\.(10[4-9]|11[01])\.|^153\.61\.(20[89]|21[0-9]|22[0-3])\.'
+```
+
+From the laptop, before the install: `/mcp` answers 401, and the connector logs it.
+
+```bash
+curl -s -o /dev/null -w '%{http_code}\n' -X POST https://kopiyka.englishplus.com.ua/mcp
+```
+
+```bash
+sudo journalctl -u kopiyka-mcp --since '2 minutes ago' | grep -c 'request refused'
+```
+
+Then install as in "After changing the vhost". After: the same curl gives `403`, the same `grep -c` gives `0`, and nginx
+names it:
+
+```bash
+sudo grep 'access forbidden' /var/log/nginx/error.log | tail -1
+```
+
+Then ask Claude a read-only question through the connector; it answers. Undo: restore `/root/kopiyka.conf.bak` as in
+"After changing the vhost".
 
 ### Adding another LLM app
 
@@ -680,7 +714,8 @@ Only an app with a fixed `https` callback can be added, so one with a `localhost
    `Location`. Otherwise a stranger could talk the code out of a user.
 3. `sudoedit /etc/kopiyka/mcp.env` and set `MCP_ALLOWED_REDIRECT_URIS` to Claude's callback plus the new one, comma-separated:
    the setting replaces the default. Then `sudo systemctl restart kopiyka-mcp`.
-4. Add the app's outbound range to the `allow` lines in the vhost and reinstall it, or its calls get 403.
+4. Add the app's outbound range to both `allow` lists in the vhost, `/mcp` and `/oauth/(token|register)`, and reinstall it,
+   or its calls get 403.
 
 Removing a URL works the same way: new sign-ins stop at the restart.
 

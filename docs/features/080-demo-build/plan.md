@@ -274,7 +274,7 @@ store. A helper asserts `[status, code, body]` of the `ApiError`.
     rows, so their Undo is 404".
   - `demoDataFunctions.test.ts`, with `@/api/client` mocked onto the store: every function in `data/categories`,
     `data/expenses` and `data/income` runs against it, so a path that drifts from the store's table fails here.
-- [ ] 8. Give the store invented data for this month and last (~130)
+- [x] 8. Give the store invented data for this month and last (~130)
   - Files: new `src/demo/sampleData.ts`, new `test/demoSampleData.test.ts`
   - Tests: `it.each` clocks: mid month; `2026-10-31T22:30:00Z`, which is the 1st in Kyiv; January, whose last month is in the
     year before; the 31st. Each: both months have categories, income and expenses; every expense's category is in its month;
@@ -431,6 +431,10 @@ store. A helper asserts `[status, code, body]` of the `ApiError`.
 - PR 1 rebased on origin/main f42cc9b, which moved the app to Expo SDK 58 and the version to 1.2.2. The plan was drafted
   on SDK 57. Before PR 4: recheck Expo Router's `root` option, `cacheVersion` and the bundle and source-map shape on SDK 58
   (main's b35de77 keeps the web app in one bundle), and take slice 0's number from main then.
+- Slice 7: the restore `name_taken` test renames another category instead of adding one, since an add with the removed
+  category's name reuses that category (as the API's `findByName` does).
+- Slice 8: `sampleAmounts` is extracted from `price` in `expenseRoutes.ts`, so the sample data prices expenses the same
+  way instead of repeating the conversion.
 - Slice 2: two extra tests, for a day ordered by creation before id and for a removed month row; without them, breaking
   either rule passed.
 

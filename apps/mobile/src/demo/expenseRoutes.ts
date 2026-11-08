@@ -1,4 +1,4 @@
-import type { EurUahRate, Expense } from '@/api/types';
+import type { Currency, EurUahRate, Expense } from '@/api/types';
 import type { ExpenseInput } from '@/data/expenses';
 import { addDays, centsToInput, convertPreview, kyivToday, toCents } from '@/format';
 import { DEMO_USER, type DemoExpense, inMonth, refuse, refuseIfEnded, type Route, type StoreData } from './state';
@@ -29,13 +29,21 @@ function checkCategory(data: StoreData, categoryId: number, expenseDate: string)
   if (!inMonth(data, categoryId, expenseDate.slice(0, 7))) refuse(400, 'category_not_in_month');
 }
 
-/** The API's `price`: the entered side stays exact, the other is converted half up at the sample rate. */
+/** The stored amounts of an entered one: the entered side stays exact, the other is converted half up at the sample rate. */
+export function sampleAmounts(
+  amount: string,
+  currency: Currency,
+): Pick<Expense, 'amountEur' | 'amountUah' | 'eurUahRate'> {
+  const entered = toCents(amount);
+  const other = convertPreview(entered, currency, SAMPLE_RATE);
+  const [eurCents, uahCents] = currency === 'EUR' ? [entered, other] : [other, entered];
+  return { amountEur: centsToInput(eurCents), amountUah: centsToInput(uahCents), eurUahRate: SAMPLE_RATE_TEXT };
+}
+
+/** The API's `price`: no rate after tomorrow, then the sample rate's amounts. */
 function price(input: ExpenseInput, now: Date): Pick<Expense, 'amountEur' | 'amountUah' | 'eurUahRate'> {
   if (isAfterRateHorizon(input.expenseDate, now)) refuse(400, 'date_in_future');
-  const entered = toCents(input.amount);
-  const other = convertPreview(entered, input.currency, SAMPLE_RATE);
-  const [eurCents, uahCents] = input.currency === 'EUR' ? [entered, other] : [other, entered];
-  return { amountEur: centsToInput(eurCents), amountUah: centsToInput(uahCents), eurUahRate: SAMPLE_RATE_TEXT };
+  return sampleAmounts(input.amount, input.currency);
 }
 
 export const expenseRoutes: Route[] = [

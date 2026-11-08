@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+import { centsToString } from '../src/money.js';
 import {
   BalancesSnapshot,
   continuityWarnings,
@@ -26,6 +27,10 @@ describe('toBalancesSnapshot', () => {
     expect(BalancesSnapshot.parse(JSON.parse(JSON.stringify(snapshot)))).toEqual(snapshot);
   });
 
+  it('refuses an amount over 8 digits, which the snapshot cannot hold', () => {
+    expect(() => toBalancesSnapshot([{ month: 1, amountCents: -10_000_000_000n }], [])).toThrow();
+  });
+
   it('refuses an amount that is not a signed decimal with at most 2 places', () => {
     for (const amount of ['1.234', '--1']) {
       expect(() => BalancesSnapshot.parse({ opening: [{ month: 1, amount }], closing: [] })).toThrow();
@@ -41,7 +46,7 @@ const snapshot = (opening: Rows, closing: Rows): BalancesSnapshot => ({
 const byMonth = (months: MonthBalance[]) => new Map(months.map((m) => [m.month, m]));
 /** [opening, closing] in euros, as strings, for each month. */
 const euros = (months: MonthBalance[]) =>
-  months.map((m) => [m.month, `${Number(m.openingCents) / 100}/${Number(m.closingCents) / 100}`]);
+  months.map((m) => [m.month, `${centsToString(m.openingCents)}/${centsToString(m.closingCents)}`]);
 
 /** Notion as read on 2026-11-08 (brief 085, Notes), "Auguts closing" still tagged July. */
 const notionToday = snapshot(
@@ -174,16 +179,16 @@ describe('wantedBalances', () => {
   it("gives the expected numbers for Notion's 2026 data, filling only August's closing", () => {
     const months = wantedBalances(notionToday);
     expect(euros(months)).toEqual([
-      ['2026-01', '0/-180'],
-      ['2026-02', '-180/-52'],
-      ['2026-03', '-52/-115'],
-      ['2026-04', '-115/-531'],
-      ['2026-05', '-531/-177'],
-      ['2026-06', '-177/0'],
-      ['2026-07', '0/-377'],
-      ['2026-08', '0/-377'],
-      ['2026-09', '-377/0'],
-      ['2026-10', '0/-35'],
+      ['2026-01', '0.00/-180.00'],
+      ['2026-02', '-180.00/-52.00'],
+      ['2026-03', '-52.00/-115.00'],
+      ['2026-04', '-115.00/-531.00'],
+      ['2026-05', '-531.00/-177.00'],
+      ['2026-06', '-177.00/0.00'],
+      ['2026-07', '0.00/-377.00'],
+      ['2026-08', '0.00/-377.00'],
+      ['2026-09', '-377.00/0.00'],
+      ['2026-10', '0.00/-35.00'],
     ]);
     expect(months.flatMap((m) => [m.openingFill, m.closingFill]).filter(Boolean)).toEqual([
       'filled from 2026-09 opening',
@@ -206,8 +211,8 @@ describe('continuityWarnings', () => {
       ),
     };
     expect(euros(wantedBalances(retagged)).slice(6, 8)).toEqual([
-      ['2026-07', '0/0'],
-      ['2026-08', '0/-377'],
+      ['2026-07', '0.00/0.00'],
+      ['2026-08', '0.00/-377.00'],
     ]);
     expect(continuityWarnings(wantedBalances(retagged))).toEqual([]);
   });

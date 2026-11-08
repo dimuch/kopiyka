@@ -495,9 +495,10 @@ bash "$d/check.sh" "$d/vhost.conf"; echo "exit $?"
 ```
 
 After the install, run the last line without `"$d/vhost.conf"` to check the installed vhost, then `rm -r "$d"`. Exit 0 is
-8 × `PASS`. Exit 1 means the map is wrong: before the install, don't install it; after, restore the vhost copy as in "After
-changing the vhost". Exit 2 is the script's own setup, not the map (no nginx, no realip module, or its nginx didn't
-start): don't restore anything, and keep the output.
+10 × `PASS`. Exit 1 means the map is wrong: before the install, don't install it; after, restore the vhost copy as in
+"After changing the vhost". Exit 2 means it couldn't run its check, and says why. If that's about the file (no map, or a
+limit not keyed on it), it's like exit 1. Otherwise it's the script's own setup (no nginx, no realip module, its nginx
+didn't start, or run with sudo): don't restore anything, and keep the output.
 
 With IPv6 on both the droplet and the laptop, a real check is also possible: the "Checks after rollout" login loop with
 `curl -6` and `--resolve` to the droplet's IPv6 address, then one request from another address in the laptop's /64 gives 429. Skip it otherwise.
@@ -505,7 +506,7 @@ With IPv6 on both the droplet and the laptop, a real check is also possible: the
 ## Service hardening
 
 Both units run sandboxed (brief 072): on top of `NoNewPrivileges`, `ProtectSystem=strict` and `PrivateTmp`, they can't see
-home folders, devices, kernel settings, logs or the clock, can't gain capabilities or new namespaces, and only reach the
+home folders, devices or kernel logs, can't change kernel settings or the clock, can't gain capabilities or new namespaces, and only reach the
 system calls a normal service uses (`@system-service`). The connector may only talk to loopback. Each unit file says what
 its service needs and what was left out on purpose. `ProtectProc` needs systemd 247; an older one logs "Unknown key" and
 ignores it.
@@ -524,11 +525,21 @@ f=$(mktemp)
 sudo -u kopiyka git -C /opt/kopiyka/repo.git show main:deploy/kopiyka-mcp.service > "$f" && grep -q ProtectHome "$f" &&
   sudo install -m 644 -o root -g root "$f" /etc/systemd/system/kopiyka-mcp.service && echo ok
 rm -f "$f"
+```
+
+Before restarting, `systemd-analyze verify` must print nothing about this unit's keys; if it does, put the copy back:
+
+```bash
 sudo systemd-analyze verify /etc/systemd/system/kopiyka-mcp.service
+```
+
+Then restart it:
+
+```bash
 sudo systemctl daemon-reload && sudo systemctl restart kopiyka-mcp
 ```
 
-`systemd-analyze verify` must print nothing about this unit's keys. Then the health check from the connector's setup
+Then the health check from the connector's setup
 (`… http://127.0.0.1:3200/.well-known/oauth-authorization-server && echo ok`), and the journal since the restart must show
 it listening, with no `Operation not permitted` or `SIGSYS`:
 
@@ -543,7 +554,9 @@ sandbox. It stores one public rate.
 
 **Undo:** copy the `.bak` back, then `sudo systemctl daemon-reload` and restart the service.
 
-The score is `sudo systemd-analyze security <unit> | tail -1`; lower is safer. Measured before and after:
+The score is `sudo systemd-analyze security <unit> | tail -1`; lower is safer. Take the "before" ones while the old units
+are still installed, then the "after" ones once each new unit runs. The order of the whole rollout, with the read-only
+checks first, is in `docs/features/072-security-leftovers/plan.md` ("Owner steps"). Measured:
 
 | Unit                  | systemd | Before | After |
 | --------------------- | ------- | ------ | ----- |
@@ -770,8 +783,14 @@ curl -s -o /dev/null -w '%{http_code}\n' -X POST https://kopiyka.englishplus.com
 sudo journalctl -u kopiyka-mcp --since '2 minutes ago' | grep -c 'request refused'
 ```
 
-Then install as in "After changing the vhost". After: the same curl gives `403`, the same `grep -c` gives `0`, and nginx
-names it:
+Then install as in "After changing the vhost". After it, on the droplet, note the time with `t=$(date '+%F %T')`, then run
+the same curl from the laptop: it gives `403`. Counting from that time only, so the earlier 401 can't show up:
+
+```bash
+sudo journalctl -u kopiyka-mcp --since "$t" | grep -c 'request refused'
+```
+
+That gives `0`, and nginx names the refusal:
 
 ```bash
 sudo grep 'access forbidden' /var/log/nginx/error.log | tail -1

@@ -224,7 +224,7 @@ or the README: the repo is public.
 3. **Baseline.** From the laptop, `curl -s -o /dev/null -w '%{http_code}\n' -X POST $site/mcp` → `401`. On the droplet,
    `sudo journalctl -u kopiyka-mcp --since '2 minutes ago' | grep -c 'request refused'` → 1 or more. Read-only.
 4. **Backup and dry check.** Back up the live vhost to `/root/kopiyka.conf.bak` (once, while it's good). Then fetch
-   main and run `deploy/check-address-key.sh` on main's vhost, saved to a temp file, before installing it → 8 × `PASS`.
+   main and run `deploy/check-address-key.sh` on main's vhost, saved to a temp file, before installing it → 10 × `PASS`.
    A `FAIL` means don't install; send the output. Nothing to undo.
 5. **Install**, then `nginx -t` → `syntax is ok` / `test is successful`, then reload. If `nginx -t` fails, restore the
    copy straight away.
@@ -234,7 +234,7 @@ or the README: the repo is public.
    (real Claude calls may log other lines in that window). `sudo grep 'access forbidden' /var/log/nginx/error.log | tail -1` names `/mcp`.
 8. **Headers.** The "After changing the vhost" header loop: every path has the six headers. `/mcp` is a 403 now.
 9. **Login limit.** The "Checks after rollout" login check → about 12 × 400, the rest 429 with `rate_limited`.
-10. **IPv6 grouping.** Run `deploy/check-address-key.sh` from the bare repo → 8 × `PASS`, exit 0. It starts and removes
+10. **IPv6 grouping.** Run `deploy/check-address-key.sh` from the bare repo → 10 × `PASS`, exit 0. It starts and removes
     its own nginx on 127.0.0.1:18064 as you, so there's nothing to undo. If it prints `FAIL`, the live map is wrong:
     restore the vhost copy and reload. Exit 2 is the script's own setup, not the live map: don't restore the vhost; send
     the output.

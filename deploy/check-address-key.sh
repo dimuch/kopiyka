@@ -4,8 +4,12 @@
 # each case's address from X-Real-IP through the realip module, and is stopped and removed on exit.
 #
 # Usage: deploy/check-address-key.sh [vhost]   (default: the installed vhost)
-# Exit: 0 when every case passes, 1 when one fails, 2 when it can't set up its own nginx (it says why).
+# Exit: 0 when every case passes, 1 when one fails, 2 when it can't run its check (it says why: no map in the file, a
+# limit not keyed on the map, or its own nginx couldn't be set up).
 set -euo pipefail
+
+# As root, nginx's workers would drop to nobody, couldn't read the private temp folder, and every case would fail.
+[ "$(id -u)" -ne 0 ] || { echo "Run it as yourself, not with sudo or as root."; exit 2; }
 
 vhost=${1:-/etc/nginx/sites-available/kopiyka.englishplus.com.ua.conf}
 port=18064
@@ -15,6 +19,10 @@ nginx_bin=$(command -v nginx || echo /usr/sbin/nginx)
 "$nginx_bin" -V 2>&1 | grep -q http_realip_module || { echo "This nginx has no http_realip_module."; exit 2; }
 map=$(awk '/^map \$binary_remote_addr \$kopiyka_addr \{/ { found = 1 } found { print } found && /^\}/ { exit }' "$vhost")
 [ -n "$map" ] || { echo "No \$kopiyka_addr map in $vhost."; exit 2; }
+if grep -nE 'limit_(req|conn)_zone +\$binary_remote_addr' "$vhost"; then
+  echo "These limits still count each address on its own, not by \$kopiyka_addr."
+  exit 2
+fi
 
 dir=$(mktemp -d)
 cleanup() {
@@ -80,6 +88,9 @@ check 2001:db8:1:2::ffff 429 # the same /64
 check 2001:db8:1:3::1 200    # the next /64
 check 2001:db8::1 200
 check 2001:db8:0:0:2::1 429 # the same /64 as 2001:db8::1, written out
+# This /64 holds a 0x0a byte (00 0a), which a regex without (?s) can't match: it would count each address on its own.
+check 2001:db8:a::1 200
+check 2001:db8:a:0:1::1 429
 check 192.0.2.1 200
 check 192.0.2.2 200 # IPv4 isn't grouped
 check 192.0.2.1 429

@@ -2,8 +2,10 @@ import { describe, expect, it } from 'vitest';
 import { centsToString } from '../src/money.js';
 import {
   BalancesSnapshot,
+  type Balance,
   continuityWarnings,
   type MonthBalance,
+  planBalances,
   toBalancesSnapshot,
   wantedBalances,
 } from '../src/notion/balances.js';
@@ -219,5 +221,32 @@ describe('continuityWarnings', () => {
 
   it('gives none for filled sides, which copy their neighbour', () => {
     expect(continuityWarnings(wantedBalances(snapshot([], [])))).toEqual([]);
+  });
+});
+
+describe('planBalances', () => {
+  const wanted = wantedBalances(snapshot([[1, '0.00']], [[1, '-180.00']])).slice(0, 2);
+  const [january, february] = wanted as [MonthBalance, MonthBalance];
+
+  it('marks a month without a stored row as changed, from nothing', () => {
+    expect(planBalances(new Map(), [january])).toEqual([{ month: '2026-01', from: null, to: january, changed: true }]);
+  });
+
+  it('marks equal amounts unchanged and a differing opening or closing changed', () => {
+    const stored = new Map<string, Balance>([
+      ['2026-01', { openingCents: 0n, closingCents: -18000n }],
+      ['2026-02', { openingCents: -18000n, closingCents: 100n }],
+    ]);
+    expect(planBalances(stored, wanted).map((c) => [c.month, c.from, c.changed])).toEqual([
+      ['2026-01', { openingCents: 0n, closingCents: -18000n }, false],
+      ['2026-02', { openingCents: -18000n, closingCents: 100n }, true],
+    ]);
+    stored.set('2026-02', { openingCents: -1n, closingCents: february.closingCents });
+    expect(planBalances(stored, [february])[0]!.changed).toBe(true);
+  });
+
+  it('leaves out stored months that are not wanted', () => {
+    const stored = new Map<string, Balance>([['2026-11', { openingCents: -3500n, closingCents: -69000n }]]);
+    expect(planBalances(stored, [january]).map((c) => c.month)).toEqual(['2026-01']);
   });
 });

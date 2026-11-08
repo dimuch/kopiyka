@@ -163,7 +163,7 @@ no API, schema or MCP changes. If `origin/main` moves past 1.6.0 first, take its
       exits 1 and never prints `switched`.
     - Read `deploy.sh`: every new step comes before `prev=` and `switch_to`.
     - `bash -n deploy/deploy.sh`.
-- [ ] 3. Document the demo site's one-time setup and checks (~120 lines)
+- [x] 3. Document the demo site's one-time setup and checks (~120 lines)
   - Files: deploy/README.md, README.md
   - Change: the files table, "How a deploy works" 3–4, and the new "The demo site" section:
     1. **Merge** the PR. Merging deploys nothing, so the link isn't live yet.

@@ -231,7 +231,7 @@ migration, so rollback holds.
 
 Starts once PR A is merged.
 
-- [ ] 0B. Bump version to 1.4.0
+- [x] 0B. Bump version to 1.4.0
   - Files: package.json, apps/mobile/app.json
   - Change: set both to 1.4.0
 - [ ] 6. Let a write token add, change and delete income (~95)

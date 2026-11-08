@@ -291,7 +291,7 @@ store. A helper asserts `[status, code, body]` of the `ApiError`.
   - Tests: "lists four tabs with no Statistics or Settings"; "reads the active tab and params with those names"; "falls back
     when there are no tabs underneath"; "shows no badge". `yarn typecheck` is the proof of fit; try the three bites in
     Contracts once and restore them.
-- [ ] 11. Build a demo flavour of the web app (~135)
+- [x] 11. Build a demo flavour of the web app (~135)
   - Files: new `apps/mobile/{app.config.js,metro.config.js}`, new `src/demo-app/` (12 files); `apps/mobile/package.json`
     (`web:demo`); `.gitignore`, `.prettierignore`, `.claude/launch.json`
   - Change: as in Contracts.
@@ -431,6 +431,10 @@ store. A helper asserts `[status, code, body]` of the `ApiError`.
 - PR 1 rebased on origin/main f42cc9b, which moved the app to Expo SDK 58 and the version to 1.2.2. The plan was drafted
   on SDK 57. Before PR 4: recheck Expo Router's `root` option, `cacheVersion` and the bundle and source-map shape on SDK 58
   (main's b35de77 keeps the web app in one bundle), and take slice 0's number from main then.
+- Slice 11: on SDK 58, `app.json` already gives the `expo-router` plugin options (`asyncRoutes.web: false`, main's
+  b35de77), so `app.config.js` adds `root` beside them instead of swapping a plain string. Checked on SDK 58: `root` is
+  still a documented plugin option, each flavour exports one bundle, warm-cache builds in either order match clean ones,
+  and production's bundle is the same with and without the two config files.
 - Slice 7: the restore `name_taken` test renames another category instead of adding one, since an add with the removed
   category's name reuses that category (as the API's `findByName` does).
 - Slice 8: `sampleAmounts` is extracted from `price` in `expenseRoutes.ts`, so the sample data prices expenses the same

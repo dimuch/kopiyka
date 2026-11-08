@@ -191,7 +191,7 @@ Alternatives considered:
 
 ## Version
 
-Bump: patch, in PR 4 only — main's number then, plus one patch (1.2.2 → 1.2.3 if main hasn't moved)
+Bump: patch, in PR 4 only — 1.5.0 → 1.5.1 (main took 1.3.1–1.5.0 while PRs 1–4 were open)
 Why: conventions §8b, "a refactor that touches shipped code is `patch`, never `none`". `moneyCards` is a behaviour-preserving
 move in production Home. Nothing else reaches production: without the flag `expo config` output is identical and the
 production bundle is byte-identical (measured). The demo isn't deployed here, so no capability reaches anyone, which keeps
@@ -235,9 +235,9 @@ Store tests share `test/demoFixture.ts` (not a `*.test.ts`, so Vitest doesn't ru
 2026-11, rent and old in 2026-10, €200 income in 2026-11, three expenses, fixed clock 2026-11-15. Each test builds a fresh
 store. A helper asserts `[status, code, body]` of the `ApiError`.
 
-- [ ] 0. Bump version to 1.2.2
+- [x] 0. Bump version to 1.5.1
   - Files: package.json, apps/mobile/app.json
-  - Change: set both to 1.2.2
+  - Change: set both to 1.5.1
 - [x] 1. Give the demo a store that fails loudly on an unknown route (~130)
   - Files: new `src/demo/{state,store,expenseRoutes}.ts`, `test/demoFixture.ts`, `test/demoExpenses.test.ts`
   - Change: state and helpers, the route table and `createStore`, and the rate route.

@@ -29,7 +29,10 @@ function checkCategory(data: StoreData, categoryId: number, expenseDate: string)
   if (!inMonth(data, categoryId, expenseDate.slice(0, 7))) refuse(400, 'category_not_in_month');
 }
 
-/** The stored amounts of an entered one: the entered side stays exact, the other is converted half up at the sample rate. */
+/**
+ * The stored amounts of an entered one: the entered side stays exact, the other is converted half up at the sample
+ * rate.
+ */
 export function sampleAmounts(
   amount: string,
   currency: Currency,

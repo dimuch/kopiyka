@@ -246,7 +246,7 @@ Starts once PR A is merged.
 - [x] 7. Add the add_income tool (~90)
   - Files: `apps/mcp/src/mcp/tools.ts`, `apps/mcp/test/tools.test.ts`, `apps/mcp/test/mcp.test.ts`
   - Tests: path, body, token and result; the refusal table; lost answer → "check list_income"; annotations.
-- [ ] 8. Add the update_income tool (~90)
+- [x] 8. Add the update_income tool (~90)
   - Files: as slice 7.
   - Tests: path, body and result from the input (`"2600.1"` → `{ amount: '2600.10', formatted: '€2,600.10' }`); the refusal
     table, `over_income` included; lost answer then repeat → same body twice; annotations.

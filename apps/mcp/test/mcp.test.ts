@@ -157,7 +157,7 @@ describe('/mcp', () => {
       const res = await rpc('tools/list', {}, accessToken('kpk.olena'));
 
       expect(res.statusCode).toBe(200);
-      const tools: { name: string; annotations: object }[] = rpcResult(res).tools;
+      const tools: { name: string; description: string; annotations: object }[] = rpcResult(res).tools;
       const writeTools = [
         'add_expense',
         'update_expense',
@@ -204,8 +204,7 @@ describe('/mcp', () => {
         destructiveHint: true,
         idempotentHint: true,
       });
-      const deleteIncome = tools.find((tool) => tool.name === 'delete_income') as
-        { annotations: object; description: string } | undefined;
+      const deleteIncome = tools.find((tool) => tool.name === 'delete_income');
       expect(deleteIncome?.annotations).toEqual({
         title: 'Delete income',
         readOnlyHint: false,

@@ -356,7 +356,17 @@ PR B:
 
 ## Consolidate
 
-<filled in /kopiyka-hos Phase 3a>
+PR A, one pass over `origin/main...HEAD`:
+
+- REUSE: `expenseFields` is `add_expense`'s old answer, now used by the three expense write tools (slice 2). `json()` in
+  `apiClient` is `post`'s old headers, now shared with `put` (slice 2).
+- REUSE: `EXPENSE_INPUT_REFUSALS`, `ending`, `lostAnswerFor` and `WRITE_ACCESS_REFUSALS` hold the sentences the write tools
+  share, so each is written once (slices 3 and 4, Deviations).
+- LEAVE: `list_expenses` keeps its own row mapping. It has `categoryName` between the fields, so `expenseFields` would change
+  its answer's order (plan, Contracts).
+- LEAVE: `delete_expense` reads with `scope.read` and the existing single-expense GET: no new read path.
+
+No new commit: the reuse happened in the slices themselves.
 
 ## Revision 1
 

@@ -23,8 +23,8 @@ function expense(
 }
 
 /**
- * Rent (€100) and food (€50) listed in November; rent and old in October; €200 income in November; three expenses. A
- * fresh copy each call, so a test can change it.
+ * Rent (€100) and food (€50) listed in November; rent and old in October; €200 income in November; three
+ * expenses. A fresh copy each call, so a test can change it.
  */
 export function fixtureData(): StoreData {
   return {

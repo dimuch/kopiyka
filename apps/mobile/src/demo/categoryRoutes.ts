@@ -199,7 +199,10 @@ export const categoryRoutes: Route[] = [
       const input = body as CategoryInput;
       const id = Number(categoryId);
       refuseIfEnded(month, now);
-      if (!inMonth(data, id, month)) refuse(404, 'not_found');
+      const row =
+        data.monthRows.find(
+          (candidate) => candidate.categoryId === id && candidate.month === month && candidate.removal === null,
+        ) ?? refuse(404, 'not_found');
       const name = input.name?.trim();
       // Every check comes before the first write, as in the API.
       if (name !== undefined && nameTaken(data, month, name, id)) refuse(400, 'name_taken');
@@ -208,10 +211,7 @@ export const categoryRoutes: Route[] = [
         const raise = toCents(input.amount) - (data.planned.get(key) ?? 0);
         refuseOverIncome(data, month, { plannedCents: raise, incomeCents: 0 });
       }
-      if (name !== undefined) {
-        const row = data.monthRows.find((candidate) => candidate.categoryId === id && candidate.month === month);
-        if (row) row.displayName = name;
-      }
+      if (name !== undefined) row.displayName = name;
       if (input.amount !== undefined) data.planned.set(key, toCents(input.amount));
     },
   },
@@ -225,7 +225,8 @@ export const categoryRoutes: Route[] = [
         data.monthRows.find(
           (candidate) => candidate.categoryId === id && candidate.month === month && candidate.removal === null,
         ) ?? refuse(404, 'not_found');
-      // One removal number for the row and that month's live expenses, which its restore matches. The planned amount stays.
+      // One removal number for the row and that month's live expenses, which its restore matches. The planned amount
+      // stays.
       const removal = data.nextId++;
       row.removal = removal;
       for (const expense of data.expenses) {

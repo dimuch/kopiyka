@@ -220,7 +220,7 @@ describe('demo categories, adding and editing', () => {
       ],
       4,
     ],
-    ['the latest month beats an earlier one, whatever the id', [{ categoryId: 4, month: '2026-09', removal: null }], 3],
+    ['the latest month beats an earlier one', [{ categoryId: 4, month: '2026-09', removal: null }], 3],
     ['a later month beats a lower id', [{ categoryId: 4, month: '2026-12', removal: null }], 4],
     [
       'in one month, a live row beats a removed one',

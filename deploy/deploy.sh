@@ -6,7 +6,9 @@
 # input is the commit SHA in $SSH_ORIGINAL_COMMAND.
 #
 # Builds in a new release dir, one capped step at a time (the droplet has
-# 2 GB RAM shared with other sites), switches `current`, restarts the API
+# 2 GB RAM shared with other sites): both web builds, production's and the
+# demo's (brief 081), checked by `check-builds` before anything goes live.
+# Then it switches `current`, restarts the API
 # (which runs pending migrations first) and the MCP connector once it's set up,
 # and checks health. If the new release is unhealthy it switches back to the
 # previous one. Exit 0 = deployed and healthy.
@@ -70,11 +72,21 @@ step() {
 
 # Measured peaks (brief): install ~750 MB, api build ~350 MB, web export
 # ~450 MB with one Metro worker and a 700 MB heap (~1.8 GB with defaults).
+# Source maps add ~90 MB to each web export (brief 081, measured on macOS).
 step install corepack yarn install --immutable
 step "api build" env NODE_OPTIONS=--max-old-space-size=700 corepack yarn api build
 step "mcp build" env NODE_OPTIONS=--max-old-space-size=700 corepack yarn mcp build
 step "web export" env NODE_OPTIONS=--max-old-space-size=700 \
-  corepack yarn mobile expo export -p web --max-workers 1
+  corepack yarn mobile expo export -p web --max-workers 1 --source-maps --output-dir dist
+step "demo export" env NODE_OPTIONS=--max-old-space-size=700 KOPIYKA_FLAVOUR=demo \
+  corepack yarn mobile expo export -p web --max-workers 1 --source-maps --output-dir dist-demo
+# Brief 081: the check reads the maps; then neither site may serve them. Expo names a bundle by its code without the
+# map comments, so dropping the maps and those comment lines leaves exactly what an export without maps writes. A
+# failed check stops the script here, before `current` switches.
+step "build check" corepack yarn mobile check-builds
+find apps/mobile/dist apps/mobile/dist-demo -name '*.map' -delete
+find apps/mobile/dist apps/mobile/dist-demo -path '*/_expo/static/js/*' -name '*.js' \
+  -exec perl -0777 -pi -e 's/(\n\/\/# (?:sourceMappingURL|debugId)=[^\n]*)+\z//' {} +
 
 switch_to() {
   ln -sfn "$1" "$BASE/current.new"

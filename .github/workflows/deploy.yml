@@ -44,3 +44,5 @@ jobs:
         run: |
           curl -fsS https://kopiyka.englishplus.com.ua/api/health
           curl -fsS -o /dev/null https://kopiyka.englishplus.com.ua/
+          # The demo (brief 081), from the same release.
+          curl -fsS -o /dev/null https://demo.kopiyka.englishplus.com.ua/

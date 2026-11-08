@@ -147,7 +147,7 @@ no API, schema or MCP changes. If `origin/main` moves past 1.6.0 first, take its
   - Verify: there's no nginx locally (as in 067), so read the diff against Contracts. Compare the demo's header lines with
     production's: they differ only in `connect-src 'none'`. `rg -n 'proxy_pass|limit_req|location /api|location = /mcp|oauth'`
     on the demo block must find nothing. `nginx -t` runs on the droplet with the backup from "After changing the vhost".
-- [ ] 2. Build and check both web flavours on each deploy, before the switch (~25 lines)
+- [x] 2. Build and check both web flavours on each deploy, before the switch (~25 lines)
   - Files: deploy/deploy.sh, .github/workflows/deploy.yml
   - Change: as in Contracts. Production's export gains `--source-maps --output-dir dist`, then come the demo export, the
     check, map removal and the comment strip. Comments are updated. The workflow curls the demo's `/`.

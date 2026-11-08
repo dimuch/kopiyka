@@ -3,7 +3,7 @@
 Status: approved
 Brief: ./brief.md
 Branch: feat/demo-live
-Base: origin/main (0c66bb1, version 1.6.0)
+Base: origin/main (0853db9, version 1.6.2)
 
 ## Approach
 
@@ -127,7 +127,7 @@ form-action 'self'; frame-ancestors 'none'"`, X-Frame-Options, X-Content-Type-Op
 
 ## Version
 
-Bump: minor — 1.6.0 → 1.7.0
+Bump: minor — 1.6.2 → 1.7.0
 Why: conventions §8b, `minor` row "new screen, tab or user action". Visitors get a new capability: a public demo site and
 a "Try it now" action on the login page. The deploy and vhost changes are `patch`-level by themselves, and nothing that
 exists stops working: production's bundle bytes are unchanged apart from the new link (measured above), and there are
@@ -198,8 +198,8 @@ no API, schema or MCP changes. If `origin/main` moves past 1.6.0 first, take its
        - Watch `vmstat 5` in a second session, and note the "demo export" and "build check" times in the log.
        - A failed export or check leaves production on the previous release, without the link. Every later Deploy fails
          the same way until it's fixed, so don't re-run it in a loop. Either fix the cause (swap, or clear the Metro
-         cache), or revert this PR on `main` and reinstall `deploy.sh` with step 6's line using `grep -q 'mcp build'`,
-         then Deploy.
+         cache), or revert this PR on `main` and reinstall the reverted `deploy.sh`: fetch first, then guard with
+         `grep -q 'mcp build'` and `! grep -q 'demo export'`. Then Deploy.
        - If `check-builds` fails with "built as production" or "in its app config", the Metro cache mixed the flavours:
          `sudo -u kopiyka rm -rf /tmp/metro-cache`, then Deploy. That's `os.tmpdir()/metro-cache` (Expo's `FileStore`
          default); `deploy.sh` doesn't set `TMPDIR`, so it's `/tmp` unless the kopiyka session sets one.
@@ -282,8 +282,9 @@ no API, schema or MCP changes. If `origin/main` moves past 1.6.0 first, take its
 - **Memory with maps on the droplet.** Production's export with maps peaked 90 MB higher on macOS (576 vs 485 MB). It's
   measured at the first deploy (README step 7, `vmstat`). If it's too high, the export fails before the switch. A failed
   export or check leaves production on the previous release, without the link. Every later Deploy fails the same way
-  until it's fixed, so don't re-run it in a loop. Either fix the cause (swap, or clear the Metro cache), or revert this PR
-  on `main` and reinstall `deploy.sh` with step 6's line using `grep -q 'mcp build'`, then Deploy.
+  until it's fixed, so don't re-run it in a loop. Either fix the cause (swap, or clear the Metro cache), or revert this
+  PR on `main` and reinstall the reverted `deploy.sh`: fetch first, then guard with `grep -q 'mcp build'` and
+  `! grep -q 'demo export'`. Then Deploy.
 - **Deploy time.** The demo's first export is cold: about 24 s on the laptop, likely minutes on one vCPU. The workflow
   allows 30 minutes. It's measured from the step times at the first deploy.
 - **certbot can't find a server block for the new name.** Step 4's fallback covers it, as it did for gendash. That shows
@@ -329,6 +330,12 @@ no API, schema or MCP changes. If `origin/main` moves past 1.6.0 first, take its
 - Still open from 080: a test that each name shared code imports from a swapped module exists on the demo's version.
 
 ## Deviations
+
+- Rebased on main f030bf4 (1.6.2), so the bump is 1.6.2 → 1.7.0.
+- Slice 4: light mode wasn't checked (the app is Dark until someone picks otherwise in Settings, and the link uses the same
+  text style as LoadError and UndoToast), and the iPhone tap wasn't run here. Both are README step 11, for the user.
+- Review: the revert recovery now fetches `main` first and guards that the script is the old one, and step 6 fetches on
+  its own; without the fetch the bare repo still held this change's script.
 
 ## Consolidate
 

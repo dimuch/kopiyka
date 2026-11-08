@@ -38,6 +38,8 @@
     "ios": "expo start --ios",
     "web": "expo start --web",
     "web:demo": "KOPIYKA_FLAVOUR=demo expo start --web",
+    "export:web": "KOPIYKA_FLAVOUR= expo export -p web --source-maps --clear --output-dir dist && KOPIYKA_FLAVOUR=demo expo export -p web --source-maps --clear --output-dir dist-demo",
+    "check-builds": "node scripts/buildCheck.mts",
     "typecheck": "tsc --noEmit",
     "lint": "expo lint src test",
     "test": "vitest run"

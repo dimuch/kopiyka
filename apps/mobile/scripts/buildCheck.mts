@@ -1,3 +1,7 @@
+import { existsSync, readdirSync, readFileSync, writeFileSync } from 'node:fs';
+import { join } from 'node:path';
+import { fileURLToPath, pathToFileURL } from 'node:url';
+
 // Brief 080: checks that each web build holds only what it should. The demo build must not contain the modules and text
 // it doesn't use, and its module list must match demo-modules.txt, so a new module reaching the demo is a visible change
 // in a PR. The production build must contain nothing of the demo's.
@@ -108,4 +112,77 @@ export function productionProblems(build: Build): string[] {
     if (!build.modules.includes(module)) problems.push(`missing ${module}`);
   }
   return problems;
+}
+
+/** A Metro source map: plain, or an index map whose sections each carry one module's map. */
+interface SourceMap {
+  sources?: string[];
+  sections?: { map: { sources: string[] } }[];
+}
+
+/**
+ * Reads a web export (`dist` or `dist-demo`). Throws on a missing export, or a bundle without its source map, so a
+ * build made without `--source-maps` can't read as an empty module list.
+ */
+export function readBuild(dir: string): Build {
+  const web = join(dir, '_expo', 'static', 'js', 'web');
+  const bundles = existsSync(web) ? readdirSync(web).filter((name) => name.endsWith('.js')) : [];
+  if (bundles.length === 0) throw new Error(`No web bundle in ${web}: run \`yarn mobile export:web\` first.`);
+  const sources: string[] = [];
+  let text = '';
+  for (const bundle of bundles) {
+    const mapPath = join(web, `${bundle}.map`);
+    if (!existsSync(mapPath)) throw new Error(`${bundle} has no source map: export with --source-maps.`);
+    const map = JSON.parse(readFileSync(mapPath, 'utf8')) as SourceMap;
+    sources.push(...(map.sources ?? map.sections?.flatMap((section) => section.map.sources) ?? []));
+    text += readFileSync(join(web, bundle), 'utf8');
+  }
+  return { modules: moduleList(sources), text };
+}
+
+/** The accepted demo module list, kept in the repo. */
+const LIST_FILE = 'demo-modules.txt';
+
+/**
+ * Checks `dist` and `dist-demo` in apps/mobile; `--accept` instead rewrites the list from the demo build, unless either
+ * build has a problem a list can't accept. Returns the exit code.
+ */
+function main(args: readonly string[]): number {
+  const appRoot = fileURLToPath(new URL('..', import.meta.url));
+  const listPath = join(appRoot, LIST_FILE);
+  const production = readBuild(join(appRoot, 'dist'));
+  const demo = readBuild(join(appRoot, 'dist-demo'));
+  const blocking = [
+    ...productionProblems(production).map((problem) => `production build: ${problem}`),
+    ...bannedInDemo(demo).map((problem) => `demo build: ${problem}`),
+  ];
+
+  if (args.includes('--accept')) {
+    if (blocking.length > 0) {
+      console.error([...blocking, `Not rewriting ${LIST_FILE}: fix the builds first.`].join('\n'));
+      return 1;
+    }
+    writeFileSync(listPath, `${demo.modules.join('\n')}\n`);
+    console.log(`Wrote ${demo.modules.length} modules to ${LIST_FILE}. Review its diff: that's what reaches the demo.`);
+    return 0;
+  }
+
+  const accepted = existsSync(listPath) ? readFileSync(listPath, 'utf8').split('\n').filter(Boolean) : [];
+  const differences = listDifferences(demo.modules, accepted).map((difference) => `demo build: ${difference}`);
+  const problems = [...blocking, ...differences];
+  if (problems.length > 0) {
+    console.error(problems.join('\n'));
+    if (differences.length > 0 && blocking.length === 0) {
+      console.error(
+        `If the change is meant: \`yarn mobile export:web && yarn mobile check-builds --accept\`, and commit ${LIST_FILE}.`,
+      );
+    }
+    return 1;
+  }
+  console.log(`Both builds hold what they should (${demo.modules.length} demo modules).`);
+  return 0;
+}
+
+if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
+  process.exitCode = main(process.argv.slice(2));
 }

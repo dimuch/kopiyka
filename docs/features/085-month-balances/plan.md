@@ -386,6 +386,17 @@ capability; nothing existing changes.
 
 ## Consolidate
 
+PR 1 pass over `origin/main...HEAD` (new: `queryAll`, `selectMonth`, `balanceRows`, `toBalancesSnapshot`,
+`sumByMonth`, `wantedBalances`, `continuityWarnings`, `SIGNED_AMOUNT_RE`):
+
+- REUSE (built in): the Expenses paging loop and Month lookup became `queryAll`/`selectMonth` (slice 3), shared by
+  `allRows` and `balanceRows`; `wantedBalances` takes its range from `historyMonth`; amounts go through
+  `toCents`/`centsToString`/`notionCents`.
+- LEAVE: `snapshotRows`' nullable `centsToString` has a one-line twin in `history.ts` (`amount`). A shared helper for
+  one expression would add an import between unrelated snapshots and save nothing.
+- LEAVE: `toBalancesSnapshot` vs `history.ts`' `toSnapshot`. Same idea (cents → strings → zod parse), different
+  shapes; there's nothing left to share beyond the line above.
+
 ## Revision 1
 
 Skeptic (approve with edits): the open question on Notion ids is closed (the brief now has placeholders). Slice 2

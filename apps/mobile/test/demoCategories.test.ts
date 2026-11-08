@@ -200,6 +200,58 @@ describe('demo categories, adding and editing', () => {
     });
   });
 
+  it('reuses a category by its name in another month, not only by its own name', async () => {
+    const data = fixtureData();
+    data.monthRows[3]!.displayName = 'Gym';
+    const api = createStore(data, () => NOW);
+
+    await expect(addCategory(api, '2026-11', 'gym')).resolves.toMatchObject({ categoryId: 3, displayName: 'gym' });
+  });
+
+  type Row = { categoryId: number; month: string; removal: number | null };
+
+  it.each<[string, Row[], number]>([
+    // Category 3's October row is 'Gym' in every case; the rows below decide which category wins.
+    [
+      'the month’s own removed row beats a later month',
+      [
+        { categoryId: 4, month: '2026-11', removal: 7 },
+        { categoryId: 3, month: '2026-12', removal: null },
+      ],
+      4,
+    ],
+    ['the latest month beats an earlier one, whatever the id', [{ categoryId: 4, month: '2026-09', removal: null }], 3],
+    ['a later month beats a lower id', [{ categoryId: 4, month: '2026-12', removal: null }], 4],
+    [
+      'in one month, a live row beats a removed one',
+      [
+        { categoryId: 3, month: '2026-09', removal: 8 },
+        { categoryId: 4, month: '2026-09', removal: null },
+      ],
+      4,
+    ],
+  ])('when two categories have the name, %s', async (_case, rows, expected) => {
+    const data = fixtureData();
+    data.categories.push({ categoryId: 4, techName: 'four', displayName: 'four', sortOrder: 40 });
+    data.monthRows[3]!.displayName = 'Gym';
+    // In the last case October mustn't decide: category 3's October row takes another name there.
+    if (rows.some((row) => row.month === '2026-09' && row.categoryId === 3)) data.monthRows[3]!.displayName = 'old';
+    for (const row of rows) data.monthRows.push({ ...row, displayName: 'Gym' });
+    const api = createStore(data, () => NOW);
+
+    await expect(addCategory(api, '2026-11', 'Gym')).resolves.toMatchObject({ categoryId: expected });
+  });
+
+  it.each([
+    ['an add', (api: ReturnType<typeof fixtureStore>) => addCategory(api, '2026-11', 'Food', '999')],
+    [
+      'an edit',
+      (api: ReturnType<typeof fixtureStore>) => editCategory(api, 1, '2026-11', { name: 'Food', amount: '999' }),
+    ],
+  ])('refuses %s with name_taken before over_income', async (_case, call) => {
+    expect(await refusal(call(fixtureStore()))).toEqual([400, 'name_taken', { error: 'name_taken' }]);
+  });
+
   it.each([
     ['an add', (api: ReturnType<typeof fixtureStore>) => addCategory(api, '2026-11', 'Fóod')],
     ['an edit', (api: ReturnType<typeof fixtureStore>) => editCategory(api, 1, '2026-11', { name: 'FOOD' })],

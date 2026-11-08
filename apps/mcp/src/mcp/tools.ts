@@ -122,6 +122,23 @@ const DELETE_EXPENSE_REFUSALS = {
   ...lostAnswerFor('The answer was lost, so it may be deleted. The same call repeated is safe.'),
 };
 
+const INCOME_INPUT_REFUSAL =
+  'The title must be 1 to 40 characters, and the amount positive with at most 8 digits and 2 decimals.';
+
+const ADD_INCOME_REFUSALS = {
+  ...ending(
+    {
+      ...WRITE_ACCESS_REFUSALS,
+      month_ended: 'That month has ended and is read-only.',
+      invalid_request: INCOME_INPUT_REFUSAL,
+    },
+    SAVED_NOTHING,
+  ),
+  ...lostAnswerFor(
+    'The answer was lost, so it may be saved. Check list_income before adding it again: a repeat adds a second one.',
+  ),
+};
+
 const DELETED_EXPENSE_NOTE =
   'It can’t be brought back from Claude, and the app can’t restore it either. To undo, add it again with add_expense ' +
   'from this answer.';
@@ -410,6 +427,41 @@ export function buildServer(scope: RequestScope): McpServer {
           return { ledgerId, ...expenseFields(expense), note: DELETED_EXPENSE_NOTE };
         },
         DELETE_EXPENSE_REFUSALS,
+      ),
+  );
+
+  server.registerTool(
+    'add_income',
+    {
+      description:
+        'Adds one income item, in EUR, to a month of a ledger, and answers with what was saved. Not safe to repeat: ' +
+        'if an answer is lost, check list_income first.',
+      inputSchema: {
+        ...LedgerMonth,
+        title: z.string().describe('What it is, like "Salary"'),
+        amount: z.string().describe('A decimal string in EUR, like "2500.00"'),
+      },
+      annotations: { title: 'Add income', readOnlyHint: false, destructiveHint: true, idempotentHint: false },
+    },
+    ({ ledgerId, month, title, amount }) =>
+      toolResult(
+        scope,
+        'add_income',
+        async () => {
+          const saved = await scope.write<ApiIncomeItem>('POST', `/api/ledgers/${ledgerId}/months/${month}/income`, {
+            title,
+            amount,
+          });
+          return {
+            ledgerId,
+            month,
+            incomeId: saved.incomeId,
+            title: saved.title,
+            amount: eur(toCents(saved.amountEur)),
+            addedBy: saved.addedBy,
+          };
+        },
+        ADD_INCOME_REFUSALS,
       ),
   );
 

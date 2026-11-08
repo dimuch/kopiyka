@@ -158,7 +158,7 @@ describe('/mcp', () => {
 
       expect(res.statusCode).toBe(200);
       const tools: { name: string; annotations: object }[] = rpcResult(res).tools;
-      const writeTools = ['add_expense', 'update_expense', 'delete_expense'];
+      const writeTools = ['add_expense', 'update_expense', 'delete_expense', 'add_income'];
       const readTools = tools.filter((tool) => !writeTools.includes(tool.name));
       expect(readTools.map((tool) => tool.name)).toEqual([
         'list_ledgers',
@@ -184,6 +184,12 @@ describe('/mcp', () => {
         readOnlyHint: false,
         destructiveHint: true,
         idempotentHint: true,
+      });
+      expect(tools.find((tool) => tool.name === 'add_income')?.annotations).toEqual({
+        title: 'Add income',
+        readOnlyHint: false,
+        destructiveHint: true,
+        idempotentHint: false,
       });
     });
 

@@ -211,10 +211,10 @@ async function recover(
     const confirm = () => db.query('UPDATE notion_total_adds SET confirmed = 1 WHERE add_id = ?', [a.add_id]);
     try {
       const current = (await table.actualCents(a.notion_page_id)) ?? 0n;
-      if (current === signedCents(a.expected_amount)) {
+      if (current === toCents(a.expected_amount)) {
         await confirm();
         result.added++;
-      } else if (current === signedCents(a.base_amount)) {
+      } else if (current === toCents(a.base_amount)) {
         await release(db, a.add_id);
       } else {
         await confirm(); // never add it twice
@@ -237,11 +237,6 @@ async function recover(
       fail(err instanceof NotionError ? err.code : 'internal');
     }
   }
-}
-
-/** Cents of a stored DECIMAL, which can be negative when Notion's Actual Amount was (toCents takes no sign). */
-function signedCents(amount: string): bigint {
-  return amount.startsWith('-') ? -toCents(amount.slice(1)) : toCents(amount);
 }
 
 /** Forgets an add that didn't land, so its expenses count as new again. */

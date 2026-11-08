@@ -392,6 +392,8 @@ PR 1 pass over `origin/main...HEAD` (new: `queryAll`, `selectMonth`, `balanceRow
 - REUSE (built in): the Expenses paging loop and Month lookup became `queryAll`/`selectMonth` (slice 3), shared by
   `allRows` and `balanceRows`; `wantedBalances` takes its range from `historyMonth`; amounts go through
   `toCents`/`centsToString`/`notionCents`.
+- REUSE (found in review): `totals.ts`' private `signedCents` did what signed `toCents` now does; it's gone and
+  its two calls use `toCents`. Stored Actual Amount DECIMALs can be negative, and the existing totals tests cover it.
 - LEAVE: `snapshotRows`' nullable `centsToString` has a one-line twin in `history.ts` (`amount`). A shared helper for
   one expression would add an import between unrelated snapshots and save nothing.
 - LEAVE: `toBalancesSnapshot` vs `history.ts`' `toSnapshot`. Same idea (cents → strings → zod parse), different

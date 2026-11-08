@@ -176,7 +176,7 @@ migration, so rollback holds.
 
 ### PR A: expenses (~450 lines)
 
-- [ ] 0A. Bump version to 1.3.0
+- [x] 0A. Bump version to 1.3.0
   - Files: package.json, apps/mobile/app.json
   - Change: set both to 1.3.0
 - [ ] 1. Let a write token change and delete expenses (~95)

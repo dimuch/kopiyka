@@ -257,7 +257,7 @@ store. A helper asserts `[status, code, body]` of the `ApiError`.
   - Files: `src/demo/categoryRoutes.ts`, `src/demo/store.ts`, new `test/demoCategories.test.ts`
   - Tests: list order and planned amounts; "an empty month gives empty lists"; quick row from every month's expenses, newest
     first, never-used after, five at most; one category in and out of its list (name, `inMonth`, counts); 404.
-- [ ] 5. Keep income and its limit in the store (~145)
+- [x] 5. Keep income and its limit in the store (~145)
   - Files: new `src/demo/{incomeRoutes,incomeLimit}.ts`, `src/demo/store.ts`, new `test/demoIncome.test.ts`
   - Tests: list by id; add normalizes the amount and sets `addedBy`; edit and delete; each 404 and `month_ended`; `over_income`
     on a cut and a delete with exact `overEur`; "a cut that ends level passes"; copy with `income_exists`, `no_previous_income`, `month_ended`.

@@ -158,7 +158,14 @@ describe('/mcp', () => {
 
       expect(res.statusCode).toBe(200);
       const tools: { name: string; annotations: object }[] = rpcResult(res).tools;
-      const writeTools = ['add_expense', 'update_expense', 'delete_expense', 'add_income', 'update_income'];
+      const writeTools = [
+        'add_expense',
+        'update_expense',
+        'delete_expense',
+        'add_income',
+        'update_income',
+        'delete_income',
+      ];
       const readTools = tools.filter((tool) => !writeTools.includes(tool.name));
       expect(readTools.map((tool) => tool.name)).toEqual([
         'list_ledgers',
@@ -197,6 +204,17 @@ describe('/mcp', () => {
         destructiveHint: true,
         idempotentHint: true,
       });
+      const deleteIncome = tools.find((tool) => tool.name === 'delete_income') as
+        { annotations: object; description: string } | undefined;
+      expect(deleteIncome?.annotations).toEqual({
+        title: 'Delete income',
+        readOnlyHint: false,
+        destructiveHint: true,
+        idempotentHint: true,
+      });
+      expect(deleteIncome?.description).toContain(
+        'There is no Undo, in Claude or in the app, so confirm with the user first.',
+      );
     });
 
     it('gives each user only their own ledgers', async () => {

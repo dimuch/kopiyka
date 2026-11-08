@@ -250,7 +250,7 @@ Starts once PR A is merged.
   - Files: as slice 7.
   - Tests: path, body and result from the input (`"2600.1"` → `{ amount: '2600.10', formatted: '€2,600.10' }`); the refusal
     table, `over_income` included; lost answer then repeat → same body twice; annotations.
-- [ ] 9. Add the delete_income tool (~95)
+- [x] 9. Add the delete_income tool (~95)
   - Files: as slice 7.
   - Tests: GET of that month's list, then the DELETE, and the result names the item, with the note; an id not in that month's
     list → `not_found`, and no DELETE is sent; a repeat after a lost answer → `not_found` with "may already be deleted";

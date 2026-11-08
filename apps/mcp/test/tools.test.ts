@@ -771,6 +771,96 @@ describe('the budget tools', () => {
     });
   });
 
+  describe('delete_income', () => {
+    const LIST = '/api/ledgers/1/months/2026-10/income';
+    const PATH = '/api/ledgers/1/income/3';
+    const INPUT = { ledgerId: 1, month: '2026-10', incomeId: 3 };
+    const NOTE = 'Deleted for good: to undo, add it again with add_income from this answer.';
+    const deletes = () => api.calls.filter((call) => call.method === 'DELETE');
+    const deleting = (deleteAnswer: Answer) => (call: RecordedCall) =>
+      call.method === 'DELETE' && call.path === PATH ? deleteAnswer : ledgerOne(call);
+
+    beforeEach(() => {
+      answer = deleting({ status: 204, text: '' });
+    });
+
+    it('reads the month, deletes the item as the token’s user, and answers with what was deleted', async () => {
+      const result = await callTool('delete_income', INPUT);
+
+      const used = api.calls.filter((call) => call.path === LIST || call.path === PATH);
+      expect(used.map((call) => [call.method, call.path, bearerOf(call)])).toEqual([
+        ['GET', LIST, 'kpk.olena'],
+        ['DELETE', PATH, 'kpk.olena'],
+      ]);
+      expect(result.isError).toBeUndefined();
+      expect(toolData(result)).toEqual({
+        ledgerId: 1,
+        month: '2026-10',
+        incomeId: 3,
+        title: 'Salary',
+        amount: { amount: '1000.00', formatted: '€1,000.00' },
+        addedBy: 'olena',
+        note: NOTE,
+      });
+    });
+
+    const DELETED_NOTHING = 'This call deleted nothing.';
+    const NOT_FOUND =
+      'not_found: No income with that id in that month. If an earlier call got no answer, it may already be deleted: ' +
+      'check list_income, and to add it back use the title and amount from an earlier list_income. ' +
+      DELETED_NOTHING;
+    const LOST_ANSWER = 'The answer was lost, so it may be deleted. The same call repeated is safe.';
+
+    it('sends no delete for an id that isn’t in that month', async () => {
+      const result = await callTool('delete_income', { ...INPUT, incomeId: 99 });
+
+      expect(deletes()).toEqual([]);
+      expect(result.isError).toBe(true);
+      expect(result.content[0].text).toBe(NOT_FOUND);
+    });
+
+    it.each<[string, number, string]>([
+      [
+        'insufficient_scope',
+        403,
+        `This connection can only read. Disconnect Kopiyka in Claude’s connectors, connect, and allow it. ${DELETED_NOTHING}`,
+      ],
+      ['month_ended', 409, `That month has ended and is read-only. ${DELETED_NOTHING}`],
+      [
+        'over_income',
+        409,
+        `That would leave the month planned above its income; lower a planned amount in the app first. ${DELETED_NOTHING}`,
+      ],
+      ['internal', 500, LOST_ANSWER],
+    ])('explains %s from the delete', async (code, status, sentence) => {
+      answer = deleting({ status, json: { error: code } });
+
+      const result = await callTool('delete_income', INPUT);
+
+      expect(result.isError).toBe(true);
+      expect(result.content[0].text).toBe(`${code}: ${sentence}`);
+    });
+
+    it('says a lost delete may have happened, and a repeat after it finds the item gone', async () => {
+      let deleted = false;
+      answer = (call) => {
+        if (call.method === 'DELETE') {
+          deleted = true;
+          return 'network_failure';
+        }
+        if (call.path === LIST && deleted) return { json: { items: [] } };
+        return ledgerOne(call);
+      };
+
+      const lost = await callTool('delete_income', INPUT);
+      const repeat = await callTool('delete_income', INPUT);
+
+      expect(lost.content[0].text).toBe(`api_unreachable: ${LOST_ANSWER}`);
+      expect(repeat.content[0].text).toBe(NOT_FOUND);
+      expect(deletes()).toHaveLength(1);
+    });
+  });
+
   describe('eur_uah_rate', () => {
     beforeEach(() => {
       answer = (call) =>

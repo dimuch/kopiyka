@@ -266,7 +266,7 @@ store. A helper asserts `[status, code, body]` of the `ApiError`.
   - Tests: `name_taken` 400 on add and edit, ignoring case and accents; "a case change of its own name passes"; "reuses a
     category by name, keeping its expenses deleted"; new category's `techName` and `sortOrder`; `over_income`
     on add and on a raise, by exact `overEur`; "a cut is never refused"; both `month_ended`; edit `not_found`.
-- [ ] 7. Remove, restore and copy months in the store (~130)
+- [x] 7. Remove, restore and copy months in the store (~130)
   - Files: `src/demo/categoryRoutes.ts`, `test/demoCategories.test.ts`, new `test/demoDataFunctions.test.ts`
   - Tests: "removes with its expenses and restores exactly those, not one deleted earlier"; remove refused with
     `month_ended` and `not_found`; restore refused with `month_ended`; restore `not_found`, `name_taken` as 409,

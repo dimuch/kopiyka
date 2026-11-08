@@ -77,6 +77,22 @@ export interface ExpensesTable {
   createRow(row: NewExpensesRow): Promise<string>;
 }
 
+/** A row of Notion's Opening or Actual Closing table (brief 085). */
+export interface BalanceRow {
+  /** 1–12 from the Month select; null when empty or unknown. */
+  month: number | null;
+  /** Amount in cents, signed; null when empty. */
+  amountCents: bigint | null;
+}
+
+/** Notion's Opening and Actual Closing tables: each month's balances, one or more rows per month. */
+export interface BalanceTables {
+  /** Every live row of the Opening table. */
+  opening(): Promise<BalanceRow[]>;
+  /** Every live row of the Actual Closing table. */
+  closing(): Promise<BalanceRow[]>;
+}
+
 /** A failed Notion call: Notion's error code ('object_not_found', 'rate_limited', …) or 'notion_unreachable'. */
 export class NotionError extends Error {
   constructor(
@@ -126,6 +142,8 @@ export interface NotionApiConfig {
   groceriesDataSourceId: string;
   /** The Expenses and Netto data sources, for category totals; null when they aren't set. */
   totals: { expensesDataSourceId: string; nettoDataSourceId: string } | null;
+  /** The Opening and Actual Closing data sources, for month balances (brief 085); null when they aren't set. */
+  balances: { openingDataSourceId: string; closingDataSourceId: string } | null;
 }
 
 interface ClientDeps {
@@ -136,13 +154,13 @@ interface ClientDeps {
 
 /** The Notion tables over Notion's REST API, sharing one request spacing and waiting out rate limits. */
 export function notionClient(
-  { token, groceriesDataSourceId, totals }: NotionApiConfig,
+  { token, groceriesDataSourceId, totals, balances: balanceIds }: NotionApiConfig,
   {
     fetchImpl = fetch,
     sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms)),
     now = () => performance.now(), // monotonic, so a clock change can't stall requests
   }: ClientDeps = {},
-): { groceries: GroceriesTable; expenses: ExpensesTable | null } {
+): { groceries: GroceriesTable; expenses: ExpensesTable | null; balances: BalanceTables | null } {
   const headers = { Authorization: `Bearer ${token}`, 'Notion-Version': VERSION, 'Content-Type': 'application/json' };
   let nextAt = 0;
 
@@ -325,5 +343,18 @@ export function notionClient(
     },
   };
 
-  return { groceries, expenses };
+  async function balanceRows(dataSourceId: string): Promise<BalanceRow[]> {
+    type Row = { properties: { Month?: { select: { name: string } | null }; Amount?: { number: number | null } } };
+    return ((await queryAll(dataSourceId)) as Row[]).map((r) => ({
+      month: selectMonth(r.properties.Month?.select?.name),
+      amountCents: notionCents(r.properties.Amount?.number),
+    }));
+  }
+
+  const balances: BalanceTables | null = balanceIds && {
+    opening: () => balanceRows(balanceIds.openingDataSourceId),
+    closing: () => balanceRows(balanceIds.closingDataSourceId),
+  };
+
+  return { groceries, expenses, balances };
 }

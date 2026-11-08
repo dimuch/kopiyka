@@ -197,7 +197,7 @@ capability; nothing existing changes.
     `allRows` maps their results.
   - Tests: the existing `notionClient.test.ts` cases "reads every live row of the table, page by page" and "maps the
     Month select's names to 1–12" pass unchanged.
-- [ ] 4. Read Notion's Opening and Actual Closing tables (~125)
+- [x] 4. Read Notion's Opening and Actual Closing tables (~125)
   - Files: `apps/api/src/config.ts`, `apps/api/src/notion/client.ts`, `apps/api/.env.example`,
     `apps/api/src/notion/balances.ts` (new: `BalancesSnapshot`, `toBalancesSnapshot`), `apps/api/test/config.test.ts`,
     `apps/api/test/notionClient.test.ts`, `apps/api/test/notionBalances.test.ts` (new)

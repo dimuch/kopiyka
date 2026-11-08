@@ -380,7 +380,8 @@ page's own, which is expected: browsers enforce both.
 
 ## API limits
 
-nginx limits the app's `/api/` per address (brief 067), so a flood stops before Node and the database. Each refusal is a
+nginx limits the app's `/api/` per address (brief 067), with an IPv6 address counted by its /64 (brief 072), so a flood
+stops before Node and the database. Each refusal is a
 429 with the body `{"error":"rate_limited"}` and the security headers.
 
 | Limit                  | Rate       | Burst | Why                                                      |
@@ -470,9 +471,10 @@ At the next deploy, poll `/api/health` from the laptop once a second. It may giv
 sudo grep 'limiting ' /var/log/nginx/error.log | tail
 ```
 
-Each line names the zone: `kopiyka_api`, `kopiyka_login` or `kopiyka_api_conn`. Raise `burst` first for short spikes, and
-`rate` for steady use, then install the vhost again. Keep the zones' names and keys: a reload refuses a changed key, and
-`nginx -t` doesn't catch it. A new `rate` or `burst` is fine.
+Each line names the zone: `kopiyka_api_64`, `kopiyka_login` or `kopiyka_api_conn_64`. Raise `burst` first for short spikes,
+and `rate` for steady use, then install the vhost again. A new `rate` or `burst` is fine. A new key is not: a reload refuses
+a changed key on a live zone, `nginx -t` doesn't catch it, and the old config stays on. So changing a key needs a new zone
+name too, which is why brief 072 renamed the zones it moved to `$kopiyka_addr` (`_64`).
 
 ## MCP connector
 

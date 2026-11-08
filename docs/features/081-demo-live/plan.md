@@ -139,7 +139,7 @@ no API, schema or MCP changes. If `origin/main` moves past 1.6.0 first, take its
 - [x] 0. Bump version to 1.7.0
   - Files: package.json, apps/mobile/app.json
   - Change: set both to 1.7.0
-- [ ] 1. Serve the demo build on demo.kopiyka.englishplus.com.ua (~50 lines)
+- [x] 1. Serve the demo build on demo.kopiyka.englishplus.com.ua (~50 lines)
   - Files: deploy/kopiyka.englishplus.com.ua.conf
   - Change: as in Contracts. The demo name joins the HTTP redirect block. The new HTTPS block for the demo has no proxying.
     `.map` gets a 404 in both blocks. The file's header comment says it serves two names, and why the demo has no

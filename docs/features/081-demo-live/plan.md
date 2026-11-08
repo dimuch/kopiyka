@@ -237,7 +237,7 @@ no API, schema or MCP changes. If `origin/main` moves past 1.6.0 first, take its
   - Verify: `yarn format:check`. Read the order against the brief's Notes (merge, DNS, certificate, vhost, Deploy).
     Read every command against slices 1–2: the names, paths and the guard string.
 
-- [ ] 4. Add a "Try it now" link to the demo below Sign in (~30 lines)
+- [x] 4. Add a "Try it now" link to the demo below Sign in (~30 lines)
   - Files: apps/mobile/src/app/login.tsx
   - Change: as in Contracts. `DEMO_URL`, the `actions` group, and `Link asChild` around `Pressable` and `Text`, plus two
     styles in `makeStyles`.

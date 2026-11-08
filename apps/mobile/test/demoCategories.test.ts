@@ -266,3 +266,110 @@ describe('demo categories, adding and editing', () => {
     ]);
   });
 });
+
+const removeCategory = (api: ReturnType<typeof fixtureStore>, categoryId: number, month: string) =>
+  api(`/api/ledgers/1/categories/${categoryId}/months/${month}`, { method: 'DELETE' });
+const restoreCategory = (api: ReturnType<typeof fixtureStore>, categoryId: number, month: string) =>
+  api(`/api/ledgers/1/categories/${categoryId}/months/${month}/restore`, { method: 'POST' });
+const expenseIds = (api: ReturnType<typeof fixtureStore>, month: string) =>
+  api<{ expenses: { expenseId: number }[] }>(`/api/ledgers/1/expenses?month=${month}`).then((reply) =>
+    reply.expenses.map((expense) => expense.expenseId),
+  );
+
+describe('demo categories, removing and restoring', () => {
+  it('removes with its expenses and restores exactly those, not one deleted earlier', async () => {
+    const data = fixtureData();
+    data.expenses.push({ ...data.expenses[0]!, expenseId: 13, expenseDate: '2026-11-05' });
+    const api = createStore(data, () => NOW);
+    await api('/api/ledgers/1/expenses/13', { method: 'DELETE' });
+
+    await expect(removeCategory(api, 1, '2026-11')).resolves.toBeUndefined();
+    expect((await november(api)).map((category) => category.categoryId)).toEqual([2]);
+    expect(await expenseIds(api, '2026-11')).toEqual([11]);
+    // October's rent expense isn't touched.
+    expect(await expenseIds(api, '2026-10')).toEqual([12]);
+
+    await expect(restoreCategory(api, 1, '2026-11')).resolves.toBeUndefined();
+    expect(await november(api)).toEqual([
+      expect.objectContaining({ categoryId: 1, plannedEur: '100.00' }),
+      expect.objectContaining({ categoryId: 2 }),
+    ]);
+    expect(await expenseIds(api, '2026-11')).toEqual([11, 10]);
+  });
+
+  it('refuses a remove in an ended month, and 404 for a category the month doesn’t list', async () => {
+    const api = fixtureStore();
+
+    expect(await refusal(removeCategory(api, 99, '2026-10'))).toEqual([409, 'month_ended', { error: 'month_ended' }]);
+    expect(await refusal(removeCategory(api, 3, '2026-11'))).toEqual([404, 'not_found', { error: 'not_found' }]);
+  });
+
+  it('refuses a restore in an ended month, and 404 when it isn’t removed there', async () => {
+    const api = fixtureStore();
+
+    expect(await refusal(restoreCategory(api, 99, '2026-10'))).toEqual([409, 'month_ended', { error: 'month_ended' }]);
+    expect(await refusal(restoreCategory(api, 1, '2026-11'))).toEqual([404, 'not_found', { error: 'not_found' }]);
+  });
+
+  it('refuses a restore with 409 name_taken when another category now has its name', async () => {
+    const api = fixtureStore();
+    await removeCategory(api, 2, '2026-11');
+    // An add called Food would reuse food itself, so rent takes the name instead.
+    await editCategory(api, 1, '2026-11', { name: 'Food' });
+
+    expect(await refusal(restoreCategory(api, 2, '2026-11'))).toEqual([409, 'name_taken', { error: 'name_taken' }]);
+  });
+
+  it('refuses a restore that brings planned back above income', async () => {
+    const api = fixtureStore();
+    await removeCategory(api, 1, '2026-11');
+    await api('/api/ledgers/1/income/20', { method: 'PUT', body: { title: 'Salary', amount: '120' } });
+
+    // Food's €50 plus rent's €100 back would be €30 over €120.
+    expect(await refusal(restoreCategory(api, 1, '2026-11'))).toEqual([
+      409,
+      'over_income',
+      { error: 'over_income', overEur: '30.00' },
+    ]);
+  });
+});
+
+describe('demo categories, copying a month', () => {
+  it('copies last month’s names at €0', async () => {
+    const data = fixtureData();
+    data.monthRows[2]!.displayName = 'flat';
+    const api = createStore(data, () => NOW);
+    await removeCategory(api, 1, '2026-11');
+    await removeCategory(api, 2, '2026-11');
+
+    await expect(api('/api/ledgers/1/months/2026-11/copy', { method: 'POST' })).resolves.toBeUndefined();
+
+    expect(await november(api)).toEqual([
+      expect.objectContaining({ categoryId: 1, displayName: 'flat', plannedEur: '0.00' }),
+      expect.objectContaining({ categoryId: 3, displayName: 'old', plannedEur: '0.00' }),
+    ]);
+  });
+
+  it('copy clears removed rows, so their Undo is 404', async () => {
+    const api = fixtureStore();
+    await removeCategory(api, 2, '2026-11');
+    await removeCategory(api, 1, '2026-11');
+    await api('/api/ledgers/1/months/2026-11/copy', { method: 'POST' });
+
+    expect(await refusal(restoreCategory(api, 2, '2026-11'))).toEqual([404, 'not_found', { error: 'not_found' }]);
+    // Its expense stays deleted.
+    expect(await expenseIds(api, '2026-11')).toEqual([]);
+  });
+
+  it.each([
+    ['budget_exists', '2026-11'],
+    ['no_previous_budget', '2027-01'],
+    ['month_ended', '2026-10'],
+  ])('refuses with %s', async (code, month) => {
+    expect(await refusal(fixtureStore()(`/api/ledgers/1/months/${month}/copy`, { method: 'POST' }))).toEqual([
+      409,
+      code,
+      { error: code },
+    ]);
+  });
+});

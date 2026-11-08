@@ -1,5 +1,5 @@
 import type { Category, CategoryWithTotals } from '@/api/types';
-import { centsToInput, toCents } from '@/format';
+import { centsToInput, shiftMonth, toCents } from '@/format';
 import { refuseOverIncome } from './incomeLimit';
 import {
   type DemoCategory,
@@ -101,6 +101,11 @@ function findByName(data: StoreData, month: string, name: string): DemoCategory 
     .sort((left, right) => left.categoryId - right.categoryId)
     .find((category) => notListed(category.categoryId) && sameName.compare(category.displayName, name) === 0);
   return byRow ? data.categories.find((category) => category.categoryId === byRow.categoryId) : byCategory;
+}
+
+/** The API's `hasBudget`: the month lists at least one category. */
+function hasBudget(data: StoreData, month: string): boolean {
+  return data.monthRows.some((row) => row.month === month && row.removal === null);
 }
 
 /** The API's `techNameBase`: lower case, each run of whitespace one '_', 40 code points at most. */
@@ -208,6 +213,67 @@ export const categoryRoutes: Route[] = [
         if (row) row.displayName = name;
       }
       if (input.amount !== undefined) data.planned.set(key, toCents(input.amount));
+    },
+  },
+  {
+    method: 'DELETE',
+    pattern: CATEGORY_IN_MONTH,
+    answer: (data, { now }, [categoryId = '', month = '']) => {
+      const id = Number(categoryId);
+      refuseIfEnded(month, now);
+      const row =
+        data.monthRows.find(
+          (candidate) => candidate.categoryId === id && candidate.month === month && candidate.removal === null,
+        ) ?? refuse(404, 'not_found');
+      // One removal number for the row and that month's live expenses, which its restore matches. The planned amount stays.
+      const removal = data.nextId++;
+      row.removal = removal;
+      for (const expense of data.expenses) {
+        if (expense.categoryId === id && expense.removal === null && expense.expenseDate.startsWith(`${month}-`)) {
+          expense.removal = removal;
+        }
+      }
+    },
+  },
+  {
+    method: 'POST',
+    pattern: /^\/api\/ledgers\/\d+\/categories\/(\d+)\/months\/(\d{4}-\d{2})\/restore$/,
+    answer: (data, { now }, [categoryId = '', month = '']) => {
+      const id = Number(categoryId);
+      refuseIfEnded(month, now);
+      const row =
+        data.monthRows.find(
+          (candidate) => candidate.categoryId === id && candidate.month === month && candidate.removal !== null,
+        ) ?? refuse(404, 'not_found');
+      // 409 here, unlike an add's 400: the request is fine, the month's names now clash with it (brief 037).
+      if (nameTaken(data, month, rowName(data, row), id)) refuse(409, 'name_taken');
+      refuseOverIncome(data, month, { plannedCents: data.planned.get(plannedKey(id, month)) ?? 0, incomeCents: 0 });
+      // Exactly what its removal took: an expense deleted earlier on its own keeps its own number.
+      for (const expense of data.expenses) {
+        if (expense.categoryId === id && expense.removal === row.removal) expense.removal = null;
+      }
+      row.removal = null;
+    },
+  },
+  {
+    method: 'POST',
+    pattern: /^\/api\/ledgers\/\d+\/months\/(\d{4}-\d{2})\/copy$/,
+    answer: (data, { now }, [month = '']) => {
+      refuseIfEnded(month, now);
+      if (hasBudget(data, month)) refuse(409, 'budget_exists');
+      const previous = shiftMonth(month, -1);
+      if (!hasBudget(data, previous)) refuse(409, 'no_previous_budget');
+      // Removed rows go first, with their amounts, so their Undo answers 404; their expenses stay deleted.
+      data.monthRows = data.monthRows.filter((row) => row.month !== month);
+      for (const key of [...data.planned.keys()]) {
+        if (key.endsWith(`/${month}`)) data.planned.delete(key);
+      }
+      // Names come along; every amount starts at €0.
+      for (const row of data.monthRows.filter(
+        (candidate) => candidate.month === previous && candidate.removal === null,
+      )) {
+        data.monthRows.push({ ...row, month });
+      }
     },
   },
 ];

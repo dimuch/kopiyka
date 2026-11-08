@@ -26,6 +26,10 @@ const Env = z.object({
   // Category totals (brief 022): the Expenses and Netto data sources; both or neither, and they need the pair above.
   NOTION_EXPENSES_DATA_SOURCE_ID: z.string().regex(UUID, 'expected the UUID of a collection:// URL').optional(),
   NOTION_NETTO_DATA_SOURCE_ID: z.string().regex(UUID, 'expected the UUID of a collection:// URL').optional(),
+  // Month balances (brief 085): the Opening and Actual Closing data sources; both or neither, and they need the first
+  // pair. Only `yarn api import-balances --save` reads them.
+  NOTION_OPENING_DATA_SOURCE_ID: z.string().regex(UUID, 'expected the UUID of a collection:// URL').optional(),
+  NOTION_CLOSING_DATA_SOURCE_ID: z.string().regex(UUID, 'expected the UUID of a collection:// URL').optional(),
   // MCP connector (brief 063): off unless true; its tokens end this long after they're issued.
   MCP_ENABLED: z.stringbool().default(false),
   API_TOKEN_TTL_MINUTES: z.coerce.number().int().positive().default(60),
@@ -70,6 +74,16 @@ export function loadConfig(source: NodeJS.ProcessEnv = process.env): Config {
   if (totals && env.NOTION_TOKEN === undefined) {
     throw new Error('set NOTION_EXPENSES_DATA_SOURCE_ID and NOTION_NETTO_DATA_SOURCE_ID together with NOTION_TOKEN');
   }
+  const balances = env.NOTION_OPENING_DATA_SOURCE_ID !== undefined || env.NOTION_CLOSING_DATA_SOURCE_ID !== undefined;
+  if (
+    balances &&
+    (env.NOTION_OPENING_DATA_SOURCE_ID === undefined || env.NOTION_CLOSING_DATA_SOURCE_ID === undefined)
+  ) {
+    throw new Error('set NOTION_OPENING_DATA_SOURCE_ID and NOTION_CLOSING_DATA_SOURCE_ID together');
+  }
+  if (balances && env.NOTION_TOKEN === undefined) {
+    throw new Error('set NOTION_OPENING_DATA_SOURCE_ID and NOTION_CLOSING_DATA_SOURCE_ID together with NOTION_TOKEN');
+  }
   return {
     env: env.NODE_ENV,
     host: env.HOST,
@@ -96,6 +110,13 @@ export function loadConfig(source: NodeJS.ProcessEnv = process.env): Config {
                 ? {
                     expensesDataSourceId: env.NOTION_EXPENSES_DATA_SOURCE_ID,
                     nettoDataSourceId: env.NOTION_NETTO_DATA_SOURCE_ID,
+                  }
+                : null,
+            balances:
+              env.NOTION_OPENING_DATA_SOURCE_ID !== undefined && env.NOTION_CLOSING_DATA_SOURCE_ID !== undefined
+                ? {
+                    openingDataSourceId: env.NOTION_OPENING_DATA_SOURCE_ID,
+                    closingDataSourceId: env.NOTION_CLOSING_DATA_SOURCE_ID,
                   }
                 : null,
           }

@@ -5,6 +5,8 @@ const token = 'ntn_secret_test_token';
 const ds = '00000000-0000-4000-8000-000000000001';
 const expensesDs = '00000000-0000-4000-8000-000000000002';
 const nettoDs = '00000000-0000-4000-8000-000000000003';
+const openingDs = '00000000-0000-4000-8000-000000000004';
+const closingDs = '00000000-0000-4000-8000-000000000005';
 const row = { expenseId: 57, name: 'Delhaize', amountEur: '29.10', date: '2026-10-01' };
 
 /** A client whose fetch answers from a queue and records every request and every sleep. */
@@ -12,7 +14,12 @@ function setup(...answers: Array<Response | Error>) {
   const requests: Array<{ url: string; method: string; headers: Record<string, string>; body: unknown }> = [];
   const sleeps: number[] = [];
   const notion = notionClient(
-    { token, groceriesDataSourceId: ds, totals: { expensesDataSourceId: expensesDs, nettoDataSourceId: nettoDs } },
+    {
+      token,
+      groceriesDataSourceId: ds,
+      totals: { expensesDataSourceId: expensesDs, nettoDataSourceId: nettoDs },
+      balances: { openingDataSourceId: openingDs, closingDataSourceId: closingDs },
+    },
     {
       fetchImpl: async (url, init) => {
         requests.push({
@@ -31,7 +38,7 @@ function setup(...answers: Array<Response | Error>) {
       now: () => 1_000_000,
     },
   );
-  return { client: notion.groceries, expenses: notion.expenses!, requests, sleeps };
+  return { client: notion.groceries, expenses: notion.expenses!, balances: notion.balances!, requests, sleeps };
 }
 
 const json = (body: unknown, status = 200, headers: Record<string, string> = {}) =>
@@ -361,7 +368,46 @@ describe('notionClient', () => {
     });
 
     it('is absent without the Expenses settings', () => {
-      expect(notionClient({ token, groceriesDataSourceId: ds, totals: null }).expenses).toBeNull();
+      expect(notionClient({ token, groceriesDataSourceId: ds, totals: null, balances: null }).expenses).toBeNull();
+    });
+  });
+
+  describe('balances (brief 085)', () => {
+    const balanceRow = (month: string | null, amount: number | null) => ({
+      id: 'abcdef00000040008000000000000008',
+      in_trash: false,
+      properties: {
+        Account: { title: [{ plain_text: 'Debit' }] },
+        Month: { select: month === null ? null : { name: month } },
+        Amount: { number: amount },
+      },
+    });
+
+    it('reads the Opening and Actual Closing rows, page by page', async () => {
+      const { balances, requests } = setup(
+        json({ results: [balanceRow('Jan', 0), balanceRow('Nov', -0.5)], has_more: true, next_cursor: 'c2' }),
+        json({
+          results: [balanceRow(null, null), { ...balanceRow('Feb', -52), in_trash: true }],
+          has_more: false,
+          next_cursor: null,
+        }),
+        json({ results: [balanceRow('Jan', -180)], has_more: false, next_cursor: null }),
+      );
+      expect(await balances.opening()).toEqual([
+        { month: 1, amountCents: 0n },
+        { month: 11, amountCents: -50n },
+        { month: null, amountCents: null },
+      ]);
+      expect(await balances.closing()).toEqual([{ month: 1, amountCents: -18000n }]);
+      expect(requests.map((r) => [r.url, r.method, r.body])).toEqual([
+        [`https://api.notion.com/v1/data_sources/${openingDs}/query`, 'POST', { page_size: 100 }],
+        [`https://api.notion.com/v1/data_sources/${openingDs}/query`, 'POST', { page_size: 100, start_cursor: 'c2' }],
+        [`https://api.notion.com/v1/data_sources/${closingDs}/query`, 'POST', { page_size: 100 }],
+      ]);
+    });
+
+    it('is absent without the balances settings', () => {
+      expect(notionClient({ token, groceriesDataSourceId: ds, totals: null, balances: null }).balances).toBeNull();
     });
   });
 });

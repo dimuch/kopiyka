@@ -249,7 +249,7 @@ capability; nothing existing changes.
 - [x] 7. Bump version to 1.6.0
   - Files: package.json, apps/mobile/app.json
   - Change: set both to 1.6.0
-- [ ] 8. Work out which months an import changes (~45)
+- [x] 8. Work out which months an import changes (~45)
   - Files: `apps/api/src/notion/balances.ts` (`Balance`, `BalanceChange`, `planBalances`),
     `apps/api/test/notionBalances.test.ts`
   - Tests (`planBalances`):

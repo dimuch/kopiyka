@@ -87,3 +87,26 @@ export function continuityWarnings(months: MonthBalance[]): string[] {
         ];
   });
 }
+
+/** A month's balances as stored, in EUR cents. */
+export interface Balance {
+  openingCents: bigint;
+  closingCents: bigint;
+}
+
+/** What importing a month would do: its stored balances (null = no row yet) and the wanted ones. */
+export interface BalanceChange {
+  month: string;
+  from: Balance | null;
+  to: MonthBalance;
+  changed: boolean;
+}
+
+/** One entry per wanted month, against what the ledger stores ('YYYY-MM' → balances). */
+export function planBalances(stored: Map<string, Balance>, wanted: MonthBalance[]): BalanceChange[] {
+  return wanted.map((to) => {
+    const from = stored.get(to.month) ?? null;
+    const changed = from === null || from.openingCents !== to.openingCents || from.closingCents !== to.closingCents;
+    return { month: to.month, from, to, changed };
+  });
+}

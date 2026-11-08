@@ -205,6 +205,11 @@ function expenseFields(expense: ApiExpense) {
   };
 }
 
+/** An income item as the tools answer with it, its amount with its currency. */
+function incomeFields(item: ApiIncomeItem) {
+  return { incomeId: item.incomeId, title: item.title, amount: eur(toCents(item.amountEur)), addedBy: item.addedBy };
+}
+
 const errorResult = (text: string): CallToolResult => ({ content: [{ type: 'text', text }], isError: true });
 
 /** Runs a tool, handing a refusal or an API error to the LLM as a result it can read, not a protocol failure. */
@@ -294,12 +299,7 @@ export function buildServer(scope: RequestScope): McpServer {
           ledgerId,
           month,
           total: eur(sumCents(items)),
-          items: items.map(({ incomeId, title, amountEur, addedBy }) => ({
-            incomeId,
-            title,
-            amount: eur(toCents(amountEur)),
-            addedBy,
-          })),
+          items: items.map(incomeFields),
         };
       }),
   );
@@ -486,14 +486,7 @@ export function buildServer(scope: RequestScope): McpServer {
             title,
             amount,
           });
-          return {
-            ledgerId,
-            month,
-            incomeId: saved.incomeId,
-            title: saved.title,
-            amount: eur(toCents(saved.amountEur)),
-            addedBy: saved.addedBy,
-          };
+          return { ledgerId, month, ...incomeFields(saved) };
         },
         ADD_INCOME_REFUSALS,
       ),
@@ -550,15 +543,7 @@ export function buildServer(scope: RequestScope): McpServer {
           const item = items.find((candidate) => candidate.incomeId === incomeId);
           if (!item) throw new ApiError(404, 'not_found');
           await scope.write('DELETE', `/api/ledgers/${ledgerId}/income/${incomeId}`);
-          return {
-            ledgerId,
-            month,
-            incomeId,
-            title: item.title,
-            amount: eur(toCents(item.amountEur)),
-            addedBy: item.addedBy,
-            note: DELETED_INCOME_NOTE,
-          };
+          return { ledgerId, month, ...incomeFields(item), note: DELETED_INCOME_NOTE };
         },
         DELETE_INCOME_REFUSALS,
       ),

@@ -121,7 +121,7 @@ export interface SignInView {
 }
 
 export function signInPage({ clientName, redirectHost, scope, request, username, error }: SignInView): string {
-  const wants = scope === 'write' ? 'read your budgets and add expenses' : 'read your budgets';
+  const wants = scope === 'write' ? 'read your budgets and add, change and delete expenses' : 'read your budgets';
   return page(
     'Sign in to Kopiyka',
     `<h1>Sign in to Kopiyka</h1>
@@ -150,10 +150,10 @@ export interface ConsentView {
 }
 
 export function consentPage({ clientName, redirectHost, scope, ledgers, consent }: ConsentView): string {
-  const heading = scope === 'write' ? 'Allow reading and adding expenses?' : 'Allow read access?';
+  const heading = scope === 'write' ? 'Allow reading and changing expenses?' : 'Allow read access?';
   const access =
     scope === 'write'
-      ? 'read these budgets and add expenses to them for up to an hour, but not edit or delete anything'
+      ? 'read these budgets and add, change and delete their expenses for up to an hour, but not their income, categories, plans or members'
       : 'read these budgets for up to an hour, but not change them';
   const items = ledgers.map(({ name, label, role, owner }) => {
     const whose = role === 'owner' ? 'yours' : `shared by ${owner}`;

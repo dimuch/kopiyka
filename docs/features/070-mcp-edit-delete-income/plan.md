@@ -218,7 +218,7 @@ migration, so rollback holds.
     - The GET's `ledger_not_found` and the DELETE's `month_ended` → their sentences.
     - Lost answer on the DELETE → "may be deleted".
     - `mcp.test.ts`: its annotations.
-- [ ] 5. Say a write connection can change and delete expenses (~45)
+- [x] 5. Say a write connection can change and delete expenses (~45)
   - Files: `apps/mcp/src/oauth/pages.ts`, `apps/mcp/test/signIn.test.ts`, `apps/mcp/test/authorize.test.ts`,
     `apps/mcp/test/flow.test.ts`, `README.md`, `deploy/README.md`
   - Change: PR A's three texts. `README.md`'s table row and "Connecting Claude", `deploy/README.md`'s "MCP connector" line:

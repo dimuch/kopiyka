@@ -13,6 +13,19 @@ const SESSION = 'session-token-value';
 const API_TOKEN = 'kpk.api-token-value';
 const EXPENSE_NAME = 'A private purchase';
 const EXPENSE_AMOUNT = '77.31';
+const CHANGED_NAME = 'Another private purchase';
+const CHANGED_AMOUNT = '64.18';
+const EXPENSE = {
+  expenseId: 9,
+  categoryId: 7,
+  expenseDate: '2026-10-06',
+  name: EXPENSE_NAME,
+  amountEur: EXPENSE_AMOUNT,
+  amountUah: '3902.86',
+  eurUahRate: '50.4830',
+  enteredCurrency: 'EUR',
+};
+const CHANGED = { ...EXPENSE, name: CHANGED_NAME, amountEur: CHANGED_AMOUNT, amountUah: '3240.00' };
 
 function api(call: RecordedCall): Answer {
   if (call.path === '/api/auth/login') return { json: { token: SESSION } };
@@ -29,20 +42,10 @@ function api(call: RecordedCall): Answer {
     return { status: 201, json: { tokenId: 1, token: API_TOKEN, scope: 'write', expiresAt } };
   }
   if (call.path === '/api/api-tokens') return { json: { tokens: [] } };
-  if (call.path === '/api/ledgers/1/expenses' && call.method === 'POST') {
-    return {
-      status: 201,
-      json: {
-        expenseId: 9,
-        categoryId: 7,
-        expenseDate: '2026-10-06',
-        name: EXPENSE_NAME,
-        amountEur: EXPENSE_AMOUNT,
-        amountUah: '3902.86',
-        eurUahRate: '50.4830',
-        enteredCurrency: 'EUR',
-      },
-    };
+  if (call.path === '/api/ledgers/1/expenses' && call.method === 'POST') return { status: 201, json: EXPENSE };
+  if (call.path === '/api/ledgers/1/expenses/9') {
+    if (call.method === 'PUT') return { json: CHANGED };
+    return call.method === 'DELETE' ? { status: 204, text: '' } : { json: CHANGED };
   }
   if (call.path.startsWith('/api/ledgers/1/categories')) {
     return { json: { categories: [{ categoryId: 7, displayName: 'Food', plannedEur: '1250.00' }] } };
@@ -134,10 +137,22 @@ describe('the whole connection', () => {
       amount: EXPENSE_AMOUNT,
       currency: 'EUR',
     });
+    const changed = await callTool('update_expense', {
+      ledgerId: 1,
+      expenseId: 9,
+      categoryId: 7,
+      date: '2026-10-06',
+      name: CHANGED_NAME,
+      amount: CHANGED_AMOUNT,
+      currency: 'EUR',
+    });
+    const deleted = await callTool('delete_expense', { ledgerId: 1, expenseId: 9 });
     await app.close();
 
     expect(toolData(rpcResult(summary)).totals.planned).toEqual({ amount: '1250.00', formatted: '€1,250.00' });
     expect(toolData(rpcResult(added)).expenseId).toBe(9);
+    expect(toolData(rpcResult(changed)).name).toBe(CHANGED_NAME);
+    expect(toolData(rpcResult(deleted)).name).toBe(CHANGED_NAME);
     expect(token.json().scope).toBe('read write');
     expect(logs).toContain('"url":"/oauth/token"');
     const secrets = [
@@ -154,9 +169,10 @@ describe('the whole connection', () => {
     for (const secret of secrets) {
       expect(logs).not.toContain(secret);
     }
-    for (const amount of ['1250.00', '1,250.00', '30.50', EXPENSE_AMOUNT, '3902.86']) {
+    for (const amount of ['1250.00', '1,250.00', '30.50', EXPENSE_AMOUNT, '3902.86', CHANGED_AMOUNT, '3240.00']) {
       expect(logs).not.toContain(amount);
     }
     expect(logs).not.toContain(EXPENSE_NAME);
+    expect(logs).not.toContain(CHANGED_NAME);
   });
 });

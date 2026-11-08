@@ -126,11 +126,14 @@ const DELETED_EXPENSE_NOTE =
   'It can’t be brought back from Claude, and the app can’t restore it either. To undo, add it again with add_expense ' +
   'from this answer.';
 
+/** A write to the API: a POST or PUT always sends a body, a DELETE never does. */
+export type WriteCall = [method: 'POST' | 'PUT', path: string, body: object] | [method: 'DELETE', path: string];
+
 /** What one `/mcp` request may do: read and write as its user, and spend that user's tool calls. */
 export interface RequestScope {
   read<T>(path: string): Promise<T>;
-  /** The API decides what this token may write. A DELETE sends no body. */
-  write<T>(method: 'POST' | 'PUT' | 'DELETE', path: string, body?: object): Promise<T>;
+  /** The API decides what this token may write. */
+  write<T>(...call: WriteCall): Promise<T>;
   /** Today in Kyiv, as 'YYYY-MM-DD'. */
   today(): string;
   /** Takes one tool call: 0 when allowed, otherwise the seconds until one is free. */

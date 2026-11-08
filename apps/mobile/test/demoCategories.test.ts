@@ -149,3 +149,120 @@ describe('demo categories, one in a month', () => {
     ]);
   });
 });
+
+const addCategory = (api: ReturnType<typeof fixtureStore>, month: string, name: string, amount?: string) =>
+  api(`/api/ledgers/1/months/${month}/categories`, { method: 'POST', body: { name, amount } });
+const editCategory = (api: ReturnType<typeof fixtureStore>, categoryId: number, month: string, body: object) =>
+  api(`/api/ledgers/1/categories/${categoryId}/months/${month}`, { method: 'PATCH', body });
+const november = (api: ReturnType<typeof fixtureStore>) =>
+  api<MonthList>('/api/ledgers/1/categories?month=2026-11').then((list) => list.categories);
+
+describe('demo categories, adding and editing', () => {
+  it('creates a new category at the end of the order, with its tech name and amount', async () => {
+    const api = fixtureStore();
+
+    await expect(addCategory(api, '2026-11', ' Eating   Out ', '12.5')).resolves.toEqual({
+      categoryId: 100,
+      techName: 'eating_out',
+      displayName: 'Eating   Out',
+      sortOrder: 40,
+      plannedEur: '12.50',
+    });
+    expect((await november(api)).map((category) => category.categoryId)).toEqual([1, 2, 100]);
+  });
+
+  it('plans €0 when no amount is sent', async () => {
+    await expect(addCategory(fixtureStore(), '2026-11', 'Gym')).resolves.toMatchObject({ plannedEur: '0.00' });
+  });
+
+  it('reuses a category by name, keeping its expenses deleted', async () => {
+    const data = fixtureData();
+    data.monthRows[0]!.removal = 7;
+    data.expenses[0]!.removal = 7;
+    const api = createStore(data, () => NOW);
+
+    await expect(addCategory(api, '2026-11', 'RENT', '20')).resolves.toMatchObject({
+      categoryId: 1,
+      displayName: 'RENT',
+      plannedEur: '20.00',
+    });
+    expect((await november(api)).map((category) => [category.categoryId, category.displayName])).toEqual([
+      [1, 'RENT'],
+      [2, 'food'],
+    ]);
+    expect(await refusal(api('/api/ledgers/1/expenses/10'))).toEqual([404, 'not_found', { error: 'not_found' }]);
+  });
+
+  it('reuses a category from another month by its name there', async () => {
+    await expect(addCategory(fixtureStore(), '2026-11', 'Old')).resolves.toMatchObject({
+      categoryId: 3,
+      sortOrder: 30,
+    });
+  });
+
+  it.each([
+    ['an add', (api: ReturnType<typeof fixtureStore>) => addCategory(api, '2026-11', 'Fóod')],
+    ['an edit', (api: ReturnType<typeof fixtureStore>) => editCategory(api, 1, '2026-11', { name: 'FOOD' })],
+  ])('refuses %s with a name the month has, ignoring case and accents', async (_case, call) => {
+    expect(await refusal(call(fixtureStore()))).toEqual([400, 'name_taken', { error: 'name_taken' }]);
+  });
+
+  it('a case change of its own name passes', async () => {
+    const api = fixtureStore();
+
+    await expect(editCategory(api, 1, '2026-11', { name: ' Rent ' })).resolves.toBeUndefined();
+
+    expect((await november(api))[0]).toMatchObject({ displayName: 'Rent', plannedEur: '100.00' });
+  });
+
+  it('edits the amount alone, leaving the name', async () => {
+    const api = fixtureStore();
+
+    await editCategory(api, 2, '2026-11', { amount: '80' });
+
+    expect((await november(api))[1]).toMatchObject({ displayName: 'food', plannedEur: '80.00' });
+  });
+
+  // November plans €150 against €200 income.
+  it('refuses an add over income, by exactly how much', async () => {
+    expect(await refusal(addCategory(fixtureStore(), '2026-11', 'Gym', '60'))).toEqual([
+      409,
+      'over_income',
+      { error: 'over_income', overEur: '10.00' },
+    ]);
+  });
+
+  it('refuses a raise over income, by exactly how much, writing nothing', async () => {
+    const api = fixtureStore();
+
+    expect(await refusal(editCategory(api, 2, '2026-11', { name: 'Groceries', amount: '120' }))).toEqual([
+      409,
+      'over_income',
+      { error: 'over_income', overEur: '20.00' },
+    ]);
+    expect((await november(api))[1]).toMatchObject({ displayName: 'food', plannedEur: '50.00' });
+  });
+
+  it('a cut is never refused, even in a month already over income', async () => {
+    const data = fixtureData();
+    data.planned.set('1/2026-11', 90000);
+    const api = createStore(data, () => NOW);
+
+    await expect(editCategory(api, 1, '2026-11', { amount: '500' })).resolves.toBeUndefined();
+  });
+
+  it.each([
+    ['an add', (api: ReturnType<typeof fixtureStore>) => addCategory(api, '2026-10', 'Rent')],
+    ['an edit', (api: ReturnType<typeof fixtureStore>) => editCategory(api, 99, '2026-10', { name: 'Rent' })],
+  ])('refuses %s in an ended month, before anything else', async (_case, call) => {
+    expect(await refusal(call(fixtureStore()))).toEqual([409, 'month_ended', { error: 'month_ended' }]);
+  });
+
+  it('404 for an edit of a category the month doesn’t list', async () => {
+    expect(await refusal(editCategory(fixtureStore(), 3, '2026-11', { name: 'New' }))).toEqual([
+      404,
+      'not_found',
+      { error: 'not_found' },
+    ]);
+  });
+});

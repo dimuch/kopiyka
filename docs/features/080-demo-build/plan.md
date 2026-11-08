@@ -261,7 +261,7 @@ store. A helper asserts `[status, code, body]` of the `ApiError`.
   - Files: new `src/demo/{incomeRoutes,incomeLimit}.ts`, `src/demo/store.ts`, new `test/demoIncome.test.ts`
   - Tests: list by id; add normalizes the amount and sets `addedBy`; edit and delete; each 404 and `month_ended`; `over_income`
     on a cut and a delete with exact `overEur`; "a cut that ends level passes"; copy with `income_exists`, `no_previous_income`, `month_ended`.
-- [ ] 6. Add and edit categories in the store (~130)
+- [x] 6. Add and edit categories in the store (~130)
   - Files: `src/demo/categoryRoutes.ts`, `test/demoCategories.test.ts`
   - Tests: `name_taken` 400 on add and edit, ignoring case and accents; "a case change of its own name passes"; "reuses a
     category by name, keeping its expenses deleted"; new category's `techName` and `sortOrder`; `over_income`

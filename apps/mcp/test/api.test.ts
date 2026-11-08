@@ -41,6 +41,26 @@ describe('apiClient', () => {
     expect(call.headers.get('authorization')).toBeNull();
   });
 
+  it('puts JSON with the bearer token', async () => {
+    const { api, client: kopiyka } = client({ json: { expenseId: 7 } });
+
+    expect(await kopiyka.put('/api/ledgers/1/expenses/7', 'kpk.token', { amount: '14.20' })).toEqual({ expenseId: 7 });
+    const call = api.calls[0]!;
+    expect([call.method, call.path, bearerOf(call)]).toEqual(['PUT', '/api/ledgers/1/expenses/7', 'kpk.token']);
+    expect(call.body).toEqual({ amount: '14.20' });
+    expect(call.headers.get('content-type')).toBe('application/json');
+  });
+
+  it('deletes with no body and no content type, and takes its 204 as success', async () => {
+    const { api, client: kopiyka } = client({ status: 204, text: '' });
+
+    await expect(kopiyka.delete('/api/ledgers/1/expenses/7', 'kpk.token')).resolves.toBeUndefined();
+    const call = api.calls[0]!;
+    expect([call.method, call.path, bearerOf(call)]).toEqual(['DELETE', '/api/ledgers/1/expenses/7', 'kpk.token']);
+    expect(call.body).toBeUndefined();
+    expect(call.headers.get('content-type')).toBeNull();
+  });
+
   it('takes an empty 204 as success', async () => {
     const { client: kopiyka } = client({ status: 204, text: '' });
 

@@ -42,7 +42,11 @@ export async function mcpRoutes(app: FastifyInstance, deps: AppDeps): Promise<vo
     ({ authInfo, requestInfo }) =>
       buildServer({
         read: (path) => api.get(path, authInfo!.token, requestInfo?.signal),
-        write: (path, body) => api.post(path, authInfo!.token, body),
+        write: (method, path, body = {}) => {
+          const token = authInfo!.token;
+          if (method === 'POST') return api.post(path, token, body);
+          return method === 'PUT' ? api.put(path, token, body) : api.delete(path, token);
+        },
         today: () => kyivToday(now()),
         takeToolCall: (tool) => {
           const waitSeconds = toolCalls.take(tokenKey(authInfo!.token));

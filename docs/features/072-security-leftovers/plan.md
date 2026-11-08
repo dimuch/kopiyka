@@ -142,7 +142,7 @@ capability and no contract change (comment, test, one `DELETE`).
   - Verify: run the script against `deploy/kopiyka.englishplus.com.ua.conf`, all `PASS`, if an nginx is at hand.
     `brew install nginx` is a laptop tool, not a repo dependency, so it needs the user's OK. Otherwise record "not run
     locally" in Deviations; the owner's run (step 10) is then the first.
-- [ ] 3. Sandbox the API and connector services with systemd
+- [x] 3. Sandbox the API and connector services with systemd
   - Files: `deploy/kopiyka.service`, `deploy/kopiyka-mcp.service`, `deploy/README.md`
   - Change: the settings in Contracts, under a comment naming what each service needs and why
     `MemoryDenyWriteExecute`, `PrivateUsers`, `ProcSubset=pid` and `RemoveIPC` are left out (see Not doing). The

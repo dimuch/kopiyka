@@ -37,6 +37,7 @@
     "android": "expo start --android",
     "ios": "expo start --ios",
     "web": "expo start --web",
+    "web:demo": "KOPIYKA_FLAVOUR=demo expo start --web",
     "typecheck": "tsc --noEmit",
     "lint": "expo lint src test",
     "test": "vitest run"

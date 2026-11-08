@@ -1,5 +1,7 @@
 node_modules/
 dist/
+# The demo build's web export (brief 080)
+dist-demo/
 coverage/
 *.tsbuildinfo
 .DS_Store

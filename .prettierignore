@@ -1,6 +1,7 @@
 .yarn/
 .expo/
 dist/
+dist-demo/
 coverage/
 yarn.lock
 apps/mobile/ios/

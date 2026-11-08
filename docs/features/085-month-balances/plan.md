@@ -177,7 +177,7 @@ capability; nothing existing changes.
 - [x] 0. Bump version to 1.5.0
   - Files: package.json, apps/mobile/app.json
   - Change: set both to 1.5.0
-- [ ] 1. Read signed amounts as cents (~30)
+- [x] 1. Read signed amounts as cents (~30)
   - Files: `apps/api/src/money.ts`, `apps/api/test/money.test.ts`
   - Change: `SIGNED_AMOUNT_RE`; `toCents` negates the cents of the unsigned rest when the string starts with `-`.
   - Tests (Prove-It: `-12.05` gives `-1195n` before the change):

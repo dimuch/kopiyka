@@ -332,7 +332,7 @@ store. A helper asserts `[status, code, body]` of the `ApiError`.
     `CategoryPicker`, `apiError` and the date picker package"; "refuses a build with production's manifest";
     `listDifferences` names new and removed; `productionProblems` for a demo module, the demo manifest and a build that
     isn't production; "the flavour is named nowhere in src", which walks `src` and runs in `yarn test`.
-- [ ] 13b. Fail CI when the wrong module reaches a build (~55, plus ~145 of list)
+- [x] 13b. Fail CI when the wrong module reaches a build (~55, plus ~145 of list)
   - Files: `apps/mobile/scripts/buildCheck.mts` (`readBuild`, the command-line entry with `--accept`), new
     `apps/mobile/demo-modules.txt`; `apps/mobile/package.json` (`export:web`, `check-builds`); `.github/workflows/ci.yml` (the
     two steps in `check`)

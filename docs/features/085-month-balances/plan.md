@@ -257,7 +257,7 @@ capability; nothing existing changes.
     - equal amounts → `changed: false`;
     - a differing opening or closing → `changed`;
     - stored months that aren't wanted (November) aren't in the result.
-- [ ] 9. Import a ledger's month balances, as a dry run or written (~155)
+- [x] 9. Import a ledger's month balances, as a dry run or written (~155)
   - Files: `apps/api/src/notion/balancesImport.ts`, `apps/api/src/notion/historyImport.ts` (export `ledgerOwner`),
     `apps/api/test/notionBalances.int.test.ts` (new; `rows(ledgerId)` helper selecting `month_balances` ordered by
     key)

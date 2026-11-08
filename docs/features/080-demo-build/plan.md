@@ -279,7 +279,7 @@ store. A helper asserts `[status, code, body]` of the `ApiError`.
   - Tests: `it.each` clocks: mid month; `2026-10-31T22:30:00Z`, which is the 1st in Kyiv; January, whose last month is in the
     year before; the 31st. Each: both months have categories, income and expenses; every expense's category is in its month;
     none is after today; no `createdAt` is after the clock; €100 more can still be planned.
-- [ ] 9. Move Home's money figures to data (~100)
+- [x] 9. Move Home's money figures to data (~100)
   - Files: new `src/data/homeCards.ts`, `src/app/(tabs)/index.tsx`, new `test/homeCards.test.ts`
   - Change: move the three cards and their comments word for word; Home loses 21 lines and four imported names.
   - Tests: `homeCards.test.ts`, table: loading (null figures), `Not set`, figures, `failed` from each load on its own card.

@@ -530,6 +530,107 @@ describe('the budget tools', () => {
     });
   });
 
+  describe('delete_expense', () => {
+    const EXPENSE = {
+      expenseId: 9,
+      categoryId: 7,
+      expenseDate: '2026-10-06',
+      name: 'Silpo',
+      amountEur: '12.50',
+      amountUah: '631.04',
+      eurUahRate: '50.4830',
+      enteredCurrency: 'EUR',
+      createdBy: 1,
+    };
+    const INPUT = { ledgerId: 1, expenseId: 9 };
+    const PATH = '/api/ledgers/1/expenses/9';
+    const NOTE =
+      'It can’t be brought back from Claude, and the app can’t restore it either. To undo, add it again with ' +
+      'add_expense from this answer.';
+    const deletes = () => api.calls.filter((call) => call.method === 'DELETE');
+    const live = (deleteAnswer: Answer) => (call: RecordedCall) => {
+      if (call.path !== PATH) return ledgerOne(call);
+      return call.method === 'DELETE' ? deleteAnswer : { json: EXPENSE };
+    };
+
+    beforeEach(() => {
+      answer = live({ status: 204, text: '' });
+    });
+
+    it('reads the expense, deletes it as the token’s user, and answers with what was deleted', async () => {
+      const result = await callTool('delete_expense', INPUT);
+
+      const onTheExpense = api.calls.filter((call) => call.path === PATH);
+      expect(onTheExpense.map((call) => [call.method, call.path, bearerOf(call)])).toEqual([
+        ['GET', PATH, 'kpk.olena'],
+        ['DELETE', PATH, 'kpk.olena'],
+      ]);
+      expect(result.isError).toBeUndefined();
+      expect(toolData(result)).toEqual({
+        ledgerId: 1,
+        expenseId: 9,
+        date: '2026-10-06',
+        name: 'Silpo',
+        categoryId: 7,
+        amountEur: { amount: '12.50', formatted: '€12.50' },
+        amountUah: { amount: '631.04', formatted: '₴631.04' },
+        enteredCurrency: 'EUR',
+        eurUahRate: '50.4830',
+        note: NOTE,
+      });
+    });
+
+    const DELETED_NOTHING = 'This call deleted nothing.';
+    const LOST_ANSWER = 'The answer was lost, so it may be deleted. The same call repeated is safe.';
+
+    it('sends no delete when the expense is gone, and says an earlier call may have deleted it', async () => {
+      answer = (call) => (call.path === PATH ? { status: 404, json: { error: 'not_found' } } : ledgerOne(call));
+
+      const result = await callTool('delete_expense', INPUT);
+
+      expect(deletes()).toEqual([]);
+      expect(result.isError).toBe(true);
+      expect(result.content[0].text).toBe(
+        'not_found: No live expense with that id in this ledger. If an earlier call got no answer, it may already ' +
+          `be deleted: check list_expenses. ${DELETED_NOTHING}`,
+      );
+    });
+
+    it('explains someone else’s ledger', async () => {
+      const result = await callTool('delete_expense', { ledgerId: 2, expenseId: 9 });
+
+      expect(deletes()).toEqual([]);
+      expect(result.content[0].text).toBe(
+        `ledger_not_found: No such ledger for this user; use list_ledgers. ${DELETED_NOTHING}`,
+      );
+    });
+
+    it.each<[string, number, string]>([
+      [
+        'insufficient_scope',
+        403,
+        `This connection can only read. Disconnect Kopiyka in Claude’s connectors, connect, and allow it. ${DELETED_NOTHING}`,
+      ],
+      ['month_ended', 409, `That month has ended and is read-only. ${DELETED_NOTHING}`],
+      ['internal', 500, LOST_ANSWER],
+    ])('explains %s from the delete', async (code, status, sentence) => {
+      answer = live({ status, json: { error: code } });
+
+      const result = await callTool('delete_expense', INPUT);
+
+      expect(result.isError).toBe(true);
+      expect(result.content[0].text).toBe(`${code}: ${sentence}`);
+    });
+
+    it('says the expense may be deleted when the delete’s answer is lost', async () => {
+      answer = live('network_failure');
+
+      const result = await callTool('delete_expense', INPUT);
+
+      expect(result.content[0].text).toBe(`api_unreachable: ${LOST_ANSWER}`);
+    });
+  });
+
   describe('eur_uah_rate', () => {
     beforeEach(() => {
       answer = (call) =>

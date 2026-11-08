@@ -50,6 +50,14 @@ const ALREADY_SAVED_NOTE =
 
 const SAVED_NOTHING = 'This call saved nothing.';
 const CHANGED_NOTHING = 'This call changed nothing.';
+const DELETED_NOTHING = 'This call deleted nothing.';
+
+/** Refusals every write tool shares: a read-only connection, and a ledger this user can't reach. */
+const WRITE_ACCESS_REFUSALS = {
+  insufficient_scope:
+    'This connection can only read. Disconnect Kopiyka in Claude’s connectors, connect, and allow it.',
+  ledger_not_found: 'No such ledger for this user; use list_ledgers.',
+};
 
 /** The API's refusals of an expense's fields, the same for adding and changing one. */
 const EXPENSE_INPUT_REFUSALS = {
@@ -73,9 +81,7 @@ function addExpenseRefusals(date: string): Record<string, string> {
   return {
     ...ending(
       {
-        insufficient_scope:
-          'This connection can only read. Disconnect Kopiyka in Claude’s connectors, connect, and allow it.',
-        ledger_not_found: 'No such ledger for this user; use list_ledgers.',
+        ...WRITE_ACCESS_REFUSALS,
         ...EXPENSE_INPUT_REFUSALS,
       },
       SAVED_NOTHING,
@@ -92,9 +98,7 @@ function addExpenseRefusals(date: string): Record<string, string> {
 const UPDATE_EXPENSE_REFUSALS = {
   ...ending(
     {
-      insufficient_scope:
-        'This connection can only read. Disconnect Kopiyka in Claude’s connectors, connect, and allow it.',
-      ledger_not_found: 'No such ledger for this user; use list_ledgers.',
+      ...WRITE_ACCESS_REFUSALS,
       not_found: 'No live expense with that id in this ledger; find it with list_expenses.',
       month_ended: 'That month has ended and is read-only; an expense can’t move into or out of it either.',
       ...EXPENSE_INPUT_REFUSALS,
@@ -103,6 +107,24 @@ const UPDATE_EXPENSE_REFUSALS = {
   ),
   ...lostAnswerFor('The answer was lost, so it may be saved. The same call repeated is safe.'),
 };
+
+const DELETE_EXPENSE_REFUSALS = {
+  ...ending(
+    {
+      ...WRITE_ACCESS_REFUSALS,
+      not_found:
+        'No live expense with that id in this ledger. If an earlier call got no answer, it may already be deleted: ' +
+        'check list_expenses.',
+      month_ended: 'That month has ended and is read-only.',
+    },
+    DELETED_NOTHING,
+  ),
+  ...lostAnswerFor('The answer was lost, so it may be deleted. The same call repeated is safe.'),
+};
+
+const DELETED_EXPENSE_NOTE =
+  'It can’t be brought back from Claude, and the app can’t restore it either. To undo, add it again with add_expense ' +
+  'from this answer.';
 
 /** What one `/mcp` request may do: read and write as its user, and spend that user's tool calls. */
 export interface RequestScope {
@@ -360,6 +382,31 @@ export function buildServer(scope: RequestScope): McpServer {
           return { ledgerId, ...expenseFields(saved) };
         },
         UPDATE_EXPENSE_REFUSALS,
+      ),
+  );
+
+  server.registerTool(
+    'delete_expense',
+    {
+      description: `Deletes one expense, and answers with what was deleted. ${DELETED_EXPENSE_NOTE} The same call repeated is safe.`,
+      inputSchema: {
+        ledgerId: LedgerMonth.ledgerId,
+        expenseId: z.number().int().positive().describe('An expenseId from list_expenses'),
+      },
+      annotations: { title: 'Delete an expense', readOnlyHint: false, destructiveHint: true, idempotentHint: true },
+    },
+    ({ ledgerId, expenseId }) =>
+      toolResult(
+        scope,
+        'delete_expense',
+        async () => {
+          // The delete answers 204, so read the expense first to say what was deleted.
+          const path = `/api/ledgers/${ledgerId}/expenses/${expenseId}`;
+          const expense = await scope.read<ApiExpense>(path);
+          await scope.write('DELETE', path);
+          return { ledgerId, ...expenseFields(expense), note: DELETED_EXPENSE_NOTE };
+        },
+        DELETE_EXPENSE_REFUSALS,
       ),
   );
 

@@ -208,7 +208,7 @@ migration, so rollback holds.
       result says it may be saved, the second gives the expense, and both PUT bodies are equal.
     - It takes a tool call from the limit.
     - `mcp.test.ts`: the read-only check filters by a list of write tools, and checks `update_expense`'s annotations.
-- [ ] 4. Add the delete_expense tool (~105)
+- [x] 4. Add the delete_expense tool (~105)
   - Files: `apps/mcp/src/mcp/tools.ts`, `apps/mcp/test/tools.test.ts`, `apps/mcp/test/mcp.test.ts`
   - Change: the tool and its refusal map. With this third map, `READ_ONLY` and `NO_LEDGER` become constants used by all
     three; `add_expense`'s tests prove its texts didn't change.
@@ -351,6 +351,8 @@ PR B:
   with `ending` adding what the call didn't do and `lostAnswerFor` filling the three lost-answer codes. Writing them twice
   would let the two drift. `add_expense`'s tests pass unchanged, so its texts are byte for byte the same. `update_expense`'s
   `name` description also says an empty name clears it.
+- slice 4: `READ_ONLY` and `NO_LEDGER` became one object, `WRITE_ACCESS_REFUSALS`, since every write tool spreads both
+  into its map. Same texts.
 
 ## Consolidate
 

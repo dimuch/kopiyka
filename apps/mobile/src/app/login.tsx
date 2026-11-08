@@ -1,3 +1,4 @@
+import { Link } from 'expo-router';
 import { useState } from 'react';
 import { ActivityIndicator, KeyboardAvoidingView, Platform, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -8,6 +9,9 @@ import { Pressable } from '@/components/Pressable';
 import { TextField } from '@/components/TextField';
 import { loginErrorText } from '@/data/loginError';
 import { fonts, type Palette } from '@/theme';
+
+/** The demo (briefs 080, 081): the app with sample data in the browser, no account needed. */
+const DEMO_URL = 'https://demo.kopiyka.englishplus.com.ua';
 
 export default function Login() {
   const colors = useColors();
@@ -79,14 +83,21 @@ export default function Login() {
           ) : null}
         </View>
 
-        <Pressable
-          accessibilityRole="button"
-          accessibilityState={{ disabled: !ready }}
-          onPress={submit}
-          style={[styles.button, !ready && styles.buttonDisabled]}
-        >
-          {busy ? <ActivityIndicator color={colors.onAccent} /> : <Text style={styles.buttonText}>Sign in</Text>}
-        </Pressable>
+        <View style={styles.actions}>
+          <Pressable
+            accessibilityRole="button"
+            accessibilityState={{ disabled: !ready }}
+            onPress={submit}
+            style={[styles.button, !ready && styles.buttonDisabled]}
+          >
+            {busy ? <ActivityIndicator color={colors.onAccent} /> : <Text style={styles.buttonText}>Sign in</Text>}
+          </Pressable>
+          <Link href={DEMO_URL} asChild>
+            <Pressable accessibilityRole="link" accessibilityLabel="Try it now" style={styles.demoLink}>
+              <Text style={styles.demoLinkText}>Try it now</Text>
+            </Pressable>
+          </Link>
+        </View>
       </KeyboardAvoidingView>
     </SafeAreaView>
   );
@@ -129,4 +140,9 @@ const makeStyles = (colors: Palette) =>
     },
     buttonDisabled: { opacity: 0.4 },
     buttonText: { fontFamily: fonts.bodySemi, fontSize: 16, color: colors.onAccent },
+    // The Sign in button and the demo link right below it, as one group.
+    actions: { gap: 8 },
+    // A 44pt touch target, as the conventions ask.
+    demoLink: { minHeight: 44, minWidth: 44, paddingHorizontal: 16, alignSelf: 'center', justifyContent: 'center' },
+    demoLinkText: { fontFamily: fonts.bodySemi, fontSize: 15, color: colors.accent },
   });

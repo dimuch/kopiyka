@@ -178,6 +178,21 @@ describe.skipIf(!(await testDbReachable()))('auth routes (MySQL)', () => {
     );
   });
 
+  it('deletes throttle rows that no longer count on a good login', async () => {
+    await db.query(
+      `INSERT INTO login_throttle (key_type, key_value, failed_attempts, last_failed_at) VALUES
+         ('ip', '198.51.100.77', 4, ?), ('ip', '198.51.100.78', 4, ?)`,
+      [new Date(clock.getTime() - 25 * HOUR), new Date(clock.getTime() - HOUR)],
+    );
+
+    expect((await login({ username: 'ivanka', code: codeAt() })).statusCode).toBe(200);
+
+    const [rows] = await db.query<mysql.RowDataPacket[]>(
+      "SELECT key_value, failed_attempts FROM login_throttle WHERE key_value LIKE '198.51.100.%'",
+    );
+    expect(rows.map((r) => [r.key_value, r.failed_attempts])).toEqual([['198.51.100.78', 4]]);
+  });
+
   describe('known devices', () => {
     const later = () => {
       clock = new Date(clock.getTime() + 60_000); // two TOTP steps on, so the next login has a fresh code

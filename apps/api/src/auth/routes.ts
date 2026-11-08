@@ -6,7 +6,7 @@ import type { AppDeps } from '../app.js';
 import { ipKey } from './ipKey.js';
 import { decryptSecret } from './secretBox.js';
 import { createSession, deleteSession, findSession } from './sessions.js';
-import { throttledAttempt, throttleKeys } from './throttle.js';
+import { pruneThrottle, throttledAttempt, throttleKeys } from './throttle.js';
 import { generateSecret, verifyTotp } from './totp.js';
 
 export const SESSION_COOKIE = 'kopiyka_session';
@@ -67,6 +67,8 @@ export async function authRoutes(app: FastifyInstance, deps: AppDeps): Promise<v
     if (attempt.outcome === 'rejected') return reply.code(401).send({ error: 'invalid_credentials' });
 
     const user = attempt.value;
+    // Old throttle rows go here, as createSession clears expired sessions: a good login is rare enough to be cheap.
+    await pruneThrottle(db, at);
     const session = await createSession(db, user.userId, at, config.sessionTtlMinutes);
     reply.setCookie(SESSION_COOKIE, session.token, {
       httpOnly: true,

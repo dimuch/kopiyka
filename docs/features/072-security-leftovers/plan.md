@@ -170,7 +170,7 @@ capability and no contract change (comment, test, one `DELETE`).
       boundary: `afterFailure(fail(4, undefined, 23 * HOUR), at(69 * HOUR + 24 * HOUR)).failedAttempts === 1`.
     - New: "keeps counting failures less than 24 h apart, over more than 24 h". `fail(5, undefined, 23 * HOUR)` spans
       92 h; expect `lockedUntil` = `at(92 * HOUR) + LOCK_MS` and `isLocked` at `at(92 * HOUR)`.
-- [ ] 5. Delete login_throttle rows that no longer count
+- [x] 5. Delete login_throttle rows that no longer count
   - Files: `apps/api/src/auth/throttle.ts`, `apps/api/src/auth/routes.ts`, `apps/api/test/throttle.int.test.ts` (new),
     `apps/api/test/auth.int.test.ts`
   - Change: add `pruneThrottle` (Contracts) and drop the TODO. The JSDoc says why a deleted row acts like a missing one,

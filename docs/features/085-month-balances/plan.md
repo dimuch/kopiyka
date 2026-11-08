@@ -396,6 +396,12 @@ PR 1 pass over `origin/main...HEAD` (new: `queryAll`, `selectMonth`, `balanceRow
   `toCents`/`centsToString`/`notionCents`.
 - REUSE (found in review): `totals.ts`' private `signedCents` did what signed `toCents` now does; it's gone and
   its two calls use `toCents`. Stored Actual Amount DECIMALs can be negative, and the existing totals tests cover it.
+- PR 2 pass (new: `planBalances`, `storedBalances`, `previewBalances`, `importBalances`, the CLI):
+  - EXTRACT: the CLI and `wantedBalances` both built '2026-01'…'2026-10' from `historyMonth`; now one
+    `historyMonths()` in `history.ts`.
+  - REUSE: `ledgerOwner` (exported from `historyImport.ts`), `withTransaction`, `toCents`/`centsToString`.
+  - LEAVE: the CLI's ~20 lines of flag parsing and snapshot read/write copy `import-history`'s (rule of three, see
+    Approach).
 - LEAVE: `snapshotRows`' nullable `centsToString` has a one-line twin in `history.ts` (`amount`). A shared helper for
   one expression would add an import between unrelated snapshots and save nothing.
 - LEAVE: `toBalancesSnapshot` vs `history.ts`' `toSnapshot`. Same idea (cents → strings → zod parse), different

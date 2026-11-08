@@ -1,5 +1,11 @@
 import { describe, expect, it } from 'vitest';
-import { BalancesSnapshot, type MonthBalance, toBalancesSnapshot, wantedBalances } from '../src/notion/balances.js';
+import {
+  BalancesSnapshot,
+  continuityWarnings,
+  type MonthBalance,
+  toBalancesSnapshot,
+  wantedBalances,
+} from '../src/notion/balances.js';
 
 describe('toBalancesSnapshot', () => {
   it('keeps every row with signed amounts, empty amounts and months as they are', () => {
@@ -182,5 +188,31 @@ describe('wantedBalances', () => {
     expect(months.flatMap((m) => [m.openingFill, m.closingFill]).filter(Boolean)).toEqual([
       'filled from 2026-09 opening',
     ]);
+  });
+});
+
+describe('continuityWarnings', () => {
+  it("names the one month whose closing differs from the next month's opening", () => {
+    expect(continuityWarnings(wantedBalances(notionToday))).toEqual([
+      '2026-07 closes at -377.00, but 2026-08 opens at 0.00',
+    ]);
+  });
+
+  it('gives none once "Auguts closing" is tagged August', () => {
+    const retagged = {
+      ...notionToday,
+      closing: notionToday.closing.map((row) =>
+        row.month === 7 && row.amount === '-377.00' ? { ...row, month: 8 } : row,
+      ),
+    };
+    expect(euros(wantedBalances(retagged)).slice(6, 8)).toEqual([
+      ['2026-07', '0/0'],
+      ['2026-08', '0/-377'],
+    ]);
+    expect(continuityWarnings(wantedBalances(retagged))).toEqual([]);
+  });
+
+  it('gives none for filled sides, which copy their neighbour', () => {
+    expect(continuityWarnings(wantedBalances(snapshot([], [])))).toEqual([]);
   });
 });

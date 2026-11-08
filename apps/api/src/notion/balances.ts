@@ -74,3 +74,16 @@ export function wantedBalances(snapshot: BalancesSnapshot): MonthBalance[] {
   }
   return wanted;
 }
+
+/** A line per month whose closing differs from the next month's opening: a hint at a mislabelled Notion row. */
+export function continuityWarnings(months: MonthBalance[]): string[] {
+  return months.slice(1).flatMap((next, i) => {
+    const month = months[i]!;
+    return month.closingCents === next.openingCents
+      ? []
+      : [
+          `${month.month} closes at ${centsToString(month.closingCents)}, ` +
+            `but ${next.month} opens at ${centsToString(next.openingCents)}`,
+        ];
+  });
+}

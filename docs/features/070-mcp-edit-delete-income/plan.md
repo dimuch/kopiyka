@@ -243,7 +243,7 @@ Starts once PR A is merged.
     - Repeated PUT: `204` twice, the row as sent. Repeated DELETE: `204`, then `404 not_found`.
     - With the user in a second ledger: that ledger's item, PUT and DELETE through the first ledger's path → `404 not_found`,
       and the item is unchanged.
-- [ ] 7. Add the add_income tool (~90)
+- [x] 7. Add the add_income tool (~90)
   - Files: `apps/mcp/src/mcp/tools.ts`, `apps/mcp/test/tools.test.ts`, `apps/mcp/test/mcp.test.ts`
   - Tests: path, body, token and result; the refusal table; lost answer → "check list_income"; annotations.
 - [ ] 8. Add the update_income tool (~90)

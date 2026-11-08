@@ -631,6 +631,71 @@ describe('the budget tools', () => {
     });
   });
 
+  describe('add_income', () => {
+    const PATH = '/api/ledgers/1/months/2026-10/income';
+    const INPUT = { ledgerId: 1, month: '2026-10', title: 'Salary', amount: '2500' };
+    const posts = () => api.calls.filter((call) => call.method === 'POST');
+
+    beforeEach(() => {
+      answer = (call) =>
+        call.method === 'POST' && call.path === PATH
+          ? { status: 201, json: { incomeId: 5, title: 'Salary', amountEur: '2500.00', addedBy: 'olena' } }
+          : ledgerOne(call);
+    });
+
+    it('calls the API’s add as the token’s user, and answers with what was saved', async () => {
+      const result = await callTool('add_income', INPUT);
+
+      expect(posts().map((call) => [call.path, call.body, bearerOf(call)])).toEqual([
+        [PATH, { title: 'Salary', amount: '2500' }, 'kpk.olena'],
+      ]);
+      expect(result.isError).toBeUndefined();
+      expect(toolData(result)).toEqual({
+        ledgerId: 1,
+        month: '2026-10',
+        incomeId: 5,
+        title: 'Salary',
+        amount: { amount: '2500.00', formatted: '€2,500.00' },
+        addedBy: 'olena',
+      });
+    });
+
+    const SAVED_NOTHING = 'This call saved nothing.';
+    const LOST_ANSWER =
+      'The answer was lost, so it may be saved. Check list_income before adding it again: a repeat adds a second one.';
+
+    it.each<[string, number, string]>([
+      [
+        'insufficient_scope',
+        403,
+        `This connection can only read. Disconnect Kopiyka in Claude’s connectors, connect, and allow it. ${SAVED_NOTHING}`,
+      ],
+      ['ledger_not_found', 404, `No such ledger for this user; use list_ledgers. ${SAVED_NOTHING}`],
+      ['month_ended', 409, `That month has ended and is read-only. ${SAVED_NOTHING}`],
+      [
+        'invalid_request',
+        400,
+        `The title must be 1 to 40 characters, and the amount positive with at most 8 digits and 2 decimals. ${SAVED_NOTHING}`,
+      ],
+      ['internal', 500, LOST_ANSWER],
+    ])('explains %s', async (code, status, sentence) => {
+      answer = (call) => (call.method === 'POST' ? { status, json: { error: code } } : ledgerOne(call));
+
+      const result = await callTool('add_income', INPUT);
+
+      expect(result.isError).toBe(true);
+      expect(result.content[0].text).toBe(`${code}: ${sentence}`);
+    });
+
+    it('says to check list_income before repeating when the answer is lost', async () => {
+      answer = (call) => (call.method === 'POST' ? 'network_failure' : ledgerOne(call));
+
+      const result = await callTool('add_income', INPUT);
+
+      expect(result.content[0].text).toBe(`api_unreachable: ${LOST_ANSWER}`);
+    });
+  });
+
   describe('eur_uah_rate', () => {
     beforeEach(() => {
       answer = (call) =>

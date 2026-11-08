@@ -575,6 +575,19 @@ Results of 8 November 2026, after brief 069 was deployed (version 1.2.2):
 - **By mistake** the owner signed in with their own account, not the throwaway user. The two test expenses went into the real
   budget, and the owner deleted both in the app.
 
+Results of 8 November 2026, after brief 070 was deployed (version 1.4.0), signed in as the throwaway user `claude-qa-mcp`:
+
+- **The consent page** asked "Allow reading and changing expenses and income?".
+- **Changing an expense:** "Add 12.50 EUR for groceries today, then change it to 14.20 EUR" left one expense of 14.20 EUR,
+  724.78 UAH at the date's NBU rate of 51.0406.
+- **Deleting an expense:** "Delete that expense" left the month with none. Claude passed on that the app can't restore it.
+- **Income:** "QA salary" of 100 EUR was added for November, changed to 120 EUR, then deleted, each checked with
+  `list_income`. Claude deleted the income without asking first, as the owner's "Write/delete" setting allows, and said
+  afterwards that it can't be restored.
+- **Logs:** 205 lines from both services after the deploy held none of the amounts or the income title.
+- Tool permissions weren't looked at again. On 8 November "Write/delete" was set to allowed, so Claude can change and delete
+  without asking first.
+
 Not run: a second Claude account in the two-browser test, by the owner's decision of 7 November. The owner has one. It needs
 browser B signed in to that account (063 plan, slice 14).
 

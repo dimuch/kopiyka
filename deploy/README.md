@@ -375,8 +375,9 @@ done
 ```
 
 Each path shows the six security headers. `/`, `/index.html` and `/budget` show `Cache-Control: no-cache`, the bundle
-`…, immutable`, and `/api/health` none. From the laptop `/mcp` is a 403 since brief 072, still with the six headers. `/oauth/authorize` shows **two** `content-security-policy` lines, nginx's and the
-page's own, which is expected: browsers enforce both.
+`…, immutable`, and `/api/health` none. From the laptop `/mcp` is a 403 since brief 072, still with the six headers.
+`/oauth/authorize` shows **two** `content-security-policy` lines, nginx's and the page's own, which is expected:
+browsers enforce both.
 
 ## API limits
 
@@ -500,6 +501,54 @@ start): don't restore anything, and keep the output.
 
 With IPv6 on both the droplet and the laptop, a real check is also possible: the "Checks after rollout" login loop with
 `curl -6` and `--resolve` to the droplet's IPv6 address, then one request from another address in the laptop's /64 gives 429. Skip it otherwise.
+
+## Service hardening
+
+Both units run sandboxed (brief 072): on top of `NoNewPrivileges`, `ProtectSystem=strict` and `PrivateTmp`, they can't see
+home folders, devices, kernel settings, logs or the clock, can't gain capabilities or new namespaces, and only reach the
+system calls a normal service uses (`@system-service`). The connector may only talk to loopback. Each unit file says what
+its service needs and what was left out on purpose. `ProtectProc` needs systemd 247; an older one logs "Unknown key" and
+ignores it.
+
+To install a changed unit, the connector first, because it's less critical. Keep a copy once, while the live one is good:
+
+```bash
+sudo cp /etc/systemd/system/kopiyka-mcp.service /root/kopiyka-mcp.service.bak
+```
+
+Then install it, with the guard from the connector's setup step 2, which must print `ok`:
+
+```bash
+sudo -u kopiyka git -C /opt/kopiyka/repo.git fetch -q origin +refs/heads/main:refs/heads/main
+f=$(mktemp)
+sudo -u kopiyka git -C /opt/kopiyka/repo.git show main:deploy/kopiyka-mcp.service > "$f" && grep -q ProtectHome "$f" &&
+  sudo install -m 644 -o root -g root "$f" /etc/systemd/system/kopiyka-mcp.service && echo ok
+rm -f "$f"
+sudo systemd-analyze verify /etc/systemd/system/kopiyka-mcp.service
+sudo systemctl daemon-reload && sudo systemctl restart kopiyka-mcp
+```
+
+`systemd-analyze verify` must print nothing about this unit's keys. Then the health check from the connector's setup
+(`… http://127.0.0.1:3200/.well-known/oauth-authorization-server && echo ok`), and the journal since the restart must show
+it listening, with no `Operation not permitted` or `SIGSYS`:
+
+```bash
+sudo journalctl -u kopiyka-mcp --since '2 minutes ago' --no-pager | tail -20
+```
+
+The API is the same with `kopiyka.service`, at a quiet time: its restart gives about 5 s of 502s. After it, check
+`/api/health`, sign in on the web app, and in the same browser open `/api/rates/eur-uah?date=<a date never looked up
+before, like 2003-02-03>`: an uncached date makes the API fetch from the NBU, which needs DNS and HTTPS from inside the
+sandbox. It stores one public rate.
+
+**Undo:** copy the `.bak` back, then `sudo systemctl daemon-reload` and restart the service.
+
+The score is `sudo systemd-analyze security <unit> | tail -1`; lower is safer. Measured before and after:
+
+| Unit                  | systemd | Before | After |
+| --------------------- | ------- | ------ | ----- |
+| `kopiyka-mcp.service` |         |        |       |
+| `kopiyka.service`     |         |        |       |
 
 ## MCP connector
 

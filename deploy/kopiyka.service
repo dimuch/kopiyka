@@ -24,6 +24,32 @@ RestartSec=5
 NoNewPrivileges=true
 ProtectSystem=strict
 PrivateTmp=true
+# Sandbox (brief 072): what it needs is /usr/bin/node, read access to /opt/kopiyka/current (the kopiyka user's
+# home, not under /home), MySQL over TCP on 127.0.0.1:3306, and ports above 1024, so no capabilities and no writes.
+# A blocked system call fails with EPERM instead of killing Node, so a feature probe (libuv's io_uring) falls back.
+# Left out on purpose: MemoryDenyWriteExecute (V8's JIT writes code pages), PrivateUsers and ProcSubset=pid (Node reads
+# /proc/meminfo and cgroup files to size its heap).
+ProtectHome=true
+PrivateDevices=true
+ProtectKernelTunables=true
+ProtectKernelModules=true
+ProtectKernelLogs=true
+ProtectControlGroups=true
+ProtectClock=true
+ProtectHostname=true
+ProtectProc=invisible
+RestrictNamespaces=true
+RestrictRealtime=true
+RestrictSUIDSGID=true
+LockPersonality=true
+CapabilityBoundingSet=
+SystemCallArchitectures=native
+SystemCallFilter=@system-service
+SystemCallErrorNumber=EPERM
+UMask=0077
+# The NBU over HTTPS needs DNS; glibc's getaddrinfo with AI_ADDRCONFIG reads interfaces through AF_NETLINK. RemoveIPC
+# and IPAddressDeny stay off: the kopiyka user also runs the deploy builds, and the NBU is outside.
+RestrictAddressFamilies=AF_UNIX AF_INET AF_INET6 AF_NETLINK
 
 [Install]
 WantedBy=multi-user.target

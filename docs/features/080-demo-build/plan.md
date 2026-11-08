@@ -324,7 +324,7 @@ store. A helper asserts `[status, code, body]` of the `ApiError`.
     - Console: no CSP violation, no `The demo store has no route`. Network: only same-origin page, script, font and image
       loads, no fetch, XHR or WebSocket.
     - `localStorage`, `sessionStorage`, cookies, IndexedDB and Cache Storage are all empty. Reload: every change is gone.
-- [ ] 13. Check a build's modules and text (~160)
+- [x] 13. Check a build's modules and text (~160)
   - Files: new `apps/mobile/scripts/buildCheck.mts` (pure functions only: `moduleList`, `bannedInDemo`, `listDifferences`,
     `productionProblems`), new `test/buildCheck.test.ts`
   - Tests: `moduleList` keeps app files, names packages once (nested and scoped), drops virtual modules, strips `?ctx=`;

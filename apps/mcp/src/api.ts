@@ -14,6 +14,9 @@ export interface ApiClient {
   /** `signal` ends the call early, when the client's own request has been closed. */
   get<T>(path: string, token: string, signal?: AbortSignal): Promise<T>;
   post<T>(path: string, token: string | null, body: object, options?: { forwardedFor?: string }): Promise<T>;
+  put<T>(path: string, token: string, body: object): Promise<T>;
+  /** Sends no body, so no `content-type`: Fastify refuses an empty JSON body. */
+  delete<T>(path: string, token: string): Promise<T>;
 }
 
 function parseJson(text: string): unknown {
@@ -53,6 +56,7 @@ export function apiClient(baseUrl: string, fetchImpl: typeof fetch, timeoutMs = 
   }
 
   const bearer = (token: string | null) => (token ? { authorization: `Bearer ${token}` } : {});
+  const json = (token: string | null) => ({ ...bearer(token), 'content-type': 'application/json' });
 
   return {
     get: (path, token, signal) => request(path, { method: 'GET', headers: bearer(token) }, signal),
@@ -60,11 +64,12 @@ export function apiClient(baseUrl: string, fetchImpl: typeof fetch, timeoutMs = 
       request(path, {
         method: 'POST',
         headers: {
-          ...bearer(token),
-          'content-type': 'application/json',
+          ...json(token),
           ...(options?.forwardedFor ? { 'x-forwarded-for': options.forwardedFor } : {}),
         },
         body: JSON.stringify(body),
       }),
+    put: (path, token, body) => request(path, { method: 'PUT', headers: json(token), body: JSON.stringify(body) }),
+    delete: (path, token) => request(path, { method: 'DELETE', headers: bearer(token) }),
   };
 }

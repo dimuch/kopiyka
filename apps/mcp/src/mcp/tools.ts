@@ -74,12 +74,26 @@ function addExpenseRefusals(date: string): Record<string, string> {
 /** What one `/mcp` request may do: read and write as its user, and spend that user's tool calls. */
 export interface RequestScope {
   read<T>(path: string): Promise<T>;
-  /** The API decides what this token may write. */
-  write<T>(path: string, body: object): Promise<T>;
+  /** The API decides what this token may write. A DELETE sends no body. */
+  write<T>(method: 'POST' | 'PUT' | 'DELETE', path: string, body?: object): Promise<T>;
   /** Today in Kyiv, as 'YYYY-MM-DD'. */
   today(): string;
   /** Takes one tool call: 0 when allowed, otherwise the seconds until one is free. */
   takeToolCall(tool: string): number;
+}
+
+/** An expense as the write tools answer with it, amounts with their currency. */
+function expenseFields(expense: ApiExpense) {
+  return {
+    expenseId: expense.expenseId,
+    date: expense.expenseDate,
+    name: expense.name,
+    categoryId: expense.categoryId,
+    amountEur: eur(toCents(expense.amountEur)),
+    amountUah: uah(toCents(expense.amountUah)),
+    enteredCurrency: expense.enteredCurrency,
+    eurUahRate: expense.eurUahRate,
+  };
 }
 
 const errorResult = (text: string): CallToolResult => ({ content: [{ type: 'text', text }], isError: true });
@@ -263,25 +277,13 @@ export function buildServer(scope: RequestScope): McpServer {
         'add_expense',
         async () => {
           const saved = await scope.write<ApiExpense & { alreadySaved?: boolean }>(
+            'POST',
             `/api/ledgers/${ledgerId}/expenses`,
-            {
-              categoryId,
-              expenseDate,
-              name,
-              amount,
-              currency,
-            },
+            { categoryId, expenseDate, name, amount, currency },
           );
           return {
             ledgerId,
-            expenseId: saved.expenseId,
-            date: saved.expenseDate,
-            name: saved.name,
-            categoryId: saved.categoryId,
-            amountEur: eur(toCents(saved.amountEur)),
-            amountUah: uah(toCents(saved.amountUah)),
-            enteredCurrency: saved.enteredCurrency,
-            eurUahRate: saved.eurUahRate,
+            ...expenseFields(saved),
             alreadySaved: saved.alreadySaved === true,
             ...(saved.alreadySaved ? { note: ALREADY_SAVED_NOTE } : {}),
           };

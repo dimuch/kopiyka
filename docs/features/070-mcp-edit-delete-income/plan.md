@@ -192,7 +192,7 @@ migration, so rollback holds.
     - An expense the token deleted comes back through `POST …/restore` with a session, unchanged (the API side of AC 4).
     - The user is a member of a second ledger (`makeUser` + `addMember`). An expense of that ledger, PUT and DELETE through
       the first ledger's path: `404 not_found` each, and the expense is unchanged and live.
-- [ ] 2. Give the connector's API client PUT and DELETE (~55)
+- [x] 2. Give the connector's API client PUT and DELETE (~55)
   - Files: `apps/mcp/src/api.ts`, `apps/mcp/src/mcp/routes.ts`, `apps/mcp/src/mcp/tools.ts`, `apps/mcp/test/api.test.ts`
   - Change: `put` and `delete` on `ApiClient`; the `method` on `RequestScope.write`; `expenseFields` used by `add_expense`.
     Behaviour-preserving for `add_expense`.

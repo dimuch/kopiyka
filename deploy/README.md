@@ -554,16 +554,28 @@ The owner's decisions of 7 November, before brief 069 was deployed:
 
 - **The stranger's sign-in service:** accepted with write tokens. Kopiyka still depends on the `resource` check above, and no
   test made a stranger's connector send kopiyka's own `resource`. Brief 072 limits `/mcp` to Anthropic's ranges in the vhost.
-- **The tests below:** Cancel, double taps, Safari and sign-in from mobile run right after the deploy, not before it.
+- **Cancel, double taps, Safari and sign-in from mobile:** run right after the deploy, not before it.
 - **The second Claude account:** stays not run.
 
-Not run. The owner stopped here on 5 November knowing brief 068 wanted them done before write tools, and looked at them again
-on 7 November, with the decisions above:
+Results of 8 November 2026, after brief 069 was deployed (version 1.2.2):
 
-- A second Claude account in the two-browser test: the owner has one. It needs browser B signed in to that account (063
-  plan, slice 14).
-- Cancel against the real API: the owner clicked Allow on both tries, so Cancel never ran.
-- Double taps, Safari, and hourly sign-in from mobile.
+- **The scope:** Connect asked for `scope=read+write`, and the consent page asked "Allow reading and adding expenses?".
+- **Tool permissions:** Claude shows two groups, "Read-only" and "Write/delete". Both were set to allowed, so Claude can add an
+  expense without asking first. Each user picks this in Claude; kopiyka can't.
+- **Adding an expense:** "Add 12.50 EUR for groceries today" saved one expense with the right amounts, NBU rate, date and
+  category, and `created_by` was the signed-in user. Migration 015 was in place: `api_tokens.scope` is
+  `enum('read','write')`.
+- **The repeat guard:** asked for the same expense again, Claude asked first whether it was a mistake. Told yes, add it, it
+  called `add_expense` again two minutes later, and kopiyka refused it as a repeat. Claude then saved it as "Groceries (2)".
+  That's expected: the guard stops accidental repeats, and a user who wants a second one can have it.
+- **Cancel:** passed. Kopiyka showed "Nothing was shared" and Claude stayed unconnected.
+- **Double taps:** passed. Several clicks on Allow left one working connection.
+- **Safari on a Mac and the Claude app on an iPhone:** both connected the same way as Chrome.
+- **By mistake** the owner signed in with their own account, not the throwaway user. The two test expenses went into the real
+  budget, and the owner deleted both in the app.
+
+Not run: a second Claude account in the two-browser test, by the owner's decision of 7 November. The owner has one. It needs
+browser B signed in to that account (063 plan, slice 14).
 
 To repeat the hostile tests, for example if Claude changes how it adds connectors, follow
 `docs/features/068-connector-tests/plan.md`, with its Deviations for the second one.

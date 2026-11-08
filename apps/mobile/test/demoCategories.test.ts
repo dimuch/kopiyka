@@ -15,14 +15,41 @@ describe('demo categories, a month’s list', () => {
     ]);
   });
 
-  it('gives €0 planned when none is set, and leaves out a removed row', async () => {
+  it('orders by sort order, then id, whatever order the store holds them in', async () => {
+    const data = fixtureData();
+    data.categories.unshift(
+      { categoryId: 5, techName: 'gym', displayName: 'gym', sortOrder: 20 },
+      { categoryId: 4, techName: 'fun', displayName: 'fun', sortOrder: 5 },
+    );
+    data.monthRows.push(
+      { categoryId: 5, month: '2026-11', displayName: 'gym', removal: null },
+      { categoryId: 4, month: '2026-11', displayName: 'fun', removal: null },
+    );
+    const api = createStore(data, () => NOW);
+
+    const list = await api<MonthList>('/api/ledgers/1/categories?month=2026-11');
+
+    // 4 (5), 1 (10), then 2 and 5 both at 20, by id.
+    expect(list.categories.map((category) => category.categoryId)).toEqual([4, 1, 2, 5]);
+  });
+
+  it('gives €0 planned when none is set', async () => {
+    const list = await fixtureStore()<MonthList>('/api/ledgers/1/categories?month=2026-10');
+
+    expect(list.categories.map((category) => [category.categoryId, category.plannedEur])).toEqual([
+      [1, '100.00'],
+      [3, '0.00'],
+    ]);
+  });
+
+  it('leaves out a removed row', async () => {
     const data = fixtureData();
     data.monthRows[3]!.removal = 1;
     const api = createStore(data, () => NOW);
 
     const list = await api<MonthList>('/api/ledgers/1/categories?month=2026-10');
 
-    expect(list.categories.map((category) => [category.categoryId, category.plannedEur])).toEqual([[1, '100.00']]);
+    expect(list.categories.map((category) => category.categoryId)).toEqual([1]);
   });
 
   it('an empty month gives empty lists', async () => {
@@ -45,6 +72,22 @@ describe('demo categories, a month’s list', () => {
     expect(december.categories[0]!.displayName).toBe('home');
   });
 
+  it('names by a removed row too, and by the category itself before its first row', async () => {
+    const data = fixtureData();
+    data.monthRows[2]!.displayName = 'flat';
+    data.monthRows[2]!.removal = 1;
+    data.categories[2]!.displayName = 'legacy';
+    const api = createStore(data, () => NOW);
+
+    // Rent's October row is removed but still names it there. Old has no row on or before September, so it takes the
+    // category's own name.
+    const october = await api<CategoryWithTotals>('/api/ledgers/1/categories/1?month=2026-10');
+    const september = await api<CategoryWithTotals>('/api/ledgers/1/categories/3?month=2026-09');
+
+    expect(october).toMatchObject({ displayName: 'flat', inMonth: false });
+    expect(september).toMatchObject({ displayName: 'legacy', inMonth: false, plannedEur: '0.00' });
+  });
+
   it('puts the quick row in order of latest expense from any month, never-used ones after, five at most', async () => {
     const data = fixtureData();
     for (const categoryId of [4, 5, 6, 7]) {
@@ -56,8 +99,7 @@ describe('demo categories, a month’s list', () => {
       });
       data.monthRows.push({ categoryId, month: '2026-11', displayName: `c${categoryId}`, removal: null });
     }
-    // Category 3 isn't listed in November, so its newer expense doesn't count; 1's October expense was made later than
-    // its November one; a deleted expense doesn't count either.
+    // 1's October expense was made later than its November one, and a deleted expense doesn't count.
     data.expenses[2]!.createdAt = '2026-11-12T09:00:00.000Z';
     data.expenses.push({
       ...data.expenses[0]!,

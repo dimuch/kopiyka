@@ -63,6 +63,7 @@ const DATA_TABLES = [
   'notion_grocery_rows',
   'exchange_rates',
   'income_items',
+  'month_balances',
   'category_budgets',
   'expenses',
   'category_months',

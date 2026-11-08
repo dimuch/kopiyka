@@ -185,7 +185,7 @@ capability; nothing existing changes.
     - `SIGNED_AMOUNT_RE` accepts `'-180.00'`, `'0'` and `'12.5'`. It rejects `''`, `'-'`, `'--1'`, `'+1'`,
       `'-1.234'`, `'-.5'` and `'-123456789'`.
     - The existing `AMOUNT_RE` case still rejects `'-1'`.
-- [ ] 2. Add a table for each month's opening and closing balance (~40)
+- [x] 2. Add a table for each month's opening and closing balance (~40)
   - Files: `apps/api/migrations/016_month_balances.sql`, `apps/api/test/monthBalances.migration.int.test.ts`,
     `apps/api/test/helpers.ts` (`'month_balances'` in `DATA_TABLES`, before `ledgers`)
   - Tests: as in `apiTokens.migration.int.test.ts`, `SHOW COLUMNS` gives

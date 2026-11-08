@@ -191,7 +191,7 @@ capability; nothing existing changes.
   - Tests: as in `apiTokens.migration.int.test.ts`, `SHOW COLUMNS` gives
     `[ledger_id int unsigned NO], [balance_month date NO], [opening_eur decimal(12,2) NO], [closing_eur decimal(12,2) NO]`,
     and `runMigrations` run again returns `[]`.
-- [ ] 3. Page through a Notion data source in one place (~25, behaviour-preserving)
+- [x] 3. Page through a Notion data source in one place (~25, behaviour-preserving)
   - Files: `apps/api/src/notion/client.ts`
   - Change: move `allRows`' paging loop into `queryAll(dataSourceId)` and the Month lookup into `selectMonth`.
     `allRows` maps their results.

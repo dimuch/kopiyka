@@ -110,6 +110,11 @@ const MONTHS = [
 
 const SHORT_MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'June', 'July', 'Aug', 'Sept', 'Oct', 'Nov', 'Dec'];
 
+/** A Month select's short name ('Jan', 'Sept') → 1–12; empty or unknown → null. */
+function selectMonth(name: string | undefined): number | null {
+  return SHORT_MONTHS.indexOf(name ?? '') + 1 || null;
+}
+
 /** Notion's numbers are floats: round to cents once, here at the boundary. */
 function notionCents(value: number | null | undefined): bigint | null {
   return value === null || value === undefined ? null : BigInt(Math.round(value * 100));
@@ -180,6 +185,21 @@ export function notionClient(
     if (!/^[0-9a-f]{32}$/.test(normalised))
       throw new NotionError(200, 'bad_response', 'Notion answered without a page id');
     return normalised;
+  }
+
+  /** Every live row of a data source, page by page. Rows in trash are left out. */
+  async function queryAll(dataSourceId: string): Promise<unknown[]> {
+    const rows: unknown[] = [];
+    let cursor: string | undefined;
+    do {
+      const answer = await request('POST', `/data_sources/${dataSourceId}/query`, {
+        page_size: 100,
+        ...(cursor ? { start_cursor: cursor } : {}),
+      });
+      for (const r of (answer.results ?? []) as Array<{ in_trash?: boolean }>) if (!r.in_trash) rows.push(r);
+      cursor = answer.has_more && typeof answer.next_cursor === 'string' ? answer.next_cursor : undefined;
+    } while (cursor);
+    return rows;
   }
 
   function properties(row: GroceryRow) {
@@ -271,7 +291,6 @@ export function notionClient(
     },
     async allRows() {
       type Row = {
-        in_trash?: boolean;
         properties: {
           Category: { title: Array<{ plain_text: string }> };
           Month?: { select: { name: string } | null };
@@ -280,27 +299,13 @@ export function notionClient(
           Type?: { select: { name: string } | null };
         };
       };
-      const templates: ExpensesTemplate[] = [];
-      let cursor: string | undefined;
-      do {
-        const answer = await request('POST', `/data_sources/${totals.expensesDataSourceId}/query`, {
-          page_size: 100,
-          ...(cursor ? { start_cursor: cursor } : {}),
-        });
-        for (const r of (answer.results ?? []) as Row[]) {
-          if (r.in_trash) continue;
-          const month = SHORT_MONTHS.indexOf(r.properties.Month?.select?.name ?? '') + 1;
-          templates.push({
-            category: r.properties.Category.title.map((t) => t.plain_text).join(''),
-            month: month || null,
-            budgetCents: notionCents(r.properties.Budget?.number),
-            actualCents: notionCents(r.properties['Actual Amount']?.number),
-            type: r.properties.Type?.select?.name ?? null,
-          });
-        }
-        cursor = answer.has_more && typeof answer.next_cursor === 'string' ? answer.next_cursor : undefined;
-      } while (cursor);
-      return templates;
+      return ((await queryAll(totals.expensesDataSourceId)) as Row[]).map((r) => ({
+        category: r.properties.Category.title.map((t) => t.plain_text).join(''),
+        month: selectMonth(r.properties.Month?.select?.name),
+        budgetCents: notionCents(r.properties.Budget?.number),
+        actualCents: notionCents(r.properties['Actual Amount']?.number),
+        type: r.properties.Type?.select?.name ?? null,
+      }));
     },
     async createRow(row) {
       const properties: Record<string, unknown> = {

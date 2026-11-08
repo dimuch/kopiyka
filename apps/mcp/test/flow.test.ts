@@ -25,6 +25,8 @@ const EXPENSE = {
   eurUahRate: '50.4830',
   enteredCurrency: 'EUR',
 };
+const INCOME_TITLE = 'A private salary';
+const INCOME_AMOUNT = '4321.09';
 const CHANGED = { ...EXPENSE, name: CHANGED_NAME, amountEur: CHANGED_AMOUNT, amountUah: '3240.00' };
 
 function api(call: RecordedCall): Answer {
@@ -52,6 +54,9 @@ function api(call: RecordedCall): Answer {
   }
   if (call.path.startsWith('/api/ledgers/1/expenses')) {
     return { json: { expenses: [{ categoryId: 7, amountEur: '30.50' }] } };
+  }
+  if (call.path === '/api/ledgers/1/months/2026-10/income' && call.method === 'POST') {
+    return { status: 201, json: { incomeId: 5, title: INCOME_TITLE, amountEur: INCOME_AMOUNT, addedBy: 'olena' } };
   }
   return { json: { items: [] } };
 }
@@ -147,12 +152,19 @@ describe('the whole connection', () => {
       currency: 'EUR',
     });
     const deleted = await callTool('delete_expense', { ledgerId: 1, expenseId: 9 });
+    const income = await callTool('add_income', {
+      ledgerId: 1,
+      month: '2026-10',
+      title: INCOME_TITLE,
+      amount: INCOME_AMOUNT,
+    });
     await app.close();
 
     expect(toolData(rpcResult(summary)).totals.planned).toEqual({ amount: '1250.00', formatted: '€1,250.00' });
     expect(toolData(rpcResult(added)).expenseId).toBe(9);
     expect(toolData(rpcResult(changed)).name).toBe(CHANGED_NAME);
     expect(toolData(rpcResult(deleted)).name).toBe(CHANGED_NAME);
+    expect(toolData(rpcResult(income)).incomeId).toBe(5);
     expect(token.json().scope).toBe('read write');
     expect(logs).toContain('"url":"/oauth/token"');
     const secrets = [
@@ -174,5 +186,8 @@ describe('the whole connection', () => {
     }
     expect(logs).not.toContain(EXPENSE_NAME);
     expect(logs).not.toContain(CHANGED_NAME);
+    expect(logs).not.toContain(INCOME_TITLE);
+    expect(logs).not.toContain(INCOME_AMOUNT);
+    expect(logs).not.toContain('4,321.09');
   });
 });

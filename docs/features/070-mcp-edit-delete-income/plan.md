@@ -255,7 +255,7 @@ Starts once PR A is merged.
   - Tests: GET of that month's list, then the DELETE, and the result names the item, with the note; an id not in that month's
     list → `not_found`, and no DELETE is sent; a repeat after a lost answer → `not_found` with "may already be deleted";
     `over_income` and `month_ended` sentences; the description says there's no Undo; annotations.
-- [ ] 10. Say a write connection can manage income too (~20)
+- [x] 10. Say a write connection can manage income too (~20)
   - Files: `apps/mcp/src/oauth/pages.ts`, `apps/mcp/test/signIn.test.ts`, `apps/mcp/test/authorize.test.ts`,
     `apps/mcp/test/flow.test.ts`, `README.md`, `deploy/README.md`
   - Change: PR B's three texts and the same docs lines, "expenses and income".

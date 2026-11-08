@@ -419,10 +419,10 @@ Each line names the zone: `kopiyka_api`, `kopiyka_login` or `kopiyka_api_conn`. 
 
 ## MCP connector
 
-`apps/mcp` lets Claude read a user's budgets and add, change and delete expenses (briefs 063, 069, 070). It reaches
-kopiyka only through the API, and the API refuses its tokens on every other write. It's live for registered users since
-4 November 2026. `MCP_ENABLED` in `api.env` is the main switch: while it's unset, sign-in can't finish and every
-connection fails.
+`apps/mcp` lets Claude read a user's budgets and add, change and delete expenses and income (briefs 063, 069, 070). It
+reaches kopiyka only through the API, and the API refuses its tokens on every other write. It's live for registered
+users since 4 November 2026. `MCP_ENABLED` in `api.env` is the main switch: while it's unset, sign-in can't finish and
+every connection fails.
 
 **To turn it off:** take `MCP_ENABLED` out of `api.env` and run `sudo systemctl restart kopiyka`. Every connection stops at
 once.

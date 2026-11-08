@@ -139,6 +139,23 @@ const ADD_INCOME_REFUSALS = {
   ),
 };
 
+const OVER_INCOME_REFUSAL =
+  'That would leave the month planned above its income; lower a planned amount in the app first.';
+
+const UPDATE_INCOME_REFUSALS = {
+  ...ending(
+    {
+      ...WRITE_ACCESS_REFUSALS,
+      not_found: 'No income with that id in this ledger; use list_income.',
+      month_ended: 'That month has ended and is read-only.',
+      invalid_request: INCOME_INPUT_REFUSAL,
+      over_income: OVER_INCOME_REFUSAL,
+    },
+    CHANGED_NOTHING,
+  ),
+  ...lostAnswerFor('The answer was lost, so it may be saved. The same call repeated is safe.'),
+};
+
 const DELETED_EXPENSE_NOTE =
   'It can’t be brought back from Claude, and the app can’t restore it either. To undo, add it again with add_expense ' +
   'from this answer.';
@@ -462,6 +479,33 @@ export function buildServer(scope: RequestScope): McpServer {
           };
         },
         ADD_INCOME_REFUSALS,
+      ),
+  );
+
+  server.registerTool(
+    'update_income',
+    {
+      description:
+        'Changes one income item’s title and amount (EUR), and answers with what was saved. Pass both, copying the ' +
+        'unchanged one from list_income. The same call repeated is safe.',
+      inputSchema: {
+        ledgerId: LedgerMonth.ledgerId,
+        incomeId: z.number().int().positive().describe('An incomeId from list_income'),
+        title: z.string().describe('What it is, like "Salary"'),
+        amount: z.string().describe('A decimal string in EUR, like "2500.00"'),
+      },
+      annotations: { title: 'Change income', readOnlyHint: false, destructiveHint: true, idempotentHint: true },
+    },
+    ({ ledgerId, incomeId, title, amount }) =>
+      toolResult(
+        scope,
+        'update_income',
+        async () => {
+          await scope.write('PUT', `/api/ledgers/${ledgerId}/income/${incomeId}`, { title, amount });
+          // The API answers 204 once saved, and stores the title trimmed and the amount to the cent.
+          return { ledgerId, incomeId, title: title.trim(), amount: eur(toCents(amount)) };
+        },
+        UPDATE_INCOME_REFUSALS,
       ),
   );
 

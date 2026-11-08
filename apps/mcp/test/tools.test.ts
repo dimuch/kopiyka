@@ -696,6 +696,81 @@ describe('the budget tools', () => {
     });
   });
 
+  describe('update_income', () => {
+    const PATH = '/api/ledgers/1/income/3';
+    const INPUT = { ledgerId: 1, incomeId: 3, title: ' Salary, raised ', amount: '2600.1' };
+    const puts = () => api.calls.filter((call) => call.method === 'PUT');
+
+    beforeEach(() => {
+      answer = (call) => (call.method === 'PUT' && call.path === PATH ? { status: 204, text: '' } : ledgerOne(call));
+    });
+
+    it('calls the API’s change as the token’s user, and answers with what was saved', async () => {
+      const result = await callTool('update_income', INPUT);
+
+      expect(puts().map((call) => [call.path, call.body, bearerOf(call)])).toEqual([
+        [PATH, { title: ' Salary, raised ', amount: '2600.1' }, 'kpk.olena'],
+      ]);
+      expect(result.isError).toBeUndefined();
+      expect(toolData(result)).toEqual({
+        ledgerId: 1,
+        incomeId: 3,
+        title: 'Salary, raised',
+        amount: { amount: '2600.10', formatted: '€2,600.10' },
+      });
+    });
+
+    const CHANGED_NOTHING = 'This call changed nothing.';
+    const LOST_ANSWER = 'The answer was lost, so it may be saved. The same call repeated is safe.';
+
+    it.each<[string, number, string]>([
+      [
+        'insufficient_scope',
+        403,
+        `This connection can only read. Disconnect Kopiyka in Claude’s connectors, connect, and allow it. ${CHANGED_NOTHING}`,
+      ],
+      ['ledger_not_found', 404, `No such ledger for this user; use list_ledgers. ${CHANGED_NOTHING}`],
+      ['not_found', 404, `No income with that id in this ledger; use list_income. ${CHANGED_NOTHING}`],
+      ['month_ended', 409, `That month has ended and is read-only. ${CHANGED_NOTHING}`],
+      [
+        'invalid_request',
+        400,
+        `The title must be 1 to 40 characters, and the amount positive with at most 8 digits and 2 decimals. ${CHANGED_NOTHING}`,
+      ],
+      [
+        'over_income',
+        409,
+        `That would leave the month planned above its income; lower a planned amount in the app first. ${CHANGED_NOTHING}`,
+      ],
+      ['internal', 500, LOST_ANSWER],
+    ])('explains %s', async (code, status, sentence) => {
+      answer = (call) => (call.method === 'PUT' ? { status, json: { error: code } } : ledgerOne(call));
+
+      const result = await callTool('update_income', INPUT);
+
+      expect(result.isError).toBe(true);
+      expect(result.content[0].text).toBe(`${code}: ${sentence}`);
+    });
+
+    it('says a repeat is safe when the answer is lost, and the repeat sends the same change', async () => {
+      let applied = false;
+      answer = (call) => {
+        if (call.method !== 'PUT') return ledgerOne(call);
+        if (applied) return { status: 204, text: '' };
+        applied = true;
+        return 'network_failure';
+      };
+
+      const lost = await callTool('update_income', INPUT);
+      const repeat = await callTool('update_income', INPUT);
+
+      expect(lost.content[0].text).toBe(`api_unreachable: ${LOST_ANSWER}`);
+      expect(toolData(repeat)).toMatchObject({ incomeId: 3, title: 'Salary, raised' });
+      const [first, second] = puts();
+      expect(second!.body).toEqual(first!.body);
+    });
+  });
+
   describe('eur_uah_rate', () => {
     beforeEach(() => {
       answer = (call) =>

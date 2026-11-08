@@ -377,7 +377,7 @@ PR B, one pass over `origin/main...HEAD`:
   `{ incomeId, title, amount, addedBy }`, so `incomeFields` holds it, as `expenseFields` does for expenses. Their answers
   are unchanged, and the existing tests prove it. `update_income` keeps its own answer: the API's 204 gives no `addedBy`.
 
-No new commit: the reuse happened in the slices themselves.
+One commit: the `incomeFields` extraction, found in review.
 
 ## Revision 1
 

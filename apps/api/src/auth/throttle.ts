@@ -2,9 +2,11 @@ import type { PoolConnection, RowDataPacket } from 'mysql2/promise';
 import type { Db } from '../db.js';
 
 // 5 wrong codes → 24 h block, counted separately per username, per IP (/64 for
-// IPv6) and per device id. Failures older than 24 h no longer count. A blocked
-// username doesn't block a device that has logged in as that user before
-// (brief 064), so strangers' wrong codes can't lock its owner out.
+// IPv6) and per device id. The count starts over only after 24 h with no failure
+// on that key, so failures less than 24 h apart keep adding up, however long the
+// run (the owner's choice, brief 072). A blocked username doesn't block a device
+// that has logged in as that user before (brief 064), so strangers' wrong codes
+// can't lock its owner out.
 export const MAX_FAILURES = 5;
 export const WINDOW_MS = 24 * 60 * 60 * 1000;
 export const LOCK_MS = 24 * 60 * 60 * 1000;
@@ -34,7 +36,10 @@ export function isLocked(state: ThrottleState | undefined, now: Date): boolean {
   return !!state?.lockedUntil && state.lockedUntil.getTime() > now.getTime();
 }
 
-/** The state after one more wrong code. Reaching the limit locks the key and restarts the count. */
+/**
+ * The state after one more wrong code. The count starts over when the last failure is 24 h or more ago; otherwise it
+ * adds up. Reaching the limit locks the key and restarts the count.
+ */
 export function afterFailure(state: ThrottleState | undefined, now: Date): ThrottleState {
   const stale = !state?.lastFailedAt || now.getTime() - state.lastFailedAt.getTime() >= WINDOW_MS;
   const failed = stale ? 1 : state.failedAttempts + 1;

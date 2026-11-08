@@ -160,7 +160,7 @@ capability and no contract change (comment, test, one `DELETE`).
 - [x] 0. Bump version to 1.6.2
   - Files: package.json, apps/mobile/app.json
   - Change: set both to 1.6.2
-- [ ] 4. Say what the login lock counts, and pin it with a test
+- [x] 4. Say what the login lock counts, and pin it with a test
   - Files: `apps/api/src/auth/throttle.ts`, `apps/api/test/throttle.test.ts`
   - Change: the header comment replaces "Failures older than 24 h no longer count". The new text: the count starts over
     only after 24 h with no failure on that key, so failures less than 24 h apart keep adding up however long the run

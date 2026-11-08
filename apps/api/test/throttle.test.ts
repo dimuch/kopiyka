@@ -33,10 +33,21 @@ describe('afterFailure', () => {
     expect(isLocked(next, at(25 * HOUR))).toBe(false);
   });
 
-  it('forgets failures older than 24 h', () => {
+  it('starts over after 24 h with no failure', () => {
     const state = fail(4, undefined);
     expect(afterFailure(state, at(24 * HOUR + 4000)).failedAttempts).toBe(1);
     expect(afterFailure(state, at(23 * HOUR)).lockedUntil).not.toBeNull();
+
+    // Exactly 24 h after the last of four failures 23 h apart (at 69 h), the count starts over.
+    const spread = fail(4, undefined, 23 * HOUR);
+    expect(afterFailure(spread, at(69 * HOUR + 24 * HOUR)).failedAttempts).toBe(1);
+  });
+
+  it('keeps counting failures less than 24 h apart, over more than 24 h', () => {
+    // Five failures 23 h apart span 92 h, and still lock: only a 24 h gap with no failure starts the count over.
+    const state = fail(5, undefined, 23 * HOUR);
+    expect(state.lockedUntil).toEqual(new Date(at(92 * HOUR).getTime() + LOCK_MS));
+    expect(isLocked(state, at(92 * HOUR))).toBe(true);
   });
 });
 

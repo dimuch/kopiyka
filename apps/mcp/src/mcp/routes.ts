@@ -14,7 +14,7 @@ import { kyivToday } from '../dates.js';
 import { DEFAULT_LIMITS, openRequests, toolCallBuckets } from '../limits.js';
 import { SCOPES } from '../oauth/metadata.js';
 import { verifyAccessToken } from './auth.js';
-import { buildServer } from './tools.js';
+import { buildServer, type WriteCall } from './tools.js';
 
 const MAX_SUBSCRIPTIONS = 16;
 
@@ -42,10 +42,11 @@ export async function mcpRoutes(app: FastifyInstance, deps: AppDeps): Promise<vo
     ({ authInfo, requestInfo }) =>
       buildServer({
         read: (path) => api.get(path, authInfo!.token, requestInfo?.signal),
-        write: (method, path, body = {}) => {
+        write: <T>(...call: WriteCall): Promise<T> => {
           const token = authInfo!.token;
-          if (method === 'POST') return api.post(path, token, body);
-          return method === 'PUT' ? api.put(path, token, body) : api.delete(path, token);
+          if (call[0] === 'DELETE') return api.delete(call[1], token);
+          const [method, path, body] = call;
+          return method === 'POST' ? api.post(path, token, body) : api.put(path, token, body);
         },
         today: () => kyivToday(now()),
         takeToolCall: (tool) => {

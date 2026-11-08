@@ -39,7 +39,7 @@ export function moduleList(sources: readonly string[]): string[] {
 }
 
 /** App modules the demo never uses (brief 080's first criterion), as paths or folders from apps/mobile. */
-const BANNED_IN_DEMO = [
+export const BANNED_IN_DEMO = [
   'src/app/_layout.tsx',
   'src/app/(tabs)/index.tsx',
   'src/app/(tabs)/settings.tsx',
@@ -134,7 +134,9 @@ export function readBuild(dir: string): Build {
     const mapPath = join(web, `${bundle}.map`);
     if (!existsSync(mapPath)) throw new Error(`${bundle} has no source map: export with --source-maps.`);
     const map = JSON.parse(readFileSync(mapPath, 'utf8')) as SourceMap;
-    sources.push(...(map.sources ?? map.sections?.flatMap((section) => section.map.sources) ?? []));
+    const mapSources = map.sources ?? map.sections?.flatMap((section) => section.map.sources);
+    if (!mapSources) throw new Error(`${bundle}.map lists no sources.`);
+    sources.push(...mapSources);
     text += readFileSync(join(web, bundle), 'utf8');
   }
   return { modules: moduleList(sources), text };

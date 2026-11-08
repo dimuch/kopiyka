@@ -1,7 +1,14 @@
-import { readdirSync, readFileSync, statSync } from 'node:fs';
+import { existsSync, readdirSync, readFileSync, statSync } from 'node:fs';
 import { join } from 'node:path';
 import { describe, expect, it } from 'vitest';
-import { bannedInDemo, type Build, listDifferences, moduleList, productionProblems } from '../scripts/buildCheck.mjs';
+import {
+  BANNED_IN_DEMO,
+  bannedInDemo,
+  type Build,
+  listDifferences,
+  moduleList,
+  productionProblems,
+} from '../scripts/buildCheck.mjs';
 
 const demo = (modules: string[], text = 'root:"src/demo-app"'): Build => ({ modules, text });
 
@@ -67,6 +74,14 @@ describe('bannedInDemo', () => {
     ['notion, in any case', 'NOTION'],
   ])('refuses the text %s', (name, text) => {
     expect(bannedInDemo(demo([], `root:"src/demo-app";${text}`))).toEqual([`banned text: ${name}`]);
+  });
+
+  it('bans only paths that exist, so a renamed file can’t drop out of the ban unnoticed', () => {
+    const missing = BANNED_IN_DEMO.filter((banned) => banned.startsWith('src/')).filter(
+      (banned) => !existsSync(join(__dirname, '..', banned)),
+    );
+
+    expect(missing).toEqual([]);
   });
 
   it('passes CategoryPicker, apiError and the date picker package', () => {

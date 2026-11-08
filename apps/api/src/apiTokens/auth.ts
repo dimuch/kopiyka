@@ -8,6 +8,9 @@ export const API_TOKEN_PREFIX = 'kpk.';
 
 /** All a `write` token may change, as `METHOD url`. A route not listed stays refused, so a new one is added on purpose. */
 const WRITE_TOKEN_ROUTES = new Set([
+  'POST /api/ledgers/:id/months/:month/income',
+  'PUT /api/ledgers/:id/income/:incomeId',
+  'DELETE /api/ledgers/:id/income/:incomeId',
   'POST /api/ledgers/:id/expenses',
   'PUT /api/ledgers/:id/expenses/:expenseId',
   'DELETE /api/ledgers/:id/expenses/:expenseId',
@@ -15,7 +18,7 @@ const WRITE_TOKEN_ROUTES = new Set([
 
 /**
  * `requireAuth` for an API token: GET and HEAD, plus the routes above for a `write` token. So even a compromised MCP
- * server can only add, change and delete expenses, and a `read` token can't change anything.
+ * server can only add, change and delete expenses and income, and a `read` token can't change anything.
  */
 export async function apiTokenAuth(
   db: Db,

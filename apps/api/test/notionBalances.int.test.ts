@@ -141,11 +141,18 @@ describe.skipIf(!(await testDbReachable()))('month balances import (MySQL)', () 
   });
 
   it('a dry run reports the changes and writes nothing', async () => {
+    await seed(owner.ledgerId, '2026-02-01', '1.00', '2.00');
     const before = await rows();
     const changes = await previewBalances(db, owner.ledgerId, wantedBalances(base));
     expect(changes[0]).toMatchObject({ month: '2026-01', from: null, changed: true });
+    expect(changes[1]).toMatchObject({
+      month: '2026-02',
+      from: { openingCents: 100n, closingCents: 200n },
+      changed: true,
+    });
     expect(changes.every((c) => c.changed)).toBe(true);
     expect(await rows()).toEqual(before);
+    expect(before).toEqual([['2026-02-01', '1.00', '2.00']]);
   });
 
   it('an unknown ledger throws', async () => {

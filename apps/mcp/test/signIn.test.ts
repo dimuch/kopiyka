@@ -151,15 +151,16 @@ describe('signing in', () => {
 
       expect(res.body).toContain('Allow read access?');
       expect(res.body).toContain('will be able to read these budgets for up to an hour, but not change them:');
-      for (const write of ['add, change and delete', 'changing', 'expenses']) expect(res.body).not.toContain(write);
+      for (const write of ['add, change and delete', 'changing', 'expenses', 'income'])
+        expect(res.body).not.toContain(write);
     });
 
-    it('says a write connection can add, change and delete expenses, and nothing else', async () => {
+    it('says a write connection can add, change and delete expenses and income, and nothing else', async () => {
       const res = await signIn(await startSignIn(app, await registerClient(app), 'read write'));
 
-      expect(res.body).toContain('Allow reading and changing expenses?');
+      expect(res.body).toContain('Allow reading and changing expenses and income?');
       expect(res.body).toContain(
-        'will be able to read these budgets and add, change and delete their expenses for up to an hour, but not their income, categories, plans or members:',
+        'will be able to read these budgets and add, change and delete their expenses and income for up to an hour, but not their categories, plans or members:',
       );
       expect(res.body).not.toContain('Allow read access?');
     });
@@ -194,7 +195,7 @@ describe('signing in', () => {
 
       const res = await signIn(await startSignIn(app, await registerClient(app), 'read write'));
 
-      expect(res.body).toContain('wants to read your budgets and add, change and delete expenses.');
+      expect(res.body).toContain('wants to read your budgets and add, change and delete expenses and income.');
     });
 
     it('treats a code the API can’t read as a wrong one', async () => {

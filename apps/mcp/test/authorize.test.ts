@@ -142,12 +142,15 @@ describe('GET /oauth/authorize', () => {
       expect(res.statusCode).toBe(200);
     });
 
-    it.each(['read write', 'write read', 'write'])('says a request for “%s” can change expenses', async (scope) => {
-      const res = await authorize({ client_id: await register([CALLBACK]), scope });
+    it.each(['read write', 'write read', 'write'])(
+      'says a request for “%s” can change expenses and income',
+      async (scope) => {
+        const res = await authorize({ client_id: await register([CALLBACK]), scope });
 
-      expect(res.statusCode).toBe(200);
-      expect(res.body).toContain('wants to read your budgets and add, change and delete expenses.');
-    });
+        expect(res.statusCode).toBe(200);
+        expect(res.body).toContain('wants to read your budgets and add, change and delete expenses and income.');
+      },
+    );
 
     it.each([['read'], [''], [undefined]])('asks only to read for a scope of %j', async (scope) => {
       const res = await authorize({ client_id: await register([CALLBACK]), scope });

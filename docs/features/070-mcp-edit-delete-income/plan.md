@@ -368,6 +368,16 @@ PR A, one pass over `origin/main...HEAD`:
 
 No new commit: the reuse happened in the slices themselves.
 
+PR B, one pass over `origin/main...HEAD`:
+
+- REUSE: the income tools build their refusal maps from `WRITE_ACCESS_REFUSALS`, `ending` and `lostAnswerFor` (PR A).
+  `INCOME_INPUT_REFUSAL` and `OVER_INCOME_REFUSAL` are each written once and shared by the tools that can hit them.
+- REUSE: `delete_income` reads the month with the same path `list_income` uses; the API has no single-item read.
+- LEAVE: `add_income`, `update_income` and `delete_income` build their own answers. Their shapes differ (month, addedBy,
+  note), so a shared builder would need options for each.
+
+No new commit: the reuse happened in the slices themselves.
+
 ## Revision 1
 
 The owner chose option a for restoring an expense deleted from Claude, and the brief's AC 4 changed to match. AC 4's

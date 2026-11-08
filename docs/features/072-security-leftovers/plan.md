@@ -125,7 +125,7 @@ capability and no contract change (comment, test, one `DELETE`).
       undo (restore the copy).
   - Verify: `yarn format:check` (Markdown) and the other gates. No local nginx (checked: none installed), so the file
     is first parsed by the owner's `nginx -t` (owner step 5).
-- [ ] 2. Count each IPv6 /64 as one address in nginx's limits
+- [x] 2. Count each IPv6 /64 as one address in nginx's limits
   - Files: `deploy/kopiyka.englishplus.com.ua.conf`, `deploy/check-address-key.sh` (new, 755), `deploy/README.md`
   - Change: add the `$kopiyka_addr` map with a comment: why /64, why bytes and not `$remote_addr`'s compressed text,
     and why the zones were renamed. Also point `kopiyka_oauth_post_key` at it, rename the 5 zones and their
@@ -335,7 +335,10 @@ or the README: the repo is public.
 
 ## Deviations
 
-<filled by the developer during build>
+- slice 2: `check-address-key.sh` wasn't run locally: this Mac has no nginx (and no Docker), and installing one needs the
+  owner's OK. Its setup exit (`No nginx found.`, exit 2) was run. The first real run is owner step 4, on main's vhost in a
+  temporary folder, before anything is installed. The test nginx serves a static file, not `return`: `return` answers in
+  the rewrite phase, before `limit_req`, so every case would pass.
 
 ## Consolidate
 

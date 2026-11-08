@@ -67,9 +67,15 @@ export async function authRoutes(app: FastifyInstance, deps: AppDeps): Promise<v
     if (attempt.outcome === 'rejected') return reply.code(401).send({ error: 'invalid_credentials' });
 
     const user = attempt.value;
-    // Old throttle rows go here, as createSession clears expired sessions: a good login is rare enough to be cheap.
-    await pruneThrottle(db, at);
     const session = await createSession(db, user.userId, at, config.sessionTtlMinutes);
+    // Old throttle rows go here, as createSession clears expired sessions: a good login is rare enough to be cheap. It's
+    // best-effort and comes after the session: the code is already used, so failing the login here would cost the user
+    // a 30 s wait and a counted failure, while a row left behind acts like a missing one anyway.
+    try {
+      await pruneThrottle(db, at);
+    } catch (err) {
+      req.log.warn({ err }, 'throttle prune failed');
+    }
     reply.setCookie(SESSION_COOKIE, session.token, {
       httpOnly: true,
       secure: config.cookieSecure,

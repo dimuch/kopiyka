@@ -191,7 +191,7 @@ Alternatives considered:
 
 ## Version
 
-Bump: patch, in PR 4 only — 1.5.0 → 1.5.1 (main took 1.3.1–1.5.0 while PRs 1–4 were open)
+Bump: patch, in PR 4 only — 1.5.0 → 1.5.1 (main moved to 1.5.0 while PRs 1–4 were open)
 Why: conventions §8b, "a refactor that touches shipped code is `patch`, never `none`". `moneyCards` is a behaviour-preserving
 move in production Home. Nothing else reaches production: without the flag `expo config` output is identical and the
 production bundle is byte-identical (measured). The demo isn't deployed here, so no capability reaches anyone, which keeps

@@ -476,6 +476,31 @@ and `rate` for steady use, then install the vhost again. A new `rate` or `burst`
 a changed key on a live zone, `nginx -t` doesn't catch it, and the old config stays on. So changing a key needs a new zone
 name too, which is why brief 072 renamed the zones it moved to `$kopiyka_addr` (`_64`).
 
+### Checking the IPv6 grouping
+
+Every limit counts an IPv4 address on its own and an IPv6 address by its /64 (brief 072), through the vhost's
+`$kopiyka_addr` map. The site has no AAAA record, so this only matters to a client that uses the droplet's IPv6 address
+directly, and an honest test needs no IPv6 at all. `deploy/check-address-key.sh` starts its own nginx as you on
+127.0.0.1:18064 with only that map, sets each case's address through the realip module, and removes everything on exit. It
+prints a `PASS` or `FAIL` per case.
+
+Run it on main's vhost before installing it, after the `fetch` line in "After changing the vhost", and on the live one after:
+
+```bash
+d=$(mktemp -d)
+sudo -u kopiyka git -C /opt/kopiyka/repo.git show main:deploy/check-address-key.sh >"$d/check.sh"
+sudo -u kopiyka git -C /opt/kopiyka/repo.git show main:deploy/kopiyka.englishplus.com.ua.conf >"$d/vhost.conf"
+bash "$d/check.sh" "$d/vhost.conf"; echo "exit $?"
+```
+
+After the install, run the last line without `"$d/vhost.conf"` to check the installed vhost, then `rm -r "$d"`. Exit 0 is
+8 × `PASS`. Exit 1 means the map is wrong: before the install, don't install it; after, restore the vhost copy as in "After
+changing the vhost". Exit 2 is the script's own setup, not the map (no nginx, no realip module, or its nginx didn't
+start): don't restore anything, and keep the output.
+
+With IPv6 on both the droplet and the laptop, a real check is also possible: the "Checks after rollout" login loop with
+`curl -6` and `--resolve` to the droplet's IPv6 address, then one request from another address in the laptop's /64 gives 429. Skip it otherwise.
+
 ## MCP connector
 
 `apps/mcp` lets Claude read a user's budgets and add, change and delete expenses and income (briefs 063, 069, 070). It

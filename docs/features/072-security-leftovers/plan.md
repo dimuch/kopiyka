@@ -347,6 +347,12 @@ or the README: the repo is public.
 PR 1: skipped. It adds no function, hook, component, route or query: only the vhost, two unit files, a shell script and
 the README. The script's checks don't repeat any in the repo; its install steps reuse the README's existing guard.
 
+PR 2, one pass over `origin/main...HEAD`: one new function, `pruneThrottle`.
+
+- LEAVE: its nearest twin is `createSession`'s `DELETE FROM sessions WHERE expires_at <= ?`. Another table and another
+  rule (a lock and a 24 h window, not one expiry), so a shared helper would only hide the two rules. It follows the same
+  pattern: cleanup on a good login.
+
 ## Revision 1
 
 - **Base moved:** now 2406cb0 (1.6.0), so the bumps are 1.6.1 and 1.6.2. The brief's systemd bullet was corrected, so

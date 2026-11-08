@@ -156,6 +156,23 @@ const UPDATE_INCOME_REFUSALS = {
   ...lostAnswerFor('The answer was lost, so it may be saved. The same call repeated is safe.'),
 };
 
+const DELETE_INCOME_REFUSALS = {
+  ...ending(
+    {
+      ...WRITE_ACCESS_REFUSALS,
+      not_found:
+        'No income with that id in that month. If an earlier call got no answer, it may already be deleted: check ' +
+        'list_income, and to add it back use the title and amount from an earlier list_income.',
+      month_ended: 'That month has ended and is read-only.',
+      over_income: OVER_INCOME_REFUSAL,
+    },
+    DELETED_NOTHING,
+  ),
+  ...lostAnswerFor('The answer was lost, so it may be deleted. The same call repeated is safe.'),
+};
+
+const DELETED_INCOME_NOTE = 'Deleted for good: to undo, add it again with add_income from this answer.';
+
 const DELETED_EXPENSE_NOTE =
   'It can’t be brought back from Claude, and the app can’t restore it either. To undo, add it again with add_expense ' +
   'from this answer.';
@@ -506,6 +523,44 @@ export function buildServer(scope: RequestScope): McpServer {
           return { ledgerId, incomeId, title: title.trim(), amount: eur(toCents(amount)) };
         },
         UPDATE_INCOME_REFUSALS,
+      ),
+  );
+
+  server.registerTool(
+    'delete_income',
+    {
+      description:
+        'Deletes one income item for good, and answers with what was deleted. There is no Undo, in Claude or in the ' +
+        'app, so confirm with the user first. The same call repeated is safe.',
+      inputSchema: {
+        ...LedgerMonth,
+        incomeId: z.number().int().positive().describe('An incomeId from list_income for that month'),
+      },
+      annotations: { title: 'Delete income', readOnlyHint: false, destructiveHint: true, idempotentHint: true },
+    },
+    ({ ledgerId, month, incomeId }) =>
+      toolResult(
+        scope,
+        'delete_income',
+        async () => {
+          // There's no single-item read and the delete answers 204, so find the item in its month first.
+          const { items } = await scope.read<{ items: ApiIncomeItem[] }>(
+            `/api/ledgers/${ledgerId}/months/${month}/income`,
+          );
+          const item = items.find((candidate) => candidate.incomeId === incomeId);
+          if (!item) throw new ApiError(404, 'not_found');
+          await scope.write('DELETE', `/api/ledgers/${ledgerId}/income/${incomeId}`);
+          return {
+            ledgerId,
+            month,
+            incomeId,
+            title: item.title,
+            amount: eur(toCents(item.amountEur)),
+            addedBy: item.addedBy,
+            note: DELETED_INCOME_NOTE,
+          };
+        },
+        DELETE_INCOME_REFUSALS,
       ),
   );
 

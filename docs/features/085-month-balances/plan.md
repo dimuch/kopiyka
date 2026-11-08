@@ -217,7 +217,7 @@ capability; nothing existing changes.
     - `notionBalances.test.ts` › `toBalancesSnapshot`: `-18000n` → `'-180.00'`, and a null amount and null month
       are kept. It round-trips through `BalancesSnapshot.parse(JSON.parse(JSON.stringify(s)))`.
       `BalancesSnapshot.parse` refuses `'1.234'` and `'--1'`.
-- [ ] 5. Map Notion's balance rows to January–October months, filling missing sides (~130)
+- [x] 5. Map Notion's balance rows to January–October months, filling missing sides (~130)
   - Files: `apps/api/src/notion/balances.ts` (`wantedBalances`), `apps/api/test/notionBalances.test.ts`
   - Tests (`wantedBalances`; amounts in euros for short):
     - Mapping and summing:

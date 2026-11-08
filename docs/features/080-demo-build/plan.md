@@ -253,7 +253,7 @@ store. A helper asserts `[status, code, body]` of the `ApiError`.
   - Tests: PUT 404, `month_ended` from either end, re-pricing; PUT refused with `unknown_category`,
     `category_not_in_month`, `date_in_future`, in that order, after the 404 and `month_ended` checks; DELETE 404 and `month_ended`, then the GET is 404; restore
     200, a second restore 404, 404 when the category left the month, `month_ended` after the month has ended.
-- [ ] 4. List a month's categories and its quick row in the store (~130)
+- [x] 4. List a month's categories and its quick row in the store (~130)
   - Files: `src/demo/categoryRoutes.ts`, `src/demo/store.ts`, new `test/demoCategories.test.ts`
   - Tests: list order and planned amounts; "an empty month gives empty lists"; quick row from every month's expenses, newest
     first, never-used after, five at most; one category in and out of its list (name, `inMonth`, counts); 404.

@@ -342,7 +342,8 @@ or the README: the repo is public.
 
 ## Consolidate
 
-<filled in /kopiyka-hos Phase 3a: CONSOLIDATE line, each reuse/extract, each LEAVE + reason>
+PR 1: skipped. It adds no function, hook, component, route or query: only the vhost, two unit files, a shell script and
+the README. The script's checks don't repeat any in the repo; its install steps reuse the README's existing guard.
 
 ## Revision 1
 

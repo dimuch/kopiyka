@@ -112,7 +112,7 @@ capability and no contract change (comment, test, one `DELETE`).
 - [x] 0. Bump version to 1.6.1
   - Files: package.json, apps/mobile/app.json
   - Change: set both to 1.6.1
-- [ ] 1. Accept /mcp only from Anthropic's addresses
+- [x] 1. Accept /mcp only from Anthropic's addresses
   - Files: `deploy/kopiyka.englishplus.com.ua.conf`, `deploy/README.md`
   - Change: the vhost's `location = /mcp` gets `allow`/`allow`/`deny all` first, with a comment. Its point: a sealed
     token copied out of Claude can't be used from elsewhere. `limit_req` still answers a flood with 429 before 403, and

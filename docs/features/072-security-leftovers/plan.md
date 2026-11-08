@@ -157,7 +157,7 @@ capability and no contract change (comment, test, one `DELETE`).
 
 ### PR 2: API (`chore/login-throttle-prune`)
 
-- [ ] 0. Bump version to 1.6.2
+- [x] 0. Bump version to 1.6.2
   - Files: package.json, apps/mobile/app.json
   - Change: set both to 1.6.2
 - [ ] 4. Say what the login lock counts, and pin it with a test

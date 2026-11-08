@@ -136,7 +136,7 @@ no API, schema or MCP changes. If `origin/main` moves past 1.6.0 first, take its
 
 ## Slices
 
-- [ ] 0. Bump version to 1.7.0
+- [x] 0. Bump version to 1.7.0
   - Files: package.json, apps/mobile/app.json
   - Change: set both to 1.7.0
 - [ ] 1. Serve the demo build on demo.kopiyka.englishplus.com.ua (~50 lines)

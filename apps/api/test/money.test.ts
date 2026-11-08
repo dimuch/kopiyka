@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { AMOUNT_RE, centsToString, convert, e4ToString, rateToE4, toCents } from '../src/money.js';
+import { AMOUNT_RE, centsToString, convert, e4ToString, rateToE4, SIGNED_AMOUNT_RE, toCents } from '../src/money.js';
 
 describe('money', () => {
   it('validates amounts as at most 8 digits and 2 decimals', () => {
@@ -14,6 +14,20 @@ describe('money', () => {
     expect(centsToString(1250n)).toBe('12.50');
     expect(centsToString(5n)).toBe('0.05');
     expect(centsToString(-305n)).toBe('-3.05');
+  });
+
+  it('validates signed amounts for balances (brief 085)', () => {
+    for (const ok of ['-180.00', '0', '12.5', '-0.05']) expect(SIGNED_AMOUNT_RE.test(ok)).toBe(true);
+    for (const bad of ['', '-', '--1', '+1', '-1.234', '-.5', '-123456789']) {
+      expect(SIGNED_AMOUNT_RE.test(bad)).toBe(false);
+    }
+  });
+
+  it('reads a leading minus as negative cents', () => {
+    expect(toCents('-180')).toBe(-18000n);
+    expect(toCents('-0.5')).toBe(-50n);
+    expect(toCents('-12.05')).toBe(-1205n);
+    expect(toCents('-0.05')).toBe(-5n);
   });
 
   it('turns NBU rates into exact 1/10000ths', () => {

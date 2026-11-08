@@ -6,8 +6,13 @@ export type Currency = 'EUR' | 'UAH';
 /** Up to 8 whole digits and 2 decimals: 99,999,999.99 at most. */
 export const AMOUNT_RE = /^\d{1,8}(\.\d{1,2})?$/;
 
-/** '12.5' → 1250n. Callers validate with AMOUNT_RE first. */
+/** AMOUNT_RE with an optional leading minus: opening and closing balances can be negative (brief 085). */
+export const SIGNED_AMOUNT_RE = /^-?\d{1,8}(\.\d{1,2})?$/;
+
+/** '12.5' → 1250n, '-12.05' → -1205n. Callers validate with AMOUNT_RE or SIGNED_AMOUNT_RE first. */
 export function toCents(amount: string): bigint {
+  // The sign applies to the whole amount, so split it off first: '-0.05' is -5n, not BigInt('-0') * 100n + 5n.
+  if (amount.startsWith('-')) return -toCents(amount.slice(1));
   const [whole, frac = ''] = amount.split('.');
   return BigInt(whole!) * 100n + BigInt(frac.padEnd(2, '0'));
 }

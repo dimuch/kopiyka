@@ -285,7 +285,7 @@ store. A helper asserts `[status, code, body]` of the `ApiError`.
   - Tests: `homeCards.test.ts`, table: loading (null figures), `Not set`, figures, `failed` from each load on its own card.
   - Verify (web, launch configs `api` and `web`, 390×844): five cards with the same labels and figures as before; with the
     fetch stub from 079's plan, `—` while loading and `not available` on failure.
-- [ ] 10. Give the demo its session, tabs and client (~80)
+- [x] 10. Give the demo its session, tabs and client (~80)
   - Files: new `src/demo/{client,session,tabItems}.ts`, new `test/demoTabItems.test.ts`
   - Change: as in Contracts. Nothing imports them yet.
   - Tests: "lists four tabs with no Statistics or Settings"; "reads the active tab and params with those names"; "falls back

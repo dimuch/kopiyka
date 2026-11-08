@@ -3,16 +3,17 @@
 Production is `https://kopiyka.englishplus.com.ua` on the DigitalOcean droplet (`ssh do`, 1 vCPU, 2 GB RAM, shared
 with other sites). nginx serves the web app and proxies `/api` to the API on `127.0.0.1:3100`, run by systemd as the
 `kopiyka` user. It also proxies the MCP connector (`/mcp`, `/oauth/`, `/.well-known/oauth-*`) to `127.0.0.1:3200`, run as
-`kopiyka-mcp`.
+`kopiyka-mcp`. The demo (`https://demo.kopiyka.englishplus.com.ua`, "The demo site" below) is served from the same
+release, static files only.
 
-| File                              | Installed as                                                   |
-| --------------------------------- | -------------------------------------------------------------- |
-| `kopiyka.service`                 | `/etc/systemd/system/kopiyka.service`                          |
-| `kopiyka-mcp.service`             | `/etc/systemd/system/kopiyka-mcp.service`                      |
-| `kopiyka.englishplus.com.ua.conf` | `/etc/nginx/sites-available/` + link in `sites-enabled/`       |
-| `deploy.sh`                       | `/usr/local/bin/kopiyka-deploy` (forced command of the key)    |
-| —                                 | `/etc/kopiyka/api.env` (root `0600`, secrets, never in a repo) |
-| —                                 | `/etc/kopiyka/mcp.env` (root `0600`, the seal key)             |
+| File                              | Installed as                                                         |
+| --------------------------------- | -------------------------------------------------------------------- |
+| `kopiyka.service`                 | `/etc/systemd/system/kopiyka.service`                                |
+| `kopiyka-mcp.service`             | `/etc/systemd/system/kopiyka-mcp.service`                            |
+| `kopiyka.englishplus.com.ua.conf` | `/etc/nginx/sites-available/` + link in `sites-enabled/`; both names |
+| `deploy.sh`                       | `/usr/local/bin/kopiyka-deploy` (forced command of the key)          |
+| —                                 | `/etc/kopiyka/api.env` (root `0600`, secrets, never in a repo)       |
+| —                                 | `/etc/kopiyka/mcp.env` (root `0600`, the seal key)                   |
 
 ## How a deploy works
 
@@ -22,7 +23,9 @@ Actions → **Deploy** → Run workflow on `main`. Merging never deploys by itse
 2. The runner SSHes in as `kopiyka` with the deploy key. The key's forced command runs `kopiyka-deploy <sha>`, which
    only accepts a commit that is on `main`.
 3. On the droplet: `git archive` of the commit into `/opt/kopiyka/releases/<time>-<sha7>`, then `yarn install`, the API
-   build, the MCP build and the web export, one at a time under `nice` with memory caps.
+   build, the MCP build and both web exports, production's and the demo's, one at a time under `nice` with memory caps.
+   `check-builds` then checks that each holds only what it should, and the source maps it read are deleted. A failed
+   export or check ends the deploy here, with production left as it was.
 4. `current` is switched to the new release and `kopiyka.service` restarted. Pending migrations run first
    (`ExecStartPre`); then `/api/health` is polled. Once it's set up, `kopiyka-mcp.service` is restarted and checked the
    same way.
@@ -373,6 +376,10 @@ for path in / /index.html /budget "$bundle" /api/health /mcp /oauth/authorize; d
   curl -sI "$site$path" | grep -iE '^(server|strict-transport-security|content-security-policy|x-frame-options|x-content-type-options|referrer-policy|permissions-policy|cache-control):'
 done
 ```
+
+For the demo, run the same loop with `site=https://demo.kopiyka.englishplus.com.ua` and `/` `/budget` `"$bundle"` `/mcp`.
+Each shows the six security headers, its CSP with `connect-src 'none'`, and no proxied answer: `/mcp` gets the demo's
+page.
 
 Each path shows the six security headers. `/`, `/index.html` and `/budget` show `Cache-Control: no-cache`, the bundle
 `…, immutable`, and `/api/health` none. From the laptop `/mcp` is a 403 since brief 072, still with the six headers.
@@ -829,6 +836,116 @@ Only an app with a fixed `https` callback can be added, so one with a `localhost
 
 Removing a URL works the same way: new sign-ins stop at the restart.
 
+## The demo site
+
+Brief 081: `https://demo.kopiyka.englishplus.com.ua` serves the demo build (brief 080) from the same release as
+production: `current/apps/mobile/dist-demo`, static files only, with its own certificate. It proxies nothing, and its
+CSP has `connect-src 'none'`. The login page links to it ("Try it now"). One-time setup, in this order, so the link never
+points at nothing:
+
+1. **Merge** the PR. Merging deploys nothing, so the link isn't live yet.
+2. **DNS.** In DigitalOcean → Networking → Domains → `englishplus.com.ua`, add `A demo.kopiyka → <droplet IP>` (TTL 3600).
+   This must print the droplet's IP before you go on:
+
+   ```bash
+   dig +short demo.kopiyka.englishplus.com.ua
+   ```
+
+3. **Fetch `main`** into the bare repo, so the install lines below take the new files:
+
+   ```bash
+   sudo -u kopiyka git -C /opt/kopiyka/repo.git fetch -q origin +refs/heads/main:refs/heads/main
+   ```
+
+4. **Certificate,** the demo's own, so a failure on its name can never block production's renewal:
+
+   ```bash
+   sudo certbot certonly --nginx -d demo.kopiyka.englishplus.com.ua
+   ```
+
+   If certbot can't find a server block for the name, add a temporary port-80 block, get the certificate, then remove
+   it. Its `return` sits in a location, because a server-level `return` would answer before certbot's challenge:
+
+   ```bash
+   printf '%s\n' 'server {' '    listen 80;' '    listen [::]:80;' \
+     '    server_name demo.kopiyka.englishplus.com.ua;' '    location / { return 404; }' '}' |
+     sudo tee /etc/nginx/sites-enabled/demo-kopiyka-temp.conf >/dev/null
+   sudo nginx -t && sudo systemctl reload nginx
+   sudo certbot certonly --nginx -d demo.kopiyka.englishplus.com.ua
+   sudo rm /etc/nginx/sites-enabled/demo-kopiyka-temp.conf && sudo nginx -t && sudo systemctl reload nginx
+   ```
+
+5. **vhost.** Follow "After changing the vhost" (backup, install, `nginx -t`, reload, restore if it fails), then check
+   that renewal covers both names:
+
+   ```bash
+   sudo certbot renew --dry-run
+   ```
+
+   Until step 7 the release has no `dist-demo`, so the demo answers 500 for pages (nginx's `try_files` loop, logged as
+   `rewrite or internal redirection cycle` in `/var/log/nginx/error.log`) and 404 for `/_expo/static/…` and `.map`.
+   Nothing links there yet.
+
+6. **Re-install `deploy.sh`.** The guard stops an old copy from being installed. It must print `ok`. With the old copy, a
+   deploy builds no demo, and the link would point at a site answering 500:
+
+   ```bash
+   f=$(mktemp)
+   sudo -u kopiyka git -C /opt/kopiyka/repo.git show main:deploy/deploy.sh > "$f" && grep -q 'demo export' "$f" &&
+     sudo install -m 755 -o root -g root "$f" /usr/local/bin/kopiyka-deploy && echo ok
+   rm -f "$f"
+   ```
+
+7. **Deploy** from Actions. In a second session, watch memory with `vmstat 5`, and note the "demo export" and "build
+   check" lines in the log (time and max RSS). The demo's first export runs on a cold Metro cache, so it takes longer.
+   - A failed export or check leaves production on the previous release, without the link. Every later Deploy fails the
+     same way until it's fixed, so don't re-run it in a loop. Either fix the cause (swap, or clear the Metro cache), or
+     revert the PR on `main` and re-install `deploy.sh` with step 6's line using `grep -q 'mcp build'`, then Deploy.
+   - If `check-builds` fails with "built as production" or "in its app config", the Metro cache mixed the two flavours.
+     Clear it, then Deploy. It's Expo's default `os.tmpdir()/metro-cache`, and `deploy.sh` doesn't set `TMPDIR`:
+
+     ```bash
+     sudo -u kopiyka rm -rf /tmp/metro-cache
+     ```
+
+   - Rolling back to a release built before this change leaves `current` with no `dist-demo`. That happens with the
+     automatic rollback on the first deploy, or a rollback drill before the second. The demo then answers 500, and that
+     release's login page has no link, so nothing points there.
+
+8. **Checks, from the laptop:**
+
+   ```bash
+   demo=https://demo.kopiyka.englishplus.com.ua
+   curl -sI "$demo/" | grep -i content-security-policy                # → … connect-src 'none' …
+   curl -s "$demo/" > /tmp/demo-index.html
+   for path in /api/ledgers /mcp /oauth/authorize /.well-known/oauth-authorization-server; do
+     curl -s "$demo$path" | cmp -s - /tmp/demo-index.html && echo "$path: demo page" || echo "$path: DIFFERENT"
+   done
+   for site in https://kopiyka.englishplus.com.ua "$demo"; do
+     bundle=$(curl -s "$site/" | grep -o '/_expo/static/[^"]*' | head -1)
+     echo "$site: map $(curl -s -o /dev/null -w '%{http_code}' "$site$bundle.map")"   # → 404
+     curl -s "$site$bundle" | grep -c sourceMappingURL                              # → 0
+   done
+   ```
+
+   Every path prints "demo page": nothing is proxied.
+
+9. **Checks, on the droplet.** No source map is left, and both sites serve the release `current` points at:
+
+   ```bash
+   r=$(readlink /opt/kopiyka/current)
+   find "$r/apps/mobile/dist" "$r/apps/mobile/dist-demo" -name '*.map'                # → nothing
+   for site in https://kopiyka.englishplus.com.ua https://demo.kopiyka.englishplus.com.ua; do
+     bundle=$(curl -s "$site/" | grep -o '/_expo/static/[^"]*' | head -1)
+     ls "$r"/apps/mobile/dist*"$bundle"                                                   # → one file
+   done
+   ```
+
+10. **In Chrome at phone width,** walk the demo with the network panel open: add, edit and delete an expense, then Undo;
+    add and remove a category, then Undo; change a planned amount and the income; copy a month. Every request goes to
+    `demo.kopiyka.englishplus.com.ua`, and the console shows no CSP violation.
+11. **On the web and on iPhone,** "Try it now" on the login page opens the demo: the same tab on the web, Safari on iOS.
+
 ## After the first deploy
 
 - [ ] `https://kopiyka.englishplus.com.ua` on the laptop and the iPhone: log in, add an expense, reload, it's there.
@@ -851,6 +968,9 @@ Removing a URL works the same way: new sign-ins stop at the restart.
       (and that the previous release is unhealthy too, since `api.env` is shared). Restore the password; within ~5 s
       `Restart=always` brings the API back.
 - [ ] After a 4th deploy, `ls /opt/kopiyka/releases` shows 3 releases.
+- [ ] After the rollback drill, "The demo site" step 9's same-release check passes. That only holds once the previous
+      release was built by the new `deploy.sh` (brief 081), so run the drill after the second deploy with it. Rolled
+      back to an older release, the demo answers 500, and that release's login page has no link.
 
 If a deploy turns out too heavy for the droplet (swap storms, other sites timing out), the fallback is building on the
 GitHub runner and shipping the output.

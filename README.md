@@ -172,7 +172,8 @@ A new module reaching the demo fails it until `yarn mobile check-builds --accept
 Production is `https://kopiyka.englishplus.com.ua` on a small DigitalOcean droplet. Deploys are manual: Actions →
 **Deploy** → Run workflow on `main` runs the CI gates, then the droplet builds that commit, switches to it, restarts the
 API and rolls back if the health check fails. The one-time setup, how deploys work and the post-deploy checks are in
-[`deploy/README.md`](deploy/README.md). Each deployed version gets a `v<x.y.z>` tag and a GitHub Release; how the
+[`deploy/README.md`](deploy/README.md). The demo, `https://demo.kopiyka.englishplus.com.ua`, is served from the same
+release ([`deploy/README.md`](deploy/README.md), "The demo site"). Each deployed version gets a `v<x.y.z>` tag and a GitHub Release; how the
 number is chosen is in `.claude/skills/kopiyka-conventions/SKILL.md` §8b.
 
 The API listens on `127.0.0.1` behind nginx on the same host, and trusts `X-Forwarded-For` only from

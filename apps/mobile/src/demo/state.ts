@@ -69,3 +69,19 @@ export function refuseIfEnded(month: string, now: Date): void {
 export function inMonth(data: StoreData, categoryId: number, month: string): boolean {
   return data.monthRows.some((row) => row.categoryId === categoryId && row.month === month && row.removal === null);
 }
+
+/** The `planned` key of a category in a 'YYYY-MM' month. */
+export function plannedKey(categoryId: number, month: string): string {
+  return `${categoryId}/${month}`;
+}
+
+/**
+ * A category's name in a 'YYYY-MM' month, as the API's `NAME_IN_MONTH`: its row's name in the latest month on or before
+ * it, removed or not; with none (or an empty one), the category's own.
+ */
+export function nameInMonth(data: StoreData, category: DemoCategory, month: string): string {
+  const latest = data.monthRows
+    .filter((row) => row.categoryId === category.categoryId && row.month <= month)
+    .sort((left, right) => right.month.localeCompare(left.month))[0];
+  return latest?.displayName || category.displayName;
+}

@@ -53,7 +53,8 @@ export function afterFailure(state: ThrottleState | undefined, now: Date): Throt
  * Deletes the rows that no longer count: no active lock, and no failure in the last WINDOW_MS. For such a row
  * `isLocked` is false and `afterFailure` would start at 1, exactly as for a missing row, so no count or lock changes.
  * The login route runs it after a good login. It can't deadlock with `throttledAttempt`: the DELETE walks the primary
- * key (key_type, key_value) in order, and an attempt locks its rows in that same order (username, ip, device).
+ * key (key_type, key_value) in order, and an attempt locks its rows in that same order (username, ip, device: the
+ * key_type ENUM's index order).
  */
 export async function pruneThrottle(db: Db, now: Date): Promise<void> {
   await db.query(
@@ -82,7 +83,8 @@ export async function throttledAttempt<T extends { userId: number }>(
   try {
     await conn.beginTransaction();
     const states: ThrottleState[] = [];
-    // Fixed key order (username, ip, device) so two attempts can't lock each other's rows crosswise.
+    // Fixed key order (username, ip, device), which is the ENUM's index order and so ascending primary key order: two
+    // attempts can't lock each other's rows crosswise, and neither can pruneThrottle's DELETE, which walks that key.
     for (const key of keys) {
       // ODKU takes an exclusive lock on an existing row; INSERT IGNORE's shared one deadlocks under a burst.
       await conn.query(

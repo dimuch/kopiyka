@@ -293,7 +293,7 @@ capability; nothing existing changes.
     - After `yarn api migrate`, a dry run with a made-up full snapshot prints ten lines with fill notes, the
       warning, and `Dry run: nothing was written…`. `SELECT COUNT(*) FROM month_balances` stays 0.
     - If `NOTION_TOKEN` works, `--save` writes the file. If not (401), the error prints with no stack trace.
-- [ ] 11. Document the month balances import (~60)
+- [x] 11. Document the month balances import (~60)
   - Files: `deploy/README.md` (new section "Importing each month's balances from Notion", after the history steps),
     `README.md` (one paragraph after the `import-history` one, plus the two env vars)
   - Change: the runbook section covers:
@@ -317,9 +317,11 @@ capability; nothing existing changes.
     4. Run it with `--apply`. `SELECT * FROM month_balances WHERE ledger_id = 1` gives exactly one row,
        `2026-01-01, 0.00, -180.00`. A second `--apply` prints `Imported: 0 of 1 months changed.`
     5. **Stop for the user's OK.**
-    6. Then, without `--month`: a dry run (Jan `no change`) and `--apply`. The DB holds the brief's expected table:
-       July `0.00/-377.00`, Aug `0.00/-377.00`, and exactly one warning.
-    7. Record it in PR 2's test plan.
+  - Done 2026-11-08 on the laptop: migration 016 applied; snapshot built from the Notion connector (token not tried:
+    the Opening/Closing ids aren't in the laptop's `.env`). Full dry run on ledger 1 printed the ten expected lines
+    and the one July→Aug warning, with `month_balances` still empty. `--month 2026-01 --apply` wrote exactly
+    `2026-01-01, 0.00, -180.00`; a second `--apply` printed `2026-01: no change` / `Imported: 0 of 1 months changed.` 6. Then, without `--month`: a dry run (Jan `no change`) and `--apply`. The DB holds the brief's expected table:
+    July `0.00/-377.00`, Aug `0.00/-377.00`, and exactly one warning. 7. Record it in PR 2's test plan.
 
 ## AC → evidence
 

@@ -278,6 +278,63 @@ is off since the history import (30 October 2026): `NOTION_LEDGER_ID` and `NOTIO
 `apps/api/.env`, so Home shows no Sync to Notion panel. `NOTION_TOKEN` and the data source ids stay, for `--save`
 only. Turning sync back on (both lines back, restart the API) needs a sync to `unsent: 0` before the next import.
 
+## Importing each month's balances from Notion
+
+Each month's opening and closing balance (brief 085) comes from Notion's Opening and Actual Closing tables, January–
+October 2026. A month's side is the sum of its Notion rows; a side with no row is filled from the neighbouring month
+(opening ← previous closing, closing ← next opening) or else set to 0. It writes only the `month_balances` table, so it
+can run before or after the history import. Production never gets `NOTION_*`: it imports a snapshot file.
+
+1. **Snapshot**, on the laptop. With `NOTION_TOKEN`, `NOTION_GROCERIES_DATA_SOURCE_ID` and the two data source ids
+   `NOTION_OPENING_DATA_SOURCE_ID` / `NOTION_CLOSING_DATA_SOURCE_ID` in `apps/api/.env`:
+
+   ```bash
+   yarn api import-balances --save ./notion-balances-2026.json
+   ```
+
+   If the token answers 401, build the same file from the Notion connector instead:
+   `{ "opening": [{ "month": 1, "amount": "0.00" }, …], "closing": [{ "month": 1, "amount": "-180.00" }, …] }`, one
+   entry per Notion row (Month 1–12, Amount as a signed string, `null` for an empty cell).
+
+2. **Copy** it to the droplet: `scp ./notion-balances-2026.json do:/tmp/ && rm ./notion-balances-2026.json`.
+
+3. **Dry run, then import** on the droplet, as `kopiyka` with the env file:
+
+   ```bash
+   sudo install -m 600 -o kopiyka -g kopiyka /tmp/notion-balances-2026.json /tmp/notion-balances-kopiyka.json && shred -u /tmp/notion-balances-2026.json
+   run() { sudo systemd-run --pty --wait --collect -p User=kopiyka -p EnvironmentFile=/etc/kopiyka/api.env \
+     -p WorkingDirectory=/opt/kopiyka/current/apps/api /usr/bin/node dist/scripts/import-balances.js "$@"; }
+   run --ledger 1 --snapshot /tmp/notion-balances-kopiyka.json            # dry run: writes nothing
+   run --ledger 1 --snapshot /tmp/notion-balances-kopiyka.json --apply
+   sudo shred -u /tmp/notion-balances-kopiyka.json
+   ```
+
+   On an empty table the dry run prints one line per month, each fill note after its own side, then the warnings:
+
+   ```text
+   2026-01: opening none → 0.00, closing none → -180.00
+   …
+   2026-08: opening none → 0.00, closing none → -377.00 (filled from 2026-09 opening)
+   …
+   Warning: 2026-07 closes at -377.00, but 2026-08 opens at 0.00
+   Dry run: nothing was written. Run again with --apply to write.
+   ```
+
+   `--apply` prints the same and ends with `Imported: 10 of 10 months changed.`; it writes all months in one
+   transaction, so a failure prints `Nothing was written.` An unchanged month prints `2026-02: no change`, with its fill
+   notes if it has any (`2026-03: no change (opening filled from 2026-02 closing, closing set to 0)`).
+
+   A warning is a hint, not a stop: a month's closing differs from the next opening, which usually means a Notion row
+   has the wrong Month. Today's one ("Auguts closing" is tagged July) is known and accepted; retagging it to Aug in
+   Notion and importing again gives July 0.00/0.00 and no warning.
+
+4. **Notion changed?** Repeat steps 1–3. Each month takes Notion's current numbers, ended months included.
+   `--month 2026-01` limits what is shown and written to one month (the fill rule and warnings still use the whole
+   snapshot).
+
+**The laptop** imports the same way with `yarn api import-balances --ledger 1 --snapshot <file>` (or, with the
+Notion settings, without `--snapshot`), then `--apply`.
+
 ## After changing the vhost
 
 Step 8's install without certbot, then a check that every kind of answer carries the security headers and no nginx

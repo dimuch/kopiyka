@@ -43,6 +43,9 @@ const minutesAfterT = (minutes: number) => new Date(T.getTime() + minutes * 60_0
 const PUBLIC_WRITE_ROUTES = ['POST /api/auth/login'];
 /** All a write token may change. Adding a route here is a decision, not a tidy-up. */
 const WRITE_TOKEN_ROUTES = [
+  'POST /api/ledgers/:id/months/:month/income',
+  'PUT /api/ledgers/:id/income/:incomeId',
+  'DELETE /api/ledgers/:id/income/:incomeId',
   'POST /api/ledgers/:id/expenses',
   'PUT /api/ledgers/:id/expenses/:expenseId',
   'DELETE /api/ledgers/:id/expenses/:expenseId',
@@ -102,6 +105,29 @@ describe.skipIf(!(await testDbReachable()))('API tokens in requireAuth (MySQL)',
     });
   const deleteExpense = (token: string, expenseId: number, ledgerId = user.ledgerId) =>
     app.inject({ method: 'DELETE', url: `/api/ledgers/${ledgerId}/expenses/${expenseId}`, headers: bearer(token) });
+  const addIncome = (token: string, ledgerId = user.ledgerId) =>
+    app.inject({
+      method: 'POST',
+      url: `/api/ledgers/${ledgerId}/months/2026-10/income`,
+      headers: bearer(token),
+      payload: { title: 'Salary', amount: '2500' },
+    });
+  const changeIncome = (token: string, incomeId: number, ledgerId = user.ledgerId) =>
+    app.inject({
+      method: 'PUT',
+      url: `/api/ledgers/${ledgerId}/income/${incomeId}`,
+      headers: bearer(token),
+      payload: { title: 'Salary, raised', amount: '2600.10' },
+    });
+  const deleteIncome = (token: string, incomeId: number, ledgerId = user.ledgerId) =>
+    app.inject({ method: 'DELETE', url: `/api/ledgers/${ledgerId}/income/${incomeId}`, headers: bearer(token) });
+  const incomeRows = async (incomeId: number) => {
+    const [rows] = await db.query<RowDataPacket[]>(
+      'SELECT title, amount_eur, created_by FROM income_items WHERE income_id = ?',
+      [incomeId],
+    );
+    return rows;
+  };
   const expenseRow = async (expenseId: number) => {
     const [rows] = await db.query<RowDataPacket[]>(
       `SELECT name, amount_eur, deleted_at FROM expenses WHERE expense_id = ?`,
@@ -327,6 +353,57 @@ describe.skipIf(!(await testDbReachable()))('API tokens in requireAuth (MySQL)',
       expect([changed.statusCode, changed.json()]).toEqual([404, { error: 'not_found' }]);
       expect([deleted.statusCode, deleted.json()]).toEqual([404, { error: 'not_found' }]);
       expect(await expenseRow(expenseId)).toEqual([{ name: 'Silpo', amount_eur: '12.50', deleted_at: null }]);
+    });
+
+    it('adds income as the token’s user', async () => {
+      const res = await addIncome(await issueToken(user.userId, 'write'));
+
+      expect(res.statusCode).toBe(201);
+      expect(res.json()).toEqual({
+        incomeId: expect.any(Number),
+        title: 'Salary',
+        amountEur: '2500.00',
+        addedBy: 'reader',
+      });
+    });
+
+    it('changes income to the same values when the call is repeated', async () => {
+      const token = await issueToken(user.userId, 'write');
+      const { incomeId } = (await addIncome(token)).json();
+
+      const first = await changeIncome(token, incomeId);
+      const again = await changeIncome(token, incomeId);
+
+      expect([first.statusCode, again.statusCode]).toEqual([204, 204]);
+      expect(await incomeRows(incomeId)).toEqual([
+        { title: 'Salary, raised', amount_eur: '2600.10', created_by: user.userId },
+      ]);
+    });
+
+    it('deletes income once: a repeat is not found', async () => {
+      const token = await issueToken(user.userId, 'write');
+      const { incomeId } = (await addIncome(token)).json();
+
+      const res = await deleteIncome(token, incomeId);
+      const again = await deleteIncome(token, incomeId);
+
+      expect(res.statusCode).toBe(204);
+      expect([again.statusCode, again.json()]).toEqual([404, { error: 'not_found' }]);
+      expect(await incomeRows(incomeId)).toEqual([]);
+    });
+
+    it('can’t change or delete another ledger’s income through this ledger, even as a member of both', async () => {
+      const owner = await makeUser(db, config, 'owner');
+      await addMember(db, owner.ledgerId, user.userId);
+      const token = await issueToken(user.userId, 'write');
+      const { incomeId } = (await addIncome(token, owner.ledgerId)).json();
+
+      const changed = await changeIncome(token, incomeId);
+      const deleted = await deleteIncome(token, incomeId);
+
+      expect([changed.statusCode, changed.json()]).toEqual([404, { error: 'not_found' }]);
+      expect([deleted.statusCode, deleted.json()]).toEqual([404, { error: 'not_found' }]);
+      expect(await incomeRows(incomeId)).toEqual([{ title: 'Salary', amount_eur: '2500.00', created_by: user.userId }]);
     });
   });
 

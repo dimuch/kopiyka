@@ -234,7 +234,7 @@ Starts once PR A is merged.
 - [x] 0B. Bump version to 1.4.0
   - Files: package.json, apps/mobile/app.json
   - Change: set both to 1.4.0
-- [ ] 6. Let a write token add, change and delete income (~95)
+- [x] 6. Let a write token add, change and delete income (~95)
   - Files: `apps/api/src/apiTokens/auth.ts`, `apps/api/test/apiTokens.auth.int.test.ts`
   - Change: the three routes, the JSDoc.
   - Tests:

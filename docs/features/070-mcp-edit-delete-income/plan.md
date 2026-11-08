@@ -198,7 +198,7 @@ migration, so rollback holds.
     Behaviour-preserving for `add_expense`.
   - Tests: `api.test.ts`: a PUT sends JSON with the bearer; a DELETE sends no body and no `content-type`, and its `204` is
     success. The existing `add_expense` tests pass unchanged, which proves its answer kept its shape.
-- [ ] 3. Add the update_expense tool (~150)
+- [x] 3. Add the update_expense tool (~150)
   - Files: `apps/mcp/src/mcp/tools.ts`, `apps/mcp/test/tools.test.ts`, `apps/mcp/test/mcp.test.ts`
   - Change: the tool and its refusal map.
   - Tests:
@@ -347,7 +347,10 @@ PR B:
 
 ## Deviations
 
-<filled by the developer during build>
+- slice 3: `add_expense` and `update_expense` share five sentences word for word, so they live in `EXPENSE_INPUT_REFUSALS`,
+  with `ending` adding what the call didn't do and `lostAnswerFor` filling the three lost-answer codes. Writing them twice
+  would let the two drift. `add_expense`'s tests pass unchanged, so its texts are byte for byte the same. `update_expense`'s
+  `name` description also says an empty name clears it.
 
 ## Consolidate
 

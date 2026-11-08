@@ -399,6 +399,137 @@ describe('the budget tools', () => {
     });
   });
 
+  describe('update_expense', () => {
+    const SAVED = {
+      expenseId: 9,
+      categoryId: 7,
+      expenseDate: '2026-10-05',
+      name: 'Silpo, corrected',
+      amountEur: '14.20',
+      amountUah: '716.86',
+      eurUahRate: '50.4830',
+      enteredCurrency: 'EUR',
+      createdBy: 1,
+    };
+    const INPUT = {
+      ledgerId: 1,
+      expenseId: 9,
+      categoryId: 7,
+      date: '2026-10-05',
+      name: 'Silpo, corrected',
+      amount: '14.20',
+      currency: 'EUR',
+    };
+    const puts = () => api.calls.filter((call) => call.method === 'PUT');
+
+    beforeEach(() => {
+      answer = (call) => (call.method === 'PUT' ? { json: SAVED } : ledgerOne(call));
+    });
+
+    it('calls the API’s change as the token’s user, and answers with what was saved', async () => {
+      const result = await callTool('update_expense', INPUT);
+
+      expect(puts().map((call) => [call.path, call.body, bearerOf(call)])).toEqual([
+        [
+          '/api/ledgers/1/expenses/9',
+          { categoryId: 7, expenseDate: '2026-10-05', name: 'Silpo, corrected', amount: '14.20', currency: 'EUR' },
+          'kpk.olena',
+        ],
+      ]);
+      expect(result.isError).toBeUndefined();
+      expect(toolData(result)).toEqual({
+        ledgerId: 1,
+        expenseId: 9,
+        date: '2026-10-05',
+        name: 'Silpo, corrected',
+        categoryId: 7,
+        amountEur: { amount: '14.20', formatted: '€14.20' },
+        amountUah: { amount: '716.86', formatted: '₴716.86' },
+        enteredCurrency: 'EUR',
+        eurUahRate: '50.4830',
+      });
+    });
+
+    it('needs the date and the name, so leaving one out can’t move or blank the expense', async () => {
+      const { date: _date, ...noDate } = INPUT;
+      const { name: _name, ...noName } = INPUT;
+
+      const withoutDate = await callTool('update_expense', noDate);
+      const withoutName = await callTool('update_expense', noName);
+
+      expect([withoutDate.isError, withoutName.isError]).toEqual([true, true]);
+      expect(puts()).toEqual([]);
+    });
+
+    const CHANGED_NOTHING = 'This call changed nothing.';
+    const LOST_ANSWER = 'The answer was lost, so it may be saved. The same call repeated is safe.';
+
+    it.each<[string, number, string]>([
+      [
+        'insufficient_scope',
+        403,
+        `This connection can only read. Disconnect Kopiyka in Claude’s connectors, connect, and allow it. ${CHANGED_NOTHING}`,
+      ],
+      ['ledger_not_found', 404, `No such ledger for this user; use list_ledgers. ${CHANGED_NOTHING}`],
+      ['not_found', 404, `No live expense with that id in this ledger; find it with list_expenses. ${CHANGED_NOTHING}`],
+      [
+        'month_ended',
+        409,
+        `That month has ended and is read-only; an expense can’t move into or out of it either. ${CHANGED_NOTHING}`,
+      ],
+      [
+        'category_not_in_month',
+        400,
+        `That category isn’t in that month’s list; use a categoryId from month_summary for that month. ${CHANGED_NOTHING}`,
+      ],
+      ['unknown_category', 400, `That isn’t a category of this ledger. ${CHANGED_NOTHING}`],
+      [
+        'invalid_request',
+        400,
+        `The amount must be positive with at most 8 digits and 2 decimals, the date a real YYYY-MM-DD from 2000 on, and the name at most 200 characters. ${CHANGED_NOTHING}`,
+      ],
+      ['date_in_future', 400, `The date is too far ahead. ${CHANGED_NOTHING}`],
+      ['rate_unavailable', 503, `The NBU rate isn’t available; try later. ${CHANGED_NOTHING}`],
+      ['internal', 500, LOST_ANSWER],
+    ])('explains %s', async (code, status, sentence) => {
+      answer = (call) => (call.method === 'PUT' ? { status, json: { error: code } } : ledgerOne(call));
+
+      const result = await callTool('update_expense', INPUT);
+
+      expect(result.isError).toBe(true);
+      expect(result.content[0].text).toBe(`${code}: ${sentence}`);
+    });
+
+    it('says a repeat is safe when the answer is lost, and the repeat gives the expense', async () => {
+      let applied = false;
+      answer = (call) => {
+        if (call.method !== 'PUT') return ledgerOne(call);
+        if (applied) return { json: SAVED };
+        applied = true;
+        return 'network_failure';
+      };
+
+      const lost = await callTool('update_expense', INPUT);
+      const repeat = await callTool('update_expense', INPUT);
+
+      expect(lost.content[0].text).toBe(`api_unreachable: ${LOST_ANSWER}`);
+      expect(toolData(repeat)).toMatchObject({ expenseId: 9, amountEur: { amount: '14.20', formatted: '€14.20' } });
+      const [first, second] = puts();
+      expect(second!.body).toEqual(first!.body);
+    });
+
+    it('takes a tool call from the limit', async () => {
+      await app.close();
+      app = await buildApp({ config, now: () => clock, fetch: api.fetch, limits: { toolCallBurst: 1 } });
+
+      await callTool('update_expense', INPUT);
+      const refused = await callTool('update_expense', INPUT);
+
+      expect(refused.content[0].text).toMatch(/^rate_limited:/);
+      expect(puts()).toHaveLength(1);
+    });
+  });
+
   describe('eur_uah_rate', () => {
     beforeEach(() => {
       answer = (call) =>

@@ -281,7 +281,7 @@ capability; nothing existing changes.
     - "a dry run reports the changes and writes nothing": `previewBalances` gives Jan changed from `null`, and
       `rows()` is equal before and after.
     - "an unknown ledger throws": both functions reject with `No ledger 999999`.
-- [ ] 10. Add `yarn api import-balances` (~115)
+- [x] 10. Add `yarn api import-balances` (~115)
   - Files: `apps/api/scripts/import-balances.ts`, `apps/api/package.json`
   - Change: the CLI in Contracts. Without `--apply` it calls `previewBalances`; with `--apply`, `importBalances`.
     Both get `wanted`, or only the `--month` month. The warnings come from `continuityWarnings(wanted)` over the

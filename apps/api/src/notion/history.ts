@@ -47,6 +47,11 @@ export function historyMonth(month: number | null): string | null {
   return month !== null && month <= LAST_MONTH ? `${YEAR}-${String(month).padStart(2, '0')}` : null;
 }
 
+/** Every imported month, '2026-01'…'2026-10', oldest first. */
+export function historyMonths(): string[] {
+  return Array.from({ length: 12 }, (_, i) => historyMonth(i + 1)).filter((month): month is string => month !== null);
+}
+
 /** Categories Notion spells more than one way, by tech_name, with the name they take in every imported month. */
 const MERGED: Record<string, string> = { gift: 'gifts', parking: 'parking', utilities: 'utilities' };
 

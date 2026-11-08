@@ -21,15 +21,13 @@ import {
 } from '../src/notion/balances.js';
 import { importBalances, previewBalances } from '../src/notion/balancesImport.js';
 import { notionClient } from '../src/notion/client.js';
-import { historyMonth } from '../src/notion/history.js';
+import { historyMonths } from '../src/notion/history.js';
 
 const usage =
   'Usage: yarn api import-balances --save <file>\n' +
   '       yarn api import-balances --ledger <id> [--snapshot <file>] [--month <YYYY-MM>] [--apply]';
 const needsNotion =
   'Set NOTION_TOKEN, NOTION_GROCERIES_DATA_SOURCE_ID, NOTION_OPENING_DATA_SOURCE_ID and NOTION_CLOSING_DATA_SOURCE_ID';
-/** The months this import covers, '2026-01'…'2026-10'. */
-const months = Array.from({ length: 12 }, (_, i) => historyMonth(i + 1)).filter((m): m is string => m !== null);
 
 const options = {
   save: { type: 'string' },
@@ -51,7 +49,7 @@ const savePath =
     ? values.save
     : undefined;
 const importing = values.save === undefined && Number.isInteger(ledgerId) && ledgerId > 0;
-if ((savePath === undefined && !importing) || (values.month !== undefined && !months.includes(values.month))) {
+if ((savePath === undefined && !importing) || (values.month !== undefined && !historyMonths().includes(values.month))) {
   console.error(usage);
   process.exit(1);
 }

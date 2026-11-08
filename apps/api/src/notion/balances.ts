@@ -4,7 +4,7 @@
 import { z } from 'zod';
 import { centsToString, SIGNED_AMOUNT_RE, toCents } from '../money.js';
 import type { BalanceRow } from './client.js';
-import { historyMonth } from './history.js';
+import { historyMonth, historyMonths } from './history.js';
 
 const Row = z.object({
   /** 1–12 from the Month select; null when empty or unknown. */
@@ -52,8 +52,7 @@ function sumByMonth(rows: BalancesSnapshot['opening']): Map<string, bigint> {
  * previous month's closing, a missing closing is the next month's own Notion opening, and otherwise 0.
  */
 export function wantedBalances(snapshot: BalancesSnapshot): MonthBalance[] {
-  // historyMonth owns the imported range, so the year and the last month live in one place.
-  const months = Array.from({ length: 12 }, (_, i) => historyMonth(i + 1)).filter((m): m is string => m !== null);
+  const months = historyMonths();
   const openings = sumByMonth(snapshot.opening);
   const closings = sumByMonth(snapshot.closing);
   const wanted: MonthBalance[] = [];

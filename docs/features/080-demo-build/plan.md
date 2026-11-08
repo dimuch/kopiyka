@@ -305,7 +305,7 @@ store. A helper asserts `[status, code, body]` of the `ApiError`.
     has `src/demo/client.ts` and no `src/api/client.ts`. The server's cwd is this worktree (`lsof -a -p <pid> -d cwd`).
   - Verify (web, 390×844): Home opens with no login, three cards and sample figures; four tabs on tab pages and on
     `/expense`; `/settings`, `/statistics`, `/members`, `/login` and `/nope/x` land on `/`.
-- [ ] 12. Say it's a demo on every page (~40)
+- [x] 12. Say it's a demo on every page (~40)
   - Files: new `src/demo/DemoStrip.tsx`, `src/demo-app/_layout.tsx` (`DemoStrip` above the `Stack`)
   - Verify (web): the strip shows on a tab, on `/expense`, on `/category-form` as a modal and on `delete-category`; "Sign in"
     opens the real sign-in page and is at least 44 × 44; Light and Dark follow the system.
@@ -435,6 +435,9 @@ store. A helper asserts `[status, code, body]` of the `ApiError`.
   b35de77), so `app.config.js` adds `root` beside them instead of swapping a plain string. Checked on SDK 58: `root` is
   still a documented plugin option, each flavour exports one bundle, warm-cache builds in either order match clean ones,
   and production's bundle is the same with and without the two config files.
+- Slice 12: "Light and Dark follow the system" can't hold: the app's default theme is Dark (`DEFAULT_PREFERENCE`), and it
+  follows the system only once someone picks Auto in Settings, which the demo doesn't have. The demo is Dark, as a fresh
+  install of the real app is; the strip uses the theme's colours, so it would follow a theme change.
 - Slice 7: the restore `name_taken` test renames another category instead of adding one, since an add with the removed
   category's name reuses that category (as the API's `findByName` does).
 - Slice 8: `sampleAmounts` is extracted from `price` in `expenseRoutes.ts`, so the sample data prices expenses the same

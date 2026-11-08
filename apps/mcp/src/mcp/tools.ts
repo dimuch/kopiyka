@@ -49,27 +49,60 @@ const ALREADY_SAVED_NOTE =
   'To add another on purpose, give it a name that tells them apart.';
 
 const SAVED_NOTHING = 'This call saved nothing.';
+const CHANGED_NOTHING = 'This call changed nothing.';
+
+/** The API's refusals of an expense's fields, the same for adding and changing one. */
+const EXPENSE_INPUT_REFUSALS = {
+  category_not_in_month:
+    'That category isn’t in that month’s list; use a categoryId from month_summary for that month.',
+  unknown_category: 'That isn’t a category of this ledger.',
+  invalid_request:
+    'The amount must be positive with at most 8 digits and 2 decimals, the date a real YYYY-MM-DD from 2000 on, and the name at most 200 characters.',
+  date_in_future: 'The date is too far ahead.',
+  rate_unavailable: 'The NBU rate isn’t available; try later.',
+};
+
+/** Each sentence, followed by what the call didn't do. */
+const ending = (sentences: Record<string, string>, didNothing: string) =>
+  Object.fromEntries(Object.entries(sentences).map(([code, sentence]) => [code, `${sentence} ${didNothing}`]));
+
+const lostAnswerFor = (sentence: string) => ({ api_unreachable: sentence, api_error: sentence, internal: sentence });
 
 /** What the LLM can do about each API code. `date` is the one this call used, so a repeat can't land on another day. */
 function addExpenseRefusals(date: string): Record<string, string> {
-  const lostAnswer =
-    'The answer was lost, so it may be saved. Repeat within 10 minutes with the same inputs and date set to ' +
-    `${date}: it’s safe.`;
   return {
-    insufficient_scope: `This connection can only read. Disconnect Kopiyka in Claude’s connectors, connect, and allow it. ${SAVED_NOTHING}`,
+    ...ending(
+      {
+        insufficient_scope:
+          'This connection can only read. Disconnect Kopiyka in Claude’s connectors, connect, and allow it.',
+        ledger_not_found: 'No such ledger for this user; use list_ledgers.',
+        ...EXPENSE_INPUT_REFUSALS,
+      },
+      SAVED_NOTHING,
+    ),
     // A repeat just after the month's end comes here too, though the first call saved: the month check goes first.
     month_ended: `That month has ended and is read-only. ${SAVED_NOTHING} If an earlier call for this expense got no answer, it may have been saved: check with list_expenses.`,
-    category_not_in_month: `That category isn’t in that month’s list; use a categoryId from month_summary for that month. ${SAVED_NOTHING}`,
-    unknown_category: `That isn’t a category of this ledger. ${SAVED_NOTHING}`,
-    ledger_not_found: `No such ledger for this user; use list_ledgers. ${SAVED_NOTHING}`,
-    invalid_request: `The amount must be positive with at most 8 digits and 2 decimals, the date a real YYYY-MM-DD from 2000 on, and the name at most 200 characters. ${SAVED_NOTHING}`,
-    date_in_future: `The date is too far ahead. ${SAVED_NOTHING}`,
-    rate_unavailable: `The NBU rate isn’t available; try later. ${SAVED_NOTHING}`,
-    api_unreachable: lostAnswer,
-    api_error: lostAnswer,
-    internal: lostAnswer,
+    ...lostAnswerFor(
+      'The answer was lost, so it may be saved. Repeat within 10 minutes with the same inputs and date set to ' +
+        `${date}: it’s safe.`,
+    ),
   };
 }
+
+const UPDATE_EXPENSE_REFUSALS = {
+  ...ending(
+    {
+      insufficient_scope:
+        'This connection can only read. Disconnect Kopiyka in Claude’s connectors, connect, and allow it.',
+      ledger_not_found: 'No such ledger for this user; use list_ledgers.',
+      not_found: 'No live expense with that id in this ledger; find it with list_expenses.',
+      month_ended: 'That month has ended and is read-only; an expense can’t move into or out of it either.',
+      ...EXPENSE_INPUT_REFUSALS,
+    },
+    CHANGED_NOTHING,
+  ),
+  ...lostAnswerFor('The answer was lost, so it may be saved. The same call repeated is safe.'),
+};
 
 /** What one `/mcp` request may do: read and write as its user, and spend that user's tool calls. */
 export interface RequestScope {
@@ -291,6 +324,43 @@ export function buildServer(scope: RequestScope): McpServer {
         addExpenseRefusals(expenseDate),
       );
     },
+  );
+
+  server.registerTool(
+    'update_expense',
+    {
+      description:
+        'Changes one expense: its category, date, name and amount, and answers with what was saved. Pass every ' +
+        'field, copying the unchanged ones from list_expenses. To keep the amount, pass amountUah.amount with UAH ' +
+        'when enteredCurrency is UAH, else amountEur.amount with EUR. The other currency comes from the National ' +
+        'Bank of Ukraine rate of the date. The same call repeated is safe.',
+      inputSchema: {
+        ledgerId: LedgerMonth.ledgerId,
+        expenseId: z.number().int().positive().describe('An expenseId from list_expenses'),
+        categoryId: z.number().int().positive().describe('A categoryId from month_summary, for the month of the date'),
+        date: z.string().describe('The date, as YYYY-MM-DD'),
+        name: z.string().describe('What it was, like "Silpo"; an empty name clears it'),
+        amount: z.string().describe('A decimal string, like "12.50"'),
+        currency: z.enum(['EUR', 'UAH']),
+      },
+      annotations: { title: 'Change an expense', readOnlyHint: false, destructiveHint: true, idempotentHint: true },
+    },
+    ({ ledgerId, expenseId, categoryId, date, name, amount, currency }) =>
+      toolResult(
+        scope,
+        'update_expense',
+        async () => {
+          const saved = await scope.write<ApiExpense>('PUT', `/api/ledgers/${ledgerId}/expenses/${expenseId}`, {
+            categoryId,
+            expenseDate: date,
+            name,
+            amount,
+            currency,
+          });
+          return { ledgerId, ...expenseFields(saved) };
+        },
+        UPDATE_EXPENSE_REFUSALS,
+      ),
   );
 
   return server;

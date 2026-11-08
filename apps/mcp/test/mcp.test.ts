@@ -158,7 +158,8 @@ describe('/mcp', () => {
 
       expect(res.statusCode).toBe(200);
       const tools: { name: string; annotations: object }[] = rpcResult(res).tools;
-      const readTools = tools.filter((tool) => tool.name !== 'add_expense');
+      const writeTools = ['add_expense', 'update_expense'];
+      const readTools = tools.filter((tool) => !writeTools.includes(tool.name));
       expect(readTools.map((tool) => tool.name)).toEqual([
         'list_ledgers',
         'month_summary',
@@ -171,6 +172,12 @@ describe('/mcp', () => {
         title: 'Add an expense',
         readOnlyHint: false,
         destructiveHint: true,
+      });
+      expect(tools.find((tool) => tool.name === 'update_expense')?.annotations).toEqual({
+        title: 'Change an expense',
+        readOnlyHint: false,
+        destructiveHint: true,
+        idempotentHint: true,
       });
     });
 

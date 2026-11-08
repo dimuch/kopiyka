@@ -208,8 +208,7 @@ rule, `tsconfig` flag or test to get green. A justified
 No `any`, no non-null `!` on values that can really be absent, no
 `@ts-ignore`.
 
-CI also builds both web flavours (`yarn mobile export:web`) and runs `yarn mobile check-builds`: the demo must hold none
-of production's banned modules or text, and its module list must match `apps/mobile/demo-modules.txt`; production must
+CI also builds both web flavours (`yarn mobile export:web`) and runs `yarn mobile check-builds`: the demo must hold none of the modules or text banned from it, and its module list must match `apps/mobile/demo-modules.txt`; production must
 hold nothing of the demo's. A module that newly reaches the demo is accepted in its PR with
 `yarn mobile check-builds --accept`, and the list's diff is the review.
 

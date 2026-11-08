@@ -841,6 +841,24 @@ describe('the budget tools', () => {
       expect(result.content[0].text).toBe(`${code}: ${sentence}`);
     });
 
+    it('explains someone else’s ledger, and sends no delete', async () => {
+      const result = await callTool('delete_income', { ...INPUT, ledgerId: 2 });
+
+      expect(deletes()).toEqual([]);
+      expect(result.content[0].text).toBe(
+        `ledger_not_found: No such ledger for this user; use list_ledgers. ${DELETED_NOTHING}`,
+      );
+    });
+
+    it('explains an item that went between the read and the delete', async () => {
+      answer = deleting({ status: 404, json: { error: 'not_found' } });
+
+      const result = await callTool('delete_income', INPUT);
+
+      expect(deletes()).toHaveLength(1);
+      expect(result.content[0].text).toBe(NOT_FOUND);
+    });
+
     it('says a lost delete may have happened, and a repeat after it finds the item gone', async () => {
       let deleted = false;
       answer = (call) => {

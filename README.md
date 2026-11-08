@@ -47,6 +47,8 @@ NOTION_TOKEN=ntn_...                                                 # the integ
 NOTION_GROCERIES_DATA_SOURCE_ID=00000000-0000-4000-8000-000000000001  # the UUID in each table's collection:// URL
 NOTION_EXPENSES_DATA_SOURCE_ID=00000000-0000-4000-8000-000000000002   # category totals; leave both out to sync
 NOTION_NETTO_DATA_SOURCE_ID=00000000-0000-4000-8000-000000000003      # groceries only
+NOTION_OPENING_DATA_SOURCE_ID=00000000-0000-4000-8000-000000000004    # month balances (import-balances --save);
+NOTION_CLOSING_DATA_SOURCE_ID=00000000-0000-4000-8000-000000000005    # both or neither
 ```
 
 Set up once per database, in this order: `yarn api migrate`, then the two starting points below, then sync.
@@ -69,6 +71,12 @@ into a ledger (brief 049): each month's categories, planned amounts and one `Tot
 that month's expenses. `--save <file>` saves the table to a snapshot (production has no Notion access and imports
 the file), `--ledger <id> [--snapshot <file>]` prints what would change, and `--apply` writes it. Running it again
 takes Notion's current numbers, ended months included. Steps: `deploy/README.md`, "Starting from the laptop's ledger".
+
+Each month's opening and closing balance comes the same way: `yarn api import-balances` copies January–October from
+the Opening and Actual Closing tables into `month_balances` (brief 085), filling a side Notion has no row for from the
+neighbouring month or with 0. Same flags as `import-history`, plus `--month <YYYY-MM>` to write one month; `--save`
+needs `NOTION_OPENING_DATA_SOURCE_ID` and `NOTION_CLOSING_DATA_SOURCE_ID`. Steps: `deploy/README.md`, "Importing
+each month's balances from Notion".
 
 `POST /api/ledgers/:id/notion/sync` sends what's new (signed in, for the configured ledger); `GET
 /api/ledgers/:id/notion/status` shows how many expenses are unsent and when the last clean sync finished. Sync once

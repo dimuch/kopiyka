@@ -1,8 +1,9 @@
 import { Stack } from 'expo-router';
 import { useColors } from '@/appearance/AppearanceContext';
 import { AppShell } from '@/components/AppShell';
+import { DemoStrip } from '@/demo/DemoStrip';
 
-/** The demo's root: the app shell and its screens, with no sign-in or invites. */
+/** The demo's screens, with no sign-in or invites. */
 function Screens() {
   const colors = useColors();
   return (
@@ -20,6 +21,7 @@ function Screens() {
 export default function DemoLayout() {
   return (
     <AppShell>
+      <DemoStrip />
       <Screens />
     </AppShell>
   );

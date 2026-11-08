@@ -121,7 +121,8 @@ async function loadMonth(q: Db | PoolConnection, ledgerId: number, month: string
   };
 }
 
-async function ledgerOwner(q: Db | PoolConnection, ledgerId: number, lock: boolean): Promise<number> {
+/** The ledger's owner; FOR UPDATE with `lock`. Throws `No ledger N` for an unknown ledger (also brief 085). */
+export async function ledgerOwner(q: Db | PoolConnection, ledgerId: number, lock: boolean): Promise<number> {
   const [rows] = await q.query<RowDataPacket[]>(
     `SELECT owner_user_id FROM ledgers WHERE ledger_id = ?${lock ? ' FOR UPDATE' : ''}`,
     [ledgerId],

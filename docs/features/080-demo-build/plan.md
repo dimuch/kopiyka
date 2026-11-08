@@ -339,7 +339,7 @@ store. A helper asserts `[status, code, body]` of the `ApiError`.
   - Verify, each tried in the draft and to repeat here: delete a line of the list (fails, says `new module`, gives the
     command); add a line (`gone from the demo`); swap `dist` and `dist-demo` (fails); `--accept` on those swapped builds
     (refused, list untouched); `KOPIYKA_FLAVOUR=Demo` (exit 1); delete the `.map` (throws). Then a green `check` job on the PR.
-- [ ] 14. Note the demo in the conventions and setup docs (~45)
+- [x] 14. Note the demo in the conventions and setup docs (~45)
   - Files: `.claude/skills/kopiyka-conventions/SKILL.md`, `apps/mobile/AGENTS.md`, `README.md`
   - Change:
     - Conventions §2, App table: a `demo/` row (the swapped modules and the in-memory store, used only by the demo build;

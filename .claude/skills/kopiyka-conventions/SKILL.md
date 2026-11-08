@@ -74,16 +74,22 @@ the second consumer appears or `routes.ts` passes ~200 lines.
 
 ### App — `apps/mobile/src`
 
-| Place                           | Owns                                                                                                                                  | Must not                                                                             |
-| ------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------ |
-| `app/**` (Expo Router)          | screens: compose components, read params, call data hooks, handle navigation                                                          | grow pure logic inline — move it to `format.ts`/`data/` once it's testable or reused |
-| `components/`                   | presentational, reusable UI; props in, callbacks out                                                                                  | call `api()` or read auth                                                            |
-| `data/`                         | client data hooks (`useMonth`) and tiny in-memory handoffs (`undo.ts`)                                                                | render UI                                                                            |
-| `api/client.ts`, `api/types.ts` | transport (auth header/cookie, errors → `ApiError`), DTO mirrors                                                                      | contain screen logic                                                                 |
-| `appearance/`                   | Light/Dark/Auto choice: pure rules (`preference.ts`), provider and hooks (`useColors`, `useThemedStyles`)                             | hold colour values — those stay in `theme.ts`                                        |
-| `auth/`                         | session state (`AuthContext`)                                                                                                         | —                                                                                    |
-| `format.ts`                     | pure money/date formatting and parsing                                                                                                | do I/O                                                                               |
-| `theme.ts`                      | palettes (`darkColors`, `lightColors`), fonts, category hues, layout constants (`phoneWidth`) — the only place for raw hex/font names | —                                                                                    |
+| Place                           | Owns                                                                                                                                                                 | Must not                                                                             |
+| ------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------ |
+| `app/**` (Expo Router)          | screens: compose components, read params, call data hooks, handle navigation                                                                                         | grow pure logic inline — move it to `format.ts`/`data/` once it's testable or reused |
+| `components/`                   | presentational, reusable UI; props in, callbacks out                                                                                                                 | call `api()` or read auth                                                            |
+| `data/`                         | client data hooks (`useMonth`) and tiny in-memory handoffs (`undo.ts`)                                                                                               | render UI                                                                            |
+| `api/client.ts`, `api/types.ts` | transport (auth header/cookie, errors → `ApiError`), DTO mirrors                                                                                                     | contain screen logic                                                                 |
+| `appearance/`                   | Light/Dark/Auto choice: pure rules (`preference.ts`), provider and hooks (`useColors`, `useThemedStyles`)                                                            | hold colour values — those stay in `theme.ts`                                        |
+| `auth/`                         | session state (`AuthContext`)                                                                                                                                        | —                                                                                    |
+| `format.ts`                     | pure money/date formatting and parsing                                                                                                                               | do I/O                                                                               |
+| `theme.ts`                      | palettes (`darkColors`, `lightColors`), fonts, category hues, layout constants (`phoneWidth`) — the only place for raw hex/font names                                | —                                                                                    |
+| `demo/`                         | the demo build only (brief 080): the three swapped modules (`client`, `session`, `tabItems`), the in-memory store that answers `api()`, its sample data, `DemoStrip` | be imported from outside `demo/` and `demo-app/`                                     |
+| `demo-app/`                     | the demo's routes: one-line re-exports of shared screens where it can, its own root layout and Home                                                                  | hold logic a screen in `app/` needs                                                  |
+
+The demo (brief 080) is a second web build of `apps/mobile`, chosen by `KOPIYKA_FLAVOUR=demo` in `app.config.js` and
+`metro.config.js` only: no app code reads the flavour. Its store repeats the API's rules on the client, so a change to a
+rule, refusal or DTO in `categories`, `expenses`, `income` or `rates` changes `src/demo/` and its tests in the same PR.
 
 ## 3. Domain invariants (never break these)
 
@@ -201,6 +207,11 @@ rule, `tsconfig` flag or test to get green. A justified
 `eslint-disable-next-line <rule>` needs a reason comment on the line above.
 No `any`, no non-null `!` on values that can really be absent, no
 `@ts-ignore`.
+
+CI also builds both web flavours (`yarn mobile export:web`) and runs `yarn mobile check-builds`: the demo must hold none
+of production's banned modules or text, and its module list must match `apps/mobile/demo-modules.txt`; production must
+hold nothing of the demo's. A module that newly reaches the demo is accepted in its PR with
+`yarn mobile check-builds --accept`, and the list's diff is the review.
 
 New dependency checklist: needed by an AC; no existing code/module does it;
 maintained; size acceptable for the app bundle; SDK-compatible (mobile).

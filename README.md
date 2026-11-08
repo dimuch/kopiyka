@@ -23,6 +23,7 @@ yarn api create-user --username you --email you@example.com   # prints a QR for 
 # add --join <owner> to make the new user a member of <owner>'s ledger instead of giving them their own
 yarn api dev                                 # API on http://127.0.0.1:3000
 yarn mobile start                            # Expo dev server
+yarn mobile web:demo                         # the demo build: no login, sample data in memory, no API
 ```
 
 There is no signup: users are created only with the admin script above.
@@ -155,6 +156,16 @@ yarn mobile test     # app unit tests (pure helpers in format.ts and data/)
 yarn test            # both
 yarn typecheck
 ```
+
+The demo build (brief 080) has its own check, which CI runs after the tests:
+
+```bash
+yarn mobile export:web     # both web builds, with source maps: dist and dist-demo
+yarn mobile check-builds   # demo holds only what it uses; production holds nothing of the demo's
+```
+
+A new module reaching the demo fails it until `yarn mobile check-builds --accept` rewrites
+`apps/mobile/demo-modules.txt` in the same PR.
 
 ## Deployment
 

@@ -377,8 +377,18 @@ for path in / /index.html /budget "$bundle" /api/health /mcp /oauth/authorize; d
 done
 ```
 
-For the demo, run the same loop with `site=https://demo.kopiyka.englishplus.com.ua` and `/` `/budget` `"$bundle"` `/mcp`.
-Each shows the six security headers, its CSP with `connect-src 'none'`, and no proxied answer: `/mcp` gets the demo's
+For the demo (brief 081), with its own bundle name:
+
+```bash
+site=https://demo.kopiyka.englishplus.com.ua
+bundle=$(curl -s "$site/" | grep -o '/_expo/static/[^"]*' | head -1)
+for path in / /budget "$bundle" /mcp; do
+  echo "== $path"
+  curl -sI "$site$path" | grep -iE '^(server|strict-transport-security|content-security-policy|x-frame-options|x-content-type-options|referrer-policy|permissions-policy|cache-control):'
+done
+```
+
+Each shows the six security headers and the CSP with `connect-src 'none'`, and nothing is proxied: `/mcp` gets the demo's
 page.
 
 Each path shows the six security headers. `/`, `/index.html` and `/budget` show `Cache-Control: no-cache`, the bundle
@@ -843,7 +853,8 @@ production: `current/apps/mobile/dist-demo`, static files only, with its own cer
 CSP has `connect-src 'none'`. The login page links to it ("Try it now"). One-time setup, in this order, so the link never
 points at nothing:
 
-1. **Merge** the PR. Merging deploys nothing, so the link isn't live yet.
+1. **Merge** the PR. Merging deploys nothing, so the link isn't live yet. Don't run Deploy until step 7: until step 6
+   the droplet's old `deploy.sh` would ship the link with no demo build behind it.
 2. **DNS.** In DigitalOcean → Networking → Domains → `englishplus.com.ua`, add `A demo.kopiyka → <droplet IP>` (TTL 3600).
    This must print the droplet's IP before you go on:
 
@@ -890,6 +901,7 @@ points at nothing:
    deploy builds no demo, and the link would point at a site answering 500:
 
    ```bash
+   sudo -u kopiyka git -C /opt/kopiyka/repo.git fetch -q origin +refs/heads/main:refs/heads/main
    f=$(mktemp)
    sudo -u kopiyka git -C /opt/kopiyka/repo.git show main:deploy/deploy.sh > "$f" && grep -q 'demo export' "$f" &&
      sudo install -m 755 -o root -g root "$f" /usr/local/bin/kopiyka-deploy && echo ok
@@ -900,7 +912,17 @@ points at nothing:
    check" lines in the log (time and max RSS). The demo's first export runs on a cold Metro cache, so it takes longer.
    - A failed export or check leaves production on the previous release, without the link. Every later Deploy fails the
      same way until it's fixed, so don't re-run it in a loop. Either fix the cause (swap, or clear the Metro cache), or
-     revert the PR on `main` and re-install `deploy.sh` with step 6's line using `grep -q 'mcp build'`, then Deploy.
+     revert the PR on `main`, then re-install the reverted `deploy.sh` and Deploy. The fetch matters: without it the bare
+     repo still holds this change's script. The guard checks it's the old one; it must print `ok`:
+
+     ```bash
+     sudo -u kopiyka git -C /opt/kopiyka/repo.git fetch -q origin +refs/heads/main:refs/heads/main
+     f=$(mktemp)
+     sudo -u kopiyka git -C /opt/kopiyka/repo.git show main:deploy/deploy.sh > "$f" && grep -q 'mcp build' "$f" &&
+       ! grep -q 'demo export' "$f" && sudo install -m 755 -o root -g root "$f" /usr/local/bin/kopiyka-deploy && echo ok
+     rm -f "$f"
+     ```
+
    - If `check-builds` fails with "built as production" or "in its app config", the Metro cache mixed the two flavours.
      Clear it, then Deploy. It's Expo's default `os.tmpdir()/metro-cache`, and `deploy.sh` doesn't set `TMPDIR`:
 
@@ -930,7 +952,9 @@ points at nothing:
 
    Every path prints "demo page": nothing is proxied.
 
-9. **Checks, on the droplet.** No source map is left, and both sites serve the release `current` points at:
+9. **Checks, on the droplet.** No source map is left, and each site's bundle is a file in the release `current` points
+   at. Bundle names are content hashes, so an unchanged bundle is in older releases too: this shows the file is in
+   `current`; that both sites serve `current` holds by itself, since both roots are under it:
 
    ```bash
    r=$(readlink /opt/kopiyka/current)
@@ -968,9 +992,9 @@ points at nothing:
       (and that the previous release is unhealthy too, since `api.env` is shared). Restore the password; within ~5 s
       `Restart=always` brings the API back.
 - [ ] After a 4th deploy, `ls /opt/kopiyka/releases` shows 3 releases.
-- [ ] After the rollback drill, "The demo site" step 9's same-release check passes. That only holds once the previous
-      release was built by the new `deploy.sh` (brief 081), so run the drill after the second deploy with it. Rolled
-      back to an older release, the demo answers 500, and that release's login page has no link.
+- [ ] After the rollback drill, "The demo site" step 9's checks pass on the release rolled back to. That only holds once
+      the previous release was built by the new `deploy.sh` (brief 081), so run the drill after the second deploy with
+      it. Rolled back to an older release, the demo answers 500, and that release's login page has no link.
 
 If a deploy turns out too heavy for the droplet (swap storms, other sites timing out), the fallback is building on the
 GitHub runner and shipping the output.

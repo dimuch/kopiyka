@@ -558,10 +558,10 @@ The score is `sudo systemd-analyze security <unit> | tail -1`; lower is safer. T
 are still installed, then the "after" ones once each new unit runs. The order of the whole rollout, with the read-only
 checks first, is in `docs/features/072-security-leftovers/plan.md` ("Owner steps"). Measured:
 
-| Unit                  | systemd | Before | After |
-| --------------------- | ------- | ------ | ----- |
-| `kopiyka-mcp.service` |         |        |       |
-| `kopiyka.service`     |         |        |       |
+| Unit                  | systemd | Before      | After  |
+| --------------------- | ------- | ----------- | ------ |
+| `kopiyka-mcp.service` | 259     | 8.5 EXPOSED | 1.4 OK |
+| `kopiyka.service`     | 259     | 8.5 EXPOSED | 1.5 OK |
 
 ## MCP connector
 
@@ -733,6 +733,21 @@ Results of 8 November 2026, after brief 070 was deployed (version 1.4.0), signed
 - **Logs:** 205 lines from both services after the deploy held none of the amounts or the income title.
 - Tool permissions weren't looked at again. On 8 November "Write/delete" was set to allowed, so Claude can change and delete
   without asking first.
+
+Results of 8 November 2026, brief 072's droplet files (version 1.6.1), installed by the owner one step at a time:
+
+- **Before:** every successful `/mcp` call in the logs came from Anthropic's ranges, except one `curl` of 4 November, a
+  manual test. So the limit cut off no real connection. Both port-443 listeners exist, and nginx is 1.30.6 with the realip
+  module.
+- **`/mcp` from outside:** before the install it answered 401 and the connector logged it; after, 403, with no connector
+  line and an `access forbidden` line in nginx's error log. The security headers and the login limit (12 × 400, 18 × 429)
+  are unchanged. A Claude reconnect as `claude-qa-mcp`, and a question, worked.
+- **IPv6 by /64:** `deploy/check-address-key.sh` passed 10 of 10 on main's vhost before the install, and on the installed
+  one after. The real IPv6 check wasn't run: the site has no AAAA record.
+- **Sandbox:** both units passed `systemd-analyze verify` (only Ubuntu's own `xfs_scrub` notice), restarted healthy, and
+  logged no blocked call. The scores are in "Service hardening". The connector answered Claude after its restart, and the
+  API signed in and fetched an uncached NBU rate (3 February 2003) from inside the sandbox.
+- **Not yet:** a full Deploy with the new units. The next normal deploy covers it.
 
 Not run: a second Claude account in the two-browser test, by the owner's decision of 7 November. The owner has one. It needs
 browser B signed in to that account (063 plan, slice 14).

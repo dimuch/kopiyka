@@ -8,7 +8,7 @@
     "forbidPatterns": ["submit-expo-feedback"]
   },
   "adapt": {
-    "sources": ["ub-mode", "agent-skills", "mattpocock-skills"],
+    "sources": ["ub-mode", "agent-skills"],
     "targets": [".claude/skills/kopiyka-*/**", ".claude/agents/*.md"],
     "commitStyle": "Start the body with 'From <source>:' and say which upstream idea was adapted and why it fits kopiyka."
   },
@@ -21,5 +21,5 @@
     "code-simplification"
   ],
   "discover": { "keywords": ["expo", "react native", "fastify", "vitest", "mysql"] },
-  "initialBaseline": { "ub-mode": "3da62bf", "agent-skills": "aeac41d", "mattpocock-skills": "4ae2317" }
+  "initialBaseline": { "ub-mode": "3da62bf", "agent-skills": "aeac41d" }
 }

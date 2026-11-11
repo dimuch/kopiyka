@@ -371,9 +371,9 @@ Then check:
 ```bash
 site=https://kopiyka.englishplus.com.ua
 bundle=$(curl -s "$site/" | grep -o '/_expo/static/[^"]*' | head -1)
-for path in / /index.html /budget "$bundle" /api/health /mcp /oauth/authorize; do
-  echo "== $path"
-  curl -sI "$site$path" | grep -iE '^(server|strict-transport-security|content-security-policy|x-frame-options|x-content-type-options|referrer-policy|permissions-policy|cache-control):'
+for route in / /index.html /budget "$bundle" /api/health /mcp /oauth/authorize; do
+  echo "== $route"
+  curl -sI "$site$route" | grep -iE '^(server|strict-transport-security|content-security-policy|x-frame-options|x-content-type-options|referrer-policy|permissions-policy|cache-control):'
 done
 ```
 
@@ -382,9 +382,9 @@ For the demo (brief 081), with its own bundle name:
 ```bash
 site=https://demo.kopiyka.englishplus.com.ua
 bundle=$(curl -s "$site/" | grep -o '/_expo/static/[^"]*' | head -1)
-for path in / /budget "$bundle" /mcp; do
-  echo "== $path"
-  curl -sI "$site$path" | grep -iE '^(server|strict-transport-security|content-security-policy|x-frame-options|x-content-type-options|referrer-policy|permissions-policy|cache-control):'
+for route in / /budget "$bundle" /mcp; do
+  echo "== $route"
+  curl -sI "$site$route" | grep -iE '^(server|strict-transport-security|content-security-policy|x-frame-options|x-content-type-options|referrer-policy|permissions-policy|cache-control):'
 done
 ```
 
@@ -940,8 +940,8 @@ points at nothing:
    demo=https://demo.kopiyka.englishplus.com.ua
    curl -sI "$demo/" | grep -i content-security-policy                # → … connect-src 'none' …
    curl -s "$demo/" > /tmp/demo-index.html
-   for path in /api/ledgers /mcp /oauth/authorize /.well-known/oauth-authorization-server; do
-     curl -s "$demo$path" | cmp -s - /tmp/demo-index.html && echo "$path: demo page" || echo "$path: DIFFERENT"
+   for route in /api/ledgers /mcp /oauth/authorize /.well-known/oauth-authorization-server; do
+     curl -s "$demo$route" | cmp -s - /tmp/demo-index.html && echo "$route: demo page" || echo "$route: DIFFERENT"
    done
    for site in https://kopiyka.englishplus.com.ua "$demo"; do
      bundle=$(curl -s "$site/" | grep -o '/_expo/static/[^"]*' | head -1)

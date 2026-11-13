@@ -50,7 +50,7 @@ exists changes: no API, no schema, no MCP, and the native login stays the same.
 - [x] 0. Bump version to 1.8.0
   - Files: package.json, apps/mobile/app.json
   - Change: set both to 1.8.0
-- [ ] 1. Add a "Request access" email link and the price to the web login page
+- [x] 1. Add a "Request access" email link and the price to the web login page
   - Files: apps/mobile/src/app/login.tsx (~+25 lines)
   - Change: add the `ACCESS_REQUEST_URL` constant. After the `styles.actions` `View`, add the web-only
     `<View style={styles.access}>` holding a copy of the "Try it now" `Link`/`Pressable`/`Text` block, with
@@ -139,8 +139,11 @@ new check 4. Nothing that ships changed, so the version stays 1.8.0.
 
 ## Deviations
 
-<filled by the developer during build>
+- Web check 4 (click with `window.open` stubbed) wasn't run: in the preview a click could open a real Mail draft on the
+  Mac. The click path is the skeptic's reading of expo-router and expo-linking (`window.location`, same tab), and check 6
+  (a real click in Safari and Chrome) is the user's.
 
 ## Consolidate
 
-<filled in /kopiyka-hos Phase 3a: CONSOLIDATE line, each reuse/extract, each LEAVE + reason>
+CONSOLIDATE: skipped (no new function, hook, component, route or query; the second `Link` block is a twin of "Try it
+now", and the rule of three isn't reached).

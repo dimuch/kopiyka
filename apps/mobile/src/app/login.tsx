@@ -13,6 +13,9 @@ import { fonts, type Palette } from '@/theme';
 /** The demo (briefs 080, 081): the app with sample data in the browser, no account needed. */
 const DEMO_URL = 'https://demo.kopiyka.englishplus.com.ua';
 
+/** Brief 087: a new email asking for a real account, written already encoded. */
+const ACCESS_REQUEST_URL = 'mailto:dmytro.kostylov@gmail.com?subject=Kopiyka%20access%20request';
+
 export default function Login() {
   const colors = useColors();
   const styles = useThemedStyles(makeStyles);
@@ -98,6 +101,19 @@ export default function Login() {
             </Pressable>
           </Link>
         </View>
+
+        {/* Web only (brief 087): the store builds may not point to paying outside their own billing (Apple 3.1.1, 3.1.3;
+            Google Play), and a price beside a contact link can read as that. */}
+        {Platform.OS === 'web' ? (
+          <View style={styles.access}>
+            <Link href={ACCESS_REQUEST_URL} asChild>
+              <Pressable accessibilityRole="link" accessibilityLabel="Request access" style={styles.demoLink}>
+                <Text style={styles.demoLinkText}>Request access</Text>
+              </Pressable>
+            </Link>
+            <Text style={styles.price}>Full access: €5 a month</Text>
+          </View>
+        ) : null}
       </KeyboardAvoidingView>
     </SafeAreaView>
   );
@@ -145,4 +161,7 @@ const makeStyles = (colors: Palette) =>
     // A 44pt touch target, as the conventions ask.
     demoLink: { minHeight: 44, minWidth: 44, paddingHorizontal: 16, alignSelf: 'center', justifyContent: 'center' },
     demoLinkText: { fontFamily: fonts.bodySemi, fontSize: 15, color: colors.accent },
+    // The access request and its price, as one group: no gap, so the price sits right under the link's 44pt box.
+    access: { alignItems: 'center' },
+    price: { fontFamily: fonts.bodyMedium, fontSize: 13, color: colors.muted, textAlign: 'center' },
   });

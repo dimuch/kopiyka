@@ -47,7 +47,7 @@ exists changes: no API, no schema, no MCP, and the native login stays the same.
 
 ## Slices
 
-- [ ] 0. Bump version to 1.8.0
+- [x] 0. Bump version to 1.8.0
   - Files: package.json, apps/mobile/app.json
   - Change: set both to 1.8.0
 - [ ] 1. Add a "Request access" email link and the price to the web login page

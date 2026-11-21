@@ -4,6 +4,7 @@ import { z } from 'zod';
 import type { AppDeps } from '../app.js';
 import { withTransaction } from '../db.js';
 import { requireOwner } from '../ledgers/access.js';
+import { lockLedger } from '../ledgers/lock.js';
 import { addMember } from '../ledgers/members.js';
 import { liveInvite } from './live.js';
 
@@ -25,7 +26,7 @@ export async function inviteRoutes(app: FastifyInstance, { db, now }: AppDeps): 
     const ledgerId = req.ledger!.ledgerId;
     const at = now();
     const invite = await withTransaction(db, async (conn) => {
-      await conn.query('SELECT ledger_id FROM ledgers WHERE ledger_id = ? FOR UPDATE', [ledgerId]);
+      await lockLedger(conn, ledgerId);
       const [rows] = await conn.query<RowDataPacket[]>(
         `SELECT u.user_id, u.username FROM users u
           WHERE u.username = ?

@@ -121,7 +121,7 @@ Existing test cases stay unmodified.
   - Tests: `categories.int` "holds when two members add at once", "holds when two members raise plans at once";
     `income.int` "copies once when two members copy at the same time", "holds when members delete income at once";
     `expenses.repeat.int` "saves one of two calls made at once"; and all of those suites.
-- [ ] 4. Lock the ledger through lockLedger when inviting (8 lines, reuse)
+- [x] 4. Lock the ledger through lockLedger when inviting (8 lines, reuse)
   - Files: `apps/api/src/invites/routes.ts`, `apps/api/src/ledgers/lock.ts` (doc comment)
   - Change: line 28's inline `SELECT ledger_id FROM ledgers WHERE ledger_id = ? FOR UPDATE` becomes
     `await lockLedger(conn, ledgerId)`. It sends the same statement and params, still first in the transaction. The doc

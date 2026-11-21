@@ -277,7 +277,7 @@ onRetry={reload}`;
         `thisMonth`. Styles go in `makeStyles`.
   - Verify: web at ~390×844 (rows AC7, AC8).
   - ~150 lines
-- [ ] B4. Pick a custom from and to month
+- [x] B4. Pick a custom from and to month
   - Files: apps/mobile/src/app/(tabs)/statistics.tsx
   - Change:
     - a Custom chip. Choosing it starts the custom period from the period now on screen;
@@ -359,9 +359,15 @@ would ship the by-category and by-month cards on their own.
 
 ## Follow-ups
 
+- `MonthSwitcher`'s arrows move with the month name's width ("October" vs "December"), so tapping an arrow fast in
+  Custom can miss after a few taps. A fixed label width in `MonthSwitcher` would fix it here and on Budget/Income.
+
 - None yet.
 
 ## Deviations
+
+- B4: the From and To switchers both say "Previous month" / "Next month" to a screen reader. Each pair follows its own
+  "From" or "To" caption, so it reads in context; no label prop was added (as planned).
 
 - Version: rebased on `origin/main` after #129 took 1.10.1; PR A still lands as 1.11.0 (1.10.1 → 1.11.0).
 

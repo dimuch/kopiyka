@@ -6,15 +6,13 @@ import { useSession } from '@/auth/AuthContext';
 import { EmptyMonth } from '@/components/EmptyMonth';
 import { HomeButton } from '@/components/HomeButton';
 import { LoadError } from '@/components/LoadError';
+import { MonthSwitcher } from '@/components/MonthSwitcher';
 import { Pressable } from '@/components/Pressable';
-import { PERIOD_CHOICES, type PeriodChoice, periodLabel, presetPeriod } from '@/data/period';
+import { moveCustom, type Period, PERIOD_CHOICES, type PeriodChoice, periodLabel, presetPeriod } from '@/data/period';
 import { isEmptySummary } from '@/data/periodSummary';
 import { useSummary } from '@/data/useSummary';
 import { eur, toCents } from '@/format';
 import { fonts, type Palette } from '@/theme';
-
-type Preset = Exclude<PeriodChoice, 'custom'>;
-const PRESETS = PERIOD_CHOICES.filter((c): c is { choice: Preset; label: string } => c.choice !== 'custom');
 
 /**
  * The open ledger's totals for a chosen period of whole months, all members together (brief 089). Home stays on the
@@ -26,8 +24,20 @@ export default function Statistics() {
   const { ledger } = useSession();
   // Read once, like Income's thisMonth, so the period doesn't move while the screen is open.
   const [now] = useState(() => new Date());
-  const [choice, setChoice] = useState<Preset>('current');
-  const period = presetPeriod(choice, now);
+  const [preset, setPreset] = useState<Exclude<PeriodChoice, 'custom'>>('current');
+  // Set only while Custom is chosen: it starts from the period on screen, and moveCustom keeps it legal.
+  const [custom, setCustom] = useState<Period | null>(null);
+  const choice: PeriodChoice = custom ? 'custom' : preset;
+  const period = custom ?? presetPeriod(preset, now);
+
+  function choose(option: PeriodChoice) {
+    if (option === 'custom') {
+      if (!custom) setCustom(period);
+      return;
+    }
+    setPreset(option);
+    setCustom(null);
+  }
   const { summary, error, reload } = useSummary(ledger.ledgerId, period);
 
   return (
@@ -41,18 +51,28 @@ export default function Statistics() {
 
       <ScrollView contentContainerStyle={styles.content}>
         <View style={styles.chips}>
-          {PRESETS.map(({ choice: option, label }) => (
+          {PERIOD_CHOICES.map(({ choice: option, label }) => (
             <Pressable
               key={option}
               accessibilityRole="button"
               accessibilityState={{ selected: choice === option }}
-              onPress={() => setChoice(option)}
+              onPress={() => choose(option)}
               style={[styles.chip, choice === option && styles.chipOn]}
             >
               <Text style={styles.chipText}>{label}</Text>
             </Pressable>
           ))}
         </View>
+        {custom ? (
+          <View style={styles.custom}>
+            {(['from', 'to'] as const).map((end) => (
+              <View key={end} style={styles.customRow}>
+                <Text style={styles.customCaption}>{end === 'from' ? 'From' : 'To'}</Text>
+                <MonthSwitcher month={custom[end]} onChange={(month) => setCustom(moveCustom(custom, end, month))} />
+              </View>
+            ))}
+          </View>
+        ) : null}
         <Text style={styles.period}>{periodLabel(period)}</Text>
 
         {!summary ? (
@@ -119,6 +139,9 @@ const makeStyles = (colors: Palette) =>
     },
     chipOn: { borderColor: colors.accent, backgroundColor: colors.accentTint },
     chipText: { fontFamily: fonts.bodyMedium, fontSize: 14, color: colors.text },
+    custom: { gap: 4 },
+    customRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 4 },
+    customCaption: { fontFamily: fonts.bodyMedium, fontSize: 15, color: colors.muted },
     period: { fontFamily: fonts.bodyMedium, fontSize: 15, color: colors.muted, paddingHorizontal: 4 },
     card: {
       backgroundColor: colors.surface,

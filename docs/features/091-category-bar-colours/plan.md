@@ -69,7 +69,7 @@ DTO or connector change.
     under, 10800/12000 (exactly 90%) → near, 12000/12000 → near, new 12001/12000 (1 cent over) → over with overCents
     1, 13240/12000 → over, 900/1001 → under, 901/1001 → near, 0/0 → under with fill 0, 1/0 → over. The `fill` and
     `overCents` expectations don't change. About 30 lines.
-- [ ] 2. Colour the category bar green, yellow or red instead of highlighting the row
+- [x] 2. Colour the category bar green, yellow or red instead of highlighting the row
   - Files: apps/mobile/src/theme.ts, apps/mobile/test/theme.test.ts, apps/mobile/src/app/(tabs)/expenses.tsx
   - Change: add `caution` to both palettes, with a one-line comment that the light value keeps 3:1 on `track`. Add
     `progressColor`. Remove `warnBg`. In the Expenses row, drop the background override and set the bar's

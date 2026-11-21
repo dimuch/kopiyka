@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { darkColors, lightColors } from '@/theme';
+import { darkColors, lightColors, progressColor } from '@/theme';
 
 // WCAG 2 contrast ratio of two '#RRGGBB' colours.
 function contrast(foreground: string, background: string): number {
@@ -14,13 +14,23 @@ function contrast(foreground: string, background: string): number {
   return (lighter + 0.05) / (darker + 0.05);
 }
 
-describe('warnBg', () => {
+describe('progressColor', () => {
   it.each([
     ['dark', darkColors],
     ['light', lightColors],
-  ])('keeps the row text readable in the %s theme', (_, colors) => {
-    for (const ink of [colors.text, colors.muted, colors.accent]) {
-      expect(contrast(ink, colors.warnBg)).toBeGreaterThanOrEqual(4.5);
+  ])('paints a category bar green, yellow or red in the %s theme', (_, colors) => {
+    expect(progressColor('under', colors)).toBe(colors.active);
+    expect(progressColor('near', colors)).toBe(colors.caution);
+    expect(progressColor('over', colors)).toBe(colors.danger);
+    expect(new Set([colors.active, colors.caution, colors.danger]).size).toBe(3);
+  });
+
+  it.each([
+    ['dark', darkColors],
+    ['light', lightColors],
+  ])('keeps every bar colour visible on the track in the %s theme', (_, colors) => {
+    for (const state of ['under', 'near', 'over'] as const) {
+      expect(contrast(progressColor(state, colors), colors.track)).toBeGreaterThanOrEqual(3);
     }
   });
 });

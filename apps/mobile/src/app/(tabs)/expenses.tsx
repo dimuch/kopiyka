@@ -16,7 +16,7 @@ import { budgetProgress } from '@/data/budgetProgress';
 import { plannedCents, spentByCategory } from '@/data/monthSummary';
 import { useMonth } from '@/data/useMonth';
 import { eur, kyivMonth, monthName, toCents } from '@/format';
-import { fonts, type Palette } from '@/theme';
+import { fonts, progressColor, type Palette } from '@/theme';
 
 export default function Expenses() {
   const colors = useColors();
@@ -123,11 +123,7 @@ export default function Expenses() {
                     onPress={() =>
                       router.push({ pathname: '/category/[categoryId]', params: { categoryId: r.categoryId, month } })
                     }
-                    style={[
-                      styles.row,
-                      i < rows.length - 1 && styles.divider,
-                      r.progress.state !== 'under' && { backgroundColor: colors.warnBg },
-                    ]}
+                    style={[styles.row, i < rows.length - 1 && styles.divider]}
                   >
                     <CategoryTile techName={r.techName} label={r.displayName} />
                     <View style={{ flex: 1, gap: 7 }}>
@@ -141,7 +137,15 @@ export default function Expenses() {
                         </Text>
                       </View>
                       <View style={styles.track}>
-                        <View style={[styles.bar, { width: `${r.progress.fill * 100}%` }]} />
+                        <View
+                          style={[
+                            styles.bar,
+                            {
+                              width: `${r.progress.fill * 100}%`,
+                              backgroundColor: progressColor(r.progress.state, colors),
+                            },
+                          ]}
+                        />
                       </View>
                       {r.progress.overCents > 0 && (
                         <Text style={styles.overText}>{eur(r.progress.overCents)} over</Text>
@@ -204,8 +208,6 @@ const makeStyles = (colors: Palette) =>
       borderWidth: 1,
       borderRadius: 22,
       paddingVertical: 4,
-      // Keeps a warning background on the first or last row inside the rounded corners.
-      overflow: 'hidden',
     },
     row: { flexDirection: 'row', alignItems: 'center', gap: 12, paddingVertical: 12, paddingHorizontal: 16 },
     divider: { borderBottomWidth: 1, borderBottomColor: colors.border },
@@ -220,8 +222,8 @@ const makeStyles = (colors: Palette) =>
       fontVariant: ['tabular-nums'],
     },
     rowPlanned: { fontFamily: fonts.body, color: colors.muted },
-    // `text`, not `over`: light `over` falls below 4.5:1 on `warnBg`.
+    // Matches the row text; the bar's colour carries the state (brief 091).
     overText: { fontFamily: fonts.bodyMedium, fontSize: 12, color: colors.text },
     track: { height: 5, backgroundColor: colors.track, borderRadius: 3, overflow: 'hidden' },
-    bar: { height: 5, borderRadius: 3, backgroundColor: colors.accent },
+    bar: { height: 5, borderRadius: 3 },
   });

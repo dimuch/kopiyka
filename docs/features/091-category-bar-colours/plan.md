@@ -3,7 +3,7 @@
 Status: approved
 Brief: ./brief.md
 Branch: feat/category-bar-colours
-Base: origin/main (379c3f1, v1.9.0)
+Base: origin/main (5df77d3, v1.10.0)
 
 ## Approach
 
@@ -50,15 +50,15 @@ that clears 3:1 with some room.
 
 ## Version
 
-Bump: patch — 1.9.0 → 1.9.1
+Bump: patch — 1.10.0 → 1.10.1
 Why: §8b `patch` row, styling. The bar changes colour and the row loses its background. No new capability, no API,
 DTO or connector change.
 
 ## Slices
 
-- [ ] 0. Bump version to 1.9.1
+- [x] 0. Bump version to 1.10.1
   - Files: package.json, apps/mobile/app.json
-  - Change: set both to 1.9.1
+  - Change: set both to 1.10.1
 - [ ] 1. Tell under, near and over plan apart in a category's progress
   - Files: apps/mobile/src/data/budgetProgress.ts, apps/mobile/test/budgetProgress.test.ts,
     apps/mobile/src/app/(tabs)/expenses.tsx
@@ -127,5 +127,7 @@ Total: about 75 changed lines, not counting slice 0.
 None.
 
 ## Deviations
+
+- slice 0: bumped to 1.10.1, not 1.9.1. Brief 088 (v1.10.0) merged while this was built; rebased onto 5df77d3.
 
 ## Consolidate

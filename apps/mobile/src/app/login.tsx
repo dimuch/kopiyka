@@ -89,7 +89,8 @@ export default function Login() {
         <View style={styles.actions}>
           <Pressable
             accessibilityRole="button"
-            accessibilityState={{ disabled: !ready }}
+            // disabled, not aria-disabled: react-native-web's Pressable sets aria-disabled from disabled only.
+            disabled={!ready}
             onPress={submit}
             style={[styles.button, !ready && styles.buttonDisabled]}
           >

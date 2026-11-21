@@ -82,6 +82,13 @@ the brief can't answer, ask the user now — before the skeptic.
 
 1. Spawn a **fresh** `kopiyka-plan-skeptic` with only the brief and plan
    paths — not the planner's reasoning or your opinion.
+   Also pass `progress: /tmp/kopiyka-skeptic/<NNN>-<slug>.progress` after
+   `mkdir -p /tmp/kopiyka-skeptic && : > <that path>` (truncate on every
+   pass). The skeptic appends `n/11 ✔|✘ <label>` per checklist item and a
+   final `verdict …` line; the `kopiyka-skeptic-progress` mod shows it as a
+   bar. Without the mod, read the file while waiting and mirror `n/11` in
+   your task list. Delete the file once the verdict is back (it sits
+   outside the repo, so nothing is gitignored).
 2. `APPROVE` → set the plan's `Status: skeptic-approved`, go to Gate A.
    `APPROVE WITH EDITS` → have the planner apply exactly those edits (no
    other changes), set `skeptic-approved`, go to Gate A without another

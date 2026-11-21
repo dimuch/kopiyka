@@ -167,7 +167,8 @@ Why: <the conventions §8b row, and the change in this plan that reaches it>
 
 ## Approval checklist (the skeptic enforces this; self-check first)
 
-A plan is **blocked** if any of these fail:
+A plan is **blocked** if any of these fail (each item's bold word is its
+label in the skeptic's progress lines):
 
 1. **Complete**: every AC has a slice that implements it and evidence that
    proves it; nothing in the brief's scope is silently dropped.

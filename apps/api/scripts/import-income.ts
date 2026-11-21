@@ -86,10 +86,14 @@ if (!snapshot) {
   process.exit(1);
 }
 
+const count = (n: number, noun: string) => `${n} ${noun}${n === 1 ? '' : 's'}`;
+
 /** The month as lines a person can check against Notion. */
 function describe({ month, storedCount, storedCents, add }: IncomeMonthImport): string[] {
   if (storedCount > 0) {
-    return [`${month}: skipped, already has ${storedCount} income items (total ${centsToString(storedCents)})`];
+    return [
+      `${month}: skipped, already has ${count(storedCount, 'income item')} (total ${centsToString(storedCents)})`,
+    ];
   }
   if (!add.length) return [`${month}: nothing to add`];
   const total = add.reduce((sum, item) => sum + item.amountCents, 0n);
@@ -109,9 +113,10 @@ try {
   // From the whole snapshot, so a row with no month is named even when --month picks one.
   for (const row of skipped) console.error(`Skipped row ${row}`);
   const added = result.filter((m) => m.add.length > 0);
+  const itemCount = added.reduce((sum, m) => sum + m.add.length, 0);
   console.log(
     values.apply
-      ? `Imported ${added.reduce((sum, m) => sum + m.add.length, 0)} items into ${added.length} months.`
+      ? `Imported ${count(itemCount, 'item')} into ${count(added.length, 'month')}.`
       : 'Dry run: nothing was written. Run again with --apply to write.',
   );
 } catch (err) {

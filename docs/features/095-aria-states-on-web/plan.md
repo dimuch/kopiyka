@@ -60,7 +60,7 @@ leaves nothing behind.
   | `app/delete-category.tsx:147`                       | `{ busy }`                                             | `aria-busy={busy}`                               |
   | `app/(tabs)/statistics.tsx:213` (period button)     | `{ expanded: menuOpen }`                               | `aria-expanded={menuOpen}`                       |
   | `app/(tabs)/statistics.tsx:225` (Next month)        | `{ disabled: !forwardEnabled }`                        | removed (`disabled={!forwardEnabled}` covers it) |
-  | `app/(tabs)/statistics.tsx:274` (period menu radio) | `{ checked }`                                          | `aria-checked={checked}`                         |
+  | `app/(tabs)/statistics.tsx:273` (period menu radio) | `{ checked }`                                          | `aria-checked={checked}`                         |
   | `app/category/[categoryId].tsx:108`                 | `{ expanded: menuOpen }`                               | `aria-expanded={menuOpen}`                       |
   | `components/NotionSyncPanel.tsx:40`                 | `{ disabled: syncing, busy: syncing }`                 | `aria-busy={syncing}`                            |
   | `components/NotionSyncPanel.tsx:63`                 | `{ disabled: syncing }`                                | removed (prop covers it)                         |

@@ -89,6 +89,9 @@ export default function Login() {
         <View style={styles.actions}>
           <Pressable
             accessibilityRole="button"
+            // Named here because while busy its only child is a spinner.
+            accessibilityLabel="Sign in"
+            aria-busy={busy}
             // disabled, not aria-disabled: react-native-web's Pressable sets aria-disabled from disabled only.
             disabled={!ready}
             onPress={submit}

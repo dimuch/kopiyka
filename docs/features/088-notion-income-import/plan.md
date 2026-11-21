@@ -137,7 +137,7 @@ It's proposed as a refactoring brief (Follow-ups).
      WHERE ledger_id = ? AND income_month IN (?) GROUP BY income_month
     ```
     Other months and ledgers are never read.
-  - A private `plan(stored, wanted)` maps each wanted month to an `IncomeMonthImport`. Both exports share it, so the
+  - A private `planImport(q, ledgerId, wanted)` reads `storedIncome` and maps each wanted month to an `IncomeMonthImport`. Both exports share it, so the
     dry run shows exactly what `--apply` does.
   - `previewIncome` runs `ledgerOwner(db, ledgerId, false)`, then reads with the pool and writes nothing.
   - `importIncome` runs one `withTransaction`:
@@ -181,7 +181,7 @@ It's proposed as a refactoring brief (Follow-ups).
 
 ## Version
 
-Bump: minor — 1.8.0 → 1.9.0 (or `main`'s number +minor if another PR took a version first, §8b step 4)
+Bump: minor — 1.9.0 → 1.10.0 (planned 1.8.0 → 1.9.0; `main` took 1.9.0 for brief 086 meanwhile, §8b step 4)
 Why: §8b `minor`, as 085's import PR. It adds a production command (`import-income`) that writes ledger data, a new
 capability; nothing existing changes. No migration, no route, and nothing for app builds, the connector or rollback.
 
@@ -190,9 +190,9 @@ capability; nothing existing changes. No migration, no route, and nothing for ap
 One PR (the user's decision, 2026-11-21), ~525 lines. That's over the ~400 guide, which the user's call overrides;
 every slice still stands alone.
 
-- [x] 0. Bump version to 1.9.0
+- [x] 0. Bump version to 1.10.0
   - Files: package.json, apps/mobile/app.json
-  - Change: set both to 1.9.0
+  - Change: set both to 1.10.0
 - [x] 1. Read Notion's Income table into a snapshot (~135)
   - Files: `apps/api/src/config.ts`, `apps/api/.env.example`, `apps/api/src/notion/client.ts`,
     `apps/api/src/notion/income.ts` (new: `IncomeSnapshot`, `toIncomeSnapshot`), `apps/api/test/config.test.ts`,
@@ -376,6 +376,12 @@ every slice still stands alone.
 
 ## Deviations
 
+- slice 3: the private `plan(stored, wanted)` became `planImport(q, ledgerId, wanted)`, which also runs the stored-items
+  read, so both exports are one call each — same behaviour and contract.
+- slice 4: the CLI repeats about 50 lines of `import-balances`, not ~15 (review count); the LEAVE reason is unchanged.
+- Version: `main` took 1.9.0 for brief 086 while this branch was open, so the bump is 1.9.0 → 1.10.0 (rebased on
+  `origin/main`, review finding).
+
 ## Consolidate
 
 Reused 0 · extracted 0 · left 6 (`origin/main...HEAD`, kopiyka-refactoring §8):
@@ -387,7 +393,7 @@ Reused 0 · extracted 0 · left 6 (`origin/main...HEAD`, kopiyka-refactoring §8
   import cuts it. `MAX_TITLE` names the same limit.
 - `storedIncome` ↔ `storedBalances`: LEAVE. Different table and result (count and sum per month, no lock).
 - The income INSERT ↔ `income/routes.ts:89,149`: LEAVE. The routes inline it too; no helper exists to reuse.
-- `scripts/import-income.ts` ↔ `import-balances.ts` (~15 lines of flags and snapshot I/O): LEAVE, by the brief (other
+- `scripts/import-income.ts` ↔ `import-balances.ts` (~50 lines: flags, the save block, the snapshot reader and the runner; review count): LEAVE, by the brief (other
   commands unchanged); refactoring brief in Follow-ups.
 
 ## Revision 1

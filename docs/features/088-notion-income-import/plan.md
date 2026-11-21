@@ -219,7 +219,7 @@ every slice still stands alone.
       - a null month and a null amount are kept;
       - it round-trips through `IncomeSnapshot.parse(JSON.parse(JSON.stringify(s)))`;
       - `IncomeSnapshot.parse` refuses `'1.234'` and a missing `name`.
-- [ ] 2. Map Notion's income rows to January–October items (~115)
+- [x] 2. Map Notion's income rows to January–October items (~115)
   - Files: `apps/api/src/notion/income.ts` (`wantedIncome`), `apps/api/test/notionIncome.test.ts`
   - Tests (`wantedIncome`; made-up names and amounts, never the real ones):
     - Months: `' Salary '` Jan `2500.00`, `Bonus` Jan `500.50` and `Refund` Oct `100` give exactly ten months,

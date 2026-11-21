@@ -147,6 +147,7 @@ describe.skipIf(!(await testDbReachable()))('GET /api/ledgers/:id/summary (MySQL
     const asOwner = await summary('from=2026-10&to=2026-10');
     const asMember = await summary('from=2026-10&to=2026-10', await authHeader(app, member, clock));
     expect(asMember.statusCode).toBe(200);
+    expect(asMember.json().totals).toMatchObject({ incomeEur: '1500.00', spentEur: '12.50' });
     expect(asMember.json()).toEqual(asOwner.json());
   });
 
@@ -163,6 +164,11 @@ describe.skipIf(!(await testDbReachable()))('GET /api/ledgers/:id/summary (MySQL
       expect(res.json()).toMatchObject({ error: 'invalid_request' });
     }
     expect((await summary('from=2024-12&to=2026-11')).statusCode).toBe(200);
+    // The last month there is: counted without stepping past it.
+    expect((await summary('from=9999-11&to=9999-12')).json().months.map((m: { month: string }) => m.month)).toEqual([
+      '9999-11',
+      '9999-12',
+    ]);
   });
 
   it("a three-month summary's totals are the sums of its months", async () => {
@@ -221,6 +227,14 @@ describe.skipIf(!(await testDbReachable()))('GET /api/ledgers/:id/summary (MySQL
       { categoryId: await categoryId('rent'), name: 'rent', plannedEur: '1200.00', spentEur: '600.00' },
       { categoryId: await categoryId('fun'), name: 'fun', plannedEur: '0.00', spentEur: '19.60' },
     ]);
+    // Equal spent (here nothing) falls back to the categories' own order.
+    const [ordered] = await db.query<RowDataPacket[]>(
+      'SELECT category_id FROM categories WHERE ledger_id = ? AND deleted_at IS NULL ORDER BY sort_order DESC',
+      [owner.ledgerId],
+    );
+    await db.query('UPDATE categories SET sort_order = ? WHERE category_id = ?', [-1, ordered[0]!.category_id]);
+    const reordered = (await summary('from=2026-09&to=2026-11')).json().categories;
+    expect(reordered[3].categoryId).toBe(ordered[0]!.category_id);
     // Every other listed category is there with nothing planned or spent.
     expect(
       categories.slice(3).every((c: Record<string, string>) => c.plannedEur === '0.00' && c.spentEur === '0.00'),

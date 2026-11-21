@@ -164,7 +164,7 @@ Why: §8b `minor` covers a new user action (drag to reorder on Budget and Expens
 - [x] 0. Bump version to 1.12.0
   - Files: package.json, apps/mobile/app.json
   - Change: set both to 1.12.0
-- [ ] 1. Add a table for each member's category order (~45)
+- [x] 1. Add a table for each member's category order (~45)
   - Files: `apps/api/migrations/017_category_orders.sql`, `apps/api/test/categoryOrders.migration.int.test.ts`
     (new), `apps/api/test/helpers.ts` (`'category_orders'` first in `DATA_TABLES`, because `clearData` turns FK checks
     off, so the cascades don't run)

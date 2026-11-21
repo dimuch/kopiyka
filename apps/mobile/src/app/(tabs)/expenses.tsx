@@ -1,6 +1,6 @@
 import { router } from 'expo-router';
-import { useMemo, useState } from 'react';
-import { ActivityIndicator, Animated, StyleSheet, Text, View } from 'react-native';
+import { useMemo, useRef, useState } from 'react';
+import { ActivityIndicator, Animated, type ScrollViewInstance, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useColors, useThemedStyles } from '@/appearance/AppearanceContext';
 import { useSession } from '@/auth/AuthContext';
@@ -12,9 +12,11 @@ import { HomeButton } from '@/components/HomeButton';
 import { LoadError } from '@/components/LoadError';
 import { MonthSwitcher } from '@/components/MonthSwitcher';
 import { Pressable } from '@/components/Pressable';
+import { ReorderList } from '@/components/ReorderList';
 import { budgetProgress } from '@/data/budgetProgress';
 import { plannedCents, spentByCategory } from '@/data/monthSummary';
 import { tabTitle } from '@/data/tabItems';
+import { useCategoryOrder } from '@/data/useCategoryOrder';
 import { useMonth } from '@/data/useMonth';
 import { eur, kyivMonth, monthName, toCents } from '@/format';
 import { fonts, progressColor, type Palette } from '@/theme';
@@ -26,16 +28,21 @@ export default function Expenses() {
   const [thisMonth] = useState(() => kyivMonth(new Date()));
   const [month, setMonth] = useState(thisMonth);
   const { data, error, reload } = useMonth(ledger.ledgerId, month);
+  // My order of the month's rows, changed by long-press and drag (brief 092).
+  const order = useCategoryOrder(ledger.ledgerId, data?.categories ?? null, reload);
+  const [dragging, setDragging] = useState(false);
+  const scrollRef = useRef<ScrollViewInstance>(null);
 
+  const ordered = order.categories;
   const rows = useMemo(() => {
-    if (!data) return null;
+    if (!data || !ordered) return null;
     const spent = spentByCategory(data.expenses);
-    return data.categories.map((category) => {
+    return ordered.map((category) => {
       const spentCents = spent.get(category.categoryId) ?? 0;
       const planned = toCents(category.plannedEur);
       return { ...category, spent: spentCents, planned, progress: budgetProgress(spentCents, planned) };
     });
-  }, [data]);
+  }, [data, ordered]);
   // Null until the month has loaded: €0 would read as "spent nothing".
   const total = rows ? rows.reduce((s, r) => s + r.spent, 0) : null;
   // A month without categories has no budget; otherwise its plan is the sum of theirs, €0 included.
@@ -56,7 +63,12 @@ export default function Expenses() {
         <HeaderDivider style={collapse.dividerStyle} />
       </View>
 
-      <Animated.ScrollView {...collapse.scrollProps} contentContainerStyle={styles.content}>
+      <Animated.ScrollView
+        {...collapse.scrollProps}
+        ref={scrollRef}
+        scrollEnabled={!dragging}
+        contentContainerStyle={styles.content}
+      >
         <Animated.View onLayout={collapse.onCardLayout} style={[styles.card, collapse.cardStyle]}>
           <View
             accessible
@@ -112,49 +124,62 @@ export default function Expenses() {
                 }
               />
             ) : (
-              <View style={styles.listCard}>
-                {rows.map((r, i) => (
-                  <Pressable
-                    key={r.categoryId}
-                    accessibilityRole="button"
-                    accessibilityLabel={
-                      `${r.displayName}, ${eur(r.spent)} of ${eur(r.planned)} spent` +
-                      (r.progress.overCents > 0 ? `, ${eur(r.progress.overCents)} over` : '')
-                    }
-                    onPress={() =>
-                      router.push({ pathname: '/category/[categoryId]', params: { categoryId: r.categoryId, month } })
-                    }
-                    style={[styles.row, i < rows.length - 1 && styles.divider]}
-                  >
-                    <CategoryTile techName={r.techName} label={r.displayName} />
-                    <View style={{ flex: 1, gap: 7 }}>
-                      <View style={styles.rowTop}>
-                        <Text style={styles.rowName} numberOfLines={1}>
-                          {r.displayName}
-                        </Text>
-                        <Text style={styles.rowAmount}>
-                          {eur(r.spent)}
-                          <Text style={styles.rowPlanned}> of {eur(r.planned)}</Text>
-                        </Text>
+              <>
+                {order.failed && <LoadError message="Couldn’t save the order. Check your connection and try again." />}
+                <ReorderList
+                  items={rows}
+                  keyOf={(row) => row.categoryId}
+                  onMove={order.move}
+                  disabled={order.saving}
+                  onDragChange={setDragging}
+                  scrollRef={scrollRef}
+                  style={styles.listCard}
+                  renderRow={(row, index, drag) => (
+                    <Pressable
+                      {...drag}
+                      accessibilityRole="button"
+                      accessibilityLabel={
+                        `${row.displayName}, ${eur(row.spent)} of ${eur(row.planned)} spent` +
+                        (row.progress.overCents > 0 ? `, ${eur(row.progress.overCents)} over` : '')
+                      }
+                      onPress={() =>
+                        router.push({
+                          pathname: '/category/[categoryId]',
+                          params: { categoryId: row.categoryId, month },
+                        })
+                      }
+                      style={[styles.row, index < rows.length - 1 && styles.divider]}
+                    >
+                      <CategoryTile techName={row.techName} label={row.displayName} />
+                      <View style={{ flex: 1, gap: 7 }}>
+                        <View style={styles.rowTop}>
+                          <Text style={styles.rowName} numberOfLines={1}>
+                            {row.displayName}
+                          </Text>
+                          <Text style={styles.rowAmount}>
+                            {eur(row.spent)}
+                            <Text style={styles.rowPlanned}> of {eur(row.planned)}</Text>
+                          </Text>
+                        </View>
+                        <View style={styles.track}>
+                          <View
+                            style={[
+                              styles.bar,
+                              {
+                                width: `${row.progress.fill * 100}%`,
+                                backgroundColor: progressColor(row.progress.state, colors),
+                              },
+                            ]}
+                          />
+                        </View>
+                        {row.progress.overCents > 0 && (
+                          <Text style={styles.overText}>{eur(row.progress.overCents)} over</Text>
+                        )}
                       </View>
-                      <View style={styles.track}>
-                        <View
-                          style={[
-                            styles.bar,
-                            {
-                              width: `${r.progress.fill * 100}%`,
-                              backgroundColor: progressColor(r.progress.state, colors),
-                            },
-                          ]}
-                        />
-                      </View>
-                      {r.progress.overCents > 0 && (
-                        <Text style={styles.overText}>{eur(r.progress.overCents)} over</Text>
-                      )}
-                    </View>
-                  </Pressable>
-                ))}
-              </View>
+                    </Pressable>
+                  )}
+                />
+              </>
             )}
           </>
         )}

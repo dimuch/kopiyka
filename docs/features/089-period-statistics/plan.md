@@ -260,7 +260,7 @@ PR A total ≈ 385 changed lines, not counting A0.
       with zeros → false.
     - The hook is checked by typecheck and lint here, and in the browser in B3.
   - ~95 lines
-- [ ] B3. Show a period's totals on the Statistics tab
+- [x] B3. Show a period's totals on the Statistics tab
   - Files: apps/mobile/src/app/(tabs)/statistics.tsx (replaces the placeholder)
   - Change:
     - the header;

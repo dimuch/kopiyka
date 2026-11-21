@@ -41,7 +41,7 @@ Why: §8b `patch` (a bug fix in copy). The caption text changes on three screens
 
 ## Slices
 
-- [ ] 0. Bump version to 1.13.1
+- [x] 0. Bump version to 1.13.1
   - Files: package.json, apps/mobile/app.json
   - Change: set both to 1.13.1
 - [ ] 1. Name each tab in its month switcher's caption, not always Budget (~70 lines)
@@ -61,13 +61,13 @@ Why: §8b `patch` (a bug fix in copy). The caption text changes on three screens
 
 ## AC → evidence
 
-| AC                                        | Evidence                                                                         |
-| ----------------------------------------- | -------------------------------------------------------------------------------- |
-| Income Nov 2026 reads "INCOME ’26"        | `monthCaption` Income row + `tabTitle('income')`; web and demo check of Income   |
-| Expenses Nov 2026 reads "EXPENSES ’26"    | `monthCaption` Expenses row + `tabTitle('expenses')`; web and demo check         |
-| Budget still reads "BUDGET ’26"           | `monthCaption` Budget row + `tabTitle('budget')`; web and demo check             |
-| Statistics From/To read "STATISTICS ’yy" | `monthCaption` Statistics row + `tabTitle('statistics')`; web check, Dec→Jan     |
-| Jan 2027 shows ’27                        | `monthCaption` row built with `shiftMonth`; web check by tapping Next            |
+| AC                                       | Evidence                                                                       |
+| ---------------------------------------- | ------------------------------------------------------------------------------ |
+| Income Nov 2026 reads "INCOME ’26"       | `monthCaption` Income row + `tabTitle('income')`; web and demo check of Income |
+| Expenses Nov 2026 reads "EXPENSES ’26"   | `monthCaption` Expenses row + `tabTitle('expenses')`; web and demo check       |
+| Budget still reads "BUDGET ’26"          | `monthCaption` Budget row + `tabTitle('budget')`; web and demo check           |
+| Statistics From/To read "STATISTICS ’yy" | `monthCaption` Statistics row + `tabTitle('statistics')`; web check, Dec→Jan   |
+| Jan 2027 shows ’27                       | `monthCaption` row built with `shiftMonth`; web check by tapping Next          |
 
 ## Not doing (YAGNI)
 

@@ -5,6 +5,7 @@ import Fastify, { type FastifyInstance, type FastifyReply } from 'fastify';
 import { ZodError } from 'zod';
 import { apiTokenRoutes } from './apiTokens/routes.js';
 import { authRoutes } from './auth/routes.js';
+import { balanceRoutes } from './balances/routes.js';
 import { categoryRoutes } from './categories/routes.js';
 import { expenseRoutes } from './expenses/routes.js';
 import { incomeRoutes } from './income/routes.js';
@@ -92,6 +93,7 @@ export async function buildApp(deps: AppDeps): Promise<FastifyInstance> {
   await inviteRoutes(app, deps);
   await categoryRoutes(app, deps);
   await incomeRoutes(app, deps);
+  await balanceRoutes(app, deps);
   await rateRoutes(app, deps);
   await expenseRoutes(app, deps);
   await notionRoutes(app, deps);

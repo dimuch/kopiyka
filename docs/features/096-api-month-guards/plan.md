@@ -114,7 +114,7 @@ Existing test cases stay unmodified.
     `find-short-names.sh --diff` would flag the `r` on it, so the rename goes first and on its own (refactoring §4).
   - Tests: `notionIncome.int` ("skips a month that already has income, imports the others, and a re-run adds nothing",
     and the rest of the file).
-- [ ] 3. Move lockLedger to ledgers (22 lines, move)
+- [x] 3. Move lockLedger to ledgers (22 lines, move)
   - Files: new `apps/api/src/ledgers/lock.ts`; `categories/monthLists.ts` (drop the function, import it);
     `income/routes.ts` and `expenses/repeatCall.ts` (import path only)
   - Change: move the function and its doc comment word for word, with the same SQL string.

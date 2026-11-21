@@ -210,7 +210,7 @@ function PeriodSwitcher({
         accessibilityRole="button"
         accessibilityLabel={`Period, ${periodLabel(period)}`}
         accessibilityHint="Opens a menu of periods"
-        accessibilityState={{ expanded: menuOpen }}
+        aria-expanded={menuOpen}
         onPress={onToggleMenu}
         style={styles.periodButton}
       >
@@ -222,7 +222,6 @@ function PeriodSwitcher({
       <Pressable
         accessibilityRole="button"
         accessibilityLabel="Next month"
-        accessibilityState={{ disabled: !forwardEnabled }}
         disabled={!forwardEnabled}
         onPress={() => onStep(1)}
         style={styles.iconButton}
@@ -271,7 +270,7 @@ function PeriodMenu({
               key={choice}
               accessibilityRole="radio"
               accessibilityLabel={label}
-              accessibilityState={{ checked }}
+              aria-checked={checked}
               onPress={() => onChoose(choice)}
               style={styles.menuItem}
             >

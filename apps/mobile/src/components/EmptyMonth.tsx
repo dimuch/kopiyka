@@ -25,7 +25,7 @@ export function EmptyMonth({
           accessibilityRole="button"
           // While busy the only child is a spinner, so the name has to be given here.
           accessibilityLabel={action.label}
-          accessibilityState={{ busy: action.busy, disabled: action.busy }}
+          aria-busy={action.busy}
           disabled={action.busy}
           onPress={action.onPress}
           style={[styles.button, action.busy && { opacity: 0.6 }]}

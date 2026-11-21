@@ -101,7 +101,7 @@ reach them. No API, schema, connector or iOS behaviour changes.
 - [x] 0. Bump version to 1.15.1
   - Files: package.json, apps/mobile/app.json
   - Change: set both to 1.15.1
-- [ ] 1. Tell screen readers on web which option is selected, open or busy (~40 lines)
+- [x] 1. Tell screen readers on web which option is selected, open or busy (~40 lines)
   - Files: the 15 files in the Contracts table other than `login.tsx`.
   - Change: each row as in the table. Each `accessibilityState` line becomes one `aria-*` line or is deleted.
   - Verify: `rg -c accessibilityState apps/mobile/src` gives 1 (`login.tsx`), before slice 2. Then run the web check below for

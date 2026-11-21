@@ -37,7 +37,7 @@ export function NotionSyncPanel({ status, syncing, outcome, onSync }: Props) {
         <Pressable
           accessibilityRole="button"
           accessibilityLabel="Sync to Notion"
-          accessibilityState={{ disabled: syncing, busy: syncing }}
+          aria-busy={syncing}
           disabled={syncing}
           onPress={onSync}
           style={[styles.button, syncing && styles.dimmed]}
@@ -60,7 +60,6 @@ export function NotionSyncPanel({ status, syncing, outcome, onSync }: Props) {
               </Text>
               <Pressable
                 accessibilityRole="button"
-                accessibilityState={{ disabled: syncing }}
                 disabled={syncing}
                 onPress={onSync}
                 style={[styles.retry, syncing && styles.dimmed]}

@@ -70,7 +70,6 @@ export function DateField({ value, onChange, min, max, label, disabled = false }
       <Pressable
         accessibilityRole="button"
         accessibilityLabel={`${label}, ${numericDate(value)}`}
-        accessibilityState={{ disabled }}
         disabled={disabled}
         onPress={openPicker}
         style={styles.field}

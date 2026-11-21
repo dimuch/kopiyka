@@ -144,7 +144,7 @@ function Confirm({
           accessibilityRole="button"
           // While removing the only child is a spinner, so the name has to be given here.
           accessibilityLabel={warning.action}
-          accessibilityState={{ busy }}
+          aria-busy={busy}
           disabled={busy}
           onPress={remove}
           style={[styles.destructive, busy && { opacity: 0.6 }]}

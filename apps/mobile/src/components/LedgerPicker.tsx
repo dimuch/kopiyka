@@ -31,7 +31,7 @@ export function LedgerPicker({
             key={ledger.ledgerId}
             accessibilityRole="radio"
             accessibilityLabel={`${ledger.label ?? ledger.name}, ${whose(ledger)}`}
-            accessibilityState={{ checked, disabled }}
+            aria-checked={checked}
             disabled={disabled}
             onPress={() => !checked && onSelect(ledger.ledgerId)}
             style={[styles.option, checked && styles.optionOn]}

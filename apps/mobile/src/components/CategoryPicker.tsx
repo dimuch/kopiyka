@@ -32,7 +32,7 @@ export function CategoryPicker({ quick, more, selectedId, onPick, disabled = fal
           <Pressable
             key={c.categoryId}
             accessibilityRole="button"
-            accessibilityState={{ selected: on, disabled }}
+            aria-selected={on}
             disabled={disabled}
             onPress={() => onPick(c)}
             style={[styles.cat, on && styles.catOn]}
@@ -48,7 +48,6 @@ export function CategoryPicker({ quick, more, selectedId, onPick, disabled = fal
         <Pressable
           accessibilityRole="button"
           accessibilityLabel="More categories"
-          accessibilityState={{ disabled }}
           disabled={disabled}
           onPress={() => setSheetOpen(true)}
           style={[styles.cat, styles.more]}

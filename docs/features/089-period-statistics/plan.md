@@ -359,13 +359,14 @@ would ship the by-category and by-month cards on their own.
 
 ## Follow-ups
 
+- In Custom, `MonthSwitcher`'s "BUDGET ’26" label sits above each From/To month (seen in B4's check). It reads, but
+  "Budget" is the wrong word on Statistics; an optional label prop, or the year alone, would fit better.
+
 - A generic focus-reloading loader hook for `useSummary`, `useIncome`, `useMonth`, `useMembers` and
   `useMonthBalance` (a `/kopiyka-hos-refactoring` brief).
 
 - `MonthSwitcher`'s arrows move with the month name's width ("October" vs "December"), so tapping an arrow fast in
   Custom can miss after a few taps. A fixed label width in `MonthSwitcher` would fix it here and on Budget/Income.
-
-- None yet.
 
 ## Deviations
 

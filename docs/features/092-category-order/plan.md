@@ -198,7 +198,7 @@ Why: §8b `minor` covers a new user action (drag to reorder on Budget and Expens
     - The member's starts `car, rent, groceries…`.
     - A third user with no rows (a second member) sees the 15 in `sort_order`.
     - `quickCategoryIds` is the same for all three.
-- [ ] 4. Save my category order from a month's new order (~150)
+- [x] 4. Save my category order from a month's new order (~150)
   - Files: `apps/api/src/categories/order.ts` (`saveOrder`), `apps/api/src/categories/routes.ts` (`OrderBody`, the
     `PUT` route), `apps/api/test/categoryOrder.int.test.ts`
   - Note: `OrderBody` checks repeated ids with `.refine((ids) => new Set(ids).size === ids.length)` and caps the

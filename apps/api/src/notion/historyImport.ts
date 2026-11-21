@@ -3,7 +3,7 @@
 // diffed (planMonth) and, outside a dry run, written as one unit; the app's month lock doesn't apply here.
 import type { PoolConnection, ResultSetHeader, RowDataPacket } from 'mysql2/promise';
 import type { AppDeps } from '../app.js';
-import { nextMonthStart } from '../dates.js';
+import { monthStart, nextMonthStart } from '../dates.js';
 import { type Db, withTransaction } from '../db.js';
 import { centsToString, convert, e4ToString, rateToE4, toCents } from '../money.js';
 import { getEurUahRate } from '../rates/service.js';
@@ -60,7 +60,7 @@ export function planMonth(state: MonthState, wanted: WantedMonth): MonthPlan {
     if (fromPlanned !== plannedCents) plan.planned.push({ techName, fromCents: fromPlanned, toCents: plannedCents });
     const expenses = expensesOf(id);
     const isTotal = (e: MonthState['expenses'][number]) =>
-      e.name === TOTAL && e.date === `${wanted.month}-01` && e.currency === 'EUR' && e.eurCents === actualCents;
+      e.name === TOTAL && e.date === monthStart(wanted.month) && e.currency === 'EUR' && e.eurCents === actualCents;
     const [only] = expenses;
     const matches = actualCents === 0n ? !only : expenses.length === 1 && only !== undefined && isTotal(only);
     if (!matches) {
@@ -81,7 +81,7 @@ export function planMonth(state: MonthState, wanted: WantedMonth): MonthPlan {
 
 /** Reads a 'YYYY-MM' month of the ledger; `lock` takes the month's expenses FOR UPDATE (inside a transaction). */
 async function loadMonth(q: Db | PoolConnection, ledgerId: number, month: string, lock: boolean): Promise<MonthState> {
-  const first = `${month}-01`;
+  const first = monthStart(month);
   const [categories] = await q.query<RowDataPacket[]>(
     'SELECT category_id, tech_name FROM categories WHERE ledger_id = ? AND deleted_at IS NULL',
     [ledgerId],
@@ -147,7 +147,7 @@ export async function importMonth(
   ledgerId: number,
   wanted: WantedMonth,
 ): Promise<MonthPlan> {
-  const first = `${wanted.month}-01`;
+  const first = monthStart(wanted.month);
   // Before the transaction: nothing else may use the pool while it holds locks (withTransaction).
   const rateE4 = rateToE4((await getEurUahRate(db, fetchRate, first)).eurUah);
   return withTransaction(db, async (conn) => {

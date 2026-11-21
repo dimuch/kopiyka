@@ -1,6 +1,7 @@
 import type { FastifyBaseLogger } from 'fastify';
 import type { ResultSetHeader, RowDataPacket } from 'mysql2/promise';
 import type { NotionScope } from '../config.js';
+import { monthOf, monthStart } from '../dates.js';
 import { type Db, withTransaction } from '../db.js';
 import { centsToString, toCents } from '../money.js';
 import { type ExpensesTable, type ExpensesTemplate, type MonthView, NotionError } from './client.js';
@@ -39,7 +40,7 @@ export async function loadUncounted(db: Db, scope: NotionScope): Promise<Uncount
     expenseId: r.expense_id,
     categoryId: r.category_id,
     techName: r.tech_name,
-    month: (r.expense_date as string).slice(0, 7),
+    month: monthOf(r.expense_date as string),
     amountEur: r.amount_eur,
     pending: r.counted !== null,
   }));
@@ -293,7 +294,7 @@ async function addToRow(db: Db, table: ExpensesTable, add: TotalAdd, pageId: str
     const [res] = await conn.query<ResultSetHeader>(
       `INSERT INTO notion_total_adds (category_id, add_month, notion_page_id, base_amount, expected_amount)
        VALUES (?, ?, ?, ?, ?)`,
-      [add.categoryId, `${add.month}-01`, pageId, centsToString(base), centsToString(expected)],
+      [add.categoryId, monthStart(add.month), pageId, centsToString(base), centsToString(expected)],
     );
     await conn.query('INSERT INTO notion_counted_expenses (expense_id, add_id) VALUES ?', [
       add.expenseIds.map((id) => [id, res.insertId]),

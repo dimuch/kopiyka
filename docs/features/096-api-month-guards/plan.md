@@ -140,7 +140,7 @@ Existing test cases stay unmodified.
   - Tests (+2): "cuts the month out of a date" (`'2026-10-06'` → `'2026-10'`, `'2026-12-31'` → `'2026-12'`); "finds a
     month's first day" (`'2026-10'` → `'2026-10-01'`, `'2027-01'` → `'2027-01-01'`). The existing next/previous month
     and `monthEnded` table cases run unchanged.
-- [ ] 6. Use monthStart and monthOf for month dates across the API (84 lines, mechanical, 12 files)
+- [x] 6. Use monthStart and monthOf for month dates across the API (84 lines, mechanical, 12 files)
   - Files and sites in `apps/api/src`:
     - `` `${x}-01` `` → `monthStart(x)`:
       - `categories/routes.ts` 102, 131

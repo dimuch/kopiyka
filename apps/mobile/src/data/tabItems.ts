@@ -1,7 +1,7 @@
 import { useInvites } from '@/data/invites';
 import { TABS, tabBadge } from '@/tabs';
 
-export { readTabs, type TabName } from '@/tabs';
+export { readTabs, tabTitle, type TabName } from '@/tabs';
 
 export type TabItem = (typeof TABS)[number] & { badge: number | undefined; label: string };
 

@@ -15,6 +15,7 @@ import { Pressable } from '@/components/Pressable';
 import { copyPreviousIncome } from '@/data/income';
 import { copyRefusedText } from '@/data/monthCopy';
 import { incomeCents } from '@/data/monthSummary';
+import { tabTitle } from '@/data/tabItems';
 import { useIncome } from '@/data/useIncome';
 import { eur, kyivMonth, monthName, shiftMonth, toCents } from '@/format';
 import { parseMonthParam } from '@/linkParams';
@@ -88,7 +89,11 @@ export default function Income() {
         <View style={styles.side}>
           <HomeButton />
         </View>
-        <MonthSwitcher month={month} onChange={(next) => router.setParams({ month: next })} />
+        <MonthSwitcher
+          title={tabTitle('income')}
+          month={month}
+          onChange={(next) => router.setParams({ month: next })}
+        />
         <View style={[styles.side, styles.sideEnd]}>
           {/* Like Budget's "+"; an ended month can't change, and nothing shows before the month loads. */}
           {items && !ended ? (

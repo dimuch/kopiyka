@@ -1,6 +1,21 @@
 import { describe, expect, it } from 'vitest';
 import type { StackRoutes } from '@/tabRoutes';
-import { readTabs, tabBadge } from '@/tabs';
+import { readTabs, TABS, tabBadge, tabTitle } from '@/tabs';
+
+describe('tabTitle', () => {
+  it.each([
+    ['budget', 'Budget'],
+    ['income', 'Income'],
+    ['expenses', 'Expenses'],
+    ['statistics', 'Statistics'],
+  ] as const)('%s → %s', (name, title) => {
+    expect(tabTitle(name)).toBe(title);
+  });
+
+  it('reads every tab’s title from TABS, so renaming a tab renames its caption', () => {
+    expect(TABS.map((tab) => tabTitle(tab.name))).toEqual(TABS.map((tab) => tab.title));
+  });
+});
 
 describe('tabBadge', () => {
   it.each([

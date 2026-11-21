@@ -14,6 +14,7 @@ import { MonthSwitcher } from '@/components/MonthSwitcher';
 import { Pressable } from '@/components/Pressable';
 import { budgetProgress } from '@/data/budgetProgress';
 import { plannedCents, spentByCategory } from '@/data/monthSummary';
+import { tabTitle } from '@/data/tabItems';
 import { useMonth } from '@/data/useMonth';
 import { eur, kyivMonth, monthName, toCents } from '@/format';
 import { fonts, progressColor, type Palette } from '@/theme';
@@ -48,7 +49,7 @@ export default function Expenses() {
         <View style={styles.side}>
           <HomeButton />
         </View>
-        <MonthSwitcher month={month} onChange={setMonth} />
+        <MonthSwitcher title={tabTitle('expenses')} month={month} onChange={setMonth} />
         <View style={[styles.side, styles.sideEnd]}>
           <AddExpenseButton />
         </View>

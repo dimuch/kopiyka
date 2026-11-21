@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { readTabs, useTabItems } from '@/demo/tabItems';
+import { readTabs, tabTitle, useTabItems } from '@/demo/tabItems';
 
 describe('the demo’s tabs', () => {
   it('lists four tabs with no Statistics or Settings, and no badge', () => {
@@ -32,5 +32,10 @@ describe('the demo’s tabs', () => {
 
   it('falls back when there are no tabs underneath', () => {
     expect(readTabs([{ name: 'expense' }], 'expenses')).toEqual({ active: 'expenses', params: {} });
+  });
+
+  it('names its own tabs for the month switcher, and has no Statistics to name', () => {
+    expect([tabTitle('budget'), tabTitle('income'), tabTitle('expenses')]).toEqual(['Budget', 'Income', 'Expenses']);
+    expect(() => tabTitle('statistics')).toThrow('No tab named statistics');
   });
 });

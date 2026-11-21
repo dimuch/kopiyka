@@ -12,6 +12,13 @@ export const TABS: readonly { name: TabName; title: string; icon: IconName; href
   { name: 'settings', title: 'Settings', icon: 'settings', href: '/settings' },
 ];
 
+/** A tab's title, as its month switcher captions it. */
+export function tabTitle(name: TabName): string {
+  const tab = TABS.find((candidate) => candidate.name === name);
+  if (!tab) throw new Error(`No tab named ${name}`);
+  return tab.title;
+}
+
 /**
  * Settings carries the count of pending invites, which it lists. Screen readers don't read the badge, so the tab's
  * name says it too.

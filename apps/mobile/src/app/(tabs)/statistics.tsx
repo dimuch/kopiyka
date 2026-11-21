@@ -10,6 +10,7 @@ import { MonthSwitcher } from '@/components/MonthSwitcher';
 import { Pressable } from '@/components/Pressable';
 import { moveCustom, type Period, PERIOD_CHOICES, type PeriodChoice, periodLabel, presetPeriod } from '@/data/period';
 import { isEmptySummary, planGap } from '@/data/periodSummary';
+import { tabTitle } from '@/data/tabItems';
 import { useSummary } from '@/data/useSummary';
 import { eur, shortMonthLabel, toCents } from '@/format';
 import { fonts, type Palette } from '@/theme';
@@ -68,7 +69,11 @@ export default function Statistics() {
             {(['from', 'to'] as const).map((end) => (
               <View key={end} style={styles.customRow}>
                 <Text style={styles.customCaption}>{end === 'from' ? 'From' : 'To'}</Text>
-                <MonthSwitcher month={custom[end]} onChange={(month) => setCustom(moveCustom(custom, end, month))} />
+                <MonthSwitcher
+                  title={tabTitle('statistics')}
+                  month={custom[end]}
+                  onChange={(month) => setCustom(moveCustom(custom, end, month))}
+                />
               </View>
             ))}
           </View>

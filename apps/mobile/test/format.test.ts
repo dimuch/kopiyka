@@ -8,6 +8,7 @@ import {
   kyivDayTime,
   kyivMonth,
   kyivToday,
+  monthCaption,
   monthLabel,
   monthName,
   normalizeAmount,
@@ -21,6 +22,19 @@ import {
   toCents,
   uah,
 } from '@/format';
+
+describe('monthCaption', () => {
+  it.each([
+    ['Income', '2026-11', 'INCOME ’26'],
+    ['Expenses', '2026-11', 'EXPENSES ’26'],
+    ['Budget', '2026-11', 'BUDGET ’26'],
+    ['Statistics', '2026-11', 'STATISTICS ’26'],
+    // The year follows the month across New Year.
+    ['Income', shiftMonth('2026-12', 1), 'INCOME ’27'],
+  ])('%s in %s → %s', (title, month, caption) => {
+    expect(monthCaption(title, month)).toBe(caption);
+  });
+});
 
 describe('format: Notion sync times', () => {
   it('formats a sync time as Kyiv day and clock', () => {

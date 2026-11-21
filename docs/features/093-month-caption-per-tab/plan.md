@@ -44,7 +44,7 @@ Why: §8b `patch` (a bug fix in copy). The caption text changes on three screens
 - [x] 0. Bump version to 1.13.1
   - Files: package.json, apps/mobile/app.json
   - Change: set both to 1.13.1
-- [ ] 1. Name each tab in its month switcher's caption, not always Budget (~70 lines)
+- [x] 1. Name each tab in its month switcher's caption, not always Budget (~70 lines)
   - Files: apps/mobile/src/format.ts, src/tabs.ts, src/data/tabItems.ts, src/demo/tabItems.ts,
     src/components/MonthSwitcher.tsx (prop, caption, JSDoc), src/app/(tabs)/{budget,income,expenses,statistics}.tsx;
     tests apps/mobile/test/{format,tabs,demoTabItems}.test.ts
@@ -88,6 +88,12 @@ Why: §8b `patch` (a bug fix in copy). The caption text changes on three screens
 
 ## Follow-ups
 
+- none
+
 ## Deviations
+
+- slice 1: the Statistics custom-period check ran as the `monthCaption` unit test only, not in the browser. The
+  real web app needs a login with an authenticator code, and no local test user exists. Left for the user to look at
+  at phone width.
 
 ## Consolidate

@@ -1,4 +1,4 @@
-import { type ReactNode, type RefObject, useEffect, useRef, useState } from 'react';
+import { type ReactNode, type RefObject, useEffect, useLayoutEffect, useRef, useState } from 'react';
 import {
   Animated,
   type GestureResponderEvent,
@@ -29,10 +29,7 @@ interface Props<T> {
   disabled: boolean;
   /** The screen turns its scrolling off while a row is held. */
   onDragChange: (dragging: boolean) => void;
-  /**
-   * The scroll view the list sits in, scrolled while a held row is near its top or bottom. The list must be a direct
-   * child of its content.
-   */
+  /** The scroll view the list sits in, scrolled while a held row is near its top or bottom. */
   scrollRef?: RefObject<ScrollViewInstance | null>;
   style?: StyleProp<ViewStyle>;
 }
@@ -78,10 +75,9 @@ class Drag {
   private moveY = 0;
   /** How far the list scrolled under the held row since the pick-up. */
   private scrolled = 0;
-  /** The list's y in the scroll view's content, from its layout. */
-  private listTop = 0;
   private edges: Edges | null = null;
   private frame = 0;
+  private pressOutFrame = 0;
 
   constructor(private readonly show: (held: Held | null) => void) {
     this.responder = PanResponder.create({
@@ -106,10 +102,6 @@ class Drag {
     this.latest = latest;
   }
 
-  setListTop(contentY: number) {
-    this.listTop = contentY;
-  }
-
   pickUp(key: number, from: number, pageY: number) {
     this.granted = false;
     this.startY = pageY;
@@ -121,9 +113,10 @@ class Drag {
     this.measure();
   }
 
-  /** Stops the edge scrolling; for unmount. */
+  /** Stops the edge scrolling and a pending let-go check; for unmount. */
   stop() {
     cancelAnimationFrame(this.frame);
+    cancelAnimationFrame(this.pressOutFrame);
     this.edges = null;
   }
 
@@ -132,7 +125,7 @@ class Drag {
    * the grant, so the check waits a frame.
    */
   pressOut() {
-    requestAnimationFrame(() => {
+    this.pressOutFrame = requestAnimationFrame(() => {
       if (!this.granted) this.finish();
     });
   }
@@ -146,22 +139,30 @@ class Drag {
     if (to !== this.held.to) this.set({ ...this.held, to });
   }
 
-  /** Measures the scroll view and the list, then starts the edge scrolling. */
+  /**
+   * Measures the scroll view, its content and the list, all at pick-up, then starts the edge scrolling. Nothing is
+   * cached from layout: on web `onLayout` doesn't fire when the list only moves (a line appearing above it).
+   */
   private measure() {
     const scrollView = this.latest?.scrollRef?.current;
+    const content = scrollView?.getInnerViewRef();
     const list = this.latest?.listRef.current;
-    if (!scrollView || !list) return;
+    if (!scrollView || !content || !list) return;
     scrollView.measureInWindow((_x, scrollY, _width, viewportHeight) => {
-      list.measureInWindow((_listX, listY, _listWidth, listHeight) => {
-        if (!this.held) return;
-        const offset = this.listTop - (listY - scrollY);
-        this.edges = {
-          top: scrollY,
-          bottom: scrollY + viewportHeight,
-          offset,
-          maxOffset: Math.max(0, this.listTop + listHeight - viewportHeight),
-        };
-        this.scrollAtEdges();
+      content.measureInWindow((_contentX, contentY) => {
+        list.measureInWindow((_listX, listY, _listWidth, listHeight) => {
+          if (!this.held) return;
+          const offset = scrollY - contentY;
+          const listBottom = listY - contentY + listHeight;
+          this.edges = {
+            top: scrollY,
+            bottom: scrollY + viewportHeight,
+            offset,
+            // Down to the list's end, never back from where the user left the view (padding below the list).
+            maxOffset: Math.max(offset, listBottom - viewportHeight),
+          };
+          this.scrollAtEdges();
+        });
       });
     });
   }
@@ -174,7 +175,7 @@ class Drag {
       if (!this.held || !edges || !scrollView) return;
       const step = edgeStep(this.moveY, edges.top, edges.bottom);
       const next = Math.min(Math.max(edges.offset + step, 0), edges.maxOffset);
-      if (next !== edges.offset) {
+      if (step !== 0 && next !== edges.offset) {
         scrollView.scrollTo({ y: next, animated: false });
         this.scrolled += next - edges.offset;
         edges.offset = next;
@@ -208,6 +209,8 @@ class Drag {
  */
 export function ReorderList<T>(props: Props<T>) {
   const { items, keyOf, renderRow, onMove, disabled, onDragChange, scrollRef, style } = props;
+  // While disabled a long-press still needs a handler, or the Pressable would take a long hold as a tap.
+  const ignore = () => {};
   const colors = useColors();
   const [held, setHeld] = useState<Held | null>(null);
   const [drag] = useState(() => new Drag(setHeld));
@@ -224,17 +227,12 @@ export function ReorderList<T>(props: Props<T>) {
   useEffect(() => () => drag.stop(), [drag]);
 
   return (
-    <View
-      ref={listRef}
-      {...drag.responder.panHandlers}
-      onLayout={(event) => drag.setListTop(event.nativeEvent.layout.y)}
-      style={style}
-    >
+    <View ref={listRef} {...drag.responder.panHandlers} style={style}>
       {items.map((item, index) => {
         const key = keyOf(item);
         const isHeld = held?.key === key;
         const handlers: DragHandlers = disabled
-          ? {}
+          ? { onLongPress: ignore }
           : {
               onLongPress: (event) => drag.pickUp(key, index, event.nativeEvent.pageY),
               onPressOut: () => drag.pressOut(),
@@ -270,7 +268,8 @@ interface RowProps {
 function Row({ index, offset, dragY, heldStyle, onHeight, children }: RowProps) {
   const [shift] = useState(() => new Animated.Value(0));
   const shownAt = useRef(index);
-  useEffect(() => {
+  // Before paint, so a dropped row never shows a frame at its old offset.
+  useLayoutEffect(() => {
     // After a drop the row is already laid out at its new place, so it snaps there instead of sliding back.
     if (shownAt.current !== index) {
       shownAt.current = index;

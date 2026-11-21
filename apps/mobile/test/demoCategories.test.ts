@@ -482,6 +482,11 @@ describe('demo categories, my order', () => {
 
     expect((await refusal(saveOrder(api, [1, 1]))).slice(0, 2)).toEqual([400, 'invalid_request']);
     expect((await refusal(saveOrder(api, []))).slice(0, 2)).toEqual([400, 'invalid_request']);
+    expect((await refusal(saveOrder(api, [0]))).slice(0, 2)).toEqual([400, 'invalid_request']);
+    expect((await refusal(api('/api/ledgers/1/categories/order', { method: 'PUT', body: {} }))).slice(0, 2)).toEqual([
+      400,
+      'invalid_request',
+    ]);
     expect((await refusal(saveOrder(api, [99]))).slice(0, 2)).toEqual([400, 'unknown_category']);
     expect(await idsIn(api, '2026-11')).toEqual([2, 1]);
   });

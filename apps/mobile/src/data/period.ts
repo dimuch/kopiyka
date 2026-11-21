@@ -9,14 +9,16 @@ export interface Period {
   to: string;
 }
 
-export const PERIOD_CHOICES: readonly { choice: PeriodChoice; label: string }[] = [
+/**
+ * The periods Statistics offers. Last 12 months and Custom aren't offered for now (brief 094); `presetPeriod('last12')`
+ * and `moveCustom` stay so they can come back.
+ */
+export const PERIOD_CHOICES: readonly { choice: Exclude<PeriodChoice, 'custom'>; label: string }[] = [
   { choice: 'current', label: 'Current month' },
   { choice: 'previous', label: 'Previous month' },
   { choice: 'last3', label: 'Last 3 months' },
   { choice: 'last6', label: 'Last 6 months' },
-  { choice: 'last12', label: 'Last 12 months' },
   { choice: 'thisYear', label: 'This year' },
-  { choice: 'custom', label: 'Custom' },
 ];
 
 /** The API answers at most this many months at once. */
@@ -41,6 +43,26 @@ export function presetPeriod(choice: Exclude<PeriodChoice, 'custom'>, now: Date)
     case 'thisYear':
       return { from: `${month.slice(0, 4)}-01`, to: month };
   }
+}
+
+/** The single month one step back or forward; on a range it counts from the last month, so Sep – Nov back is Oct. */
+export function stepPeriod(period: Period, by: 1 | -1): Period {
+  const month = shiftMonth(period.to, by);
+  return { from: month, to: month };
+}
+
+/** False once the period ends on the current Kyiv month, so Statistics never shows a future month. */
+export function canStepForward(period: Period, now: Date): boolean {
+  return period.to < kyivMonth(now);
+}
+
+/** The first offered preset with exactly these months as of `now`, or null; Last 12 months isn't offered, so never it. */
+export function matchingChoice(period: Period, now: Date): Exclude<PeriodChoice, 'custom'> | null {
+  const match = PERIOD_CHOICES.find(({ choice }) => {
+    const preset = presetPeriod(choice, now);
+    return preset.from === period.from && preset.to === period.to;
+  });
+  return match?.choice ?? null;
 }
 
 /** How many months the period covers, both ends counted. */

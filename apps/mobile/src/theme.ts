@@ -1,5 +1,6 @@
 import type { TextStyle, ViewStyle } from 'react-native';
 import type { Scheme } from '@/appearance/preference';
+import type { BudgetState } from '@/data/budgetProgress';
 
 // Colors and type from the "Budget App Screens" design canvas.
 export const darkColors = {
@@ -13,8 +14,8 @@ export const darkColors = {
   accent: '#7CB0FF',
   onAccent: '#0E1013',
   over: '#FFA65C',
-  /** Row background at ≥ 90% of plan; row text keeps ≥ 4.5:1 on it. */
-  warnBg: '#2A2117',
+  /** A category bar from 90% of plan up to plan; ≥ 3:1 on `track`. */
+  caution: '#F2C94C',
   danger: '#FF8A80',
   /** Selected chips and the "Added" note. */
   accentTint: '#16233A',
@@ -46,7 +47,8 @@ export const lightColors: Palette = {
   accent: '#1F5FD1',
   onAccent: '#FFFFFF',
   over: '#B25E09',
-  warnBg: '#FFF4E6',
+  // The yellowest value that keeps 3:1 on the light `track`; paler ones fall below it.
+  caution: '#9A7400',
   danger: '#C23B31',
   accentTint: '#E4EEFF',
   accentLine: '#A9C6F5',
@@ -69,6 +71,11 @@ export const fonts = {
 };
 
 /** The text of a button that deletes or removes something (expense form, Category menu, category form). */
+/** A category's progress bar colour: green under plan, yellow from 90% up to plan, red over it (brief 091). */
+export function progressColor(state: BudgetState, colors: Palette): string {
+  return state === 'over' ? colors.danger : state === 'near' ? colors.caution : colors.active;
+}
+
 export function dangerText(colors: Palette): TextStyle {
   return { fontFamily: fonts.bodyMedium, fontSize: 15, color: colors.danger };
 }

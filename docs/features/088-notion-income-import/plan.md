@@ -190,7 +190,7 @@ capability; nothing existing changes. No migration, no route, and nothing for ap
 One PR (the user's decision, 2026-11-21), ~525 lines. That's over the ~400 guide, which the user's call overrides;
 every slice still stands alone.
 
-- [ ] 0. Bump version to 1.9.0
+- [x] 0. Bump version to 1.9.0
   - Files: package.json, apps/mobile/app.json
   - Change: set both to 1.9.0
 - [ ] 1. Read Notion's Income table into a snapshot (~135)

@@ -105,7 +105,7 @@ function CategoryBreakdown({ categoryId, month, ended }: { categoryId: number; m
             <Pressable
               accessibilityRole="button"
               accessibilityLabel="Category actions"
-              accessibilityState={{ expanded: menuOpen }}
+              aria-expanded={menuOpen}
               onPress={() => setMenuOpen((open) => !open)}
               style={styles.more}
             >

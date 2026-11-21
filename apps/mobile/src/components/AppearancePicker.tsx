@@ -28,7 +28,7 @@ export function AppearancePicker({
             key={o.value}
             accessibilityRole="radio"
             accessibilityLabel={o.label}
-            accessibilityState={{ checked }}
+            aria-checked={checked}
             onPress={() => onChange(o.value)}
             style={[styles.option, checked && styles.optionOn]}
           >

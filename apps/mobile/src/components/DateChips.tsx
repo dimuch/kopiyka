@@ -31,7 +31,7 @@ export function DateChips({ value, today, min, onChange, disabled = false }: Pro
         <Pressable
           key={d.label}
           accessibilityRole="button"
-          accessibilityState={{ selected: value === d.value }}
+          aria-selected={value === d.value}
           onPress={() => onChange(d.value)}
           style={[styles.chip, value === d.value && styles.chipOn]}
         >

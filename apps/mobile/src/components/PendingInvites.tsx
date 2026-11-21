@@ -39,7 +39,6 @@ export function PendingInvites({
               <Pressable
                 accessibilityRole="button"
                 accessibilityLabel={`Decline invite from ${from}`}
-                accessibilityState={{ disabled: busy }}
                 disabled={busy}
                 onPress={() => onDecline(invite)}
                 style={[styles.decline, busy && { opacity: 0.6 }]}
@@ -49,7 +48,7 @@ export function PendingInvites({
               <Pressable
                 accessibilityRole="button"
                 accessibilityLabel={`Accept invite from ${from}`}
-                accessibilityState={{ disabled: busy, busy: busyId === invite.inviteId }}
+                aria-busy={busyId === invite.inviteId}
                 disabled={busy}
                 onPress={() => onAccept(invite)}
                 style={[styles.accept, busy && { opacity: 0.6 }]}

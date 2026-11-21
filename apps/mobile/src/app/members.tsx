@@ -123,7 +123,7 @@ function LabelForm({ ledger }: { ledger: Ledger }) {
       ) : null}
       <Pressable
         accessibilityRole="button"
-        accessibilityState={{ disabled: busy || unchanged, busy }}
+        aria-busy={busy}
         disabled={busy || unchanged}
         onPress={save}
         style={[styles.primary, (busy || unchanged) && { opacity: 0.5 }]}
@@ -372,7 +372,7 @@ function InviteForm({ ledgerId, onInvited }: { ledgerId: number; onInvited: () =
       ) : null}
       <Pressable
         accessibilityRole="button"
-        accessibilityState={{ disabled: busy || !name, busy }}
+        aria-busy={busy}
         disabled={busy || !name}
         onPress={invite}
         style={[styles.primary, (busy || !name) && { opacity: 0.5 }]}
@@ -492,7 +492,7 @@ function ConfirmPanel({
           <Pressable
             accessibilityRole="button"
             accessibilityLabel={action}
-            accessibilityState={{ busy }}
+            aria-busy={busy}
             disabled={busy}
             onPress={onConfirm}
             style={[styles.confirm, busy && { opacity: 0.6 }]}

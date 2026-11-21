@@ -97,3 +97,9 @@ Why: §8b `patch` (a bug fix in copy). The caption text changes on three screens
   at phone width.
 
 ## Consolidate
+
+- `monthCaption` (format.ts): no twin. Nothing else in `src` upper-cases a title or builds a "’yy" caption. NEW.
+- `tabTitle` (tabs.ts) and the demo's `tabTitle` (demo/tabItems.ts): LEAVE. They are the same three-line lookup over
+  two different `TABS` lists. The demo can't import `src/tabs.ts` (banned in `buildCheck.mts`), and a shared helper
+  in `tabRoutes.ts` for one `find` would add a module export with no logic of its own.
+- `MonthSwitcher` `title` prop: no twin.

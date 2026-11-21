@@ -31,7 +31,7 @@ async function storedIncome(
     [ledgerId, months.map((month) => `${month}-01`)],
   );
   return new Map(
-    rows.map((r) => [String(r.income_month).slice(0, 7), { count: Number(r.items), cents: toCents(r.total) }]),
+    rows.map((row) => [String(row.income_month).slice(0, 7), { count: Number(row.items), cents: toCents(row.total) }]),
   );
 }
 

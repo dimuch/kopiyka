@@ -108,7 +108,7 @@ Existing test cases stay unmodified.
     - For summary, change only `to`'s message.
     - In categories PATCH, categories add and income POST, move the `monthEnded` line above `…Body.parse`. That suite's
       order test must get 409.
-- [ ] 2. Name the row in the stored-income callback (2 lines, rename)
+- [x] 2. Name the row in the stored-income callback (2 lines, rename)
   - Files: `apps/api/src/notion/incomeImport.ts` (line 34 only)
   - Change: `rows.map((r) => …r.income_month…r.items…r.total)` becomes `row`. Slice 6 touches this line, and
     `find-short-names.sh --diff` would flag the `r` on it, so the rename goes first and on its own (refactoring §4).

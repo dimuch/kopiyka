@@ -131,3 +131,9 @@ None.
 - slice 0: bumped to 1.10.1, not 1.9.1. Brief 088 (v1.10.0) merged while this was built; rebased onto 5df77d3.
 
 ## Consolidate
+
+- `BudgetState` (`data/budgetProgress.ts`): LEAVE. No other spent-vs-plan state type exists in the app.
+- `progressColor` (`theme.ts`): LEAVE. No other state-to-colour mapping exists. The other "over" colourings
+  (`CollapsingSummary` top-bar total, Budget tab "Left to plan") are single-condition text colours on different
+  rules, and the brief keeps them out of scope.
+- `caution` token: LEAVE. `over` is orange and fails as yellow. No existing token is yellow.

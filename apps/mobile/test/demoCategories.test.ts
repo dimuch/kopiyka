@@ -444,6 +444,17 @@ describe('demo categories, my order', () => {
     expect(await idsIn(api, '2026-10')).toEqual([1, 3]);
   });
 
+  it('moves only the dragged row, so a category the month lacks stays between', async () => {
+    const api = fixtureStore();
+
+    // October lists rent (1) and old (3); dragging old to the top makes the whole order [2, 3, 1]: food (2), which
+    // October lacks, stays above old.
+    await saveOrder(api, [3, 1]);
+
+    expect(await idsIn(api, '2026-10')).toEqual([3, 1]);
+    expect(await idsIn(api, '2026-11')).toEqual([2, 1]);
+  });
+
   it('lists a category added after the save last', async () => {
     const api = fixtureStore();
     await saveOrder(api, [2, 1]);

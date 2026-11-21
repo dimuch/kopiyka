@@ -106,8 +106,8 @@ class Drag {
     this.latest = latest;
   }
 
-  setListTop(y: number) {
-    this.listTop = y;
+  setListTop(contentY: number) {
+    this.listTop = contentY;
   }
 
   pickUp(key: number, from: number, pageY: number) {

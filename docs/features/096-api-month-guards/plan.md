@@ -76,7 +76,7 @@ reachable) and the API test count the same or higher. Locally, run the format ch
 `.prettierignore`, so plain `yarn format:check` fails on them, as on the Base. Each slice also needs `.claude/skills/kopiyka-refactoring/scripts/find-short-names.sh --diff origin/main` clean.
 Existing test cases stay unmodified.
 
-- [ ] 0. Bump version to 1.15.2
+- [x] 0. Bump version to 1.15.2
   - Files: package.json, apps/mobile/app.json
   - Change: set both to 1.15.2
 - [ ] 1. Pin the month errors and check order the routes answer with (about 86 lines, tests only)

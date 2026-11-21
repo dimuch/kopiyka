@@ -2,7 +2,7 @@ import type { FastifyInstance } from 'fastify';
 import type { RowDataPacket } from 'mysql2/promise';
 import { z } from 'zod';
 import type { AppDeps } from '../app.js';
-import { MONTH_RE, monthEnded, nextMonthStart } from '../dates.js';
+import { MONTH_RE, monthEnded, monthStart, nextMonthStart } from '../dates.js';
 import { overIncomeError } from '../income/limit.js';
 import { AMOUNT_RE, centsToString, toCents } from '../money.js';
 import {
@@ -99,7 +99,7 @@ export async function categoryRoutes(app: FastifyInstance, { db, now }: AppDeps)
 
   app.get('/api/ledgers/:id/categories', guards, async (req) => {
     const { month } = Month.parse(req.query);
-    const first = `${month}-01`;
+    const first = monthStart(month);
     const [rows] = await db.query<RowDataPacket[]>(
       `SELECT c.category_id, c.tech_name, ${NAME_IN_MONTH} AS display_name, c.sort_order,
               COALESCE(b.planned_eur, 0) AS planned_eur,
@@ -128,7 +128,7 @@ export async function categoryRoutes(app: FastifyInstance, { db, now }: AppDeps)
   app.get('/api/ledgers/:id/categories/:categoryId', guards, async (req, reply) => {
     const { categoryId } = CategoryParams.parse(req.params);
     const { month } = Month.parse(req.query);
-    const first = `${month}-01`;
+    const first = monthStart(month);
     // A category the month lacks is still named (the app says it isn't in that month). Its counts are 0: no live
     // expense can sit in a month whose list lacks its category.
     const [rows] = await db.query<RowDataPacket[]>(

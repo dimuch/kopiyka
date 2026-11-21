@@ -2,6 +2,7 @@
 // (after the fill rule). It reads the stored rows for the months it's given, diffs them (planBalances) and, outside a
 // dry run, upserts the changed months in one transaction. Other months and other ledgers are never read or written.
 import type { PoolConnection, RowDataPacket } from 'mysql2/promise';
+import { monthOf, monthStart } from '../dates.js';
 import { type Db, withTransaction } from '../db.js';
 import { centsToString, toCents } from '../money.js';
 import { type Balance, type BalanceChange, type MonthBalance, planBalances } from './balances.js';
@@ -19,11 +20,11 @@ async function storedBalances(
   const [rows] = await q.query<RowDataPacket[]>(
     `SELECT balance_month, opening_eur, closing_eur FROM month_balances
      WHERE ledger_id = ? AND balance_month IN (?)${lock ? ' FOR UPDATE' : ''}`,
-    [ledgerId, months.map((month) => `${month}-01`)],
+    [ledgerId, months.map(monthStart)],
   );
   return new Map(
     rows.map((r) => [
-      String(r.balance_month).slice(0, 7),
+      monthOf(String(r.balance_month)),
       { openingCents: toCents(r.opening_eur), closingCents: toCents(r.closing_eur) },
     ]),
   );
@@ -56,7 +57,7 @@ export async function importBalances(db: Db, ledgerId: number, wanted: MonthBala
       await conn.query(
         `INSERT INTO month_balances (ledger_id, balance_month, opening_eur, closing_eur) VALUES (?, ?, ?, ?)
          ON DUPLICATE KEY UPDATE opening_eur = VALUES(opening_eur), closing_eur = VALUES(closing_eur)`,
-        [ledgerId, `${month}-01`, centsToString(to.openingCents), centsToString(to.closingCents)],
+        [ledgerId, monthStart(month), centsToString(to.openingCents), centsToString(to.closingCents)],
       );
     }
     return changes;

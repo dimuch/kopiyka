@@ -2,6 +2,7 @@
 // that already has any income item is skipped whole; every other month gets all its Notion rows, added by the owner.
 // Nothing is ever updated or deleted, and other months and other ledgers are never read or written.
 import type { PoolConnection, RowDataPacket } from 'mysql2/promise';
+import { monthOf, monthStart } from '../dates.js';
 import { type Db, withTransaction } from '../db.js';
 import { centsToString, toCents } from '../money.js';
 import { ledgerOwner } from './historyImport.js';
@@ -28,10 +29,10 @@ async function storedIncome(
   const [rows] = await q.query<RowDataPacket[]>(
     `SELECT income_month, COUNT(*) AS items, SUM(amount_eur) AS total FROM income_items
       WHERE ledger_id = ? AND income_month IN (?) GROUP BY income_month`,
-    [ledgerId, months.map((month) => `${month}-01`)],
+    [ledgerId, months.map(monthStart)],
   );
   return new Map(
-    rows.map((row) => [String(row.income_month).slice(0, 7), { count: Number(row.items), cents: toCents(row.total) }]),
+    rows.map((row) => [monthOf(String(row.income_month)), { count: Number(row.items), cents: toCents(row.total) }]),
   );
 }
 
@@ -76,7 +77,7 @@ export async function importIncome(
       for (const item of add) {
         await conn.query(
           'INSERT INTO income_items (ledger_id, income_month, title, amount_eur, created_by) VALUES (?, ?, ?, ?, ?)',
-          [ledgerId, `${month}-01`, item.title, centsToString(item.amountCents), owner],
+          [ledgerId, monthStart(month), item.title, centsToString(item.amountCents), owner],
         );
       }
     }

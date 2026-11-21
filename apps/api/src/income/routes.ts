@@ -2,7 +2,7 @@ import type { FastifyInstance, FastifyReply } from 'fastify';
 import type { PoolConnection, ResultSetHeader, RowDataPacket } from 'mysql2/promise';
 import { z } from 'zod';
 import type { AppDeps } from '../app.js';
-import { MONTH_RE, monthEnded, previousMonthStart } from '../dates.js';
+import { MONTH_RE, monthEnded, monthOf, monthStart, previousMonthStart } from '../dates.js';
 import { withTransaction } from '../db.js';
 import { lockLedger } from '../ledgers/lock.js';
 import { AMOUNT_RE, centsToString, toCents } from '../money.js';
@@ -58,7 +58,7 @@ export async function incomeRoutes(app: FastifyInstance, { db, now }: AppDeps): 
     );
     const item = rows[0];
     if (!item) return 'not_found';
-    const month = item.income_month.slice(0, 7);
+    const month = monthOf(item.income_month);
     if (monthEnded(month, now())) return 'month_ended';
     return { month, amountCents: toCents(item.amount_eur) };
   }
@@ -71,7 +71,7 @@ export async function incomeRoutes(app: FastifyInstance, { db, now }: AppDeps): 
          JOIN users u ON u.user_id = i.created_by
         WHERE i.ledger_id = ? AND i.income_month = ?
         ORDER BY i.income_id`,
-      [req.ledger!.ledgerId, `${month}-01`],
+      [req.ledger!.ledgerId, monthStart(month)],
     );
     return { items: rows.map(toDto) };
   });
@@ -87,7 +87,7 @@ export async function incomeRoutes(app: FastifyInstance, { db, now }: AppDeps): 
       await lockLedger(conn, ledgerId);
       const [res] = await conn.query<ResultSetHeader>(
         'INSERT INTO income_items (ledger_id, income_month, title, amount_eur, created_by) VALUES (?, ?, ?, ?, ?)',
-        [ledgerId, `${month}-01`, title, amountEur, req.auth!.userId],
+        [ledgerId, monthStart(month), title, amountEur, req.auth!.userId],
       );
       return res.insertId;
     });
@@ -137,7 +137,7 @@ export async function incomeRoutes(app: FastifyInstance, { db, now }: AppDeps): 
     const { month } = MonthParams.parse(req.params);
     if (monthEnded(month, now())) return reply.code(409).send({ error: 'month_ended' });
     const ledgerId = req.ledger!.ledgerId;
-    const first = `${month}-01`;
+    const first = monthStart(month);
     const result = await withTransaction(db, async (conn) => {
       await lockLedger(conn, ledgerId);
       const [existing] = await conn.query<RowDataPacket[]>(

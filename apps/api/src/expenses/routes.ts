@@ -2,7 +2,7 @@ import type { FastifyInstance, FastifyReply, FastifyRequest } from 'fastify';
 import type { ResultSetHeader, RowDataPacket } from 'mysql2/promise';
 import { z } from 'zod';
 import type { AppDeps } from '../app.js';
-import { MONTH_RE, monthEnded, nextMonthStart } from '../dates.js';
+import { MONTH_RE, monthEnded, monthOf, monthStart, nextMonthStart } from '../dates.js';
 import { withTransaction } from '../db.js';
 import { inMonthList } from '../categories/monthLists.js';
 import { AMOUNT_RE, centsToString, convert, e4ToString, rateToE4, toCents } from '../money.js';
@@ -118,7 +118,7 @@ export async function expenseRoutes(app: FastifyInstance, deps: AppDeps): Promis
 
   app.get('/api/ledgers/:id/expenses', guards, async (req) => {
     const { month, categoryId } = MonthQuery.parse(req.query);
-    const first = `${month}-01`;
+    const first = monthStart(month);
     const next = nextMonthStart(month);
     const [rows] = await db.query<RowDataPacket[]>(
       `SELECT ${EXPENSE_COLUMNS} FROM expenses e JOIN categories c ON c.category_id = e.category_id
@@ -141,7 +141,7 @@ export async function expenseRoutes(app: FastifyInstance, deps: AppDeps): Promis
   // An ended month is read-only (briefs 028, 041), so it's refused before anything is read or priced.
   app.post('/api/ledgers/:id/expenses', guards, async (req, reply) => {
     const input = ExpenseBody.parse(req.body);
-    if (monthEnded(input.expenseDate.slice(0, 7), now())) return reply.code(409).send({ error: 'month_ended' });
+    if (monthEnded(monthOf(input.expenseDate), now())) return reply.code(409).send({ error: 'month_ended' });
     if (!(await checkCategory(req, reply, input.categoryId, input.expenseDate))) return reply;
     const priced = await price(req, reply, input);
     if (!priced) return reply;
@@ -199,7 +199,7 @@ export async function expenseRoutes(app: FastifyInstance, deps: AppDeps): Promis
     if (!current) return reply.code(404).send({ error: 'not_found' });
     // Both ends: an expense can neither change inside an ended month nor move into or out of one.
     const at = now();
-    if (monthEnded(current.expenseDate.slice(0, 7), at) || monthEnded(input.expenseDate.slice(0, 7), at)) {
+    if (monthEnded(monthOf(current.expenseDate), at) || monthEnded(monthOf(input.expenseDate), at)) {
       return reply.code(409).send({ error: 'month_ended' });
     }
     if (!(await checkCategory(req, reply, input.categoryId, input.expenseDate))) return reply;
@@ -249,7 +249,7 @@ export async function expenseRoutes(app: FastifyInstance, deps: AppDeps): Promis
     const { expenseId } = ExpenseParams.parse(req.params);
     const expense = await loadExpense(req.ledger!.ledgerId, expenseId);
     if (!expense) return reply.code(404).send({ error: 'not_found' });
-    if (monthEnded(expense.expenseDate.slice(0, 7), now())) return reply.code(409).send({ error: 'month_ended' });
+    if (monthEnded(monthOf(expense.expenseDate), now())) return reply.code(409).send({ error: 'month_ended' });
     if (!(await setDeleted(req.ledger!.ledgerId, expenseId, true))) return reply.code(404).send({ error: 'not_found' });
     return reply.code(204).send();
   });
@@ -258,7 +258,7 @@ export async function expenseRoutes(app: FastifyInstance, deps: AppDeps): Promis
     const { expenseId } = ExpenseParams.parse(req.params);
     const expense = await loadExpense(req.ledger!.ledgerId, expenseId, true);
     if (!expense) return reply.code(404).send({ error: 'not_found' });
-    if (monthEnded(expense.expenseDate.slice(0, 7), now())) return reply.code(409).send({ error: 'month_ended' });
+    if (monthEnded(monthOf(expense.expenseDate), now())) return reply.code(409).send({ error: 'month_ended' });
     if (!(await setDeleted(req.ledger!.ledgerId, expenseId, false)))
       return reply.code(404).send({ error: 'not_found' });
     return loadExpense(req.ledger!.ledgerId, expenseId);

@@ -1,4 +1,5 @@
 import type { PoolConnection, RowDataPacket } from 'mysql2/promise';
+import { monthStart } from '../dates.js';
 import { centsToString, toCents } from '../money.js';
 
 /** The first 'YYYY-MM' month whose planned total may not exceed its income total (brief 060). */
@@ -45,7 +46,7 @@ export async function checkIncome(
 ): Promise<OverIncome | null> {
   // Nothing the rule could refuse: no read needed.
   if (month < INCOME_RULE_START || (delta.plannedCents <= 0n && delta.incomeCents >= 0n)) return null;
-  const first = `${month}-01`;
+  const first = monthStart(month);
   // category_months is joined directly, not through monthLists' inMonthList, so this module imports no categories
   // code. Both sums come back as '0.00' over no rows.
   const [rows] = await conn.query<RowDataPacket[]>(

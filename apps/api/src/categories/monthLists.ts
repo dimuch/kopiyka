@@ -1,7 +1,7 @@
 // Brief 028, 033: a month's list is exactly its own rows in category_months; nothing carries over. Brief 036: a
 // month's planned amounts live in category_budgets. Brief 038: a category is added to a month by name.
 import type { PoolConnection, ResultSetHeader, RowDataPacket } from 'mysql2/promise';
-import { nextMonthStart, previousMonthStart } from '../dates.js';
+import { monthStart, nextMonthStart, previousMonthStart } from '../dates.js';
 import { type Db, withTransaction } from '../db.js';
 import { checkIncome, type OverIncome } from '../income/limit.js';
 import { lockLedger } from '../ledgers/lock.js';
@@ -73,7 +73,7 @@ export async function removeFromMonth(
   month: string,
   now: Date,
 ): Promise<boolean> {
-  const first = `${month}-01`;
+  const first = monthStart(month);
   const next = nextMonthStart(month);
   return withTransaction(db, async (conn) => {
     await lockLedger(conn, ledgerId);
@@ -114,7 +114,7 @@ export async function restoreToMonth(
   categoryId: number,
   month: string,
 ): Promise<'restored' | 'not_found' | 'name_taken' | OverIncome> {
-  const first = `${month}-01`;
+  const first = monthStart(month);
   return withTransaction(db, async (conn) => {
     await lockLedger(conn, ledgerId);
     // A removal keeps the budget row, so this is the amount the restore brings back.
@@ -179,7 +179,7 @@ export async function editInMonth(
   month: string,
   { name, amount }: CategoryEdit,
 ): Promise<'edited' | 'not_found' | 'name_taken' | OverIncome> {
-  const first = `${month}-01`;
+  const first = monthStart(month);
   return withTransaction(db, async (conn) => {
     await lockLedger(conn, ledgerId);
     const [rows] = await conn.query<RowDataPacket[]>(
@@ -266,7 +266,7 @@ export async function addToMonth(
   name: string,
   amount: string,
 ): Promise<AddedCategory | 'name_taken' | OverIncome> {
-  const first = `${month}-01`;
+  const first = monthStart(month);
   return withTransaction(db, async (conn) => {
     await lockLedger(conn, ledgerId);
     // Ids are positive, so 0 excludes no category.
@@ -337,7 +337,7 @@ export type CopyResult = 'copied' | 'budget_exists' | 'no_previous_budget';
  * then answers 404, and their expenses stay deleted.
  */
 export async function copyPreviousMonth(db: Db, ledgerId: number, month: string): Promise<CopyResult> {
-  const first = `${month}-01`;
+  const first = monthStart(month);
   const previous = previousMonthStart(month);
   return withTransaction(db, async (conn) => {
     await lockLedger(conn, ledgerId);

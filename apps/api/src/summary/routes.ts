@@ -3,7 +3,7 @@ import type { RowDataPacket } from 'mysql2/promise';
 import { z } from 'zod';
 import type { AppDeps } from '../app.js';
 import { NAME_IN_MONTH } from '../categories/monthLists.js';
-import { MONTH_RE } from '../dates.js';
+import { MONTH_RE, monthStart } from '../dates.js';
 import { centsToString, toCents } from '../money.js';
 
 /** A period's figures in EUR, as decimal strings; `leftEur` is income − spent and may be negative ('-12.50'). */
@@ -78,8 +78,8 @@ export async function summaryRoutes(app: FastifyInstance, { db }: AppDeps): Prom
   app.get('/api/ledgers/:id/summary', guards, async (req) => {
     const { from, to } = PeriodQuery.parse(req.query);
     const ledgerId = req.ledger!.ledgerId;
-    const first = `${from}-01`;
-    const last = `${to}-01`;
+    const first = monthStart(from);
+    const last = monthStart(to);
 
     const [planned] = await db.query<RowDataPacket[]>(
       `SELECT m.category_id, DATE_FORMAT(m.list_month, '%Y-%m') AS month, COALESCE(b.planned_eur, 0) AS planned_eur

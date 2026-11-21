@@ -1,7 +1,7 @@
 import type { ResultSetHeader, RowDataPacket } from 'mysql2/promise';
 import { encryptSecret } from './auth/secretBox.js';
 import { generateSecret, otpauthUri } from './auth/totp.js';
-import { kyivToday } from './dates.js';
+import { kyivToday, monthOf, monthStart } from './dates.js';
 import { type Db, withTransaction } from './db.js';
 import { DEFAULT_CATEGORIES } from './defaultCategories.js';
 import { addMember } from './ledgers/members.js';
@@ -48,7 +48,7 @@ export async function createUserWithLedger(
     await conn.query(
       `INSERT INTO category_months (category_id, list_month, display_name)
        SELECT category_id, ?, display_name FROM categories WHERE ledger_id = ?`,
-      [`${kyivToday(now).slice(0, 7)}-01`, ledgerId],
+      [monthStart(monthOf(kyivToday(now))), ledgerId],
     );
     await conn.commit();
     return { userId, ledgerId, otpauthUri: otpauthUri(input.username, secret) };

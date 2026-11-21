@@ -83,6 +83,7 @@ src/data/expenseLock.ts
 src/data/expenses.ts
 src/data/homeCards.ts
 src/data/income.ts
+src/data/monthBalance.ts
 src/data/monthCopy.ts
 src/data/monthEnded.ts
 src/data/monthSummary.ts
@@ -93,6 +94,7 @@ src/data/useCategoryTotals.ts
 src/data/useExpenseDraft.ts
 src/data/useIncome.ts
 src/data/useMonth.ts
+src/data/useMonthBalance.ts
 src/data/useMonthCategories.ts
 src/data/useRate.ts
 src/demo-app

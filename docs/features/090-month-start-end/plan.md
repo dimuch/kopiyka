@@ -101,7 +101,7 @@ request with 404 `not_found`, which the hook treats as an error and leaves the l
   - Tests: `demoBalance.test.ts` → "answers none for a past and the current month": `fixtureStore()` GET
     `/api/ledgers/1/months/2026-10/balance` and `…/2026-11/balance` each resolve to `{ balance: null }`
   - ~45 lines
-- [ ] 3. Show the month's start and end balance on the Budget tab
+- [x] 3. Show the month's start and end balance on the Budget tab
   - Files:
     - apps/mobile/src/data/monthBalance.ts (new)
     - apps/mobile/src/data/useMonthBalance.ts (new)
@@ -120,6 +120,11 @@ request with 404 `not_found`, which the hook treats as an error and leaves the l
     - every expected string uses U+2212
   - Verify: browser checks (AC4/AC2 rows below), then typecheck and lint.
   - ~85 lines
+  - Done 2026-11-21, web at 390×844 against a QA ledger holding a copy of laptop ledger 1's ten rows (signing in as
+    `dimuch` needs the user's authenticator; the QA user was deleted afterwards): Jan `Start €0 → End −€180`, Feb
+    `Start −€180 → End −€52`, Oct `Start €0 → End −€35`, every month Jan–Oct as stored, Nov no line and no gap; the
+    arrows update the line; light and dark. Error/rollback: with the API from `main` (no route, 404 `not_found`),
+    Feb shows no line, the rest of the tab loads and the session stays.
 
 Total ≈ 240 changed lines, not counting slice 0.
 

@@ -227,7 +227,7 @@ PR A total ≈ 385 changed lines, not counting A0.
 - [x] B0. Bump version to 1.12.0
   - Files: package.json, apps/mobile/app.json
   - Change: set both to 1.12.0 (main's number plus one minor, if main has moved)
-- [ ] B1. Work out each Statistics period's months
+- [x] B1. Work out each Statistics period's months
   - Files: apps/mobile/src/data/period.ts (new), apps/mobile/test/period.test.ts (new)
   - Change: `PeriodChoice`, `Period`, `PERIOD_CHOICES`, `presetPeriod`, `moveCustom`, `periodLabel` as in Contracts.
   - Tests: `period.test.ts`, `it.each` tables with expected values checked with `tsx` on Base, 2026-11-21:

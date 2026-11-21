@@ -203,7 +203,7 @@ name, amount_eur, created_by)` as in `notion.int.test.ts`, and income from raw `
     - "never counts another ledger's data" (AC4, first half): the stranger's ledger has its own plans, expenses and
       income in the same months, and the owner's totals and months are unchanged.
   - ~75 lines
-- [ ] A3. Add each category's planned and spent to the summary
+- [x] A3. Add each category's planned and spent to the summary
   - Files: apps/api/src/summary/routes.ts, apps/api/test/summary.int.test.ts
   - Change: the names query, and a per-category fold of the planned and spent rows, sorted as in Contracts.
   - Tests:

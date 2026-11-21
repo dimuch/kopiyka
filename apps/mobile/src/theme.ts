@@ -70,12 +70,12 @@ export const fonts = {
   bodySemi: 'IBMPlexSans_600SemiBold',
 };
 
-/** The text of a button that deletes or removes something (expense form, Category menu, category form). */
 /** A category's progress bar colour: green under plan, yellow from 90% up to plan, red over it (brief 091). */
 export function progressColor(state: BudgetState, colors: Palette): string {
   return state === 'over' ? colors.danger : state === 'near' ? colors.caution : colors.active;
 }
 
+/** The text of a button that deletes or removes something (expense form, Category menu, category form). */
 export function dangerText(colors: Palette): TextStyle {
   return { fontFamily: fonts.bodyMedium, fontSize: 15, color: colors.danger };
 }

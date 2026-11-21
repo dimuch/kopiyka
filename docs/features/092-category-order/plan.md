@@ -3,7 +3,7 @@
 Status: approved <!-- draft → skeptic-approved → approved (by the user) -->
 Brief: ./brief.md
 Branch: PR 1 `feat/category-order`; PR 2 `feat/category-order-drag`
-Base: PR 1 origin/main (5f148bc, 1.11.0); PR 2 origin/main after PR 1 merges (not stacked unless the user says so)
+Base: PR 1 origin/main (71463c6, 1.12.0; rebased from 5f148bc in review); PR 2 origin/main after PR 1 merges (not stacked unless the user says so)
 
 ## Approach
 
@@ -150,20 +150,20 @@ for "category ids in order" with repeats rejected, and a list body is idempotent
 
 ## Version
 
-PR 1: Bump minor, 1.11.0 → 1.12.0 (or `main`'s number +minor if another PR took a version first, §8b step 4).
+PR 1: Bump minor, 1.12.0 → 1.13.0 (brief 089 took 1.12.0 first, §8b step 4).
 Why: §8b `minor` covers a new API route (`PUT …/categories/order`) and an additive migration. Shipped app builds and
 the connector keep working: they never send the route, and the list keeps its shape. Rollback runs on the extra table.
 
-PR 2: Bump minor, 1.12.0 → 1.13.0 (or `main`'s number +minor at that time).
+PR 2: Bump minor, 1.13.0 → 1.14.0 (or `main`'s number +minor at that time).
 Why: §8b `minor` covers a new user action (drag to reorder on Budget and Expenses). Nothing existing stops working.
 
 ## Slices
 
 ### PR 1: API, migration and demo store (`feat/category-order`, ~450 lines, about 60% tests)
 
-- [x] 0. Bump version to 1.12.0
+- [x] 0. Bump version to 1.13.0
   - Files: package.json, apps/mobile/app.json
-  - Change: set both to 1.12.0
+  - Change: set both to 1.13.0
 - [x] 1. Add a table for each member's category order (~45)
   - Files: `apps/api/migrations/017_category_orders.sql`, `apps/api/test/categoryOrders.migration.int.test.ts`
     (new), `apps/api/test/helpers.ts` (`'category_orders'` first in `DATA_TABLES`, because `clearData` turns FK checks
@@ -231,9 +231,9 @@ Why: §8b `minor` covers a new user action (drag to reorder on Budget and Expens
 
 ### PR 2: drag to reorder (`feat/category-order-drag`, from `main` after PR 1 merges, ~400 lines)
 
-- [ ] 6. Bump version to 1.13.0
+- [ ] 6. Bump version to 1.14.0
   - Files: package.json, apps/mobile/app.json
-  - Change: set both to 1.13.0 (or `main`'s number +minor)
+  - Change: set both to 1.14.0 (or `main`'s number +minor)
 - [ ] 7. Work out where a dragged row lands and how the others make room (~95)
   - Files: `apps/mobile/src/data/reorder.ts` (new), `apps/mobile/test/reorder.test.ts` (new)
   - Tests (table):
@@ -384,7 +384,13 @@ Why: §8b `minor` covers a new user action (drag to reorder on Budget and Expens
 
 ## Deviations
 
-<filled by the developer during build>
+- Version: PR 1 is 1.13.0, PR 2 1.14.0. Brief 089 (Statistics) took 1.12.0 while PR 1 was in review; the branch was
+  rebased onto it.
+- `pickQuick` (API and demo) now breaks ties between equally recent categories by `sort_order`, then id. The list
+  comes in the caller's own order, so without it a stable sort let that order decide, and partners saw different
+  quick rows when one import stamped many categories at once. Found in review; keeps "`quickCategoryIds` doesn't
+  change" true.
+- The demo's order save refuses a bad body (`[0]`, no `categoryIds`) with `invalid_request`, as the API does.
 
 ## Consolidate
 

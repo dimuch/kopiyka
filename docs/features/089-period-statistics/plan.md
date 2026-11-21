@@ -224,7 +224,7 @@ PR A total ≈ 385 changed lines, not counting A0.
 
 ### PR B — the screen (`feat/period-statistics-screen`, from main after PR A)
 
-- [ ] B0. Bump version to 1.12.0
+- [x] B0. Bump version to 1.12.0
   - Files: package.json, apps/mobile/app.json
   - Change: set both to 1.12.0 (main's number plus one minor, if main has moved)
 - [ ] B1. Work out each Statistics period's months

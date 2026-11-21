@@ -1,4 +1,5 @@
 import type { api } from '@/api/client';
+import { balanceRoutes } from './balanceRoutes';
 import { categoryRoutes } from './categoryRoutes';
 import { expenseRoutes } from './expenseRoutes';
 import { incomeRoutes } from './incomeRoutes';
@@ -9,7 +10,7 @@ import type { StoreData } from './state';
  * unknown route rejects with a plain Error and logs it, because hooks turn any rejection into a quiet load error.
  */
 export function createStore(data: StoreData, now: () => Date): typeof api {
-  const routes = [...expenseRoutes, ...categoryRoutes, ...incomeRoutes];
+  const routes = [...expenseRoutes, ...categoryRoutes, ...incomeRoutes, ...balanceRoutes];
   return async <T>(path: string, init: { method?: string; body?: unknown } = {}): Promise<T> => {
     const method = init.method ?? 'GET';
     const [pathname = '', search = ''] = path.split('?');

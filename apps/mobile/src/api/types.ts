@@ -53,6 +53,12 @@ export interface Category {
   plannedEur: string;
 }
 
+/** A month's balances (brief 090): signed decimal strings as stored, '-180.00'. The month runs from opening to closing. */
+export interface MonthBalance {
+  openingEur: string;
+  closingEur: string;
+}
+
 /** A ledger's income item in one month (brief 058); any member edits or deletes it. */
 export interface IncomeItem {
   incomeId: number;

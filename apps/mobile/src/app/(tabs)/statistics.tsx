@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { ActivityIndicator, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, type LayoutRectangle, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useColors, useThemedStyles } from '@/appearance/AppearanceContext';
 import { useSession } from '@/auth/AuthContext';
@@ -13,6 +13,7 @@ import {
   matchingChoice,
   type Period,
   PERIOD_CHOICES,
+  type PeriodChoice,
   periodLabel,
   presetPeriod,
   stepPeriod,
@@ -34,6 +35,9 @@ export default function Statistics() {
   const [now] = useState(() => new Date());
   const [period, setPeriod] = useState<Period>(() => presetPeriod('current', now));
   const marked = matchingChoice(period, now);
+  const [menuOpen, setMenuOpen] = useState(false);
+  // The switcher row's frame, so the menu opens right under it.
+  const [anchor, setAnchor] = useState<LayoutRectangle | null>(null);
   const { summary, error, reload } = useSummary(ledger.ledgerId, period);
 
   return (
@@ -47,24 +51,13 @@ export default function Statistics() {
       <PeriodSwitcher
         period={period}
         forwardEnabled={canStepForward(period, now)}
+        menuOpen={menuOpen}
         onStep={(by) => setPeriod(stepPeriod(period, by))}
+        onToggleMenu={() => setMenuOpen((open) => !open)}
+        onLayout={setAnchor}
       />
 
       <ScrollView contentContainerStyle={styles.content}>
-        <View style={styles.chips}>
-          {PERIOD_CHOICES.map(({ choice: option, label }) => (
-            <Pressable
-              key={option}
-              accessibilityRole="button"
-              accessibilityState={{ selected: marked === option }}
-              onPress={() => setPeriod(presetPeriod(option, now))}
-              style={[styles.chip, marked === option && styles.chipOn]}
-            >
-              <Text style={styles.chipText}>{label}</Text>
-            </Pressable>
-          ))}
-        </View>
-
         {!summary ? (
           error ? (
             <LoadError message="Couldn’t load these figures. Check your connection and try again." onRetry={reload} />
@@ -167,24 +160,44 @@ export default function Statistics() {
           </>
         )}
       </ScrollView>
+      {menuOpen && anchor && (
+        <PeriodMenu
+          marked={marked}
+          anchor={anchor}
+          onChoose={(choice) => {
+            setPeriod(presetPeriod(choice, now));
+            setMenuOpen(false);
+          }}
+          onClose={() => setMenuOpen(false)}
+        />
+      )}
     </SafeAreaView>
   );
 }
 
-/** ‹ period › like Budget's MonthSwitcher, but stepping a range to one month and never past the current month. */
+/**
+ * ‹ period › like Budget's MonthSwitcher, but stepping a range to one month and never past the current month. The
+ * period is a button that opens the preset menu.
+ */
 function PeriodSwitcher({
   period,
   forwardEnabled,
+  menuOpen,
   onStep,
+  onToggleMenu,
+  onLayout,
 }: {
   period: Period;
   forwardEnabled: boolean;
+  menuOpen: boolean;
   onStep: (by: 1 | -1) => void;
+  onToggleMenu: () => void;
+  onLayout: (frame: LayoutRectangle) => void;
 }) {
   const colors = useColors();
   const styles = useThemedStyles(makeStyles);
   return (
-    <View style={styles.switcher}>
+    <View style={styles.switcher} onLayout={(event) => onLayout(event.nativeEvent.layout)}>
       <Pressable
         accessibilityRole="button"
         accessibilityLabel="Previous month"
@@ -193,9 +206,19 @@ function PeriodSwitcher({
       >
         <Icon name="back" color={colors.muted} />
       </Pressable>
-      <Text numberOfLines={1} style={styles.periodText}>
-        {periodLabel(period)}
-      </Text>
+      <Pressable
+        accessibilityRole="button"
+        accessibilityLabel={`Period, ${periodLabel(period)}`}
+        accessibilityHint="Opens a menu of periods"
+        accessibilityState={{ expanded: menuOpen }}
+        onPress={onToggleMenu}
+        style={styles.periodButton}
+      >
+        <Text numberOfLines={1} style={styles.periodText}>
+          {periodLabel(period)}
+        </Text>
+        <Icon name="down" size={18} color={colors.muted} />
+      </Pressable>
       <Pressable
         accessibilityRole="button"
         accessibilityLabel="Next month"
@@ -210,28 +233,94 @@ function PeriodSwitcher({
   );
 }
 
+const MENU_WIDTH = 200;
+
+/**
+ * The preset menu, over the whole screen like the category page's ⋯ menu: a tap anywhere outside the card, the period
+ * button included, only closes it.
+ */
+function PeriodMenu({
+  marked,
+  anchor,
+  onChoose,
+  onClose,
+}: {
+  marked: Exclude<PeriodChoice, 'custom'> | null;
+  anchor: LayoutRectangle;
+  onChoose: (choice: Exclude<PeriodChoice, 'custom'>) => void;
+  onClose: () => void;
+}) {
+  const colors = useColors();
+  const styles = useThemedStyles(makeStyles);
+  // The anchor is measured inside the SafeAreaView's padding, and absolute children are placed from the same edge.
+  const place = { top: anchor.y + anchor.height + 4, left: anchor.x + (anchor.width - MENU_WIDTH) / 2 };
+  return (
+    <View accessibilityViewIsModal style={styles.menuLayer}>
+      <Pressable
+        accessibilityRole="button"
+        accessibilityLabel="Close menu"
+        onPress={onClose}
+        style={StyleSheet.absoluteFill}
+      />
+      <View accessibilityRole="radiogroup" accessibilityLabel="Period" style={[styles.menuCard, place]}>
+        {PERIOD_CHOICES.map(({ choice, label }) => {
+          const checked = choice === marked;
+          return (
+            <Pressable
+              key={choice}
+              accessibilityRole="radio"
+              accessibilityLabel={label}
+              accessibilityState={{ checked }}
+              onPress={() => onChoose(choice)}
+              style={styles.menuItem}
+            >
+              <Text style={[styles.menuText, checked && styles.menuTextOn]}>{label}</Text>
+              {checked && <Icon name="check" size={18} color={colors.accent} />}
+            </Pressable>
+          );
+        })}
+      </View>
+    </View>
+  );
+}
+
 const makeStyles = (colors: Palette) =>
   StyleSheet.create({
     screen: { flex: 1, backgroundColor: colors.bg, paddingHorizontal: 20, paddingTop: 20 },
     header: { flexDirection: 'row', alignItems: 'center', gap: 8, paddingBottom: 10 },
     title: { fontFamily: fonts.display, fontSize: 22, color: colors.text },
     content: { gap: 14, paddingTop: 4, paddingBottom: 24 },
-    // DateChips' chip, wrapping: five choices don't fit one row at phone width.
-    chips: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
-    chip: {
+    switcher: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 4, paddingBottom: 6 },
+    iconButton: { width: 44, height: 44, alignItems: 'center', justifyContent: 'center', borderRadius: 12 },
+    periodButton: {
       minHeight: 44,
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 4,
+      flexShrink: 1,
+      paddingHorizontal: 4,
+    },
+    periodText: { fontFamily: fonts.display, fontSize: 20, color: colors.text, flexShrink: 1 },
+    // CategoryMenu's layer and card; the card's place comes from the switcher instead of a fixed corner.
+    menuLayer: { ...StyleSheet.absoluteFill, zIndex: 2 },
+    menuCard: {
+      position: 'absolute',
+      width: MENU_WIDTH,
       borderRadius: 14,
       borderWidth: 1,
       borderColor: colors.borderStrong,
-      backgroundColor: colors.surface,
-      paddingHorizontal: 14,
-      justifyContent: 'center',
+      backgroundColor: colors.surfaceRaised,
+      paddingVertical: 4,
     },
-    chipOn: { borderColor: colors.accent, backgroundColor: colors.accentTint },
-    chipText: { fontFamily: fonts.bodyMedium, fontSize: 14, color: colors.text },
-    switcher: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 4, paddingBottom: 6 },
-    iconButton: { width: 44, height: 44, alignItems: 'center', justifyContent: 'center', borderRadius: 12 },
-    periodText: { fontFamily: fonts.display, fontSize: 20, color: colors.text, flexShrink: 1 },
+    menuItem: {
+      minHeight: 44,
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      paddingHorizontal: 16,
+    },
+    menuText: { fontFamily: fonts.bodyMedium, fontSize: 15, color: colors.text },
+    menuTextOn: { fontFamily: fonts.bodySemi },
     card: {
       backgroundColor: colors.surface,
       borderColor: colors.border,

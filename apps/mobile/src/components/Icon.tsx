@@ -5,6 +5,7 @@ import Svg, { Path } from 'react-native-svg';
 const PATHS = {
   back: ['M15 18l-6-6 6-6'],
   forward: ['M9 18l6-6-6-6'],
+  down: ['M6 9l6 6 6-6'],
   plus: ['M12 5v14', 'M5 12h14'],
   swap: ['M7 7h13l-3-3', 'M17 17H4l3 3'],
   close: ['M6 6l12 12', 'M18 6L6 18'],

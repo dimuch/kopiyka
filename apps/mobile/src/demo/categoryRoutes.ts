@@ -202,8 +202,14 @@ export const categoryRoutes: Route[] = [
     method: 'PUT',
     pattern: /^\/api\/ledgers\/\d+\/categories\/order$/,
     answer: (data, { body }) => {
-      const { categoryIds } = body as { categoryIds: number[] };
-      if (categoryIds.length === 0 || new Set(categoryIds).size !== categoryIds.length) refuse(400, 'invalid_request');
+      // The API's `OrderBody`: positive integer ids, at least one, each once.
+      const categoryIds: unknown = (body as { categoryIds?: unknown } | undefined)?.categoryIds;
+      const valid =
+        Array.isArray(categoryIds) &&
+        categoryIds.length > 0 &&
+        categoryIds.every((id) => Number.isInteger(id) && id > 0) &&
+        new Set(categoryIds).size === categoryIds.length;
+      if (!valid) refuse(400, 'invalid_request');
       const current = inMyOrder(data, data.categories).map((category) => category.categoryId);
       if (categoryIds.some((id) => !current.includes(id))) refuse(400, 'unknown_category');
       data.order = mergeOrder(current, categoryIds);

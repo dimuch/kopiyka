@@ -231,7 +231,7 @@ Why: §8b `minor` covers a new user action (drag to reorder on Budget and Expens
 
 ### PR 2: drag to reorder (`feat/category-order-drag`, from `main` after PR 1 merges, ~400 lines)
 
-- [ ] 6. Bump version to 1.14.0
+- [x] 6. Bump version to 1.14.0
   - Files: package.json, apps/mobile/app.json
   - Change: set both to 1.14.0 (or `main`'s number +minor)
 - [ ] 7. Work out where a dragged row lands and how the others make room (~95)

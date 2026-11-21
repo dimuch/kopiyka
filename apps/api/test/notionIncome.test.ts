@@ -18,6 +18,10 @@ describe('toIncomeSnapshot', () => {
     expect(IncomeSnapshot.parse(JSON.parse(JSON.stringify(snapshot)))).toEqual(snapshot);
   });
 
+  it('refuses an amount over 8 digits, which the snapshot cannot hold', () => {
+    expect(() => toIncomeSnapshot([{ name: 'Huge', month: 1, amountCents: 10_000_000_000n }])).toThrow();
+  });
+
   it('refuses an amount with more than 2 places and a row without a name', () => {
     expect(() => IncomeSnapshot.parse({ rows: [{ name: 'Salary', month: 1, amount: '1.234' }] })).toThrow();
     expect(() => IncomeSnapshot.parse({ rows: [{ month: 1, amount: '1.00' }] })).toThrow();

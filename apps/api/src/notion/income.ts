@@ -60,7 +60,7 @@ function itemTitle(name: string): { title: string; note: string | null } {
  * amount, zero or negative) is named in `skipped`.
  */
 export function wantedIncome(snapshot: IncomeSnapshot): { months: WantedIncomeMonth[]; skipped: string[] } {
-  const months = historyMonths().map((month): WantedIncomeMonth => ({ month, items: [] }));
+  const byMonth = new Map(historyMonths().map((month) => [month, [] as WantedIncomeItem[]]));
   const skipped: string[] = [];
   for (const row of snapshot.rows) {
     const label = row.name.trim() ? `"${row.name.trim()}"` : '(no title)';
@@ -69,7 +69,8 @@ export function wantedIncome(snapshot: IncomeSnapshot): { months: WantedIncomeMo
       continue;
     }
     const month = historyMonth(row.month);
-    if (!month) continue;
+    const items = month === null ? undefined : byMonth.get(month);
+    if (!month || !items) continue; // November or December
     if (row.amount === null) {
       skipped.push(`${label} in ${month}: no amount`);
       continue;
@@ -79,8 +80,7 @@ export function wantedIncome(snapshot: IncomeSnapshot): { months: WantedIncomeMo
       skipped.push(`${label} in ${month}: amount ${centsToString(amountCents)}`);
       continue;
     }
-    // historyMonths() lists every month historyMonth() can return, so the month is always there.
-    months.find((m) => m.month === month)!.items.push({ ...itemTitle(row.name), amountCents });
+    items.push({ ...itemTitle(row.name), amountCents });
   }
-  return { months, skipped };
+  return { months: [...byMonth].map(([month, items]) => ({ month, items })), skipped };
 }

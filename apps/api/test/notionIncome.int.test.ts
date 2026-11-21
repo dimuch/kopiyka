@@ -128,6 +128,11 @@ describe.skipIf(!(await testDbReachable()))('income import (MySQL)', () => {
     await importIncome(db, owner.ledgerId, wantedIncome(snapshot).months);
     const ownerAfter = await rows();
     expect(ownerAfter.filter((r) => r.income_month >= '2026-11-01')).toEqual(ownerBefore);
+    expect(ownerAfter.filter((r) => r.income_month < '2026-11-01').map((r) => r.title)).toEqual([
+      'Salary',
+      'Bonus',
+      'Freelance',
+    ]);
     expect(await rows(other.ledgerId)).toEqual(otherBefore);
   });
 

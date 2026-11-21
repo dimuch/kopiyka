@@ -5,7 +5,7 @@ import type { AppDeps } from '../app.js';
 import { NAME_IN_MONTH } from '../categories/monthLists.js';
 import { monthStart } from '../dates.js';
 import { centsToString, toCents } from '../money.js';
-import { MonthString } from '../monthGuards.js';
+import { MonthString } from '../monthChecks.js';
 
 /** A period's figures in EUR, as decimal strings; `leftEur` is income − spent and may be negative ('-12.50'). */
 export interface SummaryTotalsDto {

@@ -6,7 +6,7 @@ import { monthOf, monthStart, nextMonthStart } from '../dates.js';
 import { withTransaction } from '../db.js';
 import { inMonthList } from '../categories/monthLists.js';
 import { AMOUNT_RE, centsToString, convert, e4ToString, rateToE4, toCents } from '../money.js';
-import { checkMonthOpen, MonthString } from '../monthGuards.js';
+import { checkMonthOpen, MonthString } from '../monthChecks.js';
 import { getEurUahRate, isAfterRateHorizon, RateDate, rateUnavailableReason } from '../rates/service.js';
 import { findRepeat } from './repeatCall.js';
 

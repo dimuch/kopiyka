@@ -255,11 +255,13 @@ Existing test cases stay unmodified.
 
 ## Follow-ups
 
-- None found that an AC doesn't cover.
+- Single-letter callback params on lines this branch touched, deferred to briefs C/G (Not doing):
+  `notion/balancesImport.ts:27` (`r`), `notion/totals.ts:43` (`r`), `notion/historyImport.ts:63` (`e`).
 
 ## Deviations
 
-<filled by the developer during build>
+- review: `src/monthGuards.ts` is renamed `src/monthChecks.ts`. "guards" already names each routes file's
+  `{ preHandler: [...] }` object, and this module holds a Zod field and a reply helper. Same exports.
 
 ## Consolidate
 

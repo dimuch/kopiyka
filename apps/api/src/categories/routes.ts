@@ -5,7 +5,7 @@ import type { AppDeps } from '../app.js';
 import { monthStart, nextMonthStart } from '../dates.js';
 import { overIncomeError } from '../income/limit.js';
 import { AMOUNT_RE, centsToString, toCents } from '../money.js';
-import { checkMonthOpen, MonthString } from '../monthGuards.js';
+import { checkMonthOpen, MonthString } from '../monthChecks.js';
 import {
   addToMonth,
   copyPreviousMonth,

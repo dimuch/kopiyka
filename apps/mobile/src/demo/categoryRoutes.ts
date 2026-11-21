@@ -99,6 +99,16 @@ function mergeOrder(current: readonly number[], shown: readonly number[]): numbe
   return merged;
 }
 
+/** The API's `OrderBody`: positive integer ids, at least one, each once. */
+function isOrderIds(value: unknown): value is number[] {
+  return (
+    Array.isArray(value) &&
+    value.length > 0 &&
+    value.every((id) => Number.isInteger(id) && id > 0) &&
+    new Set(value).size === value.length
+  );
+}
+
 const MONTH_CATEGORIES = /^\/api\/ledgers\/\d+\/months\/(\d{4}-\d{2})\/categories$/;
 const CATEGORY_IN_MONTH = /^\/api\/ledgers\/\d+\/categories\/(\d+)\/months\/(\d{4}-\d{2})$/;
 
@@ -202,14 +212,8 @@ export const categoryRoutes: Route[] = [
     method: 'PUT',
     pattern: /^\/api\/ledgers\/\d+\/categories\/order$/,
     answer: (data, { body }) => {
-      // The API's `OrderBody`: positive integer ids, at least one, each once.
       const categoryIds: unknown = (body as { categoryIds?: unknown } | undefined)?.categoryIds;
-      const valid =
-        Array.isArray(categoryIds) &&
-        categoryIds.length > 0 &&
-        categoryIds.every((id) => Number.isInteger(id) && id > 0) &&
-        new Set(categoryIds).size === categoryIds.length;
-      if (!valid) refuse(400, 'invalid_request');
+      if (!isOrderIds(categoryIds)) refuse(400, 'invalid_request');
       const current = inMyOrder(data, data.categories).map((category) => category.categoryId);
       if (categoryIds.some((id) => !current.includes(id))) refuse(400, 'unknown_category');
       data.order = mergeOrder(current, categoryIds);

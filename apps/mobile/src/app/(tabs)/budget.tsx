@@ -12,6 +12,7 @@ import { Icon } from '@/components/Icon';
 import { LoadError } from '@/components/LoadError';
 import { MonthSwitcher } from '@/components/MonthSwitcher';
 import { Pressable } from '@/components/Pressable';
+import { ReorderList } from '@/components/ReorderList';
 import { UndoToast } from '@/components/UndoToast';
 import { copyPreviousMonth } from '@/data/categories';
 import { copyRefusedText } from '@/data/monthCopy';
@@ -19,6 +20,7 @@ import { balanceLine } from '@/data/monthBalance';
 import { incomeCents, plannedCents } from '@/data/monthSummary';
 import { tabTitle } from '@/data/tabItems';
 import { useUndoOffer } from '@/data/undo';
+import { useCategoryOrder } from '@/data/useCategoryOrder';
 import { useIncome } from '@/data/useIncome';
 import { type MonthData, useMonth } from '@/data/useMonth';
 import { useMonthBalance } from '@/data/useMonthBalance';
@@ -51,6 +53,9 @@ export default function Budget() {
   const income = useIncome(ledger.ledgerId, month);
   // How the month started and ended (brief 090); only months with imported balances have a line.
   const balance = balanceLine(useMonthBalance(ledger.ledgerId, month));
+  // My order of the month's rows, changed by long-press and drag (brief 092).
+  const order = useCategoryOrder(ledger.ledgerId, data?.categories ?? null, reload);
+  const [dragging, setDragging] = useState(false);
 
   const [busy, setBusy] = useState(false);
   // Tagged with their ledger and month, so switching either clears them without an effect.
@@ -119,7 +124,10 @@ export default function Budget() {
       {balance ? <Text style={styles.balance}>{balance}</Text> : null}
 
       {/* Room under the last row, so the Undo bar can't cover it. */}
-      <ScrollView contentContainerStyle={[styles.content, toast.offer && { paddingBottom: 104 }]}>
+      <ScrollView
+        scrollEnabled={!dragging}
+        contentContainerStyle={[styles.content, toast.offer && { paddingBottom: 104 }]}
+      >
         {!data ? (
           error ? (
             <LoadError message="Couldn’t load this month. Check your connection and try again." onRetry={reload} />
@@ -172,39 +180,50 @@ export default function Budget() {
                   <Text style={styles.sectionTitle}>Categories</Text>
                   <Text style={styles.small}>{eur(plannedCents(data.categories))} planned</Text>
                 </View>
-                <View style={styles.listCard}>
-                  {data.categories.map((c, i) => {
-                    const style = [styles.row, i < data.categories.length - 1 && styles.divider];
-                    const planned = eur(toCents(c.plannedEur));
+                {order.failed && <LoadError message="Couldn’t save the order. Check your connection and try again." />}
+                <ReorderList
+                  items={order.categories ?? data.categories}
+                  keyOf={(category) => category.categoryId}
+                  onMove={order.move}
+                  disabled={order.saving}
+                  onDragChange={setDragging}
+                  style={styles.listCard}
+                  renderRow={(category, index, drag) => {
+                    const last = index === data.categories.length - 1;
+                    const planned = eur(toCents(category.plannedEur));
                     const content = (
                       <>
-                        <CategoryTile techName={c.techName} label={c.displayName} />
-                        <Text style={styles.rowName}>{c.displayName}</Text>
+                        <CategoryTile techName={category.techName} label={category.displayName} />
+                        <Text style={styles.rowName}>{category.displayName}</Text>
                         <Text style={styles.rowAmount}>{planned}</Text>
                       </>
                     );
-                    // An ended month can't change, so its rows aren't buttons.
+                    // An ended month can't change, so its rows aren't buttons; they only take a long-press, so the
+                    // order (not month data) can still change. Screen readers and the keyboard meet what they did.
                     if (ended) {
                       return (
-                        <View key={c.categoryId} style={style}>
+                        <Pressable
+                          {...drag}
+                          accessible={false}
+                          focusable={false}
+                          style={[styles.row, !last && styles.divider]}
+                        >
                           {content}
-                        </View>
+                        </Pressable>
                       );
                     }
                     // Two sibling buttons, not one inside the other: VoiceOver couldn't reach a nested one, and web would nest role="button".
                     return (
-                      <View
-                        key={c.categoryId}
-                        style={[styles.openRow, i < data.categories.length - 1 && styles.divider]}
-                      >
+                      <View style={[styles.openRow, !last && styles.divider]}>
                         <Pressable
+                          {...drag}
                           accessibilityRole="button"
-                          accessibilityLabel={`${c.displayName}, ${planned} planned`}
+                          accessibilityLabel={`${category.displayName}, ${planned} planned`}
                           accessibilityHint="Edits its planned amount"
                           onPress={() =>
                             pushOnce({
                               pathname: '/category-form',
-                              params: { categoryId: c.categoryId, month, focus: 'amount' },
+                              params: { categoryId: category.categoryId, month, focus: 'amount' },
                             })
                           }
                           style={[styles.row, { flex: 1 }]}
@@ -213,9 +232,9 @@ export default function Budget() {
                         </Pressable>
                         <Pressable
                           accessibilityRole="button"
-                          accessibilityLabel={`Edit ${c.displayName} in ${monthName(month)}`}
+                          accessibilityLabel={`Edit ${category.displayName} in ${monthName(month)}`}
                           onPress={() =>
-                            pushOnce({ pathname: '/category-form', params: { categoryId: c.categoryId, month } })
+                            pushOnce({ pathname: '/category-form', params: { categoryId: category.categoryId, month } })
                           }
                           style={styles.edit}
                         >
@@ -223,8 +242,8 @@ export default function Budget() {
                         </Pressable>
                       </View>
                     );
-                  })}
-                </View>
+                  }}
+                />
               </>
             )}
           </>

@@ -246,7 +246,7 @@ Why: §8b `minor` covers a new user action (drag to reorder on Budget and Expens
       2 → +50 and row 0 → 0.
     - `edgeStep(300, 100, 700)` → 0; `(100, 100, 700)` → −12; `(672, 100, 700)` → 6; `(800, 100, 700)` → 12 (finger
       below the list, over the tab bar); `(130, 100, 700)` → −6 (rounded).
-- [ ] 8. Drag a category to a new place on the Budget tab (~200; the smallest slice a person can check end to end)
+- [x] 8. Drag a category to a new place on the Budget tab (~200; the smallest slice a person can check end to end)
   - Files: `apps/mobile/src/components/ReorderList.tsx` (new), `apps/mobile/src/data/useCategoryOrder.ts` (new),
     `apps/mobile/src/data/categories.ts` (`saveCategoryOrder`), `apps/mobile/src/app/(tabs)/budget.tsx`,
     `apps/mobile/demo-modules.txt` (`yarn mobile export:web && yarn mobile check-builds --accept`: the three new
@@ -391,6 +391,14 @@ Why: §8b `minor` covers a new user action (drag to reorder on Budget and Expens
   quick rows when one import stamped many categories at once. Found in review; keeps "`quickCategoryIds` doesn't
   change" true.
 - The demo's order save refuses a bad body (`[0]`, no `categoryIds`) with `invalid_request`, as the API does.
+- slice 8: the drag's state lives in a small `Drag` class made once with `useState(() => new Drag(setHeld))`, not in
+  refs read by a `PanResponder` made in a `useState` initializer: the React Compiler lint refuses both ref reads in that
+  initializer and assigning to the hook value in an effect. Same behaviour, same file.
+- slice 8: the held row's travel is measured from the long-press's `pageY` (`gesture.moveY - startY`), not
+  `gesture.dy`. The list only takes the touch on the first move after the long-press, so `dy` lost that first move and
+  the row trailed the finger (70 px behind in the web check).
+- slice 8: no `userSelect: 'none'` on the list: React Native's `ViewStyle` doesn't type it. Text selection during a
+  mouse drag on web is left to the user's manual check.
 
 ## Consolidate
 

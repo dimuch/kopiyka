@@ -399,6 +399,12 @@ Why: §8b `minor` covers a new user action (drag to reorder on Budget and Expens
   the row trailed the finger (70 px behind in the web check).
 - slice 8: no `userSelect: 'none'` on the list: React Native's `ViewStyle` doesn't type it. Text selection during a
   mouse drag on web is left to the user's manual check.
+- slice 9, review: the edge scrolling measures the scroll view's inner view (`getInnerViewRef`) at pick-up instead of
+  the list's `onLayout` y, which goes stale on web when only the list's position changes. It scrolls only while the
+  finger is at an edge, and never back past the padding below the list.
+- `useCategoryOrder`, review: a drop moves what's shown (the last drop's order until the reload lands), and a failed
+  save goes back to that. The plan's "`saving` blocks a new pick-up until the save settles" holds only for the PUT, not
+  the reload after it.
 
 ## Consolidate
 

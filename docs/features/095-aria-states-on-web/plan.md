@@ -215,8 +215,20 @@ and Sign in with empty fields. Each should read as it does on `main`.
 
 ## Deviations
 
-<filled by the developer during build>
+- none. Checks that ran (web, 390×844, signed in as `qa-user`, port 8082 with `CORS_ORIGINS` changed only for the check):
+  - Settings: Appearance radios `aria-checked` true on the chosen one, false on the others (AC1; ledger rows not shown
+    with one ledger, as Open questions says).
+  - Expense form: chosen category chip and Today `aria-selected="true"`, the others `"false"`; Add `aria-busy="false"`
+    (AC2). Category form Save `aria-busy="false"`.
+  - Category page: ⋯ `aria-expanded` false, then true when open (AC3).
+  - Statistics: period button `aria-expanded` false/true, the five radios `aria-checked`, Next month
+    `aria-disabled="true"` on the current month.
+  - Signed out: Sign in `aria-disabled="true"` and `tabindex=-1` with empty fields; filled in, no `aria-disabled`,
+    `tabindex=0`, and Enter in Password signs in (AC4).
+  - Lint fails with the rule's message when `accessibilityState` is put back on `DateChips` (reverted) (AC6).
+  - `export:web` and `check-builds` pass (135 demo modules).
+  - Not run: iPhone VoiceOver (AC5), left for the user.
 
 ## Consolidate
 
-<filled in /kopiyka-hos Phase 3a: CONSOLIDATE line, each reuse/extract, each LEAVE + reason>
+Skipped: the branch adds no function, hook, component, route or query, only props and one lint rule.

@@ -112,7 +112,7 @@ any range, and old builds keep working.
     `presetPeriod` cases and every `moveCustom` case stay unchanged and pass.
   - Verify (web, 390×844): five chips in the brief's order; Last 3 months shows "Sep – Nov 2026" and its figures; no
     From/To row.
-- [ ] 2. Work out stepping and the matching preset for a Statistics period (~65 lines)
+- [x] 2. Work out stepping and the matching preset for a Statistics period (~65 lines)
   - Files: apps/mobile/src/data/period.ts, apps/mobile/test/period.test.ts
   - Change: add `stepPeriod`, `canStepForward` and `matchingChoice` as in Contracts.
   - Tests (`period.test.ts`, table style, fixed `new Date('2026-11-21T10:00:00Z')` unless noted):

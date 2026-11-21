@@ -1,5 +1,13 @@
 import { describe, expect, it } from 'vitest';
-import { moveCustom, PERIOD_CHOICES, periodLabel, presetPeriod } from '@/data/period';
+import {
+  canStepForward,
+  matchingChoice,
+  moveCustom,
+  PERIOD_CHOICES,
+  periodLabel,
+  presetPeriod,
+  stepPeriod,
+} from '@/data/period';
 
 describe('PERIOD_CHOICES', () => {
   it('lists the choices in the brief’s order', () => {
@@ -74,5 +82,56 @@ describe('periodLabel', () => {
     [{ from: '2025-12', to: '2026-11' }, 'Dec 2025 – Nov 2026'],
   ])('%o reads %s', (period, label) => {
     expect(periodLabel(period)).toBe(label);
+  });
+});
+
+const nov21 = new Date('2026-11-21T10:00:00Z');
+const months = (from: string, to = from) => ({ from, to });
+
+describe('stepPeriod', () => {
+  it.each([
+    [months('2026-11'), -1, months('2026-10')],
+    [months('2026-11'), 1, months('2026-12')],
+    [months('2026-09', '2026-11'), -1, months('2026-10')],
+    [months('2026-09', '2026-11'), 1, months('2026-12')],
+    [months('2027-01'), -1, months('2026-12')],
+    [months('2026-12'), 1, months('2027-01')],
+  ] as const)('%o stepped by %i is %o, counted from the last month', (period, by, stepped) => {
+    expect(stepPeriod(period, by)).toEqual(stepped);
+  });
+});
+
+describe('canStepForward', () => {
+  it.each([
+    [months('2026-11'), false],
+    [months('2026-10'), true],
+    [months('2026-09', '2026-11'), false],
+    [months('2026-01', '2026-10'), true],
+  ])('%o on 21 Nov 2026: %s', (period, allowed) => {
+    expect(canStepForward(period, nov21)).toBe(allowed);
+  });
+
+  it('turns at Kyiv midnight, not UTC midnight', () => {
+    expect(canStepForward(months('2026-10'), new Date('2026-10-31T21:59:59Z'))).toBe(false);
+    expect(canStepForward(months('2026-10'), new Date('2026-10-31T22:00:00Z'))).toBe(true);
+  });
+});
+
+describe('matchingChoice', () => {
+  it.each([
+    [months('2026-11'), 'current'],
+    [months('2026-10'), 'previous'],
+    [months('2026-09', '2026-11'), 'last3'],
+    [months('2026-06', '2026-11'), 'last6'],
+    [months('2026-01', '2026-11'), 'thisYear'],
+    [months('2026-09'), null],
+    [months('2026-10', '2026-11'), null],
+    [months('2025-12', '2026-11'), null],
+  ] as const)('%o on 21 Nov 2026 matches %s', (period, choice) => {
+    expect(matchingChoice(period, nov21)).toBe(choice);
+  });
+
+  it('marks Current month, the first in the list, when This year is the same month in January', () => {
+    expect(matchingChoice(months('2027-01'), new Date('2027-01-15T10:00:00Z'))).toBe('current');
   });
 });

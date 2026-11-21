@@ -2,6 +2,9 @@
 
 Type: feature
 
+> Replaced by `../092-category-order/brief.md` (2026-11-21): each user orders categories by drag-and-drop, the same
+> order in every month.
+
 ## Why
 
 Categories are fixed: every ledger is seeded with 15 in the Notion "Budget ’26" order, and the app can't reorder them.

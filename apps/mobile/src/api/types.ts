@@ -48,6 +48,7 @@ export interface Category {
   categoryId: number;
   techName: string;
   displayName: string;
+  /** The ledger's order. A list comes in the caller's own order instead (brief 092). */
   sortOrder: number;
   /** The month's planned EUR (brief 036): a decimal string ≥ 0, '0.00' when none is set. */
   plannedEur: string;

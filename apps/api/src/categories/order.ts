@@ -4,6 +4,16 @@
  */
 
 /**
+ * LEFT JOINs the member's position `o.list_position` onto categories `c`. The member's user id is the next param. Joins
+ * on the full primary key.
+ */
+export const MY_ORDER_JOIN = `LEFT JOIN category_orders o
+    ON o.ledger_id = c.ledger_id AND o.user_id = ? AND o.category_id = c.category_id`;
+
+/** The member's placed categories first, by position; the rest after, in the ledger's order. */
+export const IN_MY_ORDER = 'o.list_position IS NULL, o.list_position, c.sort_order, c.category_id';
+
+/**
  * The longest run of `shown` that keeps its order in `current`: the categories the drop didn't move. On a tie, the
  * run whose ids come earliest in `shown` wins, so for one drag only an adjacent swap is ambiguous and the dragged
  * row is whichever comes second.

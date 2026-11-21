@@ -184,7 +184,7 @@ Why: §8b `minor` covers a new user action (drag to reorder on Budget and Expens
     - `[5,6,7]`, `[6,5]` → `[6,5,7]` (a category the month lacks stays last).
     - `[8,1,2]`, `[2,1]` → `[8,2,1]` (a tie keeps the first run, 2; 1 goes after it).
     - `[1,2,3,4,5]`, `[5,4,1,2,3]` → `[5,4,1,2,3]` (two moved, in shown order).
-- [ ] 3. List categories in the caller's own order (~75)
+- [x] 3. List categories in the caller's own order (~75)
   - Files: `apps/api/src/categories/order.ts` (`MY_ORDER_JOIN`, `IN_MY_ORDER`), `apps/api/src/categories/routes.ts`
     (the list query joins it; params `[first, first, userId, ledgerId, first]`; `sortOrder` doc),
     `apps/mobile/src/api/types.ts` (doc line), `apps/api/test/categoryOrder.int.test.ts` (new)

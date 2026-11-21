@@ -155,7 +155,7 @@ back with it, and an app build left open against an older API gets 404 `not_foun
 
 ### PR A — the endpoint (`feat/period-statistics`)
 
-- [ ] A0. Bump version to 1.11.0
+- [x] A0. Bump version to 1.11.0
   - Files: package.json, apps/mobile/app.json
   - Change: set both to 1.11.0
 - [ ] A1. Add a read-only summary route with a period's totals

@@ -3,7 +3,7 @@ import type { RowDataPacket } from 'mysql2/promise';
 import { z } from 'zod';
 import type { AppDeps } from '../app.js';
 import { NAME_IN_MONTH } from '../categories/monthLists.js';
-import { MONTH_RE, nextMonthStart } from '../dates.js';
+import { MONTH_RE } from '../dates.js';
 import { centsToString, toCents } from '../money.js';
 
 /** A period's figures in EUR, as decimal strings; `leftEur` is income − spent and may be negative ('-12.50'). */
@@ -34,10 +34,12 @@ export interface SummaryCategoryDto {
 
 const MAX_MONTHS = 24;
 
+/** 'YYYY-MM' as a count of months since year 0, so months can be counted and stepped without dates. */
+const monthIndex = (month: string) => Number(month.slice(0, 4)) * 12 + Number(month.slice(5, 7)) - 1;
+
 /** How many months `from…to` covers, both ends counted: 2026-01…2026-03 is 3. */
 function monthSpan(from: string, to: string): number {
-  const months = (month: string) => Number(month.slice(0, 4)) * 12 + Number(month.slice(5, 7));
-  return months(to) - months(from) + 1;
+  return monthIndex(to) - monthIndex(from) + 1;
 }
 
 const PeriodQuery = z
@@ -58,9 +60,11 @@ const compareCents = (a: bigint, b: bigint) => (a < b ? -1 : a > b ? 1 : 0);
 
 /** Every month `from…to`, oldest first. */
 function periodMonths(from: string, to: string): string[] {
-  const months: string[] = [];
-  for (let month = from; month <= to; month = nextMonthStart(month).slice(0, 7)) months.push(month);
-  return months;
+  // Arithmetic, not dates: 9999-12 has no next month to step to.
+  return Array.from({ length: monthSpan(from, to) }, (_, i) => {
+    const index = monthIndex(from) + i;
+    return `${String(Math.floor(index / 12)).padStart(4, '0')}-${String((index % 12) + 1).padStart(2, '0')}`;
+  });
 }
 
 /**
@@ -90,9 +94,9 @@ export async function summaryRoutes(app: FastifyInstance, { db }: AppDeps): Prom
          FROM expenses e
          JOIN categories c ON c.category_id = e.category_id
         WHERE c.ledger_id = ? AND c.deleted_at IS NULL AND e.deleted_at IS NULL
-          AND e.expense_date >= ? AND e.expense_date < ?
+          AND e.expense_date >= ? AND e.expense_date <= LAST_DAY(?)
         GROUP BY e.category_id, month`,
-      [ledgerId, first, nextMonthStart(to)],
+      [ledgerId, first, last],
     );
     const [income] = await db.query<RowDataPacket[]>(
       `SELECT DATE_FORMAT(income_month, '%Y-%m') AS month, SUM(amount_eur) AS income_eur

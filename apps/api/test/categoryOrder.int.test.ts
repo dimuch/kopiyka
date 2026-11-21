@@ -198,7 +198,8 @@ describe.skipIf(!(await testDbReachable()))('categories in my own order (MySQL)'
       const stranger = await makeUser(db, config, 'stranger');
 
       expect((await save({ categoryIds: ids }, {})).statusCode).toBe(401);
-      expect((await save({ categoryIds: ids }, await authHeader(app, stranger, clock))).statusCode).toBe(404);
+      const refused = await save({ categoryIds: ids }, await authHeader(app, stranger, clock));
+      expect([refused.statusCode, refused.json()]).toEqual([404, { error: 'ledger_not_found' }]);
       expect((await listFor(auth)).names).toEqual(seeded);
     });
   });

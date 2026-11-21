@@ -6,11 +6,9 @@ import { useSession } from '@/auth/AuthContext';
 import { EmptyMonth } from '@/components/EmptyMonth';
 import { HomeButton } from '@/components/HomeButton';
 import { LoadError } from '@/components/LoadError';
-import { MonthSwitcher } from '@/components/MonthSwitcher';
 import { Pressable } from '@/components/Pressable';
-import { moveCustom, type Period, PERIOD_CHOICES, type PeriodChoice, periodLabel, presetPeriod } from '@/data/period';
+import { PERIOD_CHOICES, type PeriodChoice, periodLabel, presetPeriod } from '@/data/period';
 import { isEmptySummary, planGap } from '@/data/periodSummary';
-import { tabTitle } from '@/data/tabItems';
 import { useSummary } from '@/data/useSummary';
 import { eur, shortMonthLabel, toCents } from '@/format';
 import { fonts, type Palette } from '@/theme';
@@ -26,19 +24,7 @@ export default function Statistics() {
   // Read once, like Income's thisMonth, so the period doesn't move while the screen is open.
   const [now] = useState(() => new Date());
   const [preset, setPreset] = useState<Exclude<PeriodChoice, 'custom'>>('current');
-  // Set only while Custom is chosen: it starts from the period on screen, and moveCustom keeps it legal.
-  const [custom, setCustom] = useState<Period | null>(null);
-  const choice: PeriodChoice = custom ? 'custom' : preset;
-  const period = custom ?? presetPeriod(preset, now);
-
-  function choose(option: PeriodChoice) {
-    if (option === 'custom') {
-      if (!custom) setCustom(period);
-      return;
-    }
-    setPreset(option);
-    setCustom(null);
-  }
+  const period = presetPeriod(preset, now);
   const { summary, error, reload } = useSummary(ledger.ledgerId, period);
 
   return (
@@ -56,28 +42,14 @@ export default function Statistics() {
             <Pressable
               key={option}
               accessibilityRole="button"
-              accessibilityState={{ selected: choice === option }}
-              onPress={() => choose(option)}
-              style={[styles.chip, choice === option && styles.chipOn]}
+              accessibilityState={{ selected: preset === option }}
+              onPress={() => setPreset(option)}
+              style={[styles.chip, preset === option && styles.chipOn]}
             >
               <Text style={styles.chipText}>{label}</Text>
             </Pressable>
           ))}
         </View>
-        {custom ? (
-          <View style={styles.custom}>
-            {(['from', 'to'] as const).map((end) => (
-              <View key={end} style={styles.customRow}>
-                <Text style={styles.customCaption}>{end === 'from' ? 'From' : 'To'}</Text>
-                <MonthSwitcher
-                  title={tabTitle('statistics')}
-                  month={custom[end]}
-                  onChange={(month) => setCustom(moveCustom(custom, end, month))}
-                />
-              </View>
-            ))}
-          </View>
-        ) : null}
         <Text style={styles.period}>{periodLabel(period)}</Text>
 
         {!summary ? (
@@ -192,7 +164,7 @@ const makeStyles = (colors: Palette) =>
     header: { flexDirection: 'row', alignItems: 'center', gap: 8, paddingBottom: 10 },
     title: { fontFamily: fonts.display, fontSize: 22, color: colors.text },
     content: { gap: 14, paddingTop: 4, paddingBottom: 24 },
-    // DateChips' chip, wrapping: seven choices don't fit one row at phone width.
+    // DateChips' chip, wrapping: five choices don't fit one row at phone width.
     chips: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
     chip: {
       minHeight: 44,
@@ -205,9 +177,6 @@ const makeStyles = (colors: Palette) =>
     },
     chipOn: { borderColor: colors.accent, backgroundColor: colors.accentTint },
     chipText: { fontFamily: fonts.bodyMedium, fontSize: 14, color: colors.text },
-    custom: { gap: 4 },
-    customRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 4 },
-    customCaption: { fontFamily: fonts.bodyMedium, fontSize: 15, color: colors.muted },
     period: { fontFamily: fonts.bodyMedium, fontSize: 15, color: colors.muted, paddingHorizontal: 4 },
     card: {
       backgroundColor: colors.surface,

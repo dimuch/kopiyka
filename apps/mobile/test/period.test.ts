@@ -8,9 +8,7 @@ describe('PERIOD_CHOICES', () => {
       'Previous month',
       'Last 3 months',
       'Last 6 months',
-      'Last 12 months',
       'This year',
-      'Custom',
     ]);
   });
 });

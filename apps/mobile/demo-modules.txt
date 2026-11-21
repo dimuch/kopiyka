@@ -71,6 +71,7 @@ src/components/LoadError.tsx
 src/components/MonthSwitcher.tsx
 src/components/PhoneColumn.tsx
 src/components/Pressable.tsx
+src/components/ReorderList.tsx
 src/components/TabBar.tsx
 src/components/TextField.tsx
 src/components/UndoToast.tsx
@@ -89,7 +90,9 @@ src/data/monthEnded.ts
 src/data/monthSummary.ts
 src/data/overIncome.ts
 src/data/quick.ts
+src/data/reorder.ts
 src/data/undo.ts
+src/data/useCategoryOrder.ts
 src/data/useCategoryTotals.ts
 src/data/useExpenseDraft.ts
 src/data/useIncome.ts

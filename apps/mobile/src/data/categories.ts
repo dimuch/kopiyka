@@ -33,3 +33,11 @@ export async function editInMonth(
 ): Promise<void> {
   await api(`/api/ledgers/${ledgerId}/categories/${categoryId}/months/${month}`, { method: 'PATCH', body: changes });
 }
+
+/**
+ * Saves my order of the ledger's categories from one month's list, top first (brief 092). The server merges it into
+ * my order for every month; other members keep theirs.
+ */
+export async function saveCategoryOrder(ledgerId: number, categoryIds: number[]): Promise<void> {
+  await api(`/api/ledgers/${ledgerId}/categories/order`, { method: 'PUT', body: { categoryIds } });
+}

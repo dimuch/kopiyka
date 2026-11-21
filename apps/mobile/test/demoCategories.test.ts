@@ -425,3 +425,41 @@ describe('demo categories, copying a month', () => {
     ]);
   });
 });
+
+const saveOrder = (api: ReturnType<typeof fixtureStore>, categoryIds: number[]) =>
+  api('/api/ledgers/1/categories/order', { method: 'PUT', body: { categoryIds } });
+const idsIn = (api: ReturnType<typeof fixtureStore>, month: string) =>
+  api<MonthList>(`/api/ledgers/1/categories?month=${month}`).then((list) =>
+    list.categories.map((category) => category.categoryId),
+  );
+
+describe('demo categories, my order', () => {
+  it('keeps my order in every month, with what I didn’t move in place', async () => {
+    const api = fixtureStore();
+
+    await saveOrder(api, [2, 1]);
+
+    // The whole order is [2, 1, 3]: 1 is the moved one on the tie and goes after 2; 3 keeps its place after both.
+    expect(await idsIn(api, '2026-11')).toEqual([2, 1]);
+    expect(await idsIn(api, '2026-10')).toEqual([1, 3]);
+  });
+
+  it('lists a category added after the save last', async () => {
+    const api = fixtureStore();
+    await saveOrder(api, [2, 1]);
+
+    await addCategory(api, '2026-11', 'gym');
+
+    expect(await idsIn(api, '2026-11')).toEqual([2, 1, 100]);
+  });
+
+  it('refuses a list that isn’t distinct live ids, changing nothing', async () => {
+    const api = fixtureStore();
+    await saveOrder(api, [2, 1]);
+
+    expect((await refusal(saveOrder(api, [1, 1]))).slice(0, 2)).toEqual([400, 'invalid_request']);
+    expect((await refusal(saveOrder(api, []))).slice(0, 2)).toEqual([400, 'invalid_request']);
+    expect((await refusal(saveOrder(api, [99]))).slice(0, 2)).toEqual([400, 'unknown_category']);
+    expect(await idsIn(api, '2026-11')).toEqual([2, 1]);
+  });
+});

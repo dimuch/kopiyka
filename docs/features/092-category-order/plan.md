@@ -215,7 +215,7 @@ Why: §8b `minor` covers a new user action (drag to reorder on Budget and Expens
       `deleted_at` set. Each time the saver's order is unchanged afterwards.
     - `400 invalid_request`: a repeated id, `[]`, a missing body, and `[0]`.
     - `401` with no auth header; `404 ledger_not_found` for a non-member's `PUT`.
-- [ ] 5. Keep my category order in the demo too (~95)
+- [x] 5. Keep my category order in the demo too (~95)
   - Files: `apps/mobile/src/demo/state.ts` (`order`), `apps/mobile/src/demo/categoryRoutes.ts` (the GET sorts with
     a private `inMyOrder`; new `PUT` route with a private `mergeOrder`), `apps/mobile/src/demo/sampleData.ts`,
     `apps/mobile/test/demoFixture.ts`, `apps/mobile/test/demoCategories.test.ts`

@@ -36,6 +36,8 @@ export interface StoreData {
   planned: Map<string, number>;
   expenses: DemoExpense[];
   income: DemoIncome[];
+  /** The demo user's own category order, top first (the API's `category_orders`); empty until they reorder. */
+  order: number[];
   /** The next id for anything created, and the next removal number. */
   nextId: number;
 }

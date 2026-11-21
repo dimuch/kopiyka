@@ -78,15 +78,17 @@ function toDto(r: RowDataPacket): CategoryDto {
 
 /**
  * The Add expense quick row: categories by their latest expense, newest first;
- * never-used ones follow in sort order.
+ * never-used ones follow in sort order. Ties go by the ledger's order, never a member's own (brief 092), so the
+ * row is the same for every member.
  */
 export function pickQuick(rows: Array<{ categoryId: number; sortOrder: number; lastUsedAt: Date | null }>): number[] {
   return [...rows]
     .sort((a, b) => {
-      if (a.lastUsedAt && b.lastUsedAt) return b.lastUsedAt.getTime() - a.lastUsedAt.getTime();
+      const inLedgerOrder = a.sortOrder - b.sortOrder || a.categoryId - b.categoryId;
+      if (a.lastUsedAt && b.lastUsedAt) return b.lastUsedAt.getTime() - a.lastUsedAt.getTime() || inLedgerOrder;
       if (a.lastUsedAt) return -1;
       if (b.lastUsedAt) return 1;
-      return a.sortOrder - b.sortOrder;
+      return inLedgerOrder;
     })
     .slice(0, QUICK_CATEGORY_COUNT)
     .map((r) => r.categoryId);

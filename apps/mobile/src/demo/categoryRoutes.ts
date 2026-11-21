@@ -37,16 +37,20 @@ function lastUsed(data: StoreData): Map<number, string> {
   return latest;
 }
 
-/** The API's `pickQuick`: by latest expense, newest first; never-used ones follow in sort order; five at most. */
+/**
+ * The API's `pickQuick`: by latest expense, newest first; never-used ones follow in sort order; ties go by sort order,
+ * then id; five at most.
+ */
 function pickQuick(categories: DemoCategory[], used: Map<number, string>): number[] {
   return [...categories]
     .sort((left, right) => {
       const leftUsed = used.get(left.categoryId);
       const rightUsed = used.get(right.categoryId);
-      if (leftUsed && rightUsed) return rightUsed.localeCompare(leftUsed);
+      const inLedgerOrder = left.sortOrder - right.sortOrder || left.categoryId - right.categoryId;
+      if (leftUsed && rightUsed) return rightUsed.localeCompare(leftUsed) || inLedgerOrder;
       if (leftUsed) return -1;
       if (rightUsed) return 1;
-      return left.sortOrder - right.sortOrder;
+      return inLedgerOrder;
     })
     .slice(0, QUICK_CATEGORY_COUNT)
     .map((category) => category.categoryId);

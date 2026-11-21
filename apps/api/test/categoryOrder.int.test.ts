@@ -95,6 +95,23 @@ describe.skipIf(!(await testDbReachable()))('categories in my own order (MySQL)'
     expect(untouched.quick).toEqual(mine.quick);
   });
 
+  it('breaks quick-row ties by the ledger order, never a member’s own', async () => {
+    // One import stamps many categories with the same created_at (notion/historyImport.ts).
+    for (const techName of ['gym', 'car', 'gift', 'sviat', 'home_needs', 'utilities']) {
+      await db.query(
+        `INSERT INTO expenses (category_id, expense_date, amount_eur, created_by, created_at)
+         VALUES (?, '2026-10-01', 10, ?, ?)`,
+        [await idOf(techName), owner.userId, clock],
+      );
+    }
+    await placeFor(owner, ['gym', 'sviat']);
+    await placeFor(member, ['gift', 'car']);
+
+    const ledgerOrder = await Promise.all(['utilities', 'home_needs', 'car', 'gift', 'sviat'].map(idOf));
+    expect((await listFor(auth)).quick).toEqual(ledgerOrder);
+    expect((await listFor(memberAuth)).quick).toEqual(ledgerOrder);
+  });
+
   it('uses the same order in every month', async () => {
     await placeFor(owner, ['gym', 'rent']);
 

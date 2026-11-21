@@ -359,6 +359,9 @@ would ship the by-category and by-month cards on their own.
 
 ## Follow-ups
 
+- A generic focus-reloading loader hook for `useSummary`, `useIncome`, `useMonth`, `useMembers` and
+  `useMonthBalance` (a `/kopiyka-hos-refactoring` brief).
+
 - `MonthSwitcher`'s arrows move with the month name's width ("October" vs "December"), so tapping an arrow fast in
   Custom can miss after a few taps. A fixed label width in `MonthSwitcher` would fix it here and on Budget/Income.
 
@@ -385,3 +388,14 @@ PR A (`origin/main...HEAD`, kopiyka-refactoring §8): reused 0 · extracted 0 ·
 - `addRows` and `compareCents`: LEAVE. The cents sums elsewhere are inline `reduce`s over other shapes;
   `notion/totals.ts:99` compares strings, not bigints.
 - `PeriodQuery` month fields ↔ the month `MonthParams` copies: LEAVE (existing Follow-up from 090: a shared Month schema).
+
+PR B (`origin/main...HEAD`): reused 1 · extracted 0 · left 4.
+
+- `planGap` ↔ `budgetProgress` (Budget's bar): REUSE. "Over" now comes from `budgetProgress`'s `state` and
+  `overCents`, so both screens call the same spending over; `planGap`'s tests are unchanged.
+- `useSummary` ↔ `useIncome`, `useMonth`, `useMembers`, `useMonthBalance`: LEAVE. Same tagged-state focus-reload
+  shape, now in five hooks; a generic loader hook is a `/kopiyka-hos-refactoring` candidate (Follow-ups).
+- The chip styles ↔ `DateChips`: LEAVE. `DateChips` doesn't export its styles, and these chips wrap and use
+  `minHeight` 44 instead of a fixed 48.
+- `span` (period.ts) ↔ `shiftMonth`'s month index: LEAVE. `format.ts` has no month-difference helper; one caller.
+- The card and row styles ↔ Income's: LEAVE. Each tab keeps its own `makeStyles`, as the other tabs do.

@@ -4,6 +4,7 @@ import type { PoolConnection, ResultSetHeader, RowDataPacket } from 'mysql2/prom
 import { nextMonthStart, previousMonthStart } from '../dates.js';
 import { type Db, withTransaction } from '../db.js';
 import { checkIncome, type OverIncome } from '../income/limit.js';
+import { lockLedger } from '../ledgers/lock.js';
 import { toCents } from '../money.js';
 
 /**
@@ -58,14 +59,6 @@ async function nameTaken(
  */
 export function techNameBase(name: string): string {
   return [...name.toLowerCase().replace(/\s+/g, '_')].slice(0, 40).join('');
-}
-
-/**
- * One list or income change per ledger at a time: a check and the write after it see the same list. It must be the
- * transaction's first statement, so the transaction's snapshot starts after the lock (brief 058).
- */
-export async function lockLedger(conn: PoolConnection, ledgerId: number): Promise<void> {
-  await conn.query('SELECT ledger_id FROM ledgers WHERE ledger_id = ? FOR UPDATE', [ledgerId]);
 }
 
 /**

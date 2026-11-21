@@ -2,9 +2,9 @@ import type { FastifyInstance, FastifyReply } from 'fastify';
 import type { PoolConnection, ResultSetHeader, RowDataPacket } from 'mysql2/promise';
 import { z } from 'zod';
 import type { AppDeps } from '../app.js';
-import { lockLedger } from '../categories/monthLists.js';
 import { MONTH_RE, monthEnded, previousMonthStart } from '../dates.js';
 import { withTransaction } from '../db.js';
+import { lockLedger } from '../ledgers/lock.js';
 import { AMOUNT_RE, centsToString, toCents } from '../money.js';
 import { checkIncome, overIncomeError, type OverIncome } from './limit.js';
 

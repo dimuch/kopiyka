@@ -73,7 +73,7 @@ request with 404 `not_found`, which the hook treats as an error and leaves the l
 
 ## Slices
 
-- [ ] 0. Bump version to 1.9.0
+- [x] 0. Bump version to 1.9.0
   - Files: package.json, apps/mobile/app.json
   - Change: set both to 1.9.0
 - [ ] 1. Add a read-only route for a month's opening and closing balance

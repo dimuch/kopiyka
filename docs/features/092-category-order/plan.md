@@ -412,3 +412,11 @@ PR 1, against origin/main 5f148bc: reused 0 · extracted 0 · left 5.
 - LEAVE `OrderBody`: no sibling body takes a list of ids.
 - LEAVE the test's `idOf` (same query in `categories.int.test.ts` and `income.int.test.ts`): tests are outside the
   pass, and each suite keeps its own local helpers.
+
+PR 2, against origin/main 7f68ee3: reused 0 · extracted 0 · left 2.
+
+- LEAVE the "Couldn’t save the order" `LoadError` and the `useCategoryOrder` + `dragging` + `scrollRef` wiring in both
+  `budget.tsx` and `expenses.tsx`: two copies of screen wiring, not pure logic, and screens keep their own messages by
+  convention (`errorText`). A shared wrapper would need each screen's own row markup passed in anyway.
+- LEAVE `moveItem`: no array-move helper exists in `apps/mobile/src` (`splice` appears only in the demo's
+  `mergeOrder`, which is a different rule).

@@ -369,4 +369,15 @@ would ship the by-category and by-month cards on their own.
 
 ## Consolidate
 
+PR A (`origin/main...HEAD`, kopiyka-refactoring §8): reused 0 · extracted 0 · left 5.
+
+- The summary SQL ↔ `GET /categories`, `GET /expenses`, `GET /months/:month/income`: LEAVE. Same filters, but grouped
+  over a range; the month routes read one month's rows with other columns. `NAME_IN_MONTH` and `nextMonthStart` are
+  reused.
+- `monthSpan` (summary/routes.ts): LEAVE. No month-difference helper exists in `dates.ts`; one caller.
+- `periodMonths`: LEAVE. `historyMonths` is fixed to 2026-01…10; this steps any range with `nextMonthStart`.
+- `addRows` and `compareCents`: LEAVE. The cents sums elsewhere are inline `reduce`s over other shapes;
+  `notion/totals.ts:99` compares strings, not bigints.
+- `PeriodQuery` month fields ↔ the month `MonthParams` copies: LEAVE (existing Follow-up from 090: a shared Month schema).
+
 <filled in /kopiyka-hos Phase 3a>

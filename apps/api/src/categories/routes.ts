@@ -14,6 +14,7 @@ import {
   removeFromMonth,
   restoreToMonth,
 } from './monthLists.js';
+import { IN_MY_ORDER, MY_ORDER_JOIN } from './order.js';
 
 export const QUICK_CATEGORY_COUNT = 5;
 
@@ -22,6 +23,7 @@ export interface CategoryDto {
   techName: string;
   /** The month's name (brief 037). */
   displayName: string;
+  /** The ledger's order. A list comes in the caller's own order instead (brief 092). */
   sortOrder: number;
   /** The month's planned EUR (brief 036): a decimal string ≥ 0, '0.00' when none is set. */
   plannedEur: string;
@@ -94,6 +96,7 @@ export async function categoryRoutes(app: FastifyInstance, { db, now }: AppDeps)
               u.last_used_at
            FROM categories c
            LEFT JOIN category_budgets b ON b.category_id = c.category_id AND b.budget_month = ?
+           ${MY_ORDER_JOIN}
            LEFT JOIN (
              SELECT category_id, MAX(created_at) AS last_used_at
                FROM expenses
@@ -101,8 +104,8 @@ export async function categoryRoutes(app: FastifyInstance, { db, now }: AppDeps)
               GROUP BY category_id
            ) u ON u.category_id = c.category_id
           WHERE c.ledger_id = ? AND c.deleted_at IS NULL AND ${inMonthList('?')}
-          ORDER BY c.sort_order, c.category_id`,
-      [first /* name */, first /* b */, req.ledger!.ledgerId, first /* inMonthList */],
+          ORDER BY ${IN_MY_ORDER}`,
+      [first /* name */, first /* b */, req.auth!.userId /* o */, req.ledger!.ledgerId, first /* inMonthList */],
     );
 
     const categories = rows.map(toDto);

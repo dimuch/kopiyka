@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { readTabs, tabTitle, useTabItems } from '@/demo/tabItems';
+import { tabTitle as realTabTitle } from '@/tabs';
 
 describe('the demo’s tabs', () => {
   it('lists four tabs with no Statistics or Settings, and no badge', () => {
@@ -37,5 +38,10 @@ describe('the demo’s tabs', () => {
   it('names its own tabs for the month switcher, and has no Statistics to name', () => {
     expect([tabTitle('budget'), tabTitle('income'), tabTitle('expenses')]).toEqual(['Budget', 'Income', 'Expenses']);
     expect(() => tabTitle('statistics')).toThrow('No tab named statistics');
+  });
+
+  it('titles its tabs as the real app does, so a rename in src/tabs.ts can’t leave the demo behind', () => {
+    const names = ['budget', 'income', 'expenses'] as const;
+    expect(names.map((name) => tabTitle(name))).toEqual(names.map((name) => realTabTitle(name)));
   });
 });

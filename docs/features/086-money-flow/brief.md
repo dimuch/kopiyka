@@ -2,7 +2,7 @@
 
 Type: feature
 
-Status: future — not planned yet. Depends on brief 085 (each month's opening and closing balance).
+Status: future — not planned yet. Depends on brief 085 (each month's opening and closing balance) and can build on brief 089's period summary endpoint.
 
 ## Why
 

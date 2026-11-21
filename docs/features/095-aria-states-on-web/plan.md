@@ -106,7 +106,7 @@ reach them. No API, schema, connector or iOS behaviour changes.
   - Change: each row as in the table. Each `accessibilityState` line becomes one `aria-*` line or is deleted.
   - Verify: `rg -c accessibilityState apps/mobile/src` gives 1 (`login.tsx`), before slice 2. Then run the web check below for
     AC1–AC3, plus `aria-busy="false"` on the idle Add button of the expense form.
-- [ ] 2. Report the sign-in button as disabled on web (~3 lines)
+- [x] 2. Report the sign-in button as disabled on web (~3 lines)
   - Files: `apps/mobile/src/app/login.tsx`.
   - Change: `accessibilityState={{ disabled: !ready }}` → `disabled={!ready}`, with a why-comment above it:
     `// disabled, not aria-disabled: react-native-web's Pressable sets aria-disabled from disabled only.`

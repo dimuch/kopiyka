@@ -48,7 +48,7 @@ describe.skipIf(!(await testDbReachable()))('categories in my own order (MySQL)'
     return rows[0]!.category_id as number;
   };
 
-  /** Writes a member's order rows directly: `techNames[i]` gets position i. */
+  /** Writes a member's order rows directly, top first. */
   const placeFor = async (user: TestUser, techNames: string[]) => {
     for (const [position, techName] of techNames.entries()) {
       await db.query(

@@ -98,7 +98,7 @@ reach them. No API, schema, connector or iOS behaviour changes.
 
 ## Slices
 
-- [ ] 0. Bump version to 1.15.1
+- [x] 0. Bump version to 1.15.1
   - Files: package.json, apps/mobile/app.json
   - Change: set both to 1.15.1
 - [ ] 1. Tell screen readers on web which option is selected, open or busy (~40 lines)

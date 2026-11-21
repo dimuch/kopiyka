@@ -18,14 +18,24 @@ export function addDays(date: string, days: number): string {
   return d.toISOString().slice(0, 10);
 }
 
+/** The 'YYYY-MM' month of a 'YYYY-MM-DD' date. */
+export function monthOf(date: string): string {
+  return date.slice(0, 7);
+}
+
+/** The first day ('YYYY-MM-01') of a 'YYYY-MM' month. */
+export function monthStart(month: string): string {
+  return `${month}-01`;
+}
+
 /** First day of the month after a 'YYYY-MM' month: day 28 + 4 always lands in the next month. */
 export function nextMonthStart(month: string): string {
-  return addDays(`${month}-28`, 4).slice(0, 7) + '-01';
+  return monthStart(monthOf(addDays(`${month}-28`, 4)));
 }
 
 /** First day of the month before a 'YYYY-MM' month. */
 export function previousMonthStart(month: string): string {
-  return addDays(`${month}-01`, -1).slice(0, 7) + '-01';
+  return monthStart(monthOf(addDays(monthStart(month), -1)));
 }
 
 /** Today's date in Kyiv, where the NBU sets its rates. */
@@ -35,5 +45,5 @@ export function kyivToday(now: Date): string {
 
 /** True once a 'YYYY-MM' month has ended in Kyiv: from the 1st of the next month, 00:00 Kyiv time. */
 export function monthEnded(month: string, now: Date): boolean {
-  return month < kyivToday(now).slice(0, 7);
+  return month < monthOf(kyivToday(now));
 }

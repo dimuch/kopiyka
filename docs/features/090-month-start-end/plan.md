@@ -184,7 +184,16 @@ Total ≈ 240 changed lines, not counting slice 0.
 
 ## Consolidate
 
-<filled in /kopiyka-hos Phase 3a: CONSOLIDATE line, each reuse/extract, each LEAVE + reason>
+CONSOLIDATE: reused 4 · extracted 0 · left 2.
+
+- REUSE: `MONTH_RE`, `requireAuth`/`requireLedger` (API); `eur`/`toCents` (app); the demo `Route` type and
+  `fixtureStore`.
+- LEAVE: the route's `MonthParams` is the fourth copy of the same one-line Zod schema (categories, expenses, income,
+  balances). Sharing it touches three other domains, which this brief doesn't need; it's in Follow-ups as a
+  `/kopiyka-hos-refactoring` candidate.
+- LEAVE: `useMonthBalance` follows `useIncome`'s shape (key-tagged state, `useFocusEffect`, `live` guard) but returns
+  a value, drops errors and has no reload; a shared "focus fetch" hook for two callers with different contracts
+  would be a new abstraction this brief doesn't need.
 
 ## Revision 1
 

@@ -365,8 +365,6 @@ would ship the by-category and by-month cards on their own.
 
 - A1: the 086 brief's Status line went in with the plan commit (0fd1354), not with A1 — same file and text.
 
-<filled by the developer during build>
-
 ## Consolidate
 
 PR A (`origin/main...HEAD`, kopiyka-refactoring §8): reused 0 · extracted 0 · left 5.
@@ -379,5 +377,3 @@ PR A (`origin/main...HEAD`, kopiyka-refactoring §8): reused 0 · extracted 0 ·
 - `addRows` and `compareCents`: LEAVE. The cents sums elsewhere are inline `reduce`s over other shapes;
   `notion/totals.ts:99` compares strings, not bigints.
 - `PeriodQuery` month fields ↔ the month `MonthParams` copies: LEAVE (existing Follow-up from 090: a shared Month schema).
-
-<filled in /kopiyka-hos Phase 3a>

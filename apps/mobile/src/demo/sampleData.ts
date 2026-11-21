@@ -41,7 +41,15 @@ export function sampleData(now: Date): StoreData {
   const today = kyivToday(now);
   const thisMonth = kyivMonth(now);
   const months = [shiftMonth(thisMonth, -1), thisMonth];
-  const data: StoreData = { categories: [], monthRows: [], planned: new Map(), expenses: [], income: [], nextId: 1 };
+  const data: StoreData = {
+    categories: [],
+    monthRows: [],
+    planned: new Map(),
+    expenses: [],
+    income: [],
+    order: [],
+    nextId: 1,
+  };
 
   for (const [index, category] of CATEGORIES.entries()) {
     const categoryId = data.nextId++;

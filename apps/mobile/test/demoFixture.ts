@@ -50,6 +50,7 @@ export function fixtureData(): StoreData {
       expense({ expenseId: 12, categoryId: 1, expenseDate: '2026-10-03', name: 'Rent' }),
     ],
     income: [{ incomeId: 20, month: '2026-11', title: 'Salary', amountEur: '200.00', addedBy: 'you' }],
+    order: [],
     nextId: 100,
   };
 }

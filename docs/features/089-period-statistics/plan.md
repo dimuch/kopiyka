@@ -286,7 +286,7 @@ onRetry={reload}`;
     note whether the two switchers' identical "Previous month"/"Next month" labels read confusingly to a screen
     reader. If they do, record it under Deviations; no new prop is planned.
   - ~45 lines
-- [ ] B5. Show a period by category and by month
+- [x] B5. Show a period by category and by month
   - Files: apps/mobile/src/app/(tabs)/statistics.tsx
   - Change:
     - a "By category" card: one row per category with its planned, spent and `planGap` text, one screen-reader stop

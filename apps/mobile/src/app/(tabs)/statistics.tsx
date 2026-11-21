@@ -9,9 +9,9 @@ import { LoadError } from '@/components/LoadError';
 import { MonthSwitcher } from '@/components/MonthSwitcher';
 import { Pressable } from '@/components/Pressable';
 import { moveCustom, type Period, PERIOD_CHOICES, type PeriodChoice, periodLabel, presetPeriod } from '@/data/period';
-import { isEmptySummary } from '@/data/periodSummary';
+import { isEmptySummary, planGap } from '@/data/periodSummary';
 import { useSummary } from '@/data/useSummary';
-import { eur, toCents } from '@/format';
+import { eur, shortMonthLabel, toCents } from '@/format';
 import { fonts, type Palette } from '@/theme';
 
 /**
@@ -87,31 +87,92 @@ export default function Statistics() {
             {isEmptySummary(summary) ? (
               <EmptyMonth text="Nothing planned, spent or earned in this period." />
             ) : (
-              <View style={styles.card}>
-                {(
-                  [
-                    ['Income', summary.totals.incomeEur],
-                    ['Planned', summary.totals.plannedEur],
-                    ['Spent', summary.totals.spentEur],
-                    ['Left', summary.totals.leftEur],
-                  ] as const
-                ).map(([name, amount], index, rows) => {
-                  const cents = toCents(amount);
-                  return (
-                    // One screen-reader stop per figure.
-                    <View
-                      key={name}
-                      accessible
-                      accessibilityLabel={`${name}, ${eur(cents)}`}
-                      style={[styles.row, index < rows.length - 1 && styles.divider]}
-                    >
-                      <Text style={styles.rowName}>{name}</Text>
-                      {/* Only Left can be negative: more spent than came in. */}
-                      <Text style={[styles.rowAmount, cents < 0 && styles.negative]}>{eur(cents)}</Text>
+              <>
+                <View style={styles.card}>
+                  {(
+                    [
+                      ['Income', summary.totals.incomeEur],
+                      ['Planned', summary.totals.plannedEur],
+                      ['Spent', summary.totals.spentEur],
+                      ['Left', summary.totals.leftEur],
+                    ] as const
+                  ).map(([name, amount], index, rows) => {
+                    const cents = toCents(amount);
+                    return (
+                      // One screen-reader stop per figure.
+                      <View
+                        key={name}
+                        accessible
+                        accessibilityLabel={`${name}, ${eur(cents)}`}
+                        style={[styles.row, index < rows.length - 1 && styles.divider]}
+                      >
+                        <Text style={[styles.rowName, styles.grow]}>{name}</Text>
+                        {/* Only Left can be negative: more spent than came in. */}
+                        <Text style={[styles.rowAmount, cents < 0 && styles.negative]}>{eur(cents)}</Text>
+                      </View>
+                    );
+                  })}
+                </View>
+                {summary.categories.length > 0 && (
+                  <>
+                    <Text style={styles.sectionTitle}>By category</Text>
+                    <View style={styles.card}>
+                      {summary.categories.map((category, index) => {
+                        const planned = eur(toCents(category.plannedEur));
+                        const spent = eur(toCents(category.spentEur));
+                        const gap = planGap(category);
+                        return (
+                          // One screen-reader stop per category: 'rent, spent €700 of €650 planned, €50 over'.
+                          <View
+                            key={category.categoryId}
+                            accessible
+                            accessibilityLabel={`${category.name}, spent ${spent} of ${planned} planned, ${gap.text}`}
+                            style={[styles.row, index < summary.categories.length - 1 && styles.divider]}
+                          >
+                            <View style={styles.rowText}>
+                              <Text style={styles.rowName}>{category.name}</Text>
+                              <Text style={[styles.small, gap.over && styles.over]}>{gap.text}</Text>
+                            </View>
+                            <View style={styles.amounts}>
+                              <Text style={styles.rowAmount}>{spent}</Text>
+                              <Text style={styles.small}>of {planned}</Text>
+                            </View>
+                          </View>
+                        );
+                      })}
                     </View>
-                  );
-                })}
-              </View>
+                  </>
+                )}
+                {summary.months.length > 1 && (
+                  <>
+                    <Text style={styles.sectionTitle}>By month</Text>
+                    <View style={styles.card}>
+                      {summary.months.map((month, index) => {
+                        const income = eur(toCents(month.incomeEur));
+                        const spent = eur(toCents(month.spentEur));
+                        const leftCents = toCents(month.leftEur);
+                        const label = shortMonthLabel(month.month);
+                        return (
+                          <View
+                            key={month.month}
+                            accessible
+                            accessibilityLabel={`${label}, income ${income}, spent ${spent}, left ${eur(leftCents)}`}
+                            style={[styles.row, index < summary.months.length - 1 && styles.divider]}
+                          >
+                            <View style={styles.rowText}>
+                              <Text style={styles.rowName}>{label}</Text>
+                              <Text style={styles.small}>
+                                Income {income} · Spent {spent}
+                              </Text>
+                            </View>
+                            <Text style={[styles.rowAmount, leftCents < 0 && styles.negative]}>{eur(leftCents)}</Text>
+                          </View>
+                        );
+                      })}
+                    </View>
+                  </>
+                )}
+              </>
             )}
           </>
         )}
@@ -152,7 +213,13 @@ const makeStyles = (colors: Palette) =>
     },
     row: { flexDirection: 'row', alignItems: 'center', gap: 12, paddingVertical: 12, paddingHorizontal: 16 },
     divider: { borderBottomWidth: 1, borderBottomColor: colors.border },
-    rowName: { flex: 1, fontFamily: fonts.bodyMedium, fontSize: 15, color: colors.text },
+    rowName: { fontFamily: fonts.bodyMedium, fontSize: 15, color: colors.text },
     rowAmount: { fontFamily: fonts.bodySemi, fontSize: 15, color: colors.text, fontVariant: ['tabular-nums'] },
     negative: { color: colors.danger },
+    over: { color: colors.over },
+    sectionTitle: { fontFamily: fonts.display, fontSize: 17, color: colors.text, paddingHorizontal: 4 },
+    small: { fontFamily: fonts.body, fontSize: 12, color: colors.muted },
+    rowText: { flex: 1, gap: 2 },
+    grow: { flex: 1 },
+    amounts: { alignItems: 'flex-end', gap: 2 },
   });

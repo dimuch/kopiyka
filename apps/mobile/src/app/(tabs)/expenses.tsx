@@ -126,7 +126,7 @@ export default function Expenses() {
                     style={[
                       styles.row,
                       i < rows.length - 1 && styles.divider,
-                      r.progress.warning && { backgroundColor: colors.warnBg },
+                      r.progress.state !== 'under' && { backgroundColor: colors.warnBg },
                     ]}
                   >
                     <CategoryTile techName={r.techName} label={r.displayName} />

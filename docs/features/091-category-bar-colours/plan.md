@@ -59,7 +59,7 @@ DTO or connector change.
 - [x] 0. Bump version to 1.10.1
   - Files: package.json, apps/mobile/app.json
   - Change: set both to 1.10.1
-- [ ] 1. Tell under, near and over plan apart in a category's progress
+- [x] 1. Tell under, near and over plan apart in a category's progress
   - Files: apps/mobile/src/data/budgetProgress.ts, apps/mobile/test/budgetProgress.test.ts,
     apps/mobile/src/app/(tabs)/expenses.tsx
   - Change: replace `warning` with `state` as in Contracts, with a why-comment on the integer 90% test. Update the `BudgetProgress` JSDoc for `state`: `over` is checked before

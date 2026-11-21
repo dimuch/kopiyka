@@ -388,4 +388,13 @@ Why: §8b `minor` covers a new user action (drag to reorder on Budget and Expens
 
 ## Consolidate
 
-<filled in /kopiyka-hos Phase 3a>
+PR 1, against origin/main 5f148bc: reused 0 · extracted 0 · left 5.
+
+- LEAVE `mergeOrder`/`longestRising` in `demo/categoryRoutes.ts` (twins of `categories/order.ts`): across the API/app
+  boundary. The demo mirrors the API's rules in its own runtime, as `pickQuick` already does.
+- LEAVE `inMyOrder` (demo) against `IN_MY_ORDER` (SQL): same boundary.
+- LEAVE the member-row lock in `saveOrder`: `lockLedger` locks the `ledgers` row, which would also serialise other
+  members' saves; there is no member-row lock to reuse, and this is its only copy.
+- LEAVE `OrderBody`: no sibling body takes a list of ids.
+- LEAVE the test's `idOf` (same query in `categories.int.test.ts` and `income.int.test.ts`): tests are outside the
+  pass, and each suite keeps its own local helpers.

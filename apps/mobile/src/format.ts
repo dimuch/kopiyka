@@ -84,6 +84,11 @@ export function monthName(month: string): string {
   return new Date(y, m - 1, 1).toLocaleString('en-US', { month: 'long' });
 }
 
+/** The month switcher's caption: the tab's title and the month's two-digit year ('Income', '2026-11' → 'INCOME ’26'). */
+export function monthCaption(title: string, month: string): string {
+  return `${title.toUpperCase()} ’${month.slice(2, 4)}`;
+}
+
 export function monthLabel(month: string): string {
   return `${monthName(month)} ${month.slice(0, 4)}`;
 }

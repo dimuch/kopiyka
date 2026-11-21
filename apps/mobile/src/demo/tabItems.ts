@@ -1,4 +1,10 @@
-import type { readTabs as realReadTabs, TabItem, TabName, useTabItems as realUseTabItems } from '@/data/tabItems';
+import type {
+  readTabs as realReadTabs,
+  TabItem,
+  TabName,
+  tabTitle as realTabTitle,
+  useTabItems as realUseTabItems,
+} from '@/data/tabItems';
 import { readTabRoutes } from '@/tabRoutes';
 
 export type { TabItem, TabName };
@@ -18,3 +24,10 @@ const ITEMS = { tabs: TABS, onTabFocus: () => {} };
 export const useTabItems: typeof realUseTabItems = () => ITEMS;
 
 export const readTabs: typeof realReadTabs = (routes, fallback) => readTabRoutes(routes, fallback, TAB_NAMES);
+
+/** Reads the demo's own copy of the titles above, as its tab bar does: a rename in `src/tabs.ts` needs one here too. */
+export const tabTitle: typeof realTabTitle = (name) => {
+  const tab = TABS.find((candidate) => candidate.name === name);
+  if (!tab) throw new Error(`No tab named ${name}`);
+  return tab.title;
+};

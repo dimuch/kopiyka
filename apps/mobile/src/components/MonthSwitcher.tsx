@@ -2,11 +2,22 @@ import { StyleSheet, Text, View } from 'react-native';
 import { useColors, useThemedStyles } from '@/appearance/AppearanceContext';
 import { Icon } from '@/components/Icon';
 import { Pressable } from '@/components/Pressable';
-import { monthName, shiftMonth } from '@/format';
+import { monthCaption, monthName, shiftMonth } from '@/format';
 import { fonts, type Palette } from '@/theme';
 
-/** Previous / "BUDGET ’26 · October" / Next, for a screen that shows one 'YYYY-MM' month at a time. */
-export function MonthSwitcher({ month, onChange }: { month: string; onChange: (month: string) => void }) {
+/**
+ * Previous / "INCOME ’26 · October" / Next, for a screen that shows one 'YYYY-MM' month at a time. `title` is the
+ * screen's tab title, so the caption says which tab this is.
+ */
+export function MonthSwitcher({
+  title,
+  month,
+  onChange,
+}: {
+  title: string;
+  month: string;
+  onChange: (month: string) => void;
+}) {
   const colors = useColors();
   const styles = useThemedStyles(makeStyles);
   return (
@@ -20,7 +31,7 @@ export function MonthSwitcher({ month, onChange }: { month: string; onChange: (m
         <Icon name="back" color={colors.muted} />
       </Pressable>
       <View style={styles.monthLabel}>
-        <Text style={styles.eyebrow}>BUDGET ’{month.slice(2, 4)}</Text>
+        <Text style={styles.eyebrow}>{monthCaption(title, month)}</Text>
         <Text style={styles.month}>{monthName(month)}</Text>
       </View>
       <Pressable

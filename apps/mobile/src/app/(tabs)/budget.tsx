@@ -17,6 +17,7 @@ import { copyPreviousMonth } from '@/data/categories';
 import { copyRefusedText } from '@/data/monthCopy';
 import { balanceLine } from '@/data/monthBalance';
 import { incomeCents, plannedCents } from '@/data/monthSummary';
+import { tabTitle } from '@/data/tabItems';
 import { useUndoOffer } from '@/data/undo';
 import { useIncome } from '@/data/useIncome';
 import { type MonthData, useMonth } from '@/data/useMonth';
@@ -100,7 +101,7 @@ export default function Budget() {
         <View style={styles.side}>
           <HomeButton />
         </View>
-        <MonthSwitcher month={month} onChange={(m) => router.setParams({ month: m })} />
+        <MonthSwitcher title={tabTitle('budget')} month={month} onChange={(m) => router.setParams({ month: m })} />
         <View style={[styles.side, styles.sideEnd]}>
           {/* Like the Expenses tab's "+"; an ended month can't change, and nothing shows before the month loads. */}
           {data && !ended ? (

@@ -76,7 +76,7 @@ request with 404 `not_found`, which the hook treats as an error and leaves the l
 - [x] 0. Bump version to 1.9.0
   - Files: package.json, apps/mobile/app.json
   - Change: set both to 1.9.0
-- [ ] 1. Add a read-only route for a month's opening and closing balance
+- [x] 1. Add a read-only route for a month's opening and closing balance
   - Files: apps/api/src/balances/routes.ts (new), apps/api/src/app.ts (import + `await balanceRoutes(app, deps)`),
     apps/api/test/balances.int.test.ts (new)
   - Change: the route and DTO from Contracts. Its local `MonthParams` Zod schema copies `income/routes.ts` line 20.

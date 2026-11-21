@@ -296,7 +296,7 @@ Why: §8b `minor` covers a new user action (drag to reorder on Budget and Expens
     - The loop stops on drop and on unmount.
   - Verify (web at phone width and iPhone): in a 15-category month, drag the top row to the bottom edge. The list
     scrolls and it drops last. Drag it back up past the top edge and it drops first.
-- [ ] 10. Drag categories on the Expenses tab too (~45)
+- [x] 10. Drag categories on the Expenses tab too (~45)
   - Files: `apps/mobile/src/app/(tabs)/expenses.tsx`
   - Change:
     - `rows` is built from `useCategoryOrder(...).categories`, and the list card becomes a `ReorderList`.

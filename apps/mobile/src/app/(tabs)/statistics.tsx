@@ -7,7 +7,16 @@ import { EmptyMonth } from '@/components/EmptyMonth';
 import { HomeButton } from '@/components/HomeButton';
 import { LoadError } from '@/components/LoadError';
 import { Pressable } from '@/components/Pressable';
-import { PERIOD_CHOICES, type PeriodChoice, periodLabel, presetPeriod } from '@/data/period';
+import { Icon } from '@/components/Icon';
+import {
+  canStepForward,
+  matchingChoice,
+  type Period,
+  PERIOD_CHOICES,
+  periodLabel,
+  presetPeriod,
+  stepPeriod,
+} from '@/data/period';
 import { isEmptySummary, planGap } from '@/data/periodSummary';
 import { useSummary } from '@/data/useSummary';
 import { eur, shortMonthLabel, toCents } from '@/format';
@@ -23,8 +32,8 @@ export default function Statistics() {
   const { ledger } = useSession();
   // Read once, like Income's thisMonth, so the period doesn't move while the screen is open.
   const [now] = useState(() => new Date());
-  const [preset, setPreset] = useState<Exclude<PeriodChoice, 'custom'>>('current');
-  const period = presetPeriod(preset, now);
+  const [period, setPeriod] = useState<Period>(() => presetPeriod('current', now));
+  const marked = matchingChoice(period, now);
   const { summary, error, reload } = useSummary(ledger.ledgerId, period);
 
   return (
@@ -35,6 +44,11 @@ export default function Statistics() {
           Statistics
         </Text>
       </View>
+      <PeriodSwitcher
+        period={period}
+        forwardEnabled={canStepForward(period, now)}
+        onStep={(by) => setPeriod(stepPeriod(period, by))}
+      />
 
       <ScrollView contentContainerStyle={styles.content}>
         <View style={styles.chips}>
@@ -42,15 +56,14 @@ export default function Statistics() {
             <Pressable
               key={option}
               accessibilityRole="button"
-              accessibilityState={{ selected: preset === option }}
-              onPress={() => setPreset(option)}
-              style={[styles.chip, preset === option && styles.chipOn]}
+              accessibilityState={{ selected: marked === option }}
+              onPress={() => setPeriod(presetPeriod(option, now))}
+              style={[styles.chip, marked === option && styles.chipOn]}
             >
               <Text style={styles.chipText}>{label}</Text>
             </Pressable>
           ))}
         </View>
-        <Text style={styles.period}>{periodLabel(period)}</Text>
 
         {!summary ? (
           error ? (
@@ -158,6 +171,45 @@ export default function Statistics() {
   );
 }
 
+/** ‹ period › like Budget's MonthSwitcher, but stepping a range to one month and never past the current month. */
+function PeriodSwitcher({
+  period,
+  forwardEnabled,
+  onStep,
+}: {
+  period: Period;
+  forwardEnabled: boolean;
+  onStep: (by: 1 | -1) => void;
+}) {
+  const colors = useColors();
+  const styles = useThemedStyles(makeStyles);
+  return (
+    <View style={styles.switcher}>
+      <Pressable
+        accessibilityRole="button"
+        accessibilityLabel="Previous month"
+        onPress={() => onStep(-1)}
+        style={styles.iconButton}
+      >
+        <Icon name="back" color={colors.muted} />
+      </Pressable>
+      <Text numberOfLines={1} style={styles.periodText}>
+        {periodLabel(period)}
+      </Text>
+      <Pressable
+        accessibilityRole="button"
+        accessibilityLabel="Next month"
+        accessibilityState={{ disabled: !forwardEnabled }}
+        disabled={!forwardEnabled}
+        onPress={() => onStep(1)}
+        style={styles.iconButton}
+      >
+        <Icon name="forward" color={forwardEnabled ? colors.muted : colors.fainter} />
+      </Pressable>
+    </View>
+  );
+}
+
 const makeStyles = (colors: Palette) =>
   StyleSheet.create({
     screen: { flex: 1, backgroundColor: colors.bg, paddingHorizontal: 20, paddingTop: 20 },
@@ -177,7 +229,9 @@ const makeStyles = (colors: Palette) =>
     },
     chipOn: { borderColor: colors.accent, backgroundColor: colors.accentTint },
     chipText: { fontFamily: fonts.bodyMedium, fontSize: 14, color: colors.text },
-    period: { fontFamily: fonts.bodyMedium, fontSize: 15, color: colors.muted, paddingHorizontal: 4 },
+    switcher: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 4, paddingBottom: 6 },
+    iconButton: { width: 44, height: 44, alignItems: 'center', justifyContent: 'center', borderRadius: 12 },
+    periodText: { fontFamily: fonts.display, fontSize: 20, color: colors.text, flexShrink: 1 },
     card: {
       backgroundColor: colors.surface,
       borderColor: colors.border,

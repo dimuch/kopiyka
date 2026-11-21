@@ -128,7 +128,7 @@ any range, and old builds keep working.
       - `2026-09` null; `2026-10…11` null.
       - `2025-12…2026-11` null: Last 12 months isn't offered.
       - On 15 Jan 2027, `2027-01` is current: This year is the same month, and the first in the list wins.
-- [ ] 3. Step the Statistics period a month at a time with arrows (~60 lines)
+- [x] 3. Step the Statistics period a month at a time with arrows (~60 lines)
   - Files: apps/mobile/src/app/(tabs)/statistics.tsx
   - Change:
     - `preset` becomes the `period` state (Contracts). The chips stay for now and are
@@ -230,6 +230,8 @@ None found.
 
 - slice 1: the web check didn't run. The real web app needs a sign-in with an authenticator code, and the demo has no
   Statistics tab. Evidence is the five-label test and the gates; the screen check is left for the user.
+- slice 3: the web check didn't run, for the same reason (the user chose to keep building). The stepping rules are
+  covered by the slice 2 tests; the switcher's look and the long-range fit at 375 wide are left for the user.
 
 ## Consolidate
 

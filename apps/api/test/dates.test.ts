@@ -1,5 +1,14 @@
 import { describe, expect, it } from 'vitest';
-import { addDays, isCalendarDate, kyivToday, monthEnded, nextMonthStart, previousMonthStart } from '../src/dates.js';
+import {
+  addDays,
+  isCalendarDate,
+  kyivToday,
+  monthEnded,
+  monthOf,
+  monthStart,
+  nextMonthStart,
+  previousMonthStart,
+} from '../src/dates.js';
 
 describe('dates', () => {
   it('accepts only real calendar dates', () => {
@@ -13,6 +22,16 @@ describe('dates', () => {
   it('adds days across month and year ends', () => {
     expect(addDays('2026-10-01', -1)).toBe('2026-09-30');
     expect(addDays('2026-12-31', 1)).toBe('2027-01-01');
+  });
+
+  it('cuts the month out of a date', () => {
+    expect(monthOf('2026-10-06')).toBe('2026-10');
+    expect(monthOf('2026-12-31')).toBe('2026-12');
+  });
+
+  it("finds a month's first day", () => {
+    expect(monthStart('2026-10')).toBe('2026-10-01');
+    expect(monthStart('2027-01')).toBe('2027-01-01');
   });
 
   it('finds the first day of the next month, across a year end', () => {

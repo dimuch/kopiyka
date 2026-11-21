@@ -129,7 +129,7 @@ Existing test cases stay unmodified.
     an invite), so a check and the write after it see the same rows. Its why stays.
   - Tests: `invites.int` "two invites sent at once make one", "an expired invite doesn't block a new one", and the rest
     of the file.
-- [ ] 5. Add monthOf and monthStart to dates (37 lines, extract)
+- [x] 5. Add monthOf and monthStart to dates (37 lines, extract)
   - Files: `apps/api/src/dates.ts`, `apps/api/test/dates.test.ts`
   - Change: add both helpers with one-line JSDoc, above `nextMonthStart`. Then:
     - `nextMonthStart` returns ``monthStart(monthOf(addDays(`${month}-28`, 4)))``.

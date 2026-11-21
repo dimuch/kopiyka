@@ -14,7 +14,7 @@ import {
   removeFromMonth,
   restoreToMonth,
 } from './monthLists.js';
-import { IN_MY_ORDER, MY_ORDER_JOIN } from './order.js';
+import { IN_MY_ORDER, MY_ORDER_JOIN, saveOrder } from './order.js';
 
 export const QUICK_CATEGORY_COUNT = 5;
 
@@ -57,6 +57,14 @@ const AddBody = NameBody.extend({ amount: Amount.default('0') });
 const EditBody = z
   .object({ name: NameBody.shape.name.optional(), amount: Amount.optional() })
   .refine(({ name, amount }) => name !== undefined || amount !== undefined, 'expected a name or an amount');
+// Brief 092: one month's list in its new order, top first. The cap is far above any ledger's list.
+const OrderBody = z.object({
+  categoryIds: z
+    .array(z.number().int().positive())
+    .min(1)
+    .max(500)
+    .refine((ids) => new Set(ids).size === ids.length, 'expected each id once'),
+});
 
 function toDto(r: RowDataPacket): CategoryDto {
   return {
@@ -151,6 +159,14 @@ export async function categoryRoutes(app: FastifyInstance, { db, now }: AppDeps)
       inMonth: Boolean(r.in_month),
     };
     return dto;
+  });
+
+  // Brief 092. The order isn't month data, so there's no month_ended check.
+  app.put('/api/ledgers/:id/categories/order', guards, async (req, reply) => {
+    const { categoryIds } = OrderBody.parse(req.body);
+    const result = await saveOrder(db, req.ledger!.ledgerId, req.auth!.userId, categoryIds);
+    if (result === 'unknown_category') return reply.code(400).send({ error: 'unknown_category' });
+    return reply.code(204).send();
   });
 
   // Brief 029. An ended month is read-only (brief 028's decisions), so it's refused before anything is read.

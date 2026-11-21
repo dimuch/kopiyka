@@ -1,3 +1,6 @@
+import type { RowDataPacket } from 'mysql2/promise';
+import { type Db, withTransaction } from '../db.js';
+
 /**
  * A member's own order of a ledger's categories (brief 092). The app saves one month's list in its new order; this
  * merges it into the member's order for the whole ledger, where other months can show categories this one lacks.
@@ -51,4 +54,39 @@ export function mergeOrder(current: readonly number[], shown: readonly number[])
     merged.splice(index === 0 ? 0 : merged.indexOf(shown[index - 1]!) + 1, 0, id);
   });
   return merged;
+}
+
+/**
+ * Saves the member's order from `categoryIds` (one month's list, top first; distinct): merged into their whole order
+ * and written as positions 0…n−1 for every live category of the ledger. Refuses, writing nothing, when an id isn't a
+ * live category of the ledger. One removed from a month (or every month) is still live, and is placed.
+ */
+export async function saveOrder(
+  db: Db,
+  ledgerId: number,
+  userId: number,
+  categoryIds: readonly number[],
+): Promise<'saved' | 'unknown_category'> {
+  return withTransaction(db, async (conn) => {
+    // First, so two saves by one member run one after the other.
+    await conn.query('SELECT user_id FROM ledger_members WHERE ledger_id = ? AND user_id = ? FOR UPDATE', [
+      ledgerId,
+      userId,
+    ]);
+    const [rows] = await conn.query<RowDataPacket[]>(
+      `SELECT c.category_id FROM categories c ${MY_ORDER_JOIN}
+        WHERE c.ledger_id = ? AND c.deleted_at IS NULL
+        ORDER BY ${IN_MY_ORDER}`,
+      [userId, ledgerId],
+    );
+    const current = rows.map((row) => row.category_id as number);
+    if (categoryIds.some((id) => !current.includes(id))) return 'unknown_category';
+
+    await conn.query('DELETE FROM category_orders WHERE ledger_id = ? AND user_id = ?', [ledgerId, userId]);
+    const merged = mergeOrder(current, categoryIds);
+    await conn.query('INSERT INTO category_orders (ledger_id, user_id, category_id, list_position) VALUES ?', [
+      merged.map((categoryId, position) => [ledgerId, userId, categoryId, position]),
+    ]);
+    return 'saved';
+  });
 }

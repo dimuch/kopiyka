@@ -11,6 +11,7 @@ import {
   makeUser,
   offlineRates,
   resetSchema,
+  storeMonthList,
   TEST_DB_URL,
   testConfig,
   testDbReachable,
@@ -98,5 +99,90 @@ describe.skipIf(!(await testDbReachable()))('categories in my own order (MySQL)'
     await placeFor(owner, ['gym', 'rent']);
 
     expect((await listFor(auth, '2026-09')).names.slice(0, 3)).toEqual(['gym', 'rent', 'groceries']);
+  });
+
+  describe('PUT …/categories/order', () => {
+    const save = (
+      payload: Record<string, unknown> | undefined,
+      headers: Record<string, string> = auth,
+      ledgerId = owner.ledgerId,
+    ) => app.inject({ method: 'PUT', url: `/api/ledgers/${ledgerId}/categories/order`, payload, headers });
+
+    const idsOf = (techNames: string[]) => Promise.all(techNames.map(idOf));
+    const gymFirst = ['gym', ...seeded.filter((name) => name !== 'gym')];
+
+    it('saves my order for every month', async () => {
+      const res = await save({ categoryIds: await idsOf(gymFirst) });
+
+      expect(res.statusCode).toBe(204);
+      expect((await listFor(auth)).names).toEqual(gymFirst);
+      expect((await listFor(auth, '2026-09')).names).toEqual(gymFirst);
+    });
+
+    it('keeps a category the month lacks where it was in other months', async () => {
+      await storeMonthList(db, owner.ledgerId, '2026-10', ['fun']);
+      const october = gymFirst.filter((name) => name !== 'fun');
+
+      expect((await save({ categoryIds: await idsOf(october) })).statusCode).toBe(204);
+      expect((await listFor(auth)).names).toEqual(october);
+      expect((await listFor(auth, '2026-09')).names).toEqual(gymFirst);
+    });
+
+    it('lists a category added after the save last', async () => {
+      await save({ categoryIds: await idsOf(gymFirst) });
+      const added = await app.inject({
+        method: 'POST',
+        url: `/api/ledgers/${owner.ledgerId}/months/2026-10/categories`,
+        payload: { name: 'pets' },
+        headers: auth,
+      });
+
+      expect(added.statusCode).toBe(201);
+      expect((await listFor(auth)).names).toEqual([...gymFirst, 'pets']);
+    });
+
+    it('never changes another member’s order', async () => {
+      await save({ categoryIds: await idsOf(gymFirst) });
+      expect((await listFor(memberAuth)).names).toEqual(seeded);
+
+      const carFirst = ['car', ...seeded.filter((name) => name !== 'car')];
+      expect((await save({ categoryIds: await idsOf(carFirst) }, memberAuth)).statusCode).toBe(204);
+      expect((await listFor(memberAuth)).names).toEqual(carFirst);
+      expect((await listFor(auth)).names).toEqual(gymFirst);
+    });
+
+    it('refuses an id that isn’t a live category of the ledger, writing nothing', async () => {
+      await save({ categoryIds: await idsOf(gymFirst) });
+      const [foreign] = await db.query<RowDataPacket[]>('SELECT category_id FROM categories WHERE ledger_id = ?', [
+        member.ledgerId,
+      ]);
+      const deleted = await idOf('sviat');
+      await db.query('UPDATE categories SET deleted_at = ? WHERE category_id = ?', [clock, deleted]);
+      const live = (await idsOf(gymFirst)).filter((id) => id !== deleted);
+
+      for (const stray of [999_999, foreign[0]!.category_id as number, deleted]) {
+        const res = await save({ categoryIds: [stray, ...live] });
+        expect([res.statusCode, res.json()]).toEqual([400, { error: 'unknown_category' }]);
+      }
+      expect((await listFor(auth)).names).toEqual(gymFirst.filter((name) => name !== 'sviat'));
+    });
+
+    it('refuses a body that isn’t a list of distinct ids', async () => {
+      const [rent] = await idsOf(['rent']);
+
+      for (const payload of [{ categoryIds: [rent, rent] }, { categoryIds: [] }, undefined, { categoryIds: [0] }]) {
+        const res = await save(payload);
+        expect([res.statusCode, res.json().error]).toEqual([400, 'invalid_request']);
+      }
+    });
+
+    it('needs a session and a ledger I belong to', async () => {
+      const ids = await idsOf(gymFirst);
+      const stranger = await makeUser(db, config, 'stranger');
+
+      expect((await save({ categoryIds: ids }, {})).statusCode).toBe(401);
+      expect((await save({ categoryIds: ids }, await authHeader(app, stranger, clock))).statusCode).toBe(404);
+      expect((await listFor(auth)).names).toEqual(seeded);
+    });
   });
 });

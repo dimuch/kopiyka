@@ -143,7 +143,7 @@ reload: () => void }`. It is `useIncome`'s shape: state tagged `${ledgerId}/${fr
 
 ## Version
 
-PR A — Bump: minor — 1.10.0 → 1.11.0
+PR A — Bump: minor — 1.10.1 → 1.11.0 (planned from 1.10.0; main took 1.10.1 for #129 meanwhile, §8b step 4)
 Why: the §8b `minor` row: a new API route, and everything that exists keeps working. No migration, so rollback is
 unaffected. Shipped app builds never call the route.
 
@@ -362,6 +362,8 @@ would ship the by-category and by-month cards on their own.
 - None yet.
 
 ## Deviations
+
+- Version: rebased on `origin/main` after #129 took 1.10.1; PR A still lands as 1.11.0 (1.10.1 → 1.11.0).
 
 - A1: the 086 brief's Status line went in with the plan commit (0fd1354), not with A1 — same file and text.
 

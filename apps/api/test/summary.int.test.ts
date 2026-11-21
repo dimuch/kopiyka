@@ -150,6 +150,60 @@ describe.skipIf(!(await testDbReachable()))('GET /api/ledgers/:id/summary (MySQL
     expect((await summary('from=2024-12&to=2026-11')).statusCode).toBe(200);
   });
 
+  it("a three-month summary's totals are the sums of its months", async () => {
+    await spend('groceries', '2026-08-31', '99.00'); // before the period: never counts
+    await plan('rent', '2026-09', '600.00');
+    await spend('rent', '2026-09-01', '600.00');
+    await earn('2026-09', '1000.00');
+    await plan('groceries', '2026-10', '250.25');
+    await spend('groceries', '2026-10-15', '80.40');
+    await spend('fun', '2026-10-16', '19.60');
+    await earn('2026-10', '1200.00');
+    await plan('rent', '2026-11', '600.00');
+    await spend('groceries', '2026-11-02', '1300.00');
+    await earn('2026-11', '1100.50');
+
+    const months = await Promise.all(
+      ['2026-09', '2026-10', '2026-11'].map(async (month) => (await summary(`from=${month}&to=${month}`)).json()),
+    );
+    const whole = (await summary('from=2026-09&to=2026-11')).json();
+    const sum = (values: string[]) => centsToString(values.reduce((total, value) => total + toCents(value), 0n));
+    for (const field of ['incomeEur', 'plannedEur', 'spentEur', 'leftEur'] as const) {
+      expect(whole.totals[field], field).toBe(sum(months.map((m) => m.totals[field])));
+    }
+    expect(whole.months).toEqual([
+      { month: '2026-09', incomeEur: '1000.00', spentEur: '600.00', leftEur: '400.00' },
+      { month: '2026-10', incomeEur: '1200.00', spentEur: '100.00', leftEur: '1100.00' },
+      { month: '2026-11', incomeEur: '1100.50', spentEur: '1300.00', leftEur: '-199.50' },
+    ]);
+    expect(whole.totals).toEqual({
+      incomeEur: '3300.50',
+      plannedEur: '1450.25',
+      spentEur: '2000.00',
+      leftEur: '1300.50',
+    });
+  });
+
+  it('shows zeros for a month with no data', async () => {
+    await earn('2026-06', '10.00');
+    await spend('groceries', '2026-08-05', '4.00');
+    expect((await summary('from=2026-06&to=2026-08')).json().months).toEqual([
+      { month: '2026-06', incomeEur: '10.00', spentEur: '0.00', leftEur: '10.00' },
+      { month: '2026-07', incomeEur: '0.00', spentEur: '0.00', leftEur: '0.00' },
+      { month: '2026-08', incomeEur: '0.00', spentEur: '4.00', leftEur: '-4.00' },
+    ]);
+  });
+
+  it("never counts another ledger's data", async () => {
+    await earn('2026-10', '1000.00');
+    await spend('groceries', '2026-10-03', '10.00');
+    const before = (await summary('from=2026-09&to=2026-11')).json();
+    await plan('rent', '2026-10', '999.00', stranger.ledgerId);
+    await spend('groceries', '2026-10-03', '555.00', stranger);
+    await earn('2026-10', '777.00', stranger);
+    expect((await summary('from=2026-09&to=2026-11')).json()).toEqual(before);
+  });
+
   it('needs a session', async () => {
     expect((await summary('from=2026-10&to=2026-10', {})).statusCode).toBe(401);
   });

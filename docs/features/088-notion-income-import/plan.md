@@ -238,7 +238,7 @@ every slice still stands alone.
       - 41 × `A` → 40 × `A`, `'title cut to 40 characters'`.
       - 39 × `A` + `' '` + `BBBBB` → 39 × `A` (cut, then trimmed), with the cut note.
       - `'   '` → `'Income'`, `'no title, named Income'`.
-- [ ] 3. Import a ledger's January–October income, insert only, as a dry run or written (~135)
+- [x] 3. Import a ledger's January–October income, insert only, as a dry run or written (~135)
   - Files: `apps/api/src/notion/incomeImport.ts` (new), `apps/api/test/notionIncome.int.test.ts` (new). The test
     file has a `rows(ledgerId)` helper that selects `income_id, income_month, title, amount_eur, created_by`,
     ordered by `income_id`.

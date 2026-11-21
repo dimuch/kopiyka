@@ -12,6 +12,7 @@
     "notion-start": "tsx --env-file-if-exists=.env scripts/notion-start.ts",
     "import-balances": "tsx --env-file-if-exists=.env scripts/import-balances.ts",
     "import-history": "tsx --env-file-if-exists=.env scripts/import-history.ts",
+    "import-income": "tsx --env-file-if-exists=.env scripts/import-income.ts",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
     "test:watch": "vitest",

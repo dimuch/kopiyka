@@ -288,7 +288,7 @@ every slice still stands alone.
     - A dry run with a made-up snapshot prints the month lines, one `Skipped row` line and `Dry run: …`.
       `SELECT COUNT(*) FROM income_items WHERE income_month < '2026-11-01'` stays the same.
     - If `NOTION_TOKEN` works, `--save` writes the file. If not (401), the error prints with no stack trace.
-- [ ] 5. Document the income import (~50)
+- [x] 5. Document the income import (~50)
   - Files:
     - `deploy/README.md`: a new section, "Importing January–October income from Notion", after "Importing each
       month's balances from Notion".

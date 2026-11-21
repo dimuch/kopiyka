@@ -50,6 +50,7 @@ NOTION_EXPENSES_DATA_SOURCE_ID=00000000-0000-4000-8000-000000000002   # category
 NOTION_NETTO_DATA_SOURCE_ID=00000000-0000-4000-8000-000000000003      # groceries only
 NOTION_OPENING_DATA_SOURCE_ID=00000000-0000-4000-8000-000000000004    # month balances (import-balances --save);
 NOTION_CLOSING_DATA_SOURCE_ID=00000000-0000-4000-8000-000000000005    # both or neither
+NOTION_INCOME_DATA_SOURCE_ID=00000000-0000-4000-8000-000000000010     # income (import-income --save)
 ```
 
 Set up once per database, in this order: `yarn api migrate`, then the two starting points below, then sync.
@@ -78,6 +79,11 @@ the Opening and Actual Closing tables into `month_balances` (brief 085), filling
 neighbouring month or with 0. Same flags as `import-history`, plus `--month <YYYY-MM>` to write one month; `--save`
 needs `NOTION_OPENING_DATA_SOURCE_ID` and `NOTION_CLOSING_DATA_SOURCE_ID`. Steps: `deploy/README.md`, "Importing
 each month's balances from Notion".
+
+January–October income comes once: `yarn api import-income` copies each row of the Income table into the ledger's
+income items (brief 088), added by the owner. It only inserts: a month that already has income is skipped whole, and
+nothing is updated or deleted. Same flags as `import-balances`; `--save` needs `NOTION_INCOME_DATA_SOURCE_ID`. Steps:
+`deploy/README.md`, "Importing January–October income from Notion".
 
 `POST /api/ledgers/:id/notion/sync` sends what's new (signed in, for the configured ledger); `GET
 /api/ledgers/:id/notion/status` shows how many expenses are unsent and when the last clean sync finished. Sync once

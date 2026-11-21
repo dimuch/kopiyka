@@ -146,7 +146,7 @@ any range, and old builds keep working.
     - In the web inspector, edit the label to "Dec 2025 – Nov 2026" at 375 wide: it fits on one line with both
       arrows.
     - Budget, Income and Expenses' switchers are unchanged.
-- [ ] 4. Choose the Statistics period from a menu under the switcher (~110 lines)
+- [x] 4. Choose the Statistics period from a menu under the switcher (~110 lines)
   - Files: apps/mobile/src/components/Icon.tsx, apps/mobile/src/app/(tabs)/statistics.tsx
   - Change:
     - Add `down` to `Icon`.
@@ -232,6 +232,8 @@ None found.
   Statistics tab. Evidence is the five-label test and the gates; the screen check is left for the user.
 - slice 3: the web check didn't run, for the same reason (the user chose to keep building). The stepping rules are
   covered by the slice 2 tests; the switcher's look and the long-range fit at 375 wide are left for the user.
+- slice 4: the web and iPhone checks didn't run, for the same reason. `export:web` and `check-builds` passed (135 demo
+  modules, list unchanged). The menu's place, taps outside it and VoiceOver are left for the user.
 
 ## Consolidate
 

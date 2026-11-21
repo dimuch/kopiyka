@@ -31,7 +31,10 @@ Process:
    right after deciding each item, and a final line with the verdict:
    `printf '%s\n' '<n>/11 <✔|✘> <label>' >> <path>` (label = the item's bold
    word, e.g. `3/11 ✘ Right place`), then `printf '%s\n' 'verdict <VERDICT>' >> <path>`.
-   One short write per item; nothing else goes in the file.
+   Walk the items in order and verify each one just before you judge it.
+   Write its line as its own Bash call before you start the next item,
+   never batched at the end or sent as parallel calls: the line moves the live
+   progress bar. Nothing else goes in the file.
 3. Attack it from four angles, briefly:
    - **Over-engineering** — what can be deleted and every AC still holds?
      Which abstraction, option, dependency or slice has no AC behind it?

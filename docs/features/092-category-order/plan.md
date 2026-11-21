@@ -170,7 +170,7 @@ Why: §8b `minor` covers a new user action (drag to reorder on Budget and Expens
     off, so the cascades don't run)
   - Tests: `SHOW COLUMNS FROM category_orders` gives `[ledger_id int unsigned NO]`, `[user_id int unsigned NO]`,
     `[category_id int unsigned NO]` and `[list_position int unsigned NO]`; running `runMigrations` again returns `[]`.
-- [ ] 2. Work out a member's whole order from one month's new order (~85)
+- [x] 2. Work out a member's whole order from one month's new order (~85)
   - Files: `apps/api/src/categories/order.ts` (new: `mergeOrder` and a private `longestRising`),
     `apps/api/test/categoryOrder.test.ts` (new)
   - Change: keep the longest run of `shown` that's in `current` order. On a tie, keep the run whose ids come earliest in

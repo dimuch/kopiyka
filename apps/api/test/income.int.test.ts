@@ -7,6 +7,7 @@ import { addMember } from '../src/ledgers/members.js';
 import { toCents } from '../src/money.js';
 import {
   authHeader,
+  badMonthReply,
   clearData,
   makeUser,
   resetSchema,
@@ -504,6 +505,22 @@ describe.skipIf(!(await testDbReachable()))('income items (MySQL)', () => {
         [owner.ledgerId],
       );
       expect(toCents(String(planned!.total)) <= toCents(await incomeTotal('2026-11'))).toBe(true);
+    });
+  });
+
+  describe('month checks', () => {
+    it('answers a malformed month with its Zod issue', async () => {
+      const replies = [
+        await list('2026-13'),
+        await add('2026-13', { title: 'salary', amount: '1' }),
+        await copy('2026-13'),
+      ];
+      for (const res of replies) expect([res.statusCode, res.json()]).toEqual([400, badMonthReply('month')]);
+    });
+
+    it('checks the body before whether the month has ended', async () => {
+      const res = await add('2026-09', { title: '', amount: '1' });
+      expect([res.statusCode, res.json().error]).toEqual([400, 'invalid_request']);
     });
   });
 });

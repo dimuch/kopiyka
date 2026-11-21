@@ -6,6 +6,7 @@ import { createDb, type Db } from '../src/db.js';
 import type { RateFetcher } from '../src/rates/nbu.js';
 import {
   authHeader,
+  badMonthReply,
   clearData,
   makeUser,
   resetSchema,
@@ -657,6 +658,13 @@ describe.skipIf(!(await testDbReachable()))('expenses API (MySQL)', () => {
       now = new Date('2026-09-30T21:00:00Z');
       expect((await post(groceries({ expenseDate: '2026-09-30' }))).json()).toEqual(refused);
       expect((await put(late.json().expenseId, groceries({ expenseDate: '2026-09-30' }))).json()).toEqual(refused);
+    });
+  });
+
+  describe('month checks', () => {
+    it('answers a malformed month with its Zod issue', async () => {
+      const res = await list('?month=2026-13');
+      expect([res.statusCode, res.json()]).toEqual([400, badMonthReply('month')]);
     });
   });
 });

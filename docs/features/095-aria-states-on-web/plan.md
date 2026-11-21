@@ -113,7 +113,7 @@ reach them. No API, schema, connector or iOS behaviour changes.
   - Verify: signed out on web, empty fields → Sign in has `aria-disabled="true"`. Type a username and Password → the
     attribute is gone and the button signs in. Enter in the Password field still submits. The look stays the same (0.4
     dim), apart from the mouse cursor.
-- [ ] 3. Fail lint when accessibilityState comes back (~10 lines)
+- [x] 3. Fail lint when accessibilityState comes back (~10 lines)
   - Files: `apps/mobile/eslint.config.js`.
   - Change: the rule from Contracts.
   - Verify: `yarn lint` passes. Then put `accessibilityState={{ busy: true }}` on any Pressable in `src`, run

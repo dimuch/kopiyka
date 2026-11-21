@@ -10,4 +10,17 @@ module.exports = defineConfig([
   {
     ignores: ['dist/*', '.expo/*'],
   },
+  {
+    rules: {
+      // Brief 095: the web build never shows accessibilityState to screen readers; the aria-* props reach both.
+      'no-restricted-syntax': [
+        'error',
+        {
+          selector: "JSXAttribute[name.name='accessibilityState']",
+          message:
+            'react-native-web ignores accessibilityState. Use aria-busy, aria-checked, aria-expanded or aria-selected; on a Pressable, use disabled (react-native-web drops aria-disabled there).',
+        },
+      ],
+    },
+  },
 ]);

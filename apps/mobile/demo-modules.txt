@@ -109,6 +109,7 @@ src/demo-app/delete-category.tsx
 src/demo-app/expense.tsx
 src/demo-app/income-item.tsx
 src/demo/DemoStrip.tsx
+src/demo/balanceRoutes.ts
 src/demo/categoryRoutes.ts
 src/demo/client.ts
 src/demo/expenseRoutes.ts

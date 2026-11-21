@@ -92,7 +92,7 @@ request with 404 `not_found`, which the hook treats as an error and leaves the l
     - "needs a session": no headers → 401
     - "answers 404 for someone else's ledger": → 404 `ledger_not_found`
   - ~110 lines
-- [ ] 2. Answer the balance route in the demo with none
+- [x] 2. Answer the balance route in the demo with none
   - Files: apps/mobile/src/api/types.ts (`MonthBalance`), apps/mobile/src/demo/balanceRoutes.ts (new),
     apps/mobile/src/demo/store.ts (spread `...balanceRoutes`), apps/mobile/test/demoBalance.test.ts (new),
     apps/mobile/demo-modules.txt (via `yarn mobile export:web` + `yarn mobile check-builds --accept`; expected diff is

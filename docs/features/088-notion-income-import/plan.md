@@ -378,6 +378,18 @@ every slice still stands alone.
 
 ## Consolidate
 
+Reused 0 · extracted 0 · left 6 (`origin/main...HEAD`, kopiyka-refactoring §8):
+
+- `incomeRows` (client.ts) ↔ `balanceRows`: LEAVE. Same `queryAll`/`selectMonth`/`notionCents` building blocks, but
+  different columns and row type; a shared reader would need the column list as a parameter for two 5-line maps.
+- `toIncomeSnapshot` ↔ `toBalancesSnapshot`: LEAVE. One row shape each; both already share `centsToString`.
+- `itemTitle` (income.ts) ↔ the routes' `z.string().trim().min(1).max(40)`: LEAVE. The routes refuse a long title; the
+  import cuts it. `MAX_TITLE` names the same limit.
+- `storedIncome` ↔ `storedBalances`: LEAVE. Different table and result (count and sum per month, no lock).
+- The income INSERT ↔ `income/routes.ts:89,149`: LEAVE. The routes inline it too; no helper exists to reuse.
+- `scripts/import-income.ts` ↔ `import-balances.ts` (~15 lines of flags and snapshot I/O): LEAVE, by the brief (other
+  commands unchanged); refactoring brief in Follow-ups.
+
 ## Revision 1
 
 The skeptic approved with four suggestions, all applied:

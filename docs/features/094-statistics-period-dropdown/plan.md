@@ -224,7 +224,10 @@ any range, and old builds keep working.
 
 ## Follow-ups
 
-None found.
+- On web, `accessibilityState` never reaches the DOM (react-native-web 0.21 drops it), so `aria-checked`,
+  `aria-expanded` and `aria-selected` are missing app-wide: `LedgerPicker`, `AppearancePicker`, `CategoryPicker`, the
+  ⋯ menu and this menu. iOS VoiceOver reads `accessibilityState` and isn't affected. The fix is the `aria-*` props,
+  across the app.
 
 ## Deviations
 
@@ -236,6 +239,13 @@ None found.
   modules, list unchanged). The menu's place, taps outside it and VoiceOver are left for the user.
 - slice 3: the `PeriodSwitcher` prop is `forwardEnabled`, not `canStepForward` as in Contracts, so it doesn't shadow
   the imported function (skeptic suggestion).
+- after review: the web checks for slices 3 and 4 then ran at 390×844 and 375×812, signed in as a local QA user:
+  - Opens on "November 2026" with Next disabled. Back goes to October, and Next is enabled.
+  - Last 3 months shows "Sep – Nov 2026". Back shows October with Previous month marked, then September with none.
+  - The menu sits centred just under the switcher. Taps outside it and on the period close it with no change.
+  - No "Last 12 months" or "Custom". A "Dec 2025 – Nov 2026" label fits at 375 wide. Each step fetched its summary.
+  - Not run: light mode, iPhone, VoiceOver. The web accessibility-tree check fails for a reason older than this
+    branch (see Follow-ups).
 - review: the slice 4 VoiceOver check is reworded. The menu layer doesn't cover the tab bar, which stays reachable
   and tappable while the menu is open, as Not doing accepts.
 

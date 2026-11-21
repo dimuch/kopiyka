@@ -161,7 +161,7 @@ Why: §8b `minor` covers a new user action (drag to reorder on Budget and Expens
 
 ### PR 1: API, migration and demo store (`feat/category-order`, ~450 lines, about 60% tests)
 
-- [ ] 0. Bump version to 1.12.0
+- [x] 0. Bump version to 1.12.0
   - Files: package.json, apps/mobile/app.json
   - Change: set both to 1.12.0
 - [ ] 1. Add a table for each member's category order (~45)

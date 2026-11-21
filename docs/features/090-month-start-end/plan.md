@@ -180,7 +180,9 @@ Total ≈ 240 changed lines, not counting slice 0.
 
 ## Deviations
 
-<filled by the developer during build>
+- slice 3: the AC4 browser check ran against a QA ledger holding a copy of laptop ledger 1's ten rows, not ledger 1
+  itself — signing in as `dimuch` needs the user's authenticator. Same data, same code path; the user can confirm on
+  ledger 1 after merge.
 
 ## Consolidate
 

@@ -15,10 +15,12 @@ import { Pressable } from '@/components/Pressable';
 import { UndoToast } from '@/components/UndoToast';
 import { copyPreviousMonth } from '@/data/categories';
 import { copyRefusedText } from '@/data/monthCopy';
+import { balanceLine } from '@/data/monthBalance';
 import { incomeCents, plannedCents } from '@/data/monthSummary';
 import { useUndoOffer } from '@/data/undo';
 import { useIncome } from '@/data/useIncome';
 import { type MonthData, useMonth } from '@/data/useMonth';
+import { useMonthBalance } from '@/data/useMonthBalance';
 import { useMonthCategories } from '@/data/useMonthCategories';
 import { eur, kyivMonth, monthName, shiftMonth, toCents } from '@/format';
 import { parseMonthParam } from '@/linkParams';
@@ -46,6 +48,8 @@ export default function Budget() {
   const ended = month < thisMonth;
   // What the month may spend (brief 060): its income from every member, against what's planned.
   const income = useIncome(ledger.ledgerId, month);
+  // How the month started and ended (brief 090); only months with imported balances have a line.
+  const balance = balanceLine(useMonthBalance(ledger.ledgerId, month));
 
   const [busy, setBusy] = useState(false);
   // Tagged with their ledger and month, so switching either clears them without an effect.
@@ -111,6 +115,7 @@ export default function Budget() {
           ) : null}
         </View>
       </View>
+      {balance ? <Text style={styles.balance}>{balance}</Text> : null}
 
       {/* Room under the last row, so the Undo bar can't cover it. */}
       <ScrollView contentContainerStyle={[styles.content, toast.offer && { paddingBottom: 104 }]}>
@@ -265,6 +270,14 @@ const makeStyles = (colors: Palette) =>
     // Equal-width sides keep the month switcher on the header's true centre; flexBasis 0 matters on web.
     side: { flex: 1, flexBasis: 0, flexDirection: 'row' },
     sideEnd: { justifyContent: 'flex-end' },
+    balance: {
+      fontFamily: fonts.body,
+      fontSize: 13,
+      color: colors.muted,
+      textAlign: 'center',
+      fontVariant: ['tabular-nums'],
+      paddingBottom: 10,
+    },
     iconButton: { width: 44, height: 44, alignItems: 'center', justifyContent: 'center', borderRadius: 12 },
     content: { gap: 14, paddingTop: 4, paddingBottom: 24 },
     sectionHead: {

@@ -183,7 +183,7 @@ Existing test cases stay unmodified.
   - Tests: slice 1's issue pins; categories "rejects a malformed month", "requires a month"; balances "rejects a
     malformed month"; expenses "requires a valid month"; summary "rejects a bad month, from after to, or more than 24
     months"; income "refuses an ended month and a malformed one".
-- [ ] 8. Share the ended-month refusal across the month routes (48 lines, extract)
+- [x] 8. Share the ended-month refusal across the month routes (48 lines, extract)
   - Files: `apps/api/src/monthGuards.ts` (adds `checkMonthOpen` with JSDoc); `categories/routes.ts` 178, 186, 199, 210,
     219; `income/routes.ts` 83, 138; `expenses/routes.ts` 144, 202-204, 252, 261
   - Change: each `if (monthEnded(…)) return reply.code(409).send({ error: 'month_ended' })` becomes

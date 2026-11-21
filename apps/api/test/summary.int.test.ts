@@ -58,6 +58,21 @@ describe.skipIf(!(await testDbReachable()))('GET /api/ledgers/:id/summary (MySQL
     );
   }
 
+  /** Three months of data: Sep–Nov plans, spending and income, plus August spending outside the period. */
+  async function threeMonths(): Promise<void> {
+    await spend('groceries', '2026-08-31', '99.00');
+    await plan('rent', '2026-09', '600.00');
+    await spend('rent', '2026-09-01', '600.00');
+    await earn('2026-09', '1000.00');
+    await plan('groceries', '2026-10', '250.25');
+    await spend('groceries', '2026-10-15', '80.40');
+    await spend('fun', '2026-10-16', '19.60');
+    await earn('2026-10', '1200.00');
+    await plan('rent', '2026-11', '600.00');
+    await spend('groceries', '2026-11-02', '1300.00');
+    await earn('2026-11', '1100.50');
+  }
+
   const summary = (query: string, headers: Record<string, string> = auth, ledgerId = owner.ledgerId) =>
     app.inject({ method: 'GET', url: `/api/ledgers/${ledgerId}/summary?${query}`, headers });
 
@@ -151,17 +166,7 @@ describe.skipIf(!(await testDbReachable()))('GET /api/ledgers/:id/summary (MySQL
   });
 
   it("a three-month summary's totals are the sums of its months", async () => {
-    await spend('groceries', '2026-08-31', '99.00'); // before the period: never counts
-    await plan('rent', '2026-09', '600.00');
-    await spend('rent', '2026-09-01', '600.00');
-    await earn('2026-09', '1000.00');
-    await plan('groceries', '2026-10', '250.25');
-    await spend('groceries', '2026-10-15', '80.40');
-    await spend('fun', '2026-10-16', '19.60');
-    await earn('2026-10', '1200.00');
-    await plan('rent', '2026-11', '600.00');
-    await spend('groceries', '2026-11-02', '1300.00');
-    await earn('2026-11', '1100.50');
+    await threeMonths(); // includes August spending, before the period: never counts
 
     const months = await Promise.all(
       ['2026-09', '2026-10', '2026-11'].map(async (month) => (await summary(`from=${month}&to=${month}`)).json()),
@@ -202,6 +207,85 @@ describe.skipIf(!(await testDbReachable()))('GET /api/ledgers/:id/summary (MySQL
     await spend('groceries', '2026-10-03', '555.00', stranger);
     await earn('2026-10', '777.00', stranger);
     expect((await summary('from=2026-09&to=2026-11')).json()).toEqual(before);
+  });
+
+  it('its categories add up to the totals, largest spent first', async () => {
+    await threeMonths();
+    const { totals, categories } = (await summary('from=2026-09&to=2026-11')).json();
+    const sum = (field: 'plannedEur' | 'spentEur') =>
+      centsToString(categories.reduce((total: bigint, c: Record<string, string>) => total + toCents(c[field]!), 0n));
+    expect(sum('plannedEur')).toBe(totals.plannedEur);
+    expect(sum('spentEur')).toBe(totals.spentEur);
+    expect(categories.slice(0, 3)).toEqual([
+      { categoryId: await categoryId('groceries'), name: 'groceries', plannedEur: '250.25', spentEur: '1380.40' },
+      { categoryId: await categoryId('rent'), name: 'rent', plannedEur: '1200.00', spentEur: '600.00' },
+      { categoryId: await categoryId('fun'), name: 'fun', plannedEur: '0.00', spentEur: '19.60' },
+    ]);
+    // Every other listed category is there with nothing planned or spent.
+    expect(
+      categories.slice(3).every((c: Record<string, string>) => c.plannedEur === '0.00' && c.spentEur === '0.00'),
+    ).toBe(true);
+  });
+
+  it("names a category as in the period's last month", async () => {
+    await spend('groceries', '2026-10-15', '1.00');
+    await db.query(
+      "UPDATE category_months SET display_name = 'food' WHERE category_id = ? AND list_month = '2026-11-01'",
+      [await categoryId('groceries')],
+    );
+    const named = async (query: string) =>
+      (await summary(query)).json().categories.find((c: { categoryId: number }) => c.categoryId === groceries).name;
+    const groceries = await categoryId('groceries');
+    expect(await named('from=2026-09&to=2026-11')).toBe('food');
+    expect(await named('from=2026-09&to=2026-10')).toBe('groceries');
+  });
+
+  it('leaves out a deleted category, its plan and expenses, and a deleted expense', async () => {
+    await plan('fun', '2026-10', '50.00');
+    await spend('fun', '2026-10-05', '20.00');
+    await plan('fun', '2026-11', '40.00');
+    await spend('fun', '2026-11-05', '30.00');
+    await plan('gym', '2026-11', '35.00');
+    await spend('gym', '2026-11-06', '35.00');
+    await spend('rent', '2026-11-01', '600.00');
+    await spend('rent', '2026-11-02', '5.00');
+    const fun = await categoryId('fun');
+    const gym = await categoryId('gym');
+
+    expect(
+      (
+        await app.inject({
+          method: 'DELETE',
+          url: `/api/ledgers/${owner.ledgerId}/categories/${fun}/months/2026-11`,
+          headers: auth,
+        })
+      ).statusCode,
+    ).toBe(204);
+    await db.query('UPDATE categories SET deleted_at = NOW() WHERE category_id = ?', [gym]);
+    const [rows] = await db.query<RowDataPacket[]>(
+      "SELECT expense_id FROM expenses WHERE category_id = ? AND amount_eur = '5.00'",
+      [await categoryId('rent')],
+    );
+    expect(
+      (
+        await app.inject({
+          method: 'DELETE',
+          url: `/api/ledgers/${owner.ledgerId}/expenses/${rows[0]!.expense_id}`,
+          headers: auth,
+        })
+      ).statusCode,
+    ).toBe(204);
+
+    const { totals, months, categories } = (await summary('from=2026-10&to=2026-11')).json();
+    expect(totals).toMatchObject({ plannedEur: '50.00', spentEur: '620.00' });
+    expect(months.map((m: Record<string, string>) => [m.month, m.spentEur])).toEqual([
+      ['2026-10', '20.00'],
+      ['2026-11', '600.00'],
+    ]);
+    const byId = new Map(categories.map((c: { categoryId: number }) => [c.categoryId, c]));
+    expect(byId.get(fun)).toMatchObject({ plannedEur: '50.00', spentEur: '20.00' });
+    expect(byId.has(gym)).toBe(false);
+    expect(byId.get(await categoryId('rent'))).toMatchObject({ spentEur: '600.00' });
   });
 
   it('needs a session', async () => {

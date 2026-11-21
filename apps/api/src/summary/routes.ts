@@ -2,6 +2,7 @@ import type { FastifyInstance } from 'fastify';
 import type { RowDataPacket } from 'mysql2/promise';
 import { z } from 'zod';
 import type { AppDeps } from '../app.js';
+import { NAME_IN_MONTH } from '../categories/monthLists.js';
 import { MONTH_RE, nextMonthStart } from '../dates.js';
 import { centsToString, toCents } from '../money.js';
 
@@ -20,6 +21,15 @@ export interface SummaryMonthDto {
   incomeEur: string;
   spentEur: string;
   leftEur: string;
+}
+
+/** A category's figures over the period. */
+export interface SummaryCategoryDto {
+  categoryId: number;
+  /** Its name in the period's last month. */
+  name: string;
+  plannedEur: string;
+  spentEur: string;
 }
 
 const MAX_MONTHS = 24;
@@ -42,6 +52,9 @@ const PeriodQuery = z
 function addRows(rows: RowDataPacket[], column: string, month?: string): bigint {
   return rows.reduce((sum, row) => (month === undefined || row.month === month ? sum + toCents(row[column]) : sum), 0n);
 }
+
+/** -1, 0 or 1, for sorting by an amount. */
+const compareCents = (a: bigint, b: bigint) => (a < b ? -1 : a > b ? 1 : 0);
 
 /** Every month `from…to`, oldest first. */
 function periodMonths(from: string, to: string): string[] {
@@ -107,6 +120,33 @@ export async function summaryRoutes(app: FastifyInstance, { db }: AppDeps): Prom
         leftEur: centsToString(monthIncome - monthSpent),
       };
     });
-    return { totals, months };
+    const [named] = await db.query<RowDataPacket[]>(
+      `SELECT c.category_id, ${NAME_IN_MONTH} AS name, c.sort_order FROM categories c
+        WHERE c.ledger_id = ? AND c.deleted_at IS NULL`,
+      [last, ledgerId],
+    );
+    // Listed in a month of the period, or spent on there; the planned and spent rows already leave deleted data out.
+    const inPeriod = new Set([...planned, ...spent].map((row) => row.category_id as number));
+    const ofCategory = (rows: RowDataPacket[], categoryId: number) =>
+      rows.filter((row) => row.category_id === categoryId);
+    const categories: SummaryCategoryDto[] = named
+      .filter((row) => inPeriod.has(row.category_id))
+      .map((row) => ({
+        categoryId: row.category_id as number,
+        name: row.name as string,
+        sortOrder: row.sort_order as number,
+        plannedCents: addRows(ofCategory(planned, row.category_id), 'planned_eur'),
+        spentCents: addRows(ofCategory(spent, row.category_id), 'spent_eur'),
+      }))
+      .sort(
+        (a, b) => compareCents(b.spentCents, a.spentCents) || a.sortOrder - b.sortOrder || a.categoryId - b.categoryId,
+      )
+      .map(({ categoryId, name, plannedCents, spentCents }) => ({
+        categoryId,
+        name,
+        plannedEur: centsToString(plannedCents),
+        spentEur: centsToString(spentCents),
+      }));
+    return { totals, months, categories };
   });
 }

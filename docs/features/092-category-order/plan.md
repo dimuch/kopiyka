@@ -234,7 +234,7 @@ Why: §8b `minor` covers a new user action (drag to reorder on Budget and Expens
 - [x] 6. Bump version to 1.14.0
   - Files: package.json, apps/mobile/app.json
   - Change: set both to 1.14.0 (or `main`'s number +minor)
-- [ ] 7. Work out where a dragged row lands and how the others make room (~95)
+- [x] 7. Work out where a dragged row lands and how the others make room (~95)
   - Files: `apps/mobile/src/data/reorder.ts` (new), `apps/mobile/test/reorder.test.ts` (new)
   - Tests (table):
     - `moveItem(['a','b','c','d'], 0, 2)` → `b,c,a,d`; `(3, 0)` → `d,a,b,c`; `(1, 1)` → unchanged and not the same

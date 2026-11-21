@@ -193,7 +193,7 @@ every slice still stands alone.
 - [x] 0. Bump version to 1.9.0
   - Files: package.json, apps/mobile/app.json
   - Change: set both to 1.9.0
-- [ ] 1. Read Notion's Income table into a snapshot (~135)
+- [x] 1. Read Notion's Income table into a snapshot (~135)
   - Files: `apps/api/src/config.ts`, `apps/api/.env.example`, `apps/api/src/notion/client.ts`,
     `apps/api/src/notion/income.ts` (new: `IncomeSnapshot`, `toIncomeSnapshot`), `apps/api/test/config.test.ts`,
     `apps/api/test/notionClient.test.ts`, `apps/api/test/notionIncome.test.ts` (new)

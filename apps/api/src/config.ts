@@ -30,6 +30,8 @@ const Env = z.object({
   // pair. Only `yarn api import-balances --save` reads them.
   NOTION_OPENING_DATA_SOURCE_ID: z.string().regex(UUID, 'expected the UUID of a collection:// URL').optional(),
   NOTION_CLOSING_DATA_SOURCE_ID: z.string().regex(UUID, 'expected the UUID of a collection:// URL').optional(),
+  // Income (brief 088): the Income data source; needs the first pair. Only `yarn api import-income --save` reads it.
+  NOTION_INCOME_DATA_SOURCE_ID: z.string().regex(UUID, 'expected the UUID of a collection:// URL').optional(),
   // MCP connector (brief 063): off unless true; its tokens end this long after they're issued.
   MCP_ENABLED: z.stringbool().default(false),
   API_TOKEN_TTL_MINUTES: z.coerce.number().int().positive().default(60),
@@ -84,6 +86,9 @@ export function loadConfig(source: NodeJS.ProcessEnv = process.env): Config {
   if (balances && env.NOTION_TOKEN === undefined) {
     throw new Error('set NOTION_OPENING_DATA_SOURCE_ID and NOTION_CLOSING_DATA_SOURCE_ID together with NOTION_TOKEN');
   }
+  if (env.NOTION_INCOME_DATA_SOURCE_ID !== undefined && env.NOTION_TOKEN === undefined) {
+    throw new Error('set NOTION_INCOME_DATA_SOURCE_ID together with NOTION_TOKEN');
+  }
   return {
     env: env.NODE_ENV,
     host: env.HOST,
@@ -119,6 +124,7 @@ export function loadConfig(source: NodeJS.ProcessEnv = process.env): Config {
                     closingDataSourceId: env.NOTION_CLOSING_DATA_SOURCE_ID,
                   }
                 : null,
+            incomeDataSourceId: env.NOTION_INCOME_DATA_SOURCE_ID ?? null,
           }
         : null,
     ...(env.MCP_ENABLED ? { apiTokens: { ttlMinutes: env.API_TOKEN_TTL_MINUTES } } : {}),

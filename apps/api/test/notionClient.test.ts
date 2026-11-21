@@ -7,6 +7,7 @@ const expensesDs = '00000000-0000-4000-8000-000000000002';
 const nettoDs = '00000000-0000-4000-8000-000000000003';
 const openingDs = '00000000-0000-4000-8000-000000000004';
 const closingDs = '00000000-0000-4000-8000-000000000005';
+const incomeDs = '00000000-0000-4000-8000-000000000010';
 const row = { expenseId: 57, name: 'Delhaize', amountEur: '29.10', date: '2026-10-01' };
 
 /** A client whose fetch answers from a queue and records every request and every sleep. */
@@ -19,6 +20,7 @@ function setup(...answers: Array<Response | Error>) {
       groceriesDataSourceId: ds,
       totals: { expensesDataSourceId: expensesDs, nettoDataSourceId: nettoDs },
       balances: { openingDataSourceId: openingDs, closingDataSourceId: closingDs },
+      incomeDataSourceId: incomeDs,
     },
     {
       fetchImpl: async (url, init) => {
@@ -38,7 +40,14 @@ function setup(...answers: Array<Response | Error>) {
       now: () => 1_000_000,
     },
   );
-  return { client: notion.groceries, expenses: notion.expenses!, balances: notion.balances!, requests, sleeps };
+  return {
+    client: notion.groceries,
+    expenses: notion.expenses!,
+    balances: notion.balances!,
+    income: notion.income!,
+    requests,
+    sleeps,
+  };
 }
 
 const json = (body: unknown, status = 200, headers: Record<string, string> = {}) =>
@@ -368,7 +377,10 @@ describe('notionClient', () => {
     });
 
     it('is absent without the Expenses settings', () => {
-      expect(notionClient({ token, groceriesDataSourceId: ds, totals: null, balances: null }).expenses).toBeNull();
+      expect(
+        notionClient({ token, groceriesDataSourceId: ds, totals: null, balances: null, incomeDataSourceId: null })
+          .expenses,
+      ).toBeNull();
     });
   });
 
@@ -407,7 +419,54 @@ describe('notionClient', () => {
     });
 
     it('is absent without the balances settings', () => {
-      expect(notionClient({ token, groceriesDataSourceId: ds, totals: null, balances: null }).balances).toBeNull();
+      expect(
+        notionClient({ token, groceriesDataSourceId: ds, totals: null, balances: null, incomeDataSourceId: null })
+          .balances,
+      ).toBeNull();
+    });
+  });
+
+  describe('income (brief 088)', () => {
+    const incomeRow = (name: string[], month: string | null, amount: number | null) => ({
+      id: 'abcdef00000040008000000000000009',
+      in_trash: false,
+      properties: {
+        Name: { title: name.map((plain_text) => ({ plain_text })) },
+        Month: { select: month === null ? null : { name: month } },
+        Amount: { number: amount },
+        Source: { select: { name: 'Someone' } },
+      },
+    });
+
+    it('reads the Income rows, page by page', async () => {
+      const { income, requests } = setup(
+        json({
+          results: [incomeRow([' Sal', 'ary '], 'Jan', 2500.5), incomeRow(['Bonus'], 'Dec', null)],
+          has_more: true,
+          next_cursor: 'c2',
+        }),
+        json({
+          results: [incomeRow([], null, 10), { ...incomeRow(['Gone'], 'Feb', 1), in_trash: true }],
+          has_more: false,
+          next_cursor: null,
+        }),
+      );
+      expect(await income.rows()).toEqual([
+        { name: ' Salary ', month: 1, amountCents: 250050n },
+        { name: 'Bonus', month: 12, amountCents: null },
+        { name: '', month: null, amountCents: 1000n },
+      ]);
+      expect(requests.map((r) => [r.url, r.method, r.body])).toEqual([
+        [`https://api.notion.com/v1/data_sources/${incomeDs}/query`, 'POST', { page_size: 100 }],
+        [`https://api.notion.com/v1/data_sources/${incomeDs}/query`, 'POST', { page_size: 100, start_cursor: 'c2' }],
+      ]);
+    });
+
+    it('is absent without the income setting', () => {
+      expect(
+        notionClient({ token, groceriesDataSourceId: ds, totals: null, balances: null, incomeDataSourceId: null })
+          .income,
+      ).toBeNull();
     });
   });
 });

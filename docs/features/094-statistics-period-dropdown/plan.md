@@ -100,7 +100,7 @@ any range, and old builds keep working.
 - [x] 0. Bump version to 1.15.0
   - Files: package.json, apps/mobile/app.json
   - Change: set both to 1.15.0
-- [ ] 1. Stop offering Last 12 months and Custom on Statistics (~45 lines)
+- [x] 1. Stop offering Last 12 months and Custom on Statistics (~45 lines)
   - Files: apps/mobile/src/data/period.ts, apps/mobile/test/period.test.ts, apps/mobile/src/app/(tabs)/statistics.tsx
   - Change:
     - Narrow `PERIOD_CHOICES` to the five entries in Contracts, with its comment.
@@ -228,7 +228,8 @@ None found.
 
 ## Deviations
 
-<filled by the developer during build>
+- slice 1: the web check didn't run. The real web app needs a sign-in with an authenticator code, and the demo has no
+  Statistics tab. Evidence is the five-label test and the gates; the screen check is left for the user.
 
 ## Consolidate
 

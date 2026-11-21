@@ -9,14 +9,16 @@ export interface Period {
   to: string;
 }
 
-export const PERIOD_CHOICES: readonly { choice: PeriodChoice; label: string }[] = [
+/**
+ * The periods Statistics offers. Last 12 months and Custom aren't offered for now (brief 094); `presetPeriod('last12')`
+ * and `moveCustom` stay so they can come back.
+ */
+export const PERIOD_CHOICES: readonly { choice: Exclude<PeriodChoice, 'custom'>; label: string }[] = [
   { choice: 'current', label: 'Current month' },
   { choice: 'previous', label: 'Previous month' },
   { choice: 'last3', label: 'Last 3 months' },
   { choice: 'last6', label: 'Last 6 months' },
-  { choice: 'last12', label: 'Last 12 months' },
   { choice: 'thisYear', label: 'This year' },
-  { choice: 'custom', label: 'Custom' },
 ];
 
 /** The API answers at most this many months at once. */

@@ -97,7 +97,7 @@ any range, and old builds keep working.
 
 ## Slices
 
-- [ ] 0. Bump version to 1.15.0
+- [x] 0. Bump version to 1.15.0
   - Files: package.json, apps/mobile/app.json
   - Change: set both to 1.15.0
 - [ ] 1. Stop offering Last 12 months and Custom on Statistics (~45 lines)

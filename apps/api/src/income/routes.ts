@@ -2,10 +2,11 @@ import type { FastifyInstance, FastifyReply } from 'fastify';
 import type { PoolConnection, ResultSetHeader, RowDataPacket } from 'mysql2/promise';
 import { z } from 'zod';
 import type { AppDeps } from '../app.js';
-import { MONTH_RE, monthEnded, monthOf, monthStart, previousMonthStart } from '../dates.js';
+import { monthEnded, monthOf, monthStart, previousMonthStart } from '../dates.js';
 import { withTransaction } from '../db.js';
 import { lockLedger } from '../ledgers/lock.js';
 import { AMOUNT_RE, centsToString, toCents } from '../money.js';
+import { MonthString } from '../monthGuards.js';
 import { checkIncome, overIncomeError, type OverIncome } from './limit.js';
 
 export interface IncomeItemDto {
@@ -17,7 +18,7 @@ export interface IncomeItemDto {
   addedBy: string;
 }
 
-const MonthParams = z.object({ month: z.string().regex(MONTH_RE, 'expected YYYY-MM') });
+const MonthParams = z.object({ month: MonthString });
 const IncomeParams = z.object({ incomeId: z.coerce.number().int().positive() });
 // 1–40 characters after trimming, like category names. Money crosses the wire as decimal strings.
 const IncomeBody = z.object({

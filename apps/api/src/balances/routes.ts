@@ -2,7 +2,8 @@ import type { FastifyInstance } from 'fastify';
 import type { RowDataPacket } from 'mysql2/promise';
 import { z } from 'zod';
 import type { AppDeps } from '../app.js';
-import { MONTH_RE, monthStart } from '../dates.js';
+import { monthStart } from '../dates.js';
+import { MonthString } from '../monthGuards.js';
 
 /** A month's balances as stored: signed decimal strings, '-180.00'. The month runs from opening to closing. */
 export interface MonthBalanceDto {
@@ -10,7 +11,7 @@ export interface MonthBalanceDto {
   closingEur: string;
 }
 
-const MonthParams = z.object({ month: z.string().regex(MONTH_RE, 'expected YYYY-MM') });
+const MonthParams = z.object({ month: MonthString });
 
 /**
  * Each month's opening and closing balance (brief 090), read-only. The rows come from brief 085's Notion import;

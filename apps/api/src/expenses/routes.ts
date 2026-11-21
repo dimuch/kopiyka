@@ -2,10 +2,11 @@ import type { FastifyInstance, FastifyReply, FastifyRequest } from 'fastify';
 import type { ResultSetHeader, RowDataPacket } from 'mysql2/promise';
 import { z } from 'zod';
 import type { AppDeps } from '../app.js';
-import { MONTH_RE, monthEnded, monthOf, monthStart, nextMonthStart } from '../dates.js';
+import { monthEnded, monthOf, monthStart, nextMonthStart } from '../dates.js';
 import { withTransaction } from '../db.js';
 import { inMonthList } from '../categories/monthLists.js';
 import { AMOUNT_RE, centsToString, convert, e4ToString, rateToE4, toCents } from '../money.js';
+import { MonthString } from '../monthGuards.js';
 import { getEurUahRate, isAfterRateHorizon, RateDate, rateUnavailableReason } from '../rates/service.js';
 import { findRepeat } from './repeatCall.js';
 
@@ -59,7 +60,7 @@ type ExpenseInput = z.infer<typeof ExpenseBody>;
 const ExpenseParams = z.object({ expenseId: z.coerce.number().int().positive() });
 
 const MonthQuery = z.object({
-  month: z.string().regex(MONTH_RE, 'expected YYYY-MM'),
+  month: MonthString,
   categoryId: z.coerce.number().int().positive().optional(),
 });
 

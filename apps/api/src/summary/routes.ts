@@ -3,8 +3,9 @@ import type { RowDataPacket } from 'mysql2/promise';
 import { z } from 'zod';
 import type { AppDeps } from '../app.js';
 import { NAME_IN_MONTH } from '../categories/monthLists.js';
-import { MONTH_RE, monthStart } from '../dates.js';
+import { monthStart } from '../dates.js';
 import { centsToString, toCents } from '../money.js';
+import { MonthString } from '../monthGuards.js';
 
 /** A period's figures in EUR, as decimal strings; `leftEur` is income − spent and may be negative ('-12.50'). */
 export interface SummaryTotalsDto {
@@ -44,8 +45,8 @@ function monthSpan(from: string, to: string): number {
 
 const PeriodQuery = z
   .object({
-    from: z.string().regex(MONTH_RE, 'expected YYYY-MM'),
-    to: z.string().regex(MONTH_RE, 'expected YYYY-MM'),
+    from: MonthString,
+    to: MonthString,
   })
   .refine((q) => q.from <= q.to, 'from must not be after to')
   .refine((q) => monthSpan(q.from, q.to) <= MAX_MONTHS, `at most ${MAX_MONTHS} months`);

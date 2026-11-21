@@ -173,7 +173,7 @@ Existing test cases stay unmodified.
     `over-income rule (brief 060)`, which store November plans and income (`income.int.test.ts:381-397`).
     `incomeLimit.test` imports only `overIncomeBy`/`overIncomeError` and doesn't reach it. `admin.ts` runs in every
     suite's `makeUser`, which seeds October's 15 defaults.
-- [ ] 7. Share the YYYY-MM month check across the month routes (33 lines, extract)
+- [x] 7. Share the YYYY-MM month check across the month routes (33 lines, extract)
   - Files: new `apps/api/src/monthGuards.ts` (`MonthString`); `categories/routes.ts` 49, `income/routes.ts` 20,
     `balances/routes.ts` 13, `expenses/routes.ts` 62 (`MonthQuery` keeps `month` first, then `categoryId`),
     `summary/routes.ts` 47-48; each drops its `MONTH_RE` import.

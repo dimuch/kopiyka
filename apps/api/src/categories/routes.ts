@@ -2,9 +2,10 @@ import type { FastifyInstance } from 'fastify';
 import type { RowDataPacket } from 'mysql2/promise';
 import { z } from 'zod';
 import type { AppDeps } from '../app.js';
-import { MONTH_RE, monthEnded, monthStart, nextMonthStart } from '../dates.js';
+import { monthEnded, monthStart, nextMonthStart } from '../dates.js';
 import { overIncomeError } from '../income/limit.js';
 import { AMOUNT_RE, centsToString, toCents } from '../money.js';
+import { MonthString } from '../monthGuards.js';
 import {
   addToMonth,
   copyPreviousMonth,
@@ -46,7 +47,7 @@ const CategoryParams = z.object({ categoryId: z.coerce.number().int().positive()
  * A required 'YYYY-MM' month: the list's and one category's query (every caller sends it since briefs 030 and 032),
  * and copy's and add's path.
  */
-const Month = z.object({ month: z.string().regex(MONTH_RE, 'expected YYYY-MM') });
+const Month = z.object({ month: MonthString });
 const MonthParams = CategoryParams.extend(Month.shape);
 // 1–40 characters after trimming (brief 037).
 const NameBody = z.object({ name: z.string().trim().min(1).max(40) });

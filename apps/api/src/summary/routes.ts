@@ -13,6 +13,15 @@ export interface SummaryTotalsDto {
   leftEur: string;
 }
 
+/** One month of the period; a month with nothing in it is all '0.00'. */
+export interface SummaryMonthDto {
+  /** 'YYYY-MM'. */
+  month: string;
+  incomeEur: string;
+  spentEur: string;
+  leftEur: string;
+}
+
 const MAX_MONTHS = 24;
 
 /** How many months `from…to` covers, both ends counted: 2026-01…2026-03 is 3. */
@@ -29,9 +38,16 @@ const PeriodQuery = z
   .refine((q) => q.from <= q.to, 'from must not be after to')
   .refine((q) => monthSpan(q.from, q.to) <= MAX_MONTHS, `at most ${MAX_MONTHS} months`);
 
-/** Sums one decimal-string column of the rows, in cents. */
-function addRows(rows: RowDataPacket[], column: string): bigint {
-  return rows.reduce((sum, row) => sum + toCents(row[column]), 0n);
+/** Sums one decimal-string column of the rows, in cents; with `month`, only that month's rows. */
+function addRows(rows: RowDataPacket[], column: string, month?: string): bigint {
+  return rows.reduce((sum, row) => (month === undefined || row.month === month ? sum + toCents(row[column]) : sum), 0n);
+}
+
+/** Every month `from…to`, oldest first. */
+function periodMonths(from: string, to: string): string[] {
+  const months: string[] = [];
+  for (let month = from; month <= to; month = nextMonthStart(month).slice(0, 7)) months.push(month);
+  return months;
 }
 
 /**
@@ -81,6 +97,16 @@ export async function summaryRoutes(app: FastifyInstance, { db }: AppDeps): Prom
       spentEur: centsToString(spentCents),
       leftEur: centsToString(incomeCents - spentCents),
     };
-    return { totals };
+    const months: SummaryMonthDto[] = periodMonths(from, to).map((month) => {
+      const monthIncome = addRows(income, 'income_eur', month);
+      const monthSpent = addRows(spent, 'spent_eur', month);
+      return {
+        month,
+        incomeEur: centsToString(monthIncome),
+        spentEur: centsToString(monthSpent),
+        leftEur: centsToString(monthIncome - monthSpent),
+      };
+    });
+    return { totals, months };
   });
 }

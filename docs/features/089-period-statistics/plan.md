@@ -189,7 +189,7 @@ name, amount_eur, created_by)` as in `notion.int.test.ts`, and income from raw `
       `ledger_not_found`, as `balances.int.test.ts` does.
   - ~195 lines (route ~80, tests ~115 including the one-time setup). This is over the ~150 target because of the
     shared setup. The rest of the file is reused by A2 and A3.
-- [ ] A2. Add each month's income, spent and left to the summary
+- [x] A2. Add each month's income, spent and left to the summary
   - Files: apps/api/src/summary/routes.ts, apps/api/test/summary.int.test.ts
   - Change: lists the months `from…to` by stepping with `nextMonthStart`, and fills each from the same rows.
     Missing months get `'0.00'`.

@@ -6,7 +6,7 @@ import { monthEnded, monthOf, monthStart, previousMonthStart } from '../dates.js
 import { withTransaction } from '../db.js';
 import { lockLedger } from '../ledgers/lock.js';
 import { AMOUNT_RE, centsToString, toCents } from '../money.js';
-import { checkMonthOpen, MonthString } from '../monthGuards.js';
+import { checkMonthOpen, MonthString } from '../monthChecks.js';
 import { checkIncome, overIncomeError, type OverIncome } from './limit.js';
 
 export interface IncomeItemDto {

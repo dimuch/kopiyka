@@ -3,7 +3,7 @@ import type { RowDataPacket } from 'mysql2/promise';
 import { z } from 'zod';
 import type { AppDeps } from '../app.js';
 import { monthStart } from '../dates.js';
-import { MonthString } from '../monthGuards.js';
+import { MonthString } from '../monthChecks.js';
 
 /** A month's balances as stored: signed decimal strings, '-180.00'. The month runs from opening to closing. */
 export interface MonthBalanceDto {

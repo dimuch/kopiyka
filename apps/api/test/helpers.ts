@@ -137,3 +137,21 @@ export async function authHeader(app: FastifyInstance, user: TestUser, now: Date
   if (res.statusCode !== 200) throw new Error(`login failed: ${res.statusCode} ${res.body}`);
   return { authorization: `Bearer ${res.json().token}` };
 }
+
+/**
+ * The exact 400 body for malformed 'YYYY-MM' months, one Zod issue per field in the order given. The pattern is
+ * written out, not imported, so a changed month regex fails the tests that use it.
+ */
+export function badMonthReply(...fields: string[]) {
+  return {
+    error: 'invalid_request',
+    issues: fields.map((field) => ({
+      origin: 'string',
+      code: 'invalid_format',
+      format: 'regex',
+      pattern: '/^\\d{4}-(0[1-9]|1[0-2])$/',
+      path: [field],
+      message: 'expected YYYY-MM',
+    })),
+  };
+}

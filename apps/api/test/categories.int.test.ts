@@ -8,6 +8,7 @@ import { loadGroceries, planGroceries } from '../src/notion/groceries.js';
 import { loadUncounted } from '../src/notion/totals.js';
 import {
   authHeader,
+  badMonthReply,
   clearData,
   offlineRates,
   makeUser,
@@ -1515,6 +1516,30 @@ describe.skipIf(!(await testDbReachable()))('categories API (MySQL)', () => {
         [owner.ledgerId],
       );
       expect(row!.total).toBe('60.00');
+    });
+  });
+
+  describe('month checks', () => {
+    it('answers a malformed month with its Zod issue, in a query and in a path', async () => {
+      const gym = await idOf('gym');
+      const replies = [
+        await app.inject({
+          method: 'GET',
+          url: `/api/ledgers/${owner.ledgerId}/categories?month=2026-13`,
+          headers: auth,
+        }),
+        await one(`${gym}?month=2026-13`),
+        await removeFrom(gym, auth, owner.ledgerId, '2026-13'),
+        await copy('2026-13'),
+      ];
+      for (const res of replies) expect([res.statusCode, res.json()]).toEqual([400, badMonthReply('month')]);
+    });
+
+    it('checks the body before whether the month has ended', async () => {
+      const gym = await idOf('gym');
+      const edited = await edit(gym, auth, owner.ledgerId, '2026-09', {});
+      const added = await add(auth, owner.ledgerId, '2026-09', '');
+      for (const res of [edited, added]) expect([res.statusCode, res.json().error]).toEqual([400, 'invalid_request']);
     });
   });
 });

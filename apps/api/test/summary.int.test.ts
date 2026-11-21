@@ -7,6 +7,7 @@ import { addMember } from '../src/ledgers/members.js';
 import { centsToString, toCents } from '../src/money.js';
 import {
   authHeader,
+  badMonthReply,
   clearData,
   makeUser,
   resetSchema,
@@ -310,5 +311,12 @@ describe.skipIf(!(await testDbReachable()))('GET /api/ledgers/:id/summary (MySQL
     const res = await summary('from=2026-10&to=2026-10', auth, stranger.ledgerId);
     expect(res.statusCode).toBe(404);
     expect(res.json()).toMatchObject({ error: 'ledger_not_found' });
+  });
+
+  describe('month checks', () => {
+    it('answers malformed months with a Zod issue each, from first', async () => {
+      const res = await summary('from=2026-13&to=2026-13');
+      expect([res.statusCode, res.json()]).toEqual([400, badMonthReply('from', 'to')]);
+    });
   });
 });

@@ -5,6 +5,7 @@ import { createDb, type Db } from '../src/db.js';
 import { addMember } from '../src/ledgers/members.js';
 import {
   authHeader,
+  badMonthReply,
   clearData,
   makeUser,
   resetSchema,
@@ -99,5 +100,12 @@ describe.skipIf(!(await testDbReachable()))('GET /api/ledgers/:id/months/:month/
     const res = await balance('2026-02', auth, stranger.ledgerId);
     expect(res.statusCode).toBe(404);
     expect(res.json()).toMatchObject({ error: 'ledger_not_found' });
+  });
+
+  describe('month checks', () => {
+    it('answers a malformed month with its Zod issue', async () => {
+      const res = await balance('2026-13');
+      expect([res.statusCode, res.json()]).toEqual([400, badMonthReply('month')]);
+    });
   });
 });

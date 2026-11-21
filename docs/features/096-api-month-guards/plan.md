@@ -79,7 +79,7 @@ Existing test cases stay unmodified.
 - [x] 0. Bump version to 1.15.2
   - Files: package.json, apps/mobile/app.json
   - Change: set both to 1.15.2
-- [ ] 1. Pin the month errors and check order the routes answer with (about 86 lines, tests only)
+- [x] 1. Pin the month errors and check order the routes answer with (about 86 lines, tests only)
   - Files: `apps/api/test/helpers.ts` (adds `badMonthReply`, with `pattern: '/^\\d{4}-(0[1-9]|1[0-2])$/'` written out,
     not imported, so a changed regex fails). In each of `categories.int`, `income.int`, `balances.int`, `expenses.int`
     and `summary.int`: one new nested `describe('month checks', …)` appended as the last block of the suite's outer

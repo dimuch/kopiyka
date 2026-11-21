@@ -272,7 +272,7 @@ every slice still stands alone.
       - MySQL's default strict mode refuses it ("Data too long"), so `importIncome` rejects.
       - `rows()` is still empty: Jan's item isn't stored either.
     - "an unknown ledger throws": both reject with `No ledger 999999`.
-- [ ] 4. Add `yarn api import-income` (~105)
+- [x] 4. Add `yarn api import-income` (~105)
   - Files: `apps/api/scripts/import-income.ts`, `apps/api/package.json`
   - Change: the CLI in Contracts.
     - Without `--apply` it calls `previewIncome`, with it `importIncome`. Both get all ten months, or only

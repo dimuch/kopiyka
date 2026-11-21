@@ -19,6 +19,7 @@ import type { ExpensesTable, GroceriesTable } from './notion/client.js';
 import { notionRoutes } from './notion/routes.js';
 import type { RateFetcher } from './rates/nbu.js';
 import { rateRoutes } from './rates/routes.js';
+import { summaryRoutes } from './summary/routes.js';
 
 export interface AppDeps {
   config: Config;
@@ -94,6 +95,7 @@ export async function buildApp(deps: AppDeps): Promise<FastifyInstance> {
   await categoryRoutes(app, deps);
   await incomeRoutes(app, deps);
   await balanceRoutes(app, deps);
+  await summaryRoutes(app, deps);
   await rateRoutes(app, deps);
   await expenseRoutes(app, deps);
   await notionRoutes(app, deps);

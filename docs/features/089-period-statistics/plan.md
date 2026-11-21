@@ -158,7 +158,7 @@ back with it, and an app build left open against an older API gets 404 `not_foun
 - [x] A0. Bump version to 1.11.0
   - Files: package.json, apps/mobile/app.json
   - Change: set both to 1.11.0
-- [ ] A1. Add a read-only summary route with a period's totals
+- [x] A1. Add a read-only summary route with a period's totals
   - Files: apps/api/src/summary/routes.ts (new), apps/api/src/app.ts (import + `await summaryRoutes(app, deps)` after
     `balanceRoutes`), apps/api/test/summary.int.test.ts (new),
     docs/features/086-money-flow/brief.md (Status line: can build on 089's summary endpoint; the edit already in the
@@ -362,6 +362,8 @@ would ship the by-category and by-month cards on their own.
 - None yet.
 
 ## Deviations
+
+- A1: the 086 brief's Status line went in with the plan commit (0fd1354), not with A1 — same file and text.
 
 <filled by the developer during build>
 

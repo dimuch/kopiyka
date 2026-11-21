@@ -1,6 +1,6 @@
 import { router, useLocalSearchParams } from 'expo-router';
 import { useRef, useState } from 'react';
-import { ActivityIndicator, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, ScrollView, type ScrollViewInstance, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { ApiError } from '@/api/apiError';
 import { useColors, useThemedStyles } from '@/appearance/AppearanceContext';
@@ -56,6 +56,7 @@ export default function Budget() {
   // My order of the month's rows, changed by long-press and drag (brief 092).
   const order = useCategoryOrder(ledger.ledgerId, data?.categories ?? null, reload);
   const [dragging, setDragging] = useState(false);
+  const scrollRef = useRef<ScrollViewInstance>(null);
 
   const [busy, setBusy] = useState(false);
   // Tagged with their ledger and month, so switching either clears them without an effect.
@@ -125,6 +126,7 @@ export default function Budget() {
 
       {/* Room under the last row, so the Undo bar can't cover it. */}
       <ScrollView
+        ref={scrollRef}
         scrollEnabled={!dragging}
         contentContainerStyle={[styles.content, toast.offer && { paddingBottom: 104 }]}
       >
@@ -187,6 +189,7 @@ export default function Budget() {
                   onMove={order.move}
                   disabled={order.saving}
                   onDragChange={setDragging}
+                  scrollRef={scrollRef}
                   style={styles.listCard}
                   renderRow={(category, index, drag) => {
                     const last = index === data.categories.length - 1;

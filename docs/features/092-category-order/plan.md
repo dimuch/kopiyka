@@ -284,7 +284,7 @@ Why: §8b `minor` covers a new user action (drag to reorder on Budget and Expens
     - The wheel/trackpad scroll still scrolls. With the API stopped, a drop snaps back and shows the line.
     - Removing a category still offers Undo.
     - On iPhone (Expo Go), the same, plus: a flick that starts on a row scrolls and doesn't pick it up.
-- [ ] 9. Scroll the list while a held row is near its top or bottom (~55)
+- [x] 9. Scroll the list while a held row is near its top or bottom (~55)
   - Files: `apps/mobile/src/components/ReorderList.tsx` (`scrollRef`), `apps/mobile/src/app/(tabs)/budget.tsx`
     (`ref`)
   - Change:

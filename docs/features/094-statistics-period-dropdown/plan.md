@@ -166,8 +166,8 @@ any range, and old builds keep working.
     - VoiceOver on iPhone:
       - The arrows say "Previous month" and "Next month", and the forward one is dimmed on the current month.
       - The button says "Period, November 2026, button, Opens a menu of periods".
-      - With the menu open, only the card and "Close menu" can be reached, and each option says whether it's
-        selected.
+      - With the menu open, the header, switcher and figures can't be reached (the tab bar still can, see Not doing),
+        and each option says whether it's selected.
     - In the web accessibility tree, the button has `aria-expanded`, the forward arrow `aria-disabled`, and each
       option is `role="radio"` with `aria-checked`.
     - `Icon.tsx` is in the demo bundle, so `yarn mobile export:web && yarn mobile check-builds` must pass with no
@@ -234,6 +234,10 @@ None found.
   covered by the slice 2 tests; the switcher's look and the long-range fit at 375 wide are left for the user.
 - slice 4: the web and iPhone checks didn't run, for the same reason. `export:web` and `check-builds` passed (135 demo
   modules, list unchanged). The menu's place, taps outside it and VoiceOver are left for the user.
+- slice 3: the `PeriodSwitcher` prop is `forwardEnabled`, not `canStepForward` as in Contracts, so it doesn't shadow
+  the imported function (skeptic suggestion).
+- review: the slice 4 VoiceOver check is reworded. The menu layer doesn't cover the tab bar, which stays reachable
+  and tappable while the menu is open, as Not doing accepts.
 
 ## Consolidate
 

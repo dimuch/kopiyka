@@ -6,8 +6,8 @@ import { useSession } from '@/auth/AuthContext';
 import { EmptyMonth } from '@/components/EmptyMonth';
 import { HomeButton } from '@/components/HomeButton';
 import { LoadError } from '@/components/LoadError';
-import { Pressable } from '@/components/Pressable';
 import { Icon } from '@/components/Icon';
+import { Pressable } from '@/components/Pressable';
 import {
   canStepForward,
   matchingChoice,
@@ -252,7 +252,8 @@ function PeriodMenu({
 }) {
   const colors = useColors();
   const styles = useThemedStyles(makeStyles);
-  // The anchor is measured inside the SafeAreaView's padding, and absolute children are placed from the same edge.
+  // anchor.y already includes the SafeAreaView's padding (inset + 20). Absolute children are placed from its outer
+  // edge, so no inset is added here, unlike CategoryMenu.
   const place = { top: anchor.y + anchor.height + 4, left: anchor.x + (anchor.width - MENU_WIDTH) / 2 };
   return (
     <View accessibilityViewIsModal style={styles.menuLayer}>

@@ -237,7 +237,14 @@ None found.
 
 ## Consolidate
 
-<filled in /kopiyka-hos Phase 3a>
+- `stepPeriod`: REUSE already, it is `shiftMonth` on the last month. No other code steps a range.
+- `canStepForward`: no twin. The only other `< kyivMonth(now)` is the demo's month-ended refusal (`demo/state.ts`),
+  a different rule in a module Statistics can't import.
+- `matchingChoice`: no twin. Nothing else compares a period with the presets.
+- `PeriodSwitcher` and `MonthSwitcher`: LEAVE, as planned. They share only about 15 lines of arrow JSX, and this is the
+  second copy (see Approach).
+- `PeriodMenu` and `CategoryMenu`: LEAVE, as planned. Two in-screen menus; extract on the third.
+- `Icon` `down`: no twin.
 
 ## Revision 1
 

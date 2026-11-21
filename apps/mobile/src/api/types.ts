@@ -129,3 +129,35 @@ export interface NotionSyncResult {
   /** null when the API has no Expenses table configured. */
   totals: { added: number; failed: TotalsFailure[] } | null;
 }
+
+/** A period's figures in EUR (brief 089), as decimal strings. `leftEur` is income − spent and may be negative. */
+export interface SummaryTotals {
+  incomeEur: string;
+  plannedEur: string;
+  spentEur: string;
+  leftEur: string;
+}
+
+/** One month of a period; a month with nothing in it is all '0.00'. `leftEur` may be negative. */
+export interface SummaryMonth {
+  /** 'YYYY-MM'. */
+  month: string;
+  incomeEur: string;
+  spentEur: string;
+  leftEur: string;
+}
+
+/** A category's planned and spent over a period, named as in the period's last month. */
+export interface SummaryCategory {
+  categoryId: number;
+  name: string;
+  plannedEur: string;
+  spentEur: string;
+}
+
+/** GET /api/ledgers/:id/summary: months oldest first, categories by spent (largest first). */
+export interface PeriodSummary {
+  totals: SummaryTotals;
+  months: SummaryMonth[];
+  categories: SummaryCategory[];
+}

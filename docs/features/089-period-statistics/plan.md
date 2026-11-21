@@ -249,7 +249,7 @@ PR A total ≈ 385 changed lines, not counting A0.
     - `periodLabel`: `{2026-11, 2026-11}` → 'November 2026'; `{2026-09, 2026-11}` → 'Sep – Nov 2026';
       `{2025-12, 2026-11}` → 'Dec 2025 – Nov 2026'.
   - ~150 lines
-- [ ] B2. Load a period's summary for the open ledger
+- [x] B2. Load a period's summary for the open ledger
   - Files: apps/mobile/src/api/types.ts, apps/mobile/src/data/useSummary.ts (new), apps/mobile/src/data/periodSummary.ts
     (new), apps/mobile/test/periodSummary.test.ts (new)
   - Change: the DTO mirrors, the hook, `planGap` and `isEmptySummary`, as in Contracts.

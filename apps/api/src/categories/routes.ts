@@ -2,10 +2,10 @@ import type { FastifyInstance } from 'fastify';
 import type { RowDataPacket } from 'mysql2/promise';
 import { z } from 'zod';
 import type { AppDeps } from '../app.js';
-import { monthEnded, monthStart, nextMonthStart } from '../dates.js';
+import { monthStart, nextMonthStart } from '../dates.js';
 import { overIncomeError } from '../income/limit.js';
 import { AMOUNT_RE, centsToString, toCents } from '../money.js';
-import { MonthString } from '../monthGuards.js';
+import { checkMonthOpen, MonthString } from '../monthGuards.js';
 import {
   addToMonth,
   copyPreviousMonth,
@@ -176,7 +176,7 @@ export async function categoryRoutes(app: FastifyInstance, { db, now }: AppDeps)
   app.delete('/api/ledgers/:id/categories/:categoryId/months/:month', guards, async (req, reply) => {
     const { categoryId, month } = MonthParams.parse(req.params);
     const at = now();
-    if (monthEnded(month, at)) return reply.code(409).send({ error: 'month_ended' });
+    if (!checkMonthOpen(reply, at, month)) return reply;
     return (await removeFromMonth(db, req.ledger!.ledgerId, categoryId, month, at))
       ? reply.code(204).send()
       : reply.code(404).send({ error: 'not_found' });
@@ -184,7 +184,7 @@ export async function categoryRoutes(app: FastifyInstance, { db, now }: AppDeps)
 
   app.post('/api/ledgers/:id/categories/:categoryId/months/:month/restore', guards, async (req, reply) => {
     const { categoryId, month } = MonthParams.parse(req.params);
-    if (monthEnded(month, now())) return reply.code(409).send({ error: 'month_ended' });
+    if (!checkMonthOpen(reply, now(), month)) return reply;
     const result = await restoreToMonth(db, req.ledger!.ledgerId, categoryId, month);
     if (result === 'not_found') return reply.code(404).send({ error: 'not_found' });
     // The request is fine; the month's current names clash with it (brief 037).
@@ -197,7 +197,7 @@ export async function categoryRoutes(app: FastifyInstance, { db, now }: AppDeps)
   app.patch('/api/ledgers/:id/categories/:categoryId/months/:month', guards, async (req, reply) => {
     const { categoryId, month } = MonthParams.parse(req.params);
     const changes = EditBody.parse(req.body);
-    if (monthEnded(month, now())) return reply.code(409).send({ error: 'month_ended' });
+    if (!checkMonthOpen(reply, now(), month)) return reply;
     const result = await editInMonth(db, req.ledger!.ledgerId, categoryId, month, changes);
     if (result === 'not_found') return reply.code(404).send({ error: 'not_found' });
     if (result === 'name_taken') return reply.code(400).send({ error: 'name_taken' });
@@ -208,7 +208,7 @@ export async function categoryRoutes(app: FastifyInstance, { db, now }: AppDeps)
   // Brief 033: sets up a month with no budget from the month before it.
   app.post('/api/ledgers/:id/months/:month/copy', guards, async (req, reply) => {
     const { month } = Month.parse(req.params);
-    if (monthEnded(month, now())) return reply.code(409).send({ error: 'month_ended' });
+    if (!checkMonthOpen(reply, now(), month)) return reply;
     const result = await copyPreviousMonth(db, req.ledger!.ledgerId, month);
     return result === 'copied' ? reply.code(204).send() : reply.code(409).send({ error: result });
   });
@@ -217,7 +217,7 @@ export async function categoryRoutes(app: FastifyInstance, { db, now }: AppDeps)
   app.post('/api/ledgers/:id/months/:month/categories', guards, async (req, reply) => {
     const { month } = Month.parse(req.params);
     const { name, amount } = AddBody.parse(req.body);
-    if (monthEnded(month, now())) return reply.code(409).send({ error: 'month_ended' });
+    if (!checkMonthOpen(reply, now(), month)) return reply;
     const added = await addToMonth(db, req.ledger!.ledgerId, month, name, amount);
     if (added === 'name_taken') return reply.code(400).send({ error: 'name_taken' });
     if ('overCents' in added) return reply.code(409).send(overIncomeError(added));

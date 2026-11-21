@@ -6,7 +6,7 @@ import { monthEnded, monthOf, monthStart, previousMonthStart } from '../dates.js
 import { withTransaction } from '../db.js';
 import { lockLedger } from '../ledgers/lock.js';
 import { AMOUNT_RE, centsToString, toCents } from '../money.js';
-import { MonthString } from '../monthGuards.js';
+import { checkMonthOpen, MonthString } from '../monthGuards.js';
 import { checkIncome, overIncomeError, type OverIncome } from './limit.js';
 
 export interface IncomeItemDto {
@@ -81,7 +81,7 @@ export async function incomeRoutes(app: FastifyInstance, { db, now }: AppDeps): 
   app.post('/api/ledgers/:id/months/:month/income', guards, async (req, reply) => {
     const { month } = MonthParams.parse(req.params);
     const { title, amount } = IncomeBody.parse(req.body);
-    if (monthEnded(month, now())) return reply.code(409).send({ error: 'month_ended' });
+    if (!checkMonthOpen(reply, now(), month)) return reply;
     const ledgerId = req.ledger!.ledgerId;
     const amountEur = centsToString(toCents(amount));
     const incomeId = await withTransaction(db, async (conn) => {
@@ -136,7 +136,7 @@ export async function incomeRoutes(app: FastifyInstance, { db, now }: AppDeps): 
   // Fills a month with no income from the month before it: titles and amounts, since income usually repeats.
   app.post('/api/ledgers/:id/months/:month/income/copy', guards, async (req, reply) => {
     const { month } = MonthParams.parse(req.params);
-    if (monthEnded(month, now())) return reply.code(409).send({ error: 'month_ended' });
+    if (!checkMonthOpen(reply, now(), month)) return reply;
     const ledgerId = req.ledger!.ledgerId;
     const first = monthStart(month);
     const result = await withTransaction(db, async (conn) => {

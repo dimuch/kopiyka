@@ -338,6 +338,62 @@ can run before or after the history import. Production never gets `NOTION_*`: it
 **The laptop** imports the same way with `yarn api import-balances --ledger 1 --snapshot <file>` (or, with the
 Notion settings, without `--snapshot`), then `--apply`.
 
+## Importing January–October income from Notion
+
+Each income row of Notion's Income table, January–October 2026, becomes one income item (brief 088): its Name as the
+title (trimmed, cut to 40 characters, "Income" when empty), its Amount in EUR, added by the ledger's owner. A row with
+no Month, or with an empty, zero or negative Amount, is skipped and named. It's a one-time import and only inserts: a
+month that already has any income item is skipped whole, and nothing is ever updated or deleted. November on is never
+touched, and plans aren't checked (the income limit starts in November). Production never gets `NOTION_*`: it imports
+a snapshot file.
+
+1. **Snapshot**, on the laptop. With `NOTION_TOKEN`, `NOTION_GROCERIES_DATA_SOURCE_ID` and
+   `NOTION_INCOME_DATA_SOURCE_ID` in `apps/api/.env`:
+
+   ```bash
+   yarn api import-income --save ./notion-income-2026.json
+   ```
+
+   If the token answers 401, build the same file from the Notion connector instead:
+   `{ "rows": [{ "name": "Salary", "month": 1, "amount": "2500.00" }, …] }`, one entry per Notion row. `month` is a
+   number 1–12, not Notion's `Jan`…`Dec`; `amount` is a signed string, `null` for an empty cell.
+
+2. **Copy** it to the droplet: `scp ./notion-income-2026.json do:/tmp/ && rm ./notion-income-2026.json`.
+
+3. **Dry run, then import** on the droplet, as `kopiyka` with the env file:
+
+   ```bash
+   sudo install -m 600 -o kopiyka -g kopiyka /tmp/notion-income-2026.json /tmp/notion-income-kopiyka.json && shred -u /tmp/notion-income-2026.json
+   run() { sudo systemd-run --pty --wait --collect -p User=kopiyka -p EnvironmentFile=/etc/kopiyka/api.env \
+     -p WorkingDirectory=/opt/kopiyka/current/apps/api /usr/bin/node dist/scripts/import-income.js "$@"; }
+   run --ledger 1 --snapshot /tmp/notion-income-kopiyka.json            # dry run: writes nothing
+   run --ledger 1 --snapshot /tmp/notion-income-kopiyka.json --apply
+   sudo shred -u /tmp/notion-income-kopiyka.json
+   ```
+
+   The dry run prints each month (made-up figures here), then each skipped row on stderr:
+
+   ```text
+   2026-01: add 2, total 3000.50
+     + "Salary" 2500.00
+     + "Bonus" 500.50
+   2026-02: skipped, already has 3 income items (total 1500.00)
+   2026-03: nothing to add
+   …
+   Skipped row "Zero" in 2026-07: amount 0.00
+   Dry run: nothing was written. Run again with --apply to write.
+   ```
+
+   `--apply` prints the same and ends with `Imported N items into M months.`; it writes in one transaction, so a
+   failure prints `Nothing was written.` Running it again skips every month it filled. `--month 2026-01` limits what is
+   shown and written to one month, for checking January first.
+
+4. **Notion changed after the import?** The month is skipped from then on. Fixing it means deleting that month's items
+   by hand first; the import doesn't do it.
+
+**The laptop** imports the same way with `yarn api import-income --ledger 1 --snapshot <file>` (or, with the Notion
+settings, without `--snapshot`), then `--apply`.
+
 ## After changing the vhost
 
 Step 8's install without certbot, then a check that every kind of answer carries the security headers and no nginx

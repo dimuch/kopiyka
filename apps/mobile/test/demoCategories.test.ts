@@ -455,6 +455,18 @@ describe('demo categories, my order', () => {
     expect(await idsIn(api, '2026-11')).toEqual([2, 1]);
   });
 
+  it('breaks quick-row ties by sort order, never my own', async () => {
+    const data = fixtureData();
+    // Rent's and food's newest expenses were created at the same moment.
+    for (const expense of data.expenses) expense.createdAt = '2026-11-10T09:00:00.000Z';
+    const api = createStore(data, () => NOW);
+
+    await saveOrder(api, [2, 1]);
+
+    const list = await api<MonthList>('/api/ledgers/1/categories?month=2026-11');
+    expect(list.quickCategoryIds).toEqual([1, 2]);
+  });
+
   it('lists a category added after the save last', async () => {
     const api = fixtureStore();
     await saveOrder(api, [2, 1]);

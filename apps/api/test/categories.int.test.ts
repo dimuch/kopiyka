@@ -192,7 +192,7 @@ describe.skipIf(!(await testDbReachable()))('categories API (MySQL)', () => {
   });
 
   it('keeps the quick row to the first five, whatever was spent last', async () => {
-    // Brief 098: both are newer than anything else and outside the first five, so the old most-recent rule put them first.
+    // Brief 099: both are newer than anything else and outside the first five, so the old most-recent rule put them first.
     await addExpense('gym', '2026-10-02T09:00:00Z');
     await addExpense('car', '2026-10-04T09:00:00Z');
 

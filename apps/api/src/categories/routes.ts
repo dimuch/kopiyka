@@ -78,7 +78,7 @@ function toDto(r: RowDataPacket): CategoryDto {
 }
 
 /**
- * The Add expense quick row (brief 098): the first five of a month's list, which comes in the caller's own order
+ * The Add expense quick row (brief 099): the first five of a month's list, which comes in the caller's own order
  * (brief 092), so dragging a category to the top puts it in the row. It replaces 092's most-recently-used rule, so
  * each member gets their own row and it no longer shifts when anyone adds an expense.
  */

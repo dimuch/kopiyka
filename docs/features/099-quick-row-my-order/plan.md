@@ -64,7 +64,7 @@ the row. Precedent: the Statistics period rework that changed an existing screen
   - Files: apps/api/src/categories/routes.ts, apps/api/test/categories.test.ts, apps/api/test/categories.int.test.ts,
     apps/api/test/categoryOrder.int.test.ts
   - Change: `pickQuick(categories: CategoryDto[])` returns `categories.slice(0, QUICK_CATEGORY_COUNT).map(c =>
-c.categoryId)`. Its JSDoc says why: the list is already in the caller's order, brief 098, and this replaces 092's
+c.categoryId)`. Its JSDoc says why: the list is already in the caller's order, brief 099, and this replaces 092's
     most-recently-used rule. The handler calls `pickQuick(categories)`. The `u` subquery join and `u.last_used_at`
     go. The bound params are unchanged, because the subquery had none.
   - Tests:
@@ -97,7 +97,7 @@ c.categoryId)`. Its JSDoc says why: the list is already in the caller's order, b
   - Files: apps/mobile/src/demo/categoryRoutes.ts, apps/mobile/src/demo/sampleData.ts,
     apps/mobile/test/demoCategories.test.ts, apps/mobile/test/demoSampleData.test.ts
   - Change: the demo `pickQuick(categories)` returns `categories.slice(0, QUICK_CATEGORY_COUNT).map(…)`, and its JSDoc
-    says it mirrors the API's `pickQuick` (brief 098). The GET list calls `pickQuick(listed)`. `lastUsed` is deleted.
+    says it mirrors the API's `pickQuick` (brief 099). The GET list calls `pickQuick(listed)`. `lastUsed` is deleted.
     `sampleData`'s JSDoc stops claiming `createdAt` shapes the quick row ("so the list reads as it would…").
   - Tests: `demoCategories.test.ts`
     - Replace "puts the quick row in order of latest expense…" with "puts the month's first five in the quick row,
@@ -170,5 +170,7 @@ c.categoryId)`. Its JSDoc says why: the list is already in the caller's order, b
   first quick tile and selected; Rent, Groceries, Transport and Eating out follow in Budget order; "1 more" holds
   Utilities. The check for "opened from a category outside the top five" relies on `quick.test.ts` (app code
   unchanged).
+
+- Renumbered the brief from 098 to 099: `chore/importer-cli` (another session) took 098 first.
 
 ## Consolidate

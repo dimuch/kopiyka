@@ -19,7 +19,9 @@ export async function incomeRows(db: Db, ledgerId: number, first: string, last: 
   return income;
 }
 
-/** `{ category_id, month: 'YYYY-MM', spent_eur }` per category and month; deleted expenses and categories don't count. */
+/**
+ * `{ category_id, month: 'YYYY-MM', spent_eur }` per category and month; deleted expenses and categories don't count.
+ */
 export async function spentRows(db: Db, ledgerId: number, first: string, last: string): Promise<RowDataPacket[]> {
   const [spent] = await db.query<RowDataPacket[]>(
     `SELECT e.category_id, DATE_FORMAT(e.expense_date, '%Y-%m') AS month, SUM(e.amount_eur) AS spent_eur

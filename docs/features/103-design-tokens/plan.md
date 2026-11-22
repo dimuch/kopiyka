@@ -313,3 +313,8 @@ The slices and the version are unchanged.
 
 Approved by the user: the 103 / 103b / 103c split, both >1pt type changes (Expenses total 34 → 28,
 Statistics period 20 → 22), and the spec's letter spacing now (not 0 until Inter).
+
+## Gate B (2026-11-22)
+
+Approved by the user: push and PR, including the measured shifts over 2pt (Statistics' last row ~15pt lower with 15
+categories, Settings' Appearance picker 14.5pt lower, the Expenses card 5.5pt shorter). iPhone check left for the user.

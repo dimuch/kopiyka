@@ -51,7 +51,7 @@ export default function Budget() {
   const ended = month < thisMonth;
   // What the month may spend (brief 060): its income from every member, against what's planned.
   const income = useIncome(ledger.ledgerId, month);
-  // How the month started and ended (brief 090); only months with imported balances have a line.
+  // How the month started and ended (briefs 090, 102): every month from the ledger's first up to now has a line.
   const balance = balanceLine(useMonthBalance(ledger.ledgerId, month));
   // My order of the month's rows, changed by long-press and drag (brief 092).
   const order = useCategoryOrder(ledger.ledgerId, data?.categories ?? null, reload);

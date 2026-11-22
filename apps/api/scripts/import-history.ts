@@ -80,24 +80,25 @@ if (!snapshot) {
 
 /** The month's changes as lines a person can check against Notion. */
 function describe(plan: MonthPlan, wanted: WantedMonth): string[] {
-  const names = new Map(wanted.categories.map((c) => [c.techName, c.name]));
+  const names = new Map(wanted.categories.map((category) => [category.techName, category.name]));
   const name = (techName: string) => names.get(techName) ?? techName;
   const lines = [
-    ...plan.created.map((c) => `  new category: ${c.name}`),
-    ...plan.listed.map((l) => `  list: ${l.from === null ? `+ ${l.name}` : `${l.from} → ${l.name}`}`),
-    ...plan.removed.map((r) => `  list: − ${r.name} (${r.expenseIds.length} expenses deleted)`),
+    ...plan.created.map((category) => `  new category: ${category.name}`),
+    ...plan.listed.map((row) => `  list: ${row.from === null ? `+ ${row.name}` : `${row.from} → ${row.name}`}`),
+    ...plan.removed.map((row) => `  list: − ${row.name} (${row.expenseIds.length} expenses deleted)`),
     ...plan.planned.map(
-      (p) => `  planned: ${name(p.techName)} ${centsToString(p.fromCents)} → ${centsToString(p.toCents)}`,
+      (planned) =>
+        `  planned: ${name(planned.techName)} ${centsToString(planned.fromCents)} → ${centsToString(planned.toCents)}`,
     ),
     ...plan.totals.map(
-      (t) =>
-        `  spent: ${name(t.techName)} ${centsToString(t.fromCents)} (${t.expenseIds.length} expenses) → ` +
-        (t.toCents ? `${TOTAL} ${centsToString(t.toCents)}` : 'none'),
+      (total) =>
+        `  spent: ${name(total.techName)} ${centsToString(total.fromCents)} (${total.expenseIds.length} expenses) → ` +
+        (total.toCents ? `${TOTAL} ${centsToString(total.toCents)}` : 'none'),
     ),
   ];
   const deleted =
-    plan.removed.reduce((n, r) => n + r.expenseIds.length, 0) +
-    plan.totals.reduce((n, t) => n + t.expenseIds.length, 0);
+    plan.removed.reduce((sum, row) => sum + row.expenseIds.length, 0) +
+    plan.totals.reduce((sum, total) => sum + total.expenseIds.length, 0);
   if (deleted) lines.push(`  expenses deleted: ${deleted}`);
   return lines.length ? [`${plan.month}:`, ...lines] : [`${plan.month}: no change`];
 }

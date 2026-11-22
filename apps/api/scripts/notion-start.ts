@@ -20,8 +20,8 @@ const { values } = parseArgs({ options: { adopt: { type: 'string' }, totals: { t
 const Pair = z
   .string()
   .regex(/^\d+=[0-9a-fA-F-]+$/, 'expected <expenseId>=<notionPageId>')
-  .transform((s) => {
-    const [expenseId, pageId] = s.split('=') as [string, string];
+  .transform((pair) => {
+    const [expenseId, pageId] = pair.split('=') as [string, string];
     return { expenseId: Number(expenseId), pageId };
   });
 
@@ -40,8 +40,8 @@ const db = createDb(config.databaseUrl);
 try {
   if (values.totals) {
     try {
-      const n = await startTotals(db, scope, new Date());
-      console.log(`Counted ${n} expenses as already in Notion's totals.`);
+      const counted = await startTotals(db, scope, new Date());
+      console.log(`Counted ${counted} expenses as already in Notion's totals.`);
     } catch (err) {
       const already = (err as { code?: string }).code === 'ER_DUP_ENTRY' || /already set/.test((err as Error).message);
       console.error(
@@ -77,8 +77,10 @@ try {
     }
     console.log(`Recorded ${pairs.data.length} rows.`);
     const plan = planGroceries(await loadGroceries(db, scope));
-    for (const { kind, expense: e } of plan) {
-      console.log(`${e.expenseId} ${e.date} ${e.name} ${e.amountEur}: the first sync will ${kind} its row`);
+    for (const { kind, expense } of plan) {
+      console.log(
+        `${expense.expenseId} ${expense.date} ${expense.name} ${expense.amountEur}: the first sync will ${kind} its row`,
+      );
     }
     console.log(`Unsent: ${plan.length}`);
   }

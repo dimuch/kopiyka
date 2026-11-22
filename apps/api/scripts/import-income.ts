@@ -86,7 +86,7 @@ if (!snapshot) {
   process.exit(1);
 }
 
-const count = (n: number, noun: string) => `${n} ${noun}${n === 1 ? '' : 's'}`;
+const count = (quantity: number, noun: string) => `${quantity} ${noun}${quantity === 1 ? '' : 's'}`;
 
 /** The month as lines a person can check against Notion. */
 function describe({ month, storedCount, storedCents, add }: IncomeMonthImport): string[] {
@@ -104,7 +104,7 @@ function describe({ month, storedCount, storedCents, add }: IncomeMonthImport): 
 }
 
 const { months, skipped } = wantedIncome(snapshot);
-const chosen = values.month === undefined ? months : months.filter((m) => m.month === values.month);
+const chosen = values.month === undefined ? months : months.filter((incomeMonth) => incomeMonth.month === values.month);
 
 const db = createDb(config.databaseUrl);
 try {
@@ -112,8 +112,8 @@ try {
   for (const month of result) for (const line of describe(month)) console.log(line);
   // From the whole snapshot, so a row with no month is named even when --month picks one.
   for (const row of skipped) console.error(`Skipped row ${row}`);
-  const added = result.filter((m) => m.add.length > 0);
-  const itemCount = added.reduce((sum, m) => sum + m.add.length, 0);
+  const added = result.filter((incomeMonth) => incomeMonth.add.length > 0);
+  const itemCount = added.reduce((sum, incomeMonth) => sum + incomeMonth.add.length, 0);
   console.log(
     values.apply
       ? `Imported ${count(itemCount, 'item')} into ${count(added.length, 'month')}.`

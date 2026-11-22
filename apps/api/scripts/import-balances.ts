@@ -117,7 +117,7 @@ function describe({ month, from, to, changed }: BalanceChange): string {
 const wanted = wantedBalances(snapshot);
 // Warnings compare neighbouring months, so they come from all ten, before --month picks one.
 const warnings = continuityWarnings(wanted);
-const chosen = values.month === undefined ? wanted : wanted.filter((m) => m.month === values.month);
+const chosen = values.month === undefined ? wanted : wanted.filter((balance) => balance.month === values.month);
 
 const db = createDb(config.databaseUrl);
 try {
@@ -128,7 +128,7 @@ try {
   for (const warning of warnings) console.error(`Warning: ${warning}`);
   console.log(
     values.apply
-      ? `Imported: ${changes.filter((c) => c.changed).length} of ${changes.length} months changed.`
+      ? `Imported: ${changes.filter((change) => change.changed).length} of ${changes.length} months changed.`
       : 'Dry run: nothing was written. Run again with --apply to write.',
   );
 } catch (err) {

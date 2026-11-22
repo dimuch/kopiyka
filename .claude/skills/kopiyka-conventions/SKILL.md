@@ -83,7 +83,7 @@ the second consumer appears or `routes.ts` passes ~200 lines.
 | `appearance/`                   | Light/Dark/Auto choice: pure rules (`preference.ts`), provider and hooks (`useColors`, `useThemedStyles`)                                                            | hold colour values — those stay in `theme.ts`                                        |
 | `auth/`                         | session state (`AuthContext`)                                                                                                                                        | —                                                                                    |
 | `format.ts`                     | pure money/date formatting and parsing                                                                                                                               | do I/O                                                                               |
-| `theme.ts`                      | palettes (`darkColors`, `lightColors`), fonts, category hues, layout constants (`phoneWidth`) — the only place for raw hex/font names                                | —                                                                                    |
+| `theme.ts`                      | palettes, fonts, style tokens (`space`, `radius`, `size`, `text`), category hues, `phoneWidth` — the only place for raw hex, font names and style numbers            | —                                                                                    |
 | `demo/`                         | the demo build only (brief 080): the three swapped modules (`client`, `session`, `tabItems`), the in-memory store that answers `api()`, its sample data, `DemoStrip` | be imported from outside `demo/` and `demo-app/`                                     |
 | `demo-app/`                     | the demo's routes: one-line re-exports of shared screens where it can, its own root layout and Home                                                                  | hold logic a screen in `app/` needs                                                  |
 
@@ -159,6 +159,13 @@ StyleSheet.create({...})` at the bottom of the file, read with
   Never read a palette at module load — it wouldn't follow a theme change.
   Styles with no colour can stay a plain `StyleSheet.create`. Small dynamic
   overrides inline are fine.
+- Style numbers: spacing, radius, control heights and type come from the
+  `space`, `radius`, `size` and `text` tokens in `theme.ts` (values:
+  `docs/design/design-system.md`). Money uses `text.amount`/`amountLg`, or
+  its role plus tabular digits. A number literal is only for layout maths,
+  allowlisted with `eslint-disable-next-line no-restricted-syntax` and the
+  reason on the line above; lint enforces this. Don't route style numbers
+  through named constants (`padding: PAD`) to dodge the guard.
 - Works on **iOS and web** (react-native-web). Branch on `Platform.OS`
   only at the edge (`client.ts`, `PhoneColumn`), not throughout screens.
 - Accessibility: interactive elements get `accessibilityRole` and a label;

@@ -473,6 +473,11 @@ created_by, deleted_at)`). Nov gets a list via `storeMonthList(db, id, '2026-11'
 
 ## Deviations
 
+- PR 1, review: `useMonthBalance` gets a `reload` and the Budget tab calls it when an Undo restores a category, so the
+  current month's End moves without leaving the tab (it refetched only on focus, fine while every line was a static
+  import). PR 4 slice 11 reshapes the hook anyway and keeps that call. Checked on web: removing groceries (€112.50)
+  raised End to €2,465; Undo brought it back to €2,352.50 in place.
+
 ## Consolidate
 
 PR 1, against origin/main 24e1200: reused 3 · extracted 0 · left 3.

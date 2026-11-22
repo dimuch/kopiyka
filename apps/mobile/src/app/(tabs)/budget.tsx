@@ -44,15 +44,20 @@ export default function Budget() {
   // A missing or malformed month opens the current one.
   const month = parseMonthParam(params.month) ?? thisMonth;
   const { data, error, reload } = useMonth(ledger.ledgerId, month);
-  // A removal started from this tab's category form comes back here with its Undo (brief 044).
-  const toast = useUndoOffer(reload);
+  // How the month started and ended (briefs 090, 102): every month from the ledger's first up to now has a line.
+  const monthBalance = useMonthBalance(ledger.ledgerId, month);
+  const balance = balanceLine(monthBalance.balance);
+  // A removal started from this tab's category form comes back here with its Undo (brief 044). Restoring it brings
+  // expenses back, so the current month's End moves too.
+  const toast = useUndoOffer(() => {
+    reload();
+    monthBalance.reload();
+  });
   const previousMonth = shiftMonth(month, -1);
   const previous = useMonthCategories(ledger.ledgerId, previousMonth);
   const ended = month < thisMonth;
   // What the month may spend (brief 060): its income from every member, against what's planned.
   const income = useIncome(ledger.ledgerId, month);
-  // How the month started and ended (briefs 090, 102): every month from the ledger's first up to now has a line.
-  const balance = balanceLine(useMonthBalance(ledger.ledgerId, month));
   // My order of the month's rows, changed by long-press and drag (brief 092).
   const order = useCategoryOrder(ledger.ledgerId, data?.categories ?? null, reload);
   const [dragging, setDragging] = useState(false);

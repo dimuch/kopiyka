@@ -193,9 +193,9 @@ export function notionClient(
     body?: unknown,
   ): Promise<Record<string, unknown>> {
     for (let attempt = 1; ; attempt++) {
-      const t = now();
-      if (t < nextAt) await sleep(nextAt - t);
-      nextAt = Math.max(t, nextAt) + SPACING_MS;
+      const nowMs = now();
+      if (nowMs < nextAt) await sleep(nextAt - nowMs);
+      nextAt = Math.max(nowMs, nextAt) + SPACING_MS;
 
       let res: Response;
       try {
@@ -237,7 +237,7 @@ export function notionClient(
         page_size: 100,
         ...(cursor ? { start_cursor: cursor } : {}),
       });
-      for (const r of (answer.results ?? []) as Array<{ in_trash?: boolean }>) if (!r.in_trash) rows.push(r);
+      for (const row of (answer.results ?? []) as Array<{ in_trash?: boolean }>) if (!row.in_trash) rows.push(row);
       cursor = answer.has_more && typeof answer.next_cursor === 'string' ? answer.next_cursor : undefined;
     } while (cursor);
     return rows;
@@ -261,7 +261,7 @@ export function notionClient(
       });
       // The docs only promise to leave out archived pages, not ones in trash, so skip those here.
       const results = (answer.results ?? []) as Array<{ id: string; in_trash?: boolean }>;
-      const live = results.find((r) => !r.in_trash);
+      const live = results.find((row) => !row.in_trash);
       return live ? pageId(live.id) : null;
     },
     async create(row) {
@@ -291,7 +291,7 @@ export function notionClient(
         filter: { property: 'Month', title: { equals: MONTHS[index] } },
         page_size: 10,
       });
-      const page = ((netto.results ?? []) as Array<{ id: string; in_trash?: boolean }>).find((r) => !r.in_trash);
+      const page = ((netto.results ?? []) as Array<{ id: string; in_trash?: boolean }>).find((row) => !row.in_trash);
       if (!page) return null;
       const nettoId = pageId(page.id);
       const rows = await request('POST', `/data_sources/${totals.expensesDataSourceId}/query`, {
@@ -312,10 +312,10 @@ export function notionClient(
       return {
         nettoPageId: nettoId,
         rows: ((rows.results ?? []) as Row[])
-          .filter((r) => !r.in_trash)
-          .map((r) => ({
-            pageId: pageId(r.id),
-            category: r.properties.Category.title.map((t) => t.plain_text).join(''),
+          .filter((row) => !row.in_trash)
+          .map((row) => ({
+            pageId: pageId(row.id),
+            category: row.properties.Category.title.map((text) => text.plain_text).join(''),
           })),
       };
     },
@@ -340,12 +340,12 @@ export function notionClient(
           Type?: { select: { name: string } | null };
         };
       };
-      return ((await queryAll(totals.expensesDataSourceId)) as Row[]).map((r) => ({
-        category: r.properties.Category.title.map((t) => t.plain_text).join(''),
-        month: selectMonth(r.properties.Month?.select?.name),
-        budgetCents: notionCents(r.properties.Budget?.number),
-        actualCents: notionCents(r.properties['Actual Amount']?.number),
-        type: r.properties.Type?.select?.name ?? null,
+      return ((await queryAll(totals.expensesDataSourceId)) as Row[]).map((row) => ({
+        category: row.properties.Category.title.map((text) => text.plain_text).join(''),
+        month: selectMonth(row.properties.Month?.select?.name),
+        budgetCents: notionCents(row.properties.Budget?.number),
+        actualCents: notionCents(row.properties['Actual Amount']?.number),
+        type: row.properties.Type?.select?.name ?? null,
       }));
     },
     async createRow(row) {
@@ -368,9 +368,9 @@ export function notionClient(
 
   async function balanceRows(dataSourceId: string): Promise<BalanceRow[]> {
     type Row = { properties: { Month?: { select: { name: string } | null }; Amount?: { number: number | null } } };
-    return ((await queryAll(dataSourceId)) as Row[]).map((r) => ({
-      month: selectMonth(r.properties.Month?.select?.name),
-      amountCents: notionCents(r.properties.Amount?.number),
+    return ((await queryAll(dataSourceId)) as Row[]).map((row) => ({
+      month: selectMonth(row.properties.Month?.select?.name),
+      amountCents: notionCents(row.properties.Amount?.number),
     }));
   }
 
@@ -387,10 +387,10 @@ export function notionClient(
         Amount?: { number: number | null };
       };
     };
-    return ((await queryAll(dataSourceId)) as Row[]).map((r) => ({
-      name: r.properties.Name.title.map((t) => t.plain_text).join(''),
-      month: selectMonth(r.properties.Month?.select?.name),
-      amountCents: notionCents(r.properties.Amount?.number),
+    return ((await queryAll(dataSourceId)) as Row[]).map((row) => ({
+      name: row.properties.Name.title.map((text) => text.plain_text).join(''),
+      month: selectMonth(row.properties.Month?.select?.name),
+      amountCents: notionCents(row.properties.Amount?.number),
     }));
   }
 

@@ -221,6 +221,42 @@ describe('notionClient', () => {
       ]);
     });
 
+    it('skips a Netto page in trash, and answers null when every one is', async () => {
+      const trashed = { id: '00000000-0000-4000-8000-00000000000a', in_trash: true };
+      const { expenses, requests } = setup(
+        json({ results: [trashed, { id: '00000000-0000-4000-8000-000000000006', in_trash: false }] }),
+        json({ results: [] }),
+      );
+      expect(await expenses.monthRows('2026-10')).toEqual({ nettoPageId: OCTOBER, rows: [] });
+      expect(JSON.stringify(requests[1]!.body)).toContain(`"contains":"${OCTOBER}"`);
+
+      const allTrashed = setup(json({ results: [trashed] }));
+      expect(await allTrashed.expenses.monthRows('2026-10')).toBeNull();
+      expect(allTrashed.requests.length).toBe(1);
+    });
+
+    it("reads a row's Category from every part of its title", async () => {
+      const { expenses } = setup(
+        json({ results: [{ id: OCTOBER, in_trash: false }] }),
+        json({
+          results: [
+            {
+              id: 'abcdef00000040008000000000000007',
+              properties: { Category: { title: [{ plain_text: 'home ' }, { plain_text: 'needs' }] } },
+            },
+            { id: OCTOBER, properties: { Category: { title: [] } } },
+          ],
+        }),
+      );
+      expect(await expenses.monthRows('2026-10')).toEqual({
+        nettoPageId: OCTOBER,
+        rows: [
+          { pageId: 'abcdef00000040008000000000000007', category: 'home needs' },
+          { pageId: OCTOBER, category: '' },
+        ],
+      });
+    });
+
     it("uses Notion's month names, and answers null without a Netto page", async () => {
       const sept = setup(json({ results: [{ id: OCTOBER }] }), json({ results: [] }));
       await sept.expenses.monthRows('2026-09');
@@ -294,6 +330,22 @@ describe('notionClient', () => {
       expect(requests.map((r) => [r.url, r.method, r.body])).toEqual([
         [`https://api.notion.com/v1/data_sources/${expensesDs}/query`, 'POST', { page_size: 100 }],
         [`https://api.notion.com/v1/data_sources/${expensesDs}/query`, 'POST', { page_size: 100, start_cursor: 'c2' }],
+      ]);
+    });
+
+    it("reads every row's Category from every part of its title", async () => {
+      const { expenses } = setup(
+        json({
+          results: [
+            { properties: { Category: { title: [{ plain_text: 'home ' }, { plain_text: 'needs' }] } } },
+            { properties: { Category: { title: [] } } },
+          ],
+          has_more: false,
+        }),
+      );
+      expect(await expenses.allRows()).toEqual([
+        { category: 'home needs', month: null, budgetCents: null, actualCents: null, type: null },
+        { category: '', month: null, budgetCents: null, actualCents: null, type: null },
       ]);
     });
 

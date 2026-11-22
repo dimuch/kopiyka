@@ -105,7 +105,7 @@ describe('demo categories, a month’s list', () => {
 
     const list = await api<MonthList>('/api/ledgers/1/categories?month=2026-11');
 
-    // Brief 098: 1 (10), 2 (20), 7 (43), 6 (44), 5 (45); 4 (46) is the sixth.
+    // Brief 099: 1 (10), 2 (20), 7 (43), 6 (44), 5 (45); 4 (46) is the sixth.
     expect(list.quickCategoryIds).toEqual([1, 2, 7, 6, 5]);
   });
 });

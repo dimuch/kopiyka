@@ -26,7 +26,7 @@ function toDto(data: StoreData, category: DemoCategory, month: string): Category
   };
 }
 
-/** The API's `pickQuick` (brief 098): the first five of a month's list, which is already in my order. */
+/** The API's `pickQuick` (brief 099): the first five of a month's list, which is already in my order. */
 function pickQuick(categories: DemoCategory[]): number[] {
   return categories.slice(0, QUICK_CATEGORY_COUNT).map((category) => category.categoryId);
 }

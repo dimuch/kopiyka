@@ -91,7 +91,7 @@ describe.skipIf(!(await testDbReachable()))('categories in my own order (MySQL)'
     expect(mine.names).toEqual(['gym', 'rent', ...seeded.filter((name) => name !== 'gym' && name !== 'rent')]);
     expect(theirs.names).toEqual(['car', ...seeded.filter((name) => name !== 'car')]);
     expect(untouched.names).toEqual(seeded);
-    // Brief 098: each member's quick row is the top of their own order.
+    // Brief 099: each member's quick row is the top of their own order.
     for (const list of [mine, theirs, untouched]) {
       expect(list.quick).toEqual(await Promise.all(list.names.slice(0, 5).map(idOf)));
     }

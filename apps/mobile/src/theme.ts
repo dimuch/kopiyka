@@ -70,6 +70,35 @@ export const fonts = {
   bodySemi: 'IBMPlexSans_600SemiBold',
 };
 
+/** Spacing on the 4pt grid (docs/design/design-system.md). */
+export const space = { xxs: 2, xs: 4, sm: 8, md: 12, lg: 16, xl: 20, xxl: 24, xxxl: 32, huge: 40 } as const;
+/** Corner radii; `pill` rounds any box fully (a radius is clamped to half the side). */
+export const radius = { sm: 10, md: 14, lg: 20, xl: 28, pill: 999 } as const;
+/** Control heights; `iconButton` is also the 44pt touch minimum. */
+export const size = { control: 48, iconButton: 44, chip: 32 } as const;
+
+// Type roles from the design system, in today's faces until brief 105 brings Inter. The face carries the weight:
+// each family has one weight, and a fontWeight would make web draw a fake bolder one.
+const display = { fontFamily: fonts.display, fontSize: 28, lineHeight: 34, letterSpacing: -1 } satisfies TextStyle;
+const bodyStrong = {
+  fontFamily: fonts.bodySemi,
+  fontSize: 15,
+  lineHeight: 20,
+  letterSpacing: -0.2,
+} satisfies TextStyle;
+export const text = {
+  display,
+  title: { fontFamily: fonts.display, fontSize: 22, lineHeight: 28, letterSpacing: -0.8 },
+  heading: { fontFamily: fonts.bodySemi, fontSize: 17, lineHeight: 22, letterSpacing: -0.4 },
+  body: { fontFamily: fonts.body, fontSize: 15, lineHeight: 20, letterSpacing: -0.2 },
+  bodyStrong,
+  label: { fontFamily: fonts.bodyMedium, fontSize: 13, lineHeight: 18, letterSpacing: -0.1 },
+  caption: { fontFamily: fonts.body, fontSize: 12, lineHeight: 16, letterSpacing: 0 },
+  /** Money: tabular digits, so amounts line up. */
+  amount: { ...bodyStrong, fontVariant: ['tabular-nums'] },
+  amountLg: { ...display, fontVariant: ['tabular-nums'] },
+} satisfies Record<string, TextStyle>;
+
 /** A category's progress bar colour: green under plan, yellow from 90% up to plan, red over it (brief 091). */
 export function progressColor(state: BudgetState, colors: Palette): string {
   return state === 'over' ? colors.danger : state === 'near' ? colors.caution : colors.active;
@@ -86,8 +115,8 @@ export function dangerText(colors: Palette): TextStyle {
  */
 export function outlinedDangerButton(colors: Palette): ViewStyle {
   return {
-    height: 48,
-    borderRadius: 24,
+    height: size.control,
+    borderRadius: radius.pill,
     borderWidth: 1,
     borderColor: colors.borderStrong,
     backgroundColor: colors.surface,
@@ -97,7 +126,7 @@ export function outlinedDangerButton(colors: Palette): ViewStyle {
 }
 
 export function outlinedDangerText(colors: Palette): TextStyle {
-  return { fontFamily: fonts.bodySemi, fontSize: 15, color: colors.danger };
+  return { ...text.bodyStrong, color: colors.danger };
 }
 
 // Tile hues per category, as on the canvas; anything new gets a stable hue from its name.

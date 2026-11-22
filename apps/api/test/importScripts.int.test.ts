@@ -15,7 +15,7 @@ import {
 } from './helpers.js';
 import { runScript } from './runScript.js';
 
-// What the Notion importers print and write for a dry run and for --apply, from a snapshot file (brief 097).
+// What the Notion importers print and write for a dry run and for --apply, from a snapshot file (brief 098).
 
 const HISTORY = 'scripts/import-history.ts';
 const BALANCES = 'scripts/import-balances.ts';

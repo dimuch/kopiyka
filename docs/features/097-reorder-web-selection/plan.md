@@ -158,4 +158,8 @@ as an unchecked box for the user.
 
 ## Consolidate
 
-<filled in /kopiyka-hos Phase 3a: CONSOLIDATE line, each reuse/extract, each LEAVE + reason>
+CONSOLIDATE: reused 0 · extracted 0 · left 1
+
+- LEAVE `blockTextGestures`: no twin. Nothing else in `apps/mobile/src` calls `addEventListener`, `setProperty`,
+  `preventDefault` or sets `userSelect`/`contextmenu`. The `ReorderList` effect reuses the existing `listRef` and the
+  `Platform.OS !== 'web'` early return already used by `FocusStyles`.

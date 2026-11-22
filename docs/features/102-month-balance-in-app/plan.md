@@ -361,6 +361,8 @@ created_by, deleted_at)`). Nov gets a list via `storeMonthList(db, id, '2026-11'
     apps/mobile/src/app/(tabs)/budget.tsx, apps/mobile/test/monthBalance.test.ts
   - Change: the hook returns `MonthBalanceState` (Contracts). Budget reads
     `balance.status === 'ready' ? balanceLine(balance.balance) : null`, which is the same behaviour as today.
+    Keep PR 1's Undo reload: `useUndoOffer` still calls the balance's `reload`, now through a version in the hook's
+    key, as `useIncome` does, so a reload's fetch can be cancelled like a focus one (review nit on PR 1).
     `balanceLine` adds ` (actual)`.
   - Tests:
     - the existing table (already given `actual: false` in slice 6);

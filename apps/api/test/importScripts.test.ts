@@ -161,20 +161,36 @@ describe('importer scripts before the database', { timeout: 20_000 }, () => {
     expect((await stat(path)).mode & 0o777).toBe(0o600);
   });
 
-  it('history --save reports a Notion failure', async () => {
-    expect(await runScript(HISTORY, ['--save', join(dir, 'failed.json')], notionEnv(HISTORY))).toEqual({
+  it.each([BALANCES, INCOME])('%s answers a flag it does not have with its usage', async (script) => {
+    expect(await runScript(script, ['--bogus'])).toEqual({
       code: 1,
       stdout: '',
-      stderr: "Couldn't save the history: Notion answered 0 notion_unreachable\n",
+      stderr: `Unknown option '--bogus'\n${USAGE[script]}`,
     });
   });
 
-  it('balances reports a snapshot file it cannot read', async () => {
-    const missing = join(dir, 'missing.json');
-    expect(await runScript(BALANCES, ['--ledger', '1', '--snapshot', missing])).toEqual({
+  it.each([
+    [HISTORY, 'history'],
+    [BALANCES, 'balances'],
+    [INCOME, 'income'],
+  ])('%s --save reports a Notion failure', async (script, noun) => {
+    expect(await runScript(script, ['--save', join(dir, 'failed.json')], notionEnv(script))).toEqual({
       code: 1,
       stdout: '',
-      stderr: `Couldn't read the balances: ENOENT: no such file or directory, open '${missing}'\n`,
+      stderr: `Couldn't save the ${noun}: Notion answered 0 notion_unreachable\n`,
+    });
+  });
+
+  it.each([
+    [HISTORY, 'history'],
+    [BALANCES, 'balances'],
+    [INCOME, 'income'],
+  ])('%s reports a snapshot file it cannot read', async (script, noun) => {
+    const missing = join(dir, 'missing.json');
+    expect(await runScript(script, ['--ledger', '1', '--snapshot', missing])).toEqual({
+      code: 1,
+      stdout: '',
+      stderr: `Couldn't read the ${noun}: ENOENT: no such file or directory, open '${missing}'\n`,
     });
   });
 });

@@ -3,7 +3,7 @@
 Status: approved <!-- draft → skeptic-approved → approved (by the user) -->
 Brief: ./brief.md
 Branch: fix/reorder-web-selection
-Base: origin/main (efae6df, version 1.15.1)
+Base: origin/main (ba52749, version 1.15.2)
 
 ## Approach
 
@@ -58,15 +58,15 @@ and none of it could be unit-tested. One DOM helper is smaller and gets tested.
 
 ## Version
 
-Bump: patch — 1.15.1 → 1.15.2
+Bump: patch — 1.15.2 → 1.15.3
 Why: §8b `patch` row, a bug fix in shipped app code (web reorder list) with no new capability; nothing is removed or
 reshaped.
 
 ## Slices
 
-- [ ] 0. Bump version to 1.15.2
+- [x] 0. Bump version to 1.15.3
   - Files: package.json, apps/mobile/app.json
-  - Change: set both to 1.15.2
+  - Change: set both to 1.15.3
 - [ ] 1. Stop text selection and the browser menu when holding a row on web
   - Files: `apps/mobile/src/components/blockTextGestures.ts` (new, ~20 lines),
     `apps/mobile/src/components/ReorderList.tsx` (~10 lines), `apps/mobile/test/blockTextGestures.test.ts` (new, ~40

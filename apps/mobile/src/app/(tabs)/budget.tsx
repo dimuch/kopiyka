@@ -28,7 +28,7 @@ import { useMonthCategories } from '@/data/useMonthCategories';
 import { eur, kyivMonth, monthName, shiftMonth, toCents } from '@/format';
 import { parseMonthParam } from '@/linkParams';
 import { usePushOnce } from '@/pushOnce';
-import { fonts, type Palette } from '@/theme';
+import { fonts, type Palette, radius, size, space, text } from '@/theme';
 
 /**
  * A month's categories (brief 035). The month lives in the route (`/budget?month=2026-11`), so other tabs can open
@@ -133,13 +133,13 @@ export default function Budget() {
       <ScrollView
         ref={scrollRef}
         scrollEnabled={!dragging}
-        contentContainerStyle={[styles.content, toast.offer && { paddingBottom: 104 }]}
+        contentContainerStyle={[styles.content, toast.offer && styles.toastRoom]}
       >
         {!data ? (
           error ? (
             <LoadError message="Couldn’t load this month. Check your connection and try again." onRetry={reload} />
           ) : (
-            <ActivityIndicator color={colors.accent} style={{ marginTop: 24 }} />
+            <ActivityIndicator color={colors.accent} style={styles.loading} />
           )
         ) : (
           <>
@@ -293,52 +293,74 @@ function IncomeFigures({ incomeCents, plannedCents }: { incomeCents: number; pla
 
 const makeStyles = (colors: Palette) =>
   StyleSheet.create({
-    screen: { flex: 1, backgroundColor: colors.bg, paddingHorizontal: 20, paddingTop: 20 },
-    header: { flexDirection: 'row', alignItems: 'center', paddingBottom: 10 },
+    screen: { flex: 1, backgroundColor: colors.bg, paddingHorizontal: space.xl, paddingTop: space.xl },
+    header: { flexDirection: 'row', alignItems: 'center', paddingBottom: space.sm },
     // Equal-width sides keep the month switcher on the header's true centre; flexBasis 0 matters on web.
     side: { flex: 1, flexBasis: 0, flexDirection: 'row' },
     sideEnd: { justifyContent: 'flex-end' },
     balance: {
+      ...text.label,
       fontFamily: fonts.body,
-      fontSize: 13,
       color: colors.muted,
       textAlign: 'center',
       fontVariant: ['tabular-nums'],
-      paddingBottom: 10,
+      paddingBottom: space.sm,
     },
-    iconButton: { width: 44, height: 44, alignItems: 'center', justifyContent: 'center', borderRadius: 12 },
-    content: { gap: 14, paddingTop: 4, paddingBottom: 24 },
+    iconButton: {
+      width: size.iconButton,
+      height: size.iconButton,
+      alignItems: 'center',
+      justifyContent: 'center',
+      borderRadius: radius.md,
+    },
+    content: { gap: space.lg, paddingTop: space.xs, paddingBottom: space.xxl },
+    // UndoToast's bottom 32 + height 56 + a 16pt gap: toast clearance, not a step on the scale.
+    // eslint-disable-next-line no-restricted-syntax
+    toastRoom: { paddingBottom: 104 },
+    loading: { marginTop: space.xxl },
     sectionHead: {
       flexDirection: 'row',
       justifyContent: 'space-between',
       alignItems: 'baseline',
-      paddingHorizontal: 4,
+      paddingHorizontal: space.xs,
     },
-    sectionTitle: { fontFamily: fonts.display, fontSize: 17, color: colors.text },
-    small: { fontFamily: fonts.body, fontSize: 12, color: colors.muted },
+    sectionTitle: { ...text.heading, fontFamily: fonts.display, color: colors.text },
+    small: { ...text.caption, color: colors.muted, fontVariant: ['tabular-nums'] },
     listCard: {
       backgroundColor: colors.surface,
       borderColor: colors.border,
       borderWidth: 1,
-      borderRadius: 22,
-      paddingVertical: 4,
+      borderRadius: radius.lg,
+      paddingVertical: space.xs,
     },
-    row: { flexDirection: 'row', alignItems: 'center', gap: 12, paddingVertical: 12, paddingHorizontal: 16 },
+    row: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: space.md,
+      paddingVertical: space.md,
+      paddingHorizontal: space.lg,
+    },
     divider: { borderBottomWidth: 1, borderBottomColor: colors.border },
     figures: {
       flexDirection: 'row',
       backgroundColor: colors.surface,
       borderColor: colors.border,
       borderWidth: 1,
-      borderRadius: 22,
-      paddingVertical: 14,
-      paddingHorizontal: 16,
-      gap: 8,
+      borderRadius: radius.lg,
+      paddingVertical: space.lg,
+      paddingHorizontal: space.lg,
+      gap: space.sm,
     },
-    figure: { flex: 1, gap: 4 },
-    figureValue: { fontFamily: fonts.bodySemi, fontSize: 16, color: colors.text, fontVariant: ['tabular-nums'] },
+    figure: { flex: 1, gap: space.xs },
+    figureValue: { ...text.amount, color: colors.text },
     openRow: { flexDirection: 'row', alignItems: 'center' },
-    edit: { width: 44, height: 44, alignItems: 'center', justifyContent: 'center', marginRight: 6 },
-    rowName: { flex: 1, fontFamily: fonts.bodyMedium, fontSize: 15, color: colors.text },
-    rowAmount: { fontFamily: fonts.bodySemi, fontSize: 15, color: colors.text, fontVariant: ['tabular-nums'] },
+    edit: {
+      width: size.iconButton,
+      height: size.iconButton,
+      alignItems: 'center',
+      justifyContent: 'center',
+      marginRight: space.sm,
+    },
+    rowName: { ...text.body, flex: 1, fontFamily: fonts.bodyMedium, color: colors.text },
+    rowAmount: { ...text.amount, color: colors.text },
   });

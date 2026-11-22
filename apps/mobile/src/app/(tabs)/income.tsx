@@ -20,7 +20,7 @@ import { useIncome } from '@/data/useIncome';
 import { eur, kyivMonth, monthName, shiftMonth, toCents } from '@/format';
 import { parseMonthParam } from '@/linkParams';
 import { usePushOnce } from '@/pushOnce';
-import { fonts, type Palette } from '@/theme';
+import { fonts, type Palette, radius, size, space, text } from '@/theme';
 
 /**
  * A month's income items from every member, and their total (brief 059). The month lives in the route
@@ -117,7 +117,7 @@ export default function Income() {
               onRetry={reload}
             />
           ) : (
-            <ActivityIndicator color={colors.accent} style={{ marginTop: 24 }} />
+            <ActivityIndicator color={colors.accent} style={styles.loading} />
           )
         ) : (
           <>
@@ -191,31 +191,44 @@ export default function Income() {
 
 const makeStyles = (colors: Palette) =>
   StyleSheet.create({
-    screen: { flex: 1, backgroundColor: colors.bg, paddingHorizontal: 20, paddingTop: 20 },
-    header: { flexDirection: 'row', alignItems: 'center', paddingBottom: 10 },
+    screen: { flex: 1, backgroundColor: colors.bg, paddingHorizontal: space.xl, paddingTop: space.xl },
+    header: { flexDirection: 'row', alignItems: 'center', paddingBottom: space.sm },
     // Equal-width sides keep the month switcher on the header's true centre; flexBasis 0 matters on web.
     side: { flex: 1, flexBasis: 0, flexDirection: 'row' },
     sideEnd: { justifyContent: 'flex-end' },
-    iconButton: { width: 44, height: 44, alignItems: 'center', justifyContent: 'center', borderRadius: 12 },
-    content: { gap: 14, paddingTop: 4, paddingBottom: 24 },
+    iconButton: {
+      width: size.iconButton,
+      height: size.iconButton,
+      alignItems: 'center',
+      justifyContent: 'center',
+      borderRadius: radius.md,
+    },
+    content: { gap: space.lg, paddingTop: space.xs, paddingBottom: space.xxl },
+    loading: { marginTop: space.xxl },
     sectionHead: {
       flexDirection: 'row',
       justifyContent: 'space-between',
       alignItems: 'baseline',
-      paddingHorizontal: 4,
+      paddingHorizontal: space.xs,
     },
-    sectionTitle: { fontFamily: fonts.display, fontSize: 17, color: colors.text },
-    small: { fontFamily: fonts.body, fontSize: 12, color: colors.muted },
+    sectionTitle: { ...text.heading, fontFamily: fonts.display, color: colors.text },
+    small: { ...text.caption, color: colors.muted, fontVariant: ['tabular-nums'] },
     listCard: {
       backgroundColor: colors.surface,
       borderColor: colors.border,
       borderWidth: 1,
-      borderRadius: 22,
-      paddingVertical: 4,
+      borderRadius: radius.lg,
+      paddingVertical: space.xs,
     },
-    row: { flexDirection: 'row', alignItems: 'center', gap: 12, paddingVertical: 12, paddingHorizontal: 16 },
+    row: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: space.md,
+      paddingVertical: space.md,
+      paddingHorizontal: space.lg,
+    },
     divider: { borderBottomWidth: 1, borderBottomColor: colors.border },
-    rowText: { flex: 1, gap: 2 },
-    rowName: { fontFamily: fonts.bodyMedium, fontSize: 15, color: colors.text },
-    rowAmount: { fontFamily: fonts.bodySemi, fontSize: 15, color: colors.text, fontVariant: ['tabular-nums'] },
+    rowText: { flex: 1, gap: space.xxs },
+    rowName: { ...text.body, fontFamily: fonts.bodyMedium, color: colors.text },
+    rowAmount: { ...text.amount, color: colors.text },
   });

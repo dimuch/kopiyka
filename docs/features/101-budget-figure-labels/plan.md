@@ -31,14 +31,14 @@ Statistics tab's `'Planned'` row, and past briefs/plans in `docs/features/`.
 
 ## Version
 
-Bump: patch — 1.15.3 → 1.15.4
+Bump: patch — 1.16.0 → 1.16.1
 Why: §8b `patch` row, "copy": the shipped app's labels and screen-reader text change, with no new capability.
 
 ## Slices
 
-- [ ] 0. Bump version to 1.15.4
+- [x] 0. Bump version to 1.16.1
   - Files: package.json, apps/mobile/app.json
-  - Change: set both to 1.15.4
+  - Change: set both to 1.16.1
 - [ ] 1. Label the Budget figures Budgeted and Remaining (~4 lines)
   - Files: apps/mobile/src/app/(tabs)/budget.tsx
   - Change: in `IncomeFigures`, labels `'Planned'` → `'Budgeted'`, `'Left to plan'` → `'Remaining'`; the

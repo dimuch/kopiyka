@@ -20,10 +20,10 @@ export type IncomeSnapshot = z.infer<typeof IncomeSnapshot>;
 /** Every row, all months. Throws on an amount the snapshot can't hold (over 8 digits). */
 export function toIncomeSnapshot(rows: IncomeRow[]): IncomeSnapshot {
   return IncomeSnapshot.parse({
-    rows: rows.map((r) => ({
-      name: r.name,
-      month: r.month,
-      amount: r.amountCents === null ? null : centsToString(r.amountCents),
+    rows: rows.map((row) => ({
+      name: row.name,
+      month: row.month,
+      amount: row.amountCents === null ? null : centsToString(row.amountCents),
     })),
   });
 }

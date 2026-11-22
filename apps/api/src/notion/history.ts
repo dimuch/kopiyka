@@ -29,11 +29,11 @@ const amount = (cents: bigint | null) => (cents === null ? null : centsToString(
 /** Every row of the Expenses table, all months. Throws on a negative amount, which the import can't express. */
 export function toSnapshot(rows: ExpensesTemplate[]): Snapshot {
   return Snapshot.parse({
-    rows: rows.map((r) => ({
-      category: r.category,
-      month: r.month,
-      budget: amount(r.budgetCents),
-      actual: amount(r.actualCents),
+    rows: rows.map((row) => ({
+      category: row.category,
+      month: row.month,
+      budget: amount(row.budgetCents),
+      actual: amount(row.actualCents),
     })),
   });
 }
@@ -49,7 +49,9 @@ export function historyMonth(month: number | null): string | null {
 
 /** Every imported month, '2026-01'…'2026-10', oldest first. */
 export function historyMonths(): string[] {
-  return Array.from({ length: 12 }, (_, i) => historyMonth(i + 1)).filter((month): month is string => month !== null);
+  return Array.from({ length: 12 }, (_, monthIndex) => historyMonth(monthIndex + 1)).filter(
+    (month): month is string => month !== null,
+  );
 }
 
 /** Categories Notion spells more than one way, by tech_name, with the name they take in every imported month. */
@@ -102,15 +104,17 @@ export function wantedMonths(snapshot: Snapshot): WantedMonth[] {
   }
   const clashes: string[] = [];
   for (const [month, rows] of months) {
-    for (const [i, row] of rows.entries()) {
+    for (const [position, row] of rows.entries()) {
       const same = rows.filter(
-        (other, j) => j > i && (other.techName === row.techName || other.name.toLowerCase() === row.name.toLowerCase()),
+        (other, otherPosition) =>
+          otherPosition > position &&
+          (other.techName === row.techName || other.name.toLowerCase() === row.name.toLowerCase()),
       );
-      if (same.length) clashes.push(`${month}: ${[row, ...same].map((r) => r.title).join(', ')}`);
+      if (same.length) clashes.push(`${month}: ${[row, ...same].map((clashing) => clashing.title).join(', ')}`);
     }
   }
   if (clashes.length) throw new Error(`Two Notion rows name one category: ${clashes.join('; ')}`);
   return [...months.entries()]
-    .sort(([a], [b]) => (a < b ? -1 : 1))
+    .sort(([leftMonth], [rightMonth]) => (leftMonth < rightMonth ? -1 : 1))
     .map(([month, rows]) => ({ month, categories: rows.map(({ title: _title, ...category }) => category) }));
 }

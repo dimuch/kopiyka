@@ -29,12 +29,15 @@ const nextMonth = (month: string) => monthOf(nextMonthStart(month));
  * `firstMonth` on, it begins at `firstMonth` at €0.
  */
 export function walkStart(month: string, firstMonth: string, known: KnownMonths): WalkStart {
-  const before = [...known.stored.keys()]
-    .filter((storedMonth) => storedMonth >= firstMonth && storedMonth < month)
-    .sort();
+  // A known month before `firstMonth` can't start a walk: the route's first month already counts every stored one,
+  // so this only guards direct callers.
+  const before = [...known.stored.entries()]
+    .filter(([storedMonth]) => storedMonth >= firstMonth && storedMonth < month)
+    .sort(([left], [right]) => (left < right ? -1 : 1));
   const latest = before.at(-1);
   if (latest === undefined) return { from: firstMonth, openingCents: 0n };
-  return { from: nextMonth(latest), openingCents: known.stored.get(latest)!.closingCents };
+  const [latestMonth, latestBalance] = latest;
+  return { from: nextMonth(latestMonth), openingCents: latestBalance.closingCents };
 }
 
 /**

@@ -63,8 +63,8 @@ async function monthBalance(db: Db, ledgerId: number, month: string, now: Date):
 }
 
 /**
- * Each month's opening and closing balance (briefs 090 and 102): imported from Notion up to October 2026, and worked
- * out in the app after that. A month without one answers `{ balance: null }`.
+ * Each month's opening and closing balance (briefs 090 and 102): imported months keep their stored numbers, and the
+ * months after them are worked out. A month without one answers `{ balance: null }`.
  */
 export async function balanceRoutes(app: FastifyInstance, { db, now }: AppDeps): Promise<void> {
   const guards = { preHandler: [app.requireAuth, app.requireLedger] };

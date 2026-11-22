@@ -217,7 +217,7 @@ PUT answers 404, which shows "Couldn’t save".
     - `walkStart` picks the latest imported month before M: stored Jan and Oct, asking Nov → `{ from: '2026-11',
 openingCents: -3500n }`. Asking for the first month itself → `{ from: first, openingCents: 0n }`.
   - ~150 lines
-- [ ] 3. Work out each month's balance after the last imported one
+- [x] 3. Work out each month's balance after the last imported one
   - Files: apps/api/src/balances/routes.ts, apps/api/test/balances.int.test.ts, apps/mobile/src/app/(tabs)/budget.tsx
     (comment only)
   - Change:

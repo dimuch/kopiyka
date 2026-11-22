@@ -202,7 +202,7 @@ PUT answers 404, which shows "Couldn’t save".
     Behaviour-preserving.
   - Tests: `summary.int.test.ts` unchanged and green (it must run, not skip).
   - ~50 lines
-- [ ] 2. Add the month balance carry-over rule
+- [x] 2. Add the month balance carry-over rule
   - Files: apps/api/src/balances/carry.ts (new), apps/api/test/balanceCarry.test.ts (new)
   - Change: `walkStart` and `carryBalance` (Contracts, without `actual`). Months step with `monthOf(nextMonthStart())`.
   - Tests: table style, with the arithmetic in comments.

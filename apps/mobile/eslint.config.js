@@ -11,9 +11,11 @@ const noAccessibilityState = {
 };
 
 // Brief 103: style numbers come from the tokens in src/theme.ts (docs/design/design-system.md).
+const styleNumberKey =
+  '/^(fontSize|lineHeight|letterSpacing|border[A-Za-z]*Radius|padding[A-Za-z]*|margin[A-Za-z]*|gap|rowGap|columnGap)$/';
 const noRawStyleNumber = {
-  selector:
-    'Property[key.name=/^(fontSize|lineHeight|letterSpacing|border[A-Za-z]*Radius|padding[A-Za-z]*|margin[A-Za-z]*|gap|rowGap|columnGap)$/] Literal[raw=/^[0-9.]/]',
+  // key.name for `gap: 3`, key.value for a quoted `'gap': 3`.
+  selector: `Property:matches([key.name=${styleNumberKey}], [key.value=${styleNumberKey}]) Literal[raw=/^[0-9.]/]`,
   message:
     'Use space, radius, size or text from @/theme. Layout maths with no token: eslint-disable-next-line no-restricted-syntax, with the reason on the line above.',
 };

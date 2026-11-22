@@ -34,7 +34,7 @@ const input = z
     ledger: z.string().trim().min(1).max(100).optional(),
     join: Username.optional(),
   })
-  .refine((v) => !(v.join !== undefined && v.ledger !== undefined), {
+  .refine((flags) => !(flags.join !== undefined && flags.ledger !== undefined), {
     error: 'use --ledger or --join, not both',
     path: ['join'],
   })

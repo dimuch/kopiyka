@@ -1,6 +1,6 @@
 // Calendar dates are 'YYYY-MM-DD' strings throughout, matching MySQL DATE columns.
 
-export const DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
+const DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
 
 /** A 'YYYY-MM' month. */
 export const MONTH_RE = /^\d{4}-(0[1-9]|1[0-2])$/;

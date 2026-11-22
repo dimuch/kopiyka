@@ -25,7 +25,7 @@ export function setPendingUndo(undo: PendingUndo): void {
   pending = undo;
 }
 
-export function takePendingUndo(): PendingUndo | null {
+function takePendingUndo(): PendingUndo | null {
   const taken = pending;
   pending = null;
   return taken;

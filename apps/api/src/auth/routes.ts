@@ -9,7 +9,7 @@ import { createSession, deleteSession, findSession } from './sessions.js';
 import { pruneThrottle, throttledAttempt, throttleKeys } from './throttle.js';
 import { generateSecret, verifyTotp } from './totp.js';
 
-export const SESSION_COOKIE = 'kopiyka_session';
+const SESSION_COOKIE = 'kopiyka_session';
 
 const LoginBody = z.object({
   username: z.string().trim().min(1).max(64),

@@ -4,8 +4,8 @@ import { createHmac, randomBytes, timingSafeEqual } from 'node:crypto';
 // SHA-1, 6 digits, 30-second steps.
 
 const BASE32 = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ234567';
-export const STEP_SECONDS = 30;
-export const ISSUER = 'Kopiyka';
+const STEP_SECONDS = 30;
+const ISSUER = 'Kopiyka';
 
 export function base32Encode(buf: Buffer): string {
   let bits = 0;

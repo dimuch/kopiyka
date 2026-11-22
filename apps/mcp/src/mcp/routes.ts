@@ -10,6 +10,7 @@ import {
 import type { FastifyInstance, FastifyReply, FastifyRequest } from 'fastify';
 import { ApiError, apiClient } from '../api.js';
 import type { AppDeps } from '../app.js';
+import { resourceUrl } from '../config.js';
 import { kyivToday } from '../dates.js';
 import { DEFAULT_LIMITS, openRequests, toolCallBuckets } from '../limits.js';
 import { SCOPES } from '../oauth/metadata.js';
@@ -33,7 +34,7 @@ const tokenKey = (apiToken: string) => createHash('sha256').update(apiToken).dig
 export async function mcpRoutes(app: FastifyInstance, deps: AppDeps): Promise<void> {
   const { config, now } = deps;
   const api = apiClient(config.apiUrl, deps.fetch);
-  const resource = `${config.publicUrl}/mcp`;
+  const resource = resourceUrl(config.publicUrl);
   const resourceMetadataUrl = getOAuthProtectedResourceMetadataUrl(new URL(resource));
   const limits = { ...DEFAULT_LIMITS, ...deps.limits };
   const toolCalls = toolCallBuckets(limits, now);

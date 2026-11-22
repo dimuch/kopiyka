@@ -4,7 +4,7 @@ Status: approved
 
 Brief: ./brief.md
 Branch: feat/quick-row-my-order
-Base: origin/main (b546ccb, version 1.15.3)
+Base: origin/main (380a1f3, version 1.15.4)
 
 ## Approach
 
@@ -47,7 +47,7 @@ subquery scans every live expense on every list load. The demo's `lastUsed` help
 
 ## Version
 
-Bump: minor: 1.15.3 → 1.16.0
+Bump: minor: 1.15.4 → 1.16.0
 Why: this matches the §8b `minor` row, "a new capability, and everything that exists keeps working". Each member can
 now choose their own quick tiles by dragging categories on Budget or Expenses, and the tiles differ per member, which
 wasn't possible before. Nothing a client relies on breaks: the response shape is the same, installed app builds and the
@@ -57,7 +57,7 @@ the row. Precedent: the Statistics period rework that changed an existing screen
 
 ## Slices
 
-- [ ] 0. Bump version to 1.16.0
+- [x] 0. Bump version to 1.16.0
   - Files: package.json, apps/mobile/app.json
   - Change: set both to 1.16.0
 - [ ] 1. Fill the quick row with the first five of my order

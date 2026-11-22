@@ -18,7 +18,7 @@ export interface ScriptResult {
  * a real NOTION_TOKEN.
  */
 export function runScript(script: string, args: string[], env: Record<string, string> = {}): Promise<ScriptResult> {
-  return new Promise((resolve) => {
+  return new Promise((resolve, reject) => {
     execFile(
       process.execPath,
       ['--import', 'tsx', '--import', './test/offlineFetch.ts', script, ...args],
@@ -28,7 +28,7 @@ export function runScript(script: string, args: string[], env: Record<string, st
       },
       (error, stdout, stderr) => {
         // A non-zero exit arrives as an error carrying the exit code; anything else (a spawn failure) is a test bug.
-        if (error && typeof error.code !== 'number') throw error;
+        if (error && typeof error.code !== 'number') return reject(error);
         resolve({ code: error ? (error.code as number) : 0, stdout, stderr });
       },
     );

@@ -217,16 +217,19 @@ describe.skipIf(!(await testDbReachable()))(
       });
     });
 
-    it.each([HISTORY, BALANCES, INCOME])('%s --apply into an unknown ledger writes nothing', async (script) => {
-      // History asks for the month's rate before it looks up the ledger.
-      await seedRate('2026-01-01', '45.0000');
-      expect(
-        await runScript(script, ['--ledger', UNKNOWN_LEDGER, '--snapshot', snapshotFile[script]!, '--apply']),
-      ).toEqual({
-        code: 1,
-        stdout: '',
-        stderr: `No ledger ${UNKNOWN_LEDGER}\nNothing was written.\n`,
-      });
-    });
+    it.each([HISTORY, BALANCES, INCOME])(
+      '%s --apply into an unknown ledger says nothing was written',
+      async (script) => {
+        // History asks for the month's rate before it looks up the ledger.
+        await seedRate('2026-01-01', '45.0000');
+        expect(
+          await runScript(script, ['--ledger', UNKNOWN_LEDGER, '--snapshot', snapshotFile[script]!, '--apply']),
+        ).toEqual({
+          code: 1,
+          stdout: '',
+          stderr: `No ledger ${UNKNOWN_LEDGER}\nNothing was written.\n`,
+        });
+      },
+    );
   },
 );

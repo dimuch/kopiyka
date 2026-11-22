@@ -81,7 +81,7 @@ Alternatives considered:
 
 ## Version
 
-Bump: patch — 1.16.1 → 1.16.2 (planned as 1.15.4 → 1.15.5; PR 141 took 1.16.0 and brief 101 took 1.16.1 first)
+Bump: patch — 1.17.0 → 1.17.1 (planned as 1.15.4 → 1.15.5; PR 141 took 1.16.0, brief 101 took 1.16.1 and brief 102 took 1.17.0 first)
 Why: conventions §8b says "a refactor that touches shipped code is `patch`, never `none`". The API, the connector and the
 app code all change, and their behaviour doesn't.
 
@@ -108,9 +108,9 @@ Commits:
 
 Sizes are insertions/deletions from the scratch build.
 
-- [x] 0. Bump version to 1.16.2
+- [x] 0. Bump version to 1.17.1
   - Files: package.json, apps/mobile/app.json
-  - Change: set both to 1.16.2 (planned as 1.15.5; main took 1.16.0 and 1.16.1 first, see Deviations)
+  - Change: set both to 1.17.1 (planned as 1.15.5; main took 1.16.0, 1.16.1 and 1.17.0 first, see Deviations)
 - [x] 1. Pin the Notion client's Netto trash skip and multi-part titles (+52, tests only)
   - Files: `apps/api/test/notionClient.test.ts`. The cases are appended inside `describe('Expenses table')`. Nothing
     existing changes.
@@ -389,3 +389,8 @@ After review:
 - Three more renames from the review's nits: totals' `recover` loops over `openAdd`, not `row`, since `row` means the
   Notion row elsewhere in totals.ts; `planGroceries` names its `GroceryState` `expense`, as the rest of groceries.ts
   does; history's clashing rows are `clash`. Every SQL string is unchanged.
+
+## Revision 3
+
+Brief 102's PR 1 (#144) merged first and took 1.17.0, so the branch was rebased onto origin/main cca36e1. The only
+conflict was the version bump, now 1.17.0 → 1.17.1. Nothing else changed.

@@ -35,7 +35,7 @@ const EXPENSES: [number, number, string, string, Currency][] = [
 /**
  * The demo's starting data at `now`: this month and last in Kyiv, with the same categories, plans and income, and
  * about ten expenses each. An expense whose day hasn't come yet this month is dated today, and none was created after
- * `now`, so the list and the quick row read as they would for a real person.
+ * `now`, so the list reads as it would for a real person.
  */
 export function sampleData(now: Date): StoreData {
   const today = kyivToday(now);

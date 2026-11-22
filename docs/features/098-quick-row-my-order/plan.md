@@ -93,7 +93,7 @@ c.categoryId)`. Its JSDoc says why: the list is already in the caller's order, b
     the top, then open Add expense from the + button. That category is the first tile and selected, the next four
     follow the Budget order, and "More" holds the rest in that order.
   - Estimate: ~110 changed lines.
-- [ ] 2. Fill the demo's quick row with the first five of my order
+- [x] 2. Fill the demo's quick row with the first five of my order
   - Files: apps/mobile/src/demo/categoryRoutes.ts, apps/mobile/src/demo/sampleData.ts,
     apps/mobile/test/demoCategories.test.ts, apps/mobile/test/demoSampleData.test.ts
   - Change: the demo `pickQuick(categories)` returns `categories.slice(0, QUICK_CATEGORY_COUNT).map(…)`, and its JSDoc
@@ -165,5 +165,10 @@ c.categoryId)`. Its JSDoc says why: the list is already in the caller's order, b
   (`apps/api/.env` linked into the worktree, gitignored). The check with a real sign-in is left to the user.
 - slice 1: `addExpense` in `categories.int.test.ts` lost its `deleted` flag, because the only test that used it (the
   recently-used one) is gone.
+
+- slice 2: the Add expense check ran in the demo build (390×844). Fun, dragged from 6th to the top on Budget, is the
+  first quick tile and selected; Rent, Groceries, Transport and Eating out follow in Budget order; "1 more" holds
+  Utilities. The check for "opened from a category outside the top five" relies on `quick.test.ts` (app code
+  unchanged).
 
 ## Consolidate

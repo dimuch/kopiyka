@@ -26,34 +26,9 @@ function toDto(data: StoreData, category: DemoCategory, month: string): Category
   };
 }
 
-/** When each category's newest live expense was created, in any month. */
-function lastUsed(data: StoreData): Map<number, string> {
-  const latest = new Map<number, string>();
-  for (const expense of data.expenses) {
-    if (expense.removal !== null) continue;
-    const seen = latest.get(expense.categoryId);
-    if (!seen || expense.createdAt > seen) latest.set(expense.categoryId, expense.createdAt);
-  }
-  return latest;
-}
-
-/**
- * The API's `pickQuick`: by latest expense, newest first; never-used ones follow in sort order; ties go by sort order,
- * then id; five at most.
- */
-function pickQuick(categories: DemoCategory[], used: Map<number, string>): number[] {
-  return [...categories]
-    .sort((left, right) => {
-      const leftUsed = used.get(left.categoryId);
-      const rightUsed = used.get(right.categoryId);
-      const inLedgerOrder = left.sortOrder - right.sortOrder || left.categoryId - right.categoryId;
-      if (leftUsed && rightUsed) return rightUsed.localeCompare(leftUsed) || inLedgerOrder;
-      if (leftUsed) return -1;
-      if (rightUsed) return 1;
-      return inLedgerOrder;
-    })
-    .slice(0, QUICK_CATEGORY_COUNT)
-    .map((category) => category.categoryId);
+/** The API's `pickQuick` (brief 098): the first five of a month's list, which is already in my order. */
+function pickQuick(categories: DemoCategory[]): number[] {
+  return categories.slice(0, QUICK_CATEGORY_COUNT).map((category) => category.categoryId);
 }
 
 /** The API's `IN_MY_ORDER`: placed categories first, by place in `order`; the rest by sort order, then id. */
@@ -182,7 +157,7 @@ export const categoryRoutes: Route[] = [
       );
       return {
         categories: listed.map((category) => toDto(data, category, month)),
-        quickCategoryIds: pickQuick(listed, lastUsed(data)),
+        quickCategoryIds: pickQuick(listed),
       };
     },
   },

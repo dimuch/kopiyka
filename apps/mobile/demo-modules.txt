@@ -75,6 +75,7 @@ src/components/ReorderList.tsx
 src/components/TabBar.tsx
 src/components/TextField.tsx
 src/components/UndoToast.tsx
+src/components/blockTextGestures.ts
 src/data/budgetProgress.ts
 src/data/categories.ts
 src/data/categoryForm.ts

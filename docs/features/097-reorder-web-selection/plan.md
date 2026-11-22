@@ -67,7 +67,7 @@ reshaped.
 - [x] 0. Bump version to 1.15.3
   - Files: package.json, apps/mobile/app.json
   - Change: set both to 1.15.3
-- [ ] 1. Stop text selection and the browser menu when holding a row on web
+- [x] 1. Stop text selection and the browser menu when holding a row on web
   - Files: `apps/mobile/src/components/blockTextGestures.ts` (new, ~20 lines),
     `apps/mobile/src/components/ReorderList.tsx` (~10 lines), `apps/mobile/test/blockTextGestures.test.ts` (new, ~40
     lines), `apps/mobile/demo-modules.txt` (+1 line)
@@ -149,7 +149,12 @@ as an unchecked box for the user.
 
 ## Deviations
 
-<filled by the developer during build>
+- slice 1: the browser check ran on the demo build (`web:demo`, served from this worktree) instead of `web` + `api`,
+  because MySQL wasn't reachable here; it renders the same `ReorderList`. The order-after-reload check is the demo's
+  own reload reset, so it wasn't repeated (unchanged by this fix). On Expenses the "outside the list" element was the
+  month switcher (Expenses has no "Categories" title).
+- slice 1: `contextmenu` listener is one module-level function (skeptic suggestion), so StrictMode's repeated add is a
+  no-op.
 
 ## Consolidate
 

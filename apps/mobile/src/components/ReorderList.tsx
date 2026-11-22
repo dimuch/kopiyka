@@ -5,6 +5,7 @@ import {
   type HostInstance,
   PanResponder,
   type PanResponderInstance,
+  Platform,
   type ScrollViewInstance,
   type StyleProp,
   StyleSheet,
@@ -12,6 +13,7 @@ import {
   type ViewStyle,
 } from 'react-native';
 import { useColors } from '@/appearance/AppearanceContext';
+import { blockTextGestures } from '@/components/blockTextGestures';
 import { dropIndex, edgeStep, rowOffset } from '@/data/reorder';
 
 /** What a row spreads on the `Pressable` that picks it up. Empty while the list is disabled. */
@@ -225,6 +227,11 @@ export function ReorderList<T>(props: Props<T>) {
     });
   });
   useEffect(() => () => drag.stop(), [drag]);
+  useEffect(() => {
+    if (Platform.OS !== 'web' || !listRef.current) return;
+    // On web the host instance is the list's DOM node (react-native-web).
+    return blockTextGestures(listRef.current as unknown as HTMLElement);
+  }, []);
 
   return (
     <View ref={listRef} {...drag.responder.panHandlers} style={style}>

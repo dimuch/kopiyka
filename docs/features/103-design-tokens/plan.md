@@ -170,7 +170,7 @@ the only place for raw hex, font names and style numbers``. That's 155 character
     `bodyMedium` plus tabular digits. Statistics `periodText` → title (20 → 22, Open question 2), `rowAmount` →
     `amount`, and `small` (gap and "of €x") adds tabular digits.
   - Verify: `yarn lint`. Visual check for Expenses (card collapsing on scroll) and Statistics (period menu open).
-- [ ] 5. Put Home, Settings and the demo Home on tokens (~75 lines)
+- [x] 5. Put Home, Settings and the demo Home on tokens (~75 lines)
   - Files: `src/app/(tabs)/index.tsx`, `src/demo-app/(tabs)/index.tsx`, `src/app/(tabs)/settings.tsx`,
     `src/components/PlaceholderPage.tsx` (Settings' shell; its `gap: 6` and Settings' "same 6pt" comment stay
     paired at 8, and the comment says 8), `eslint.config.js` (−4)
@@ -288,6 +288,9 @@ differently from web.
   20 vs 19.5 natural, caption 16 vs 15.6), so with 15 categories the last row ends about 15pt lower than before. Each
   element moves less than 2pt; the drift is the sum, not a new step. Budget and Expenses rows don't drift (their
   height comes from the 40pt tile). Listed for the PR; no change to the slices.
+- Slice 5, measured: Settings' upper sections add up the listed changes (section gaps 6 → 8, the account card's
+  padding 14 → 16, the roles' line heights), so the Appearance picker sits 14.5pt lower. Sign out stays pinned to the
+  bottom. Home moves at most 1.5pt.
 
 ## Consolidate
 

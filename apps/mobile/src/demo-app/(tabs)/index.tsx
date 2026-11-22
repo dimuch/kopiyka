@@ -10,7 +10,7 @@ import { useUndoOffer } from '@/data/undo';
 import { useIncome } from '@/data/useIncome';
 import { useMonth } from '@/data/useMonth';
 import { kyivMonth, monthLabel } from '@/format';
-import { fonts, type Palette } from '@/theme';
+import { fonts, type Palette, space, text } from '@/theme';
 
 /** The demo's Home: this month's three money cards, and the Undo bar a category's removal comes back to. */
 export default function DemoHome() {
@@ -35,8 +35,14 @@ export default function DemoHome() {
 
 const makeStyles = (colors: Palette) =>
   StyleSheet.create({
-    screen: { flex: 1, backgroundColor: colors.bg, paddingHorizontal: 20, paddingTop: 20, gap: 18 },
-    header: { gap: 2 },
-    title: { fontFamily: fonts.display, fontSize: 22, color: colors.text },
-    caption: { fontFamily: fonts.body, fontSize: 13, color: colors.muted },
+    screen: {
+      flex: 1,
+      backgroundColor: colors.bg,
+      paddingHorizontal: space.xl,
+      paddingTop: space.xl,
+      gap: space.lg,
+    },
+    header: { gap: space.xxs },
+    title: { ...text.title, color: colors.text },
+    caption: { ...text.label, fontFamily: fonts.body, color: colors.muted },
   });

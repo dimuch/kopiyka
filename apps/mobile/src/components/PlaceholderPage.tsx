@@ -2,7 +2,7 @@ import type { ReactNode } from 'react';
 import { StyleSheet, Text } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useThemedStyles } from '@/appearance/AppearanceContext';
-import { fonts, type Palette } from '@/theme';
+import { fonts, type Palette, space, text } from '@/theme';
 
 /** A tab page whose content hasn't been built yet. */
 export function PlaceholderPage({ title, children }: { title: string; children?: ReactNode }) {
@@ -18,7 +18,13 @@ export function PlaceholderPage({ title, children }: { title: string; children?:
 
 const makeStyles = (colors: Palette) =>
   StyleSheet.create({
-    screen: { flex: 1, backgroundColor: colors.bg, paddingHorizontal: 20, paddingTop: 20, gap: 6 },
-    title: { fontFamily: fonts.display, fontSize: 22, color: colors.text },
-    caption: { fontFamily: fonts.body, fontSize: 13, color: colors.muted },
+    screen: {
+      flex: 1,
+      backgroundColor: colors.bg,
+      paddingHorizontal: space.xl,
+      paddingTop: space.xl,
+      gap: space.sm,
+    },
+    title: { ...text.title, color: colors.text },
+    caption: { ...text.label, fontFamily: fonts.body, color: colors.muted },
   });

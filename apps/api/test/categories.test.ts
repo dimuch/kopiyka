@@ -1,34 +1,29 @@
 import { describe, expect, it } from 'vitest';
 import { techNameBase } from '../src/categories/monthLists.js';
-import { pickQuick } from '../src/categories/routes.js';
+import { type CategoryDto, pickQuick } from '../src/categories/routes.js';
 
-const row = (categoryId: number, sortOrder: number, lastUsedAt: string | null = null) => ({
+// A category as the list returns it; only the id and the ledger's sort order matter here.
+const category = (categoryId: number, sortOrder: number): CategoryDto => ({
   categoryId,
+  techName: `c${categoryId}`,
+  displayName: `C${categoryId}`,
   sortOrder,
-  lastUsedAt: lastUsedAt ? new Date(lastUsedAt) : null,
+  plannedEur: '0.00',
 });
 
 describe('pickQuick', () => {
-  it('falls back to sort order when nothing has been used', () => {
-    expect(pickQuick([row(3, 30), row(1, 10), row(2, 20), row(6, 60), row(4, 40), row(5, 50)])).toEqual([
-      1, 2, 3, 4, 5,
-    ]);
+  it('takes the first five in the order given, not by sort order', () => {
+    // The caller's own order runs against the ledger's sort order.
+    const mine = [category(6, 60), category(5, 50), category(4, 40), category(3, 30), category(2, 20), category(1, 10)];
+    expect(pickQuick(mine)).toEqual([6, 5, 4, 3, 2]);
   });
 
-  it('puts recently used categories first, newest first, then fills by sort order', () => {
-    const rows = [
-      row(1, 10),
-      row(2, 20, '2026-10-01T10:00:00Z'),
-      row(3, 30),
-      row(4, 40, '2026-10-05T10:00:00Z'),
-      row(5, 50),
-      row(6, 60),
-    ];
-    expect(pickQuick(rows)).toEqual([4, 2, 1, 3, 5]);
+  it('gives all of them when the month has fewer than five', () => {
+    expect(pickQuick([category(2, 20), category(1, 10)])).toEqual([2, 1]);
   });
 
-  it('returns fewer than 5 when the ledger has fewer categories', () => {
-    expect(pickQuick([row(1, 10), row(2, 20)])).toEqual([1, 2]);
+  it('gives none for an empty month', () => {
+    expect(pickQuick([])).toEqual([]);
   });
 });
 

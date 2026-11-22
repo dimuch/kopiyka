@@ -78,21 +78,12 @@ function toDto(r: RowDataPacket): CategoryDto {
 }
 
 /**
- * The Add expense quick row: categories by their latest expense, newest first;
- * never-used ones follow in sort order. Ties go by the ledger's order, never a member's own (brief 092), so the
- * row is the same for every member.
+ * The Add expense quick row (brief 098): the first five of a month's list, which comes in the caller's own order
+ * (brief 092), so dragging a category to the top puts it in the row. It replaces 092's most-recently-used rule, so
+ * each member gets their own row and it no longer shifts when anyone adds an expense.
  */
-export function pickQuick(rows: Array<{ categoryId: number; sortOrder: number; lastUsedAt: Date | null }>): number[] {
-  return [...rows]
-    .sort((a, b) => {
-      const inLedgerOrder = a.sortOrder - b.sortOrder || a.categoryId - b.categoryId;
-      if (a.lastUsedAt && b.lastUsedAt) return b.lastUsedAt.getTime() - a.lastUsedAt.getTime() || inLedgerOrder;
-      if (a.lastUsedAt) return -1;
-      if (b.lastUsedAt) return 1;
-      return inLedgerOrder;
-    })
-    .slice(0, QUICK_CATEGORY_COUNT)
-    .map((r) => r.categoryId);
+export function pickQuick(categories: CategoryDto[]): number[] {
+  return categories.slice(0, QUICK_CATEGORY_COUNT).map((category) => category.categoryId);
 }
 
 export async function categoryRoutes(app: FastifyInstance, { db, now }: AppDeps): Promise<void> {
@@ -103,27 +94,17 @@ export async function categoryRoutes(app: FastifyInstance, { db, now }: AppDeps)
     const first = monthStart(month);
     const [rows] = await db.query<RowDataPacket[]>(
       `SELECT c.category_id, c.tech_name, ${NAME_IN_MONTH} AS display_name, c.sort_order,
-              COALESCE(b.planned_eur, 0) AS planned_eur,
-              u.last_used_at
+              COALESCE(b.planned_eur, 0) AS planned_eur
            FROM categories c
            LEFT JOIN category_budgets b ON b.category_id = c.category_id AND b.budget_month = ?
            ${MY_ORDER_JOIN}
-           LEFT JOIN (
-             SELECT category_id, MAX(created_at) AS last_used_at
-               FROM expenses
-              WHERE deleted_at IS NULL
-              GROUP BY category_id
-           ) u ON u.category_id = c.category_id
           WHERE c.ledger_id = ? AND c.deleted_at IS NULL AND ${inMonthList('?')}
           ORDER BY ${IN_MY_ORDER}`,
       [first /* name */, first /* b */, req.auth!.userId /* o */, req.ledger!.ledgerId, first /* inMonthList */],
     );
 
     const categories = rows.map(toDto);
-    const quickCategoryIds = pickQuick(
-      rows.map((r) => ({ categoryId: r.category_id, sortOrder: r.sort_order, lastUsedAt: r.last_used_at })),
-    );
-    return { categories, quickCategoryIds };
+    return { categories, quickCategoryIds: pickQuick(categories) };
   });
 
   app.get('/api/ledgers/:id/categories/:categoryId', guards, async (req, reply) => {

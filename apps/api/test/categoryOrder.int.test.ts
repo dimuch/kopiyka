@@ -91,25 +91,28 @@ describe.skipIf(!(await testDbReachable()))('categories in my own order (MySQL)'
     expect(mine.names).toEqual(['gym', 'rent', ...seeded.filter((name) => name !== 'gym' && name !== 'rent')]);
     expect(theirs.names).toEqual(['car', ...seeded.filter((name) => name !== 'car')]);
     expect(untouched.names).toEqual(seeded);
-    expect(theirs.quick).toEqual(mine.quick);
-    expect(untouched.quick).toEqual(mine.quick);
+    // Brief 098: each member's quick row is the top of their own order.
+    for (const list of [mine, theirs, untouched]) {
+      expect(list.quick).toEqual(await Promise.all(list.names.slice(0, 5).map(idOf)));
+    }
+    expect(theirs.quick).not.toEqual(mine.quick);
   });
 
-  it('breaks quick-row ties by the ledger order, never a member’s own', async () => {
-    // One import stamps many categories with the same created_at (notion/historyImport.ts).
-    for (const techName of ['gym', 'car', 'gift', 'sviat', 'home_needs', 'utilities']) {
-      await db.query(
-        `INSERT INTO expenses (category_id, expense_date, amount_eur, created_by, created_at)
-         VALUES (?, '2026-10-01', 10, ?, ?)`,
-        [await idOf(techName), owner.userId, clock],
-      );
-    }
+  it('gives each member the first five of their own order, whatever was spent last', async () => {
+    // Newer than anything else and outside both orders' top five: the old most-recent rule put it first.
+    await db.query(
+      `INSERT INTO expenses (category_id, expense_date, amount_eur, created_by, created_at)
+       VALUES (?, '2026-10-01', 10, ?, ?)`,
+      [await idOf('utilities'), owner.userId, clock],
+    );
     await placeFor(owner, ['gym', 'sviat']);
     await placeFor(member, ['gift', 'car']);
 
-    const ledgerOrder = await Promise.all(['utilities', 'home_needs', 'car', 'gift', 'sviat'].map(idOf));
-    expect((await listFor(auth)).quick).toEqual(ledgerOrder);
-    expect((await listFor(memberAuth)).quick).toEqual(ledgerOrder);
+    const mine = (await listFor(auth)).quick;
+    const theirs = (await listFor(memberAuth)).quick;
+    expect(mine).toEqual(await Promise.all(['gym', 'sviat', 'rent', 'groceries', 'education'].map(idOf)));
+    expect(theirs).toEqual(await Promise.all(['gift', 'car', 'rent', 'groceries', 'education'].map(idOf)));
+    expect([...mine, ...theirs]).not.toContain(await idOf('utilities'));
   });
 
   it('uses the same order in every month', async () => {

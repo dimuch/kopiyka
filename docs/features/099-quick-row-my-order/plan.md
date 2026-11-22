@@ -174,3 +174,9 @@ c.categoryId)`. Its JSDoc says why: the list is already in the caller's order, b
 - Renumbered the brief from 098 to 099: `chore/importer-cli` (another session) took 098 first.
 
 ## Consolidate
+
+CONSOLIDATE: reused 0 · extracted 0 · left 1
+
+- LEAVE the demo `pickQuick` (`apps/mobile/src/demo/categoryRoutes.ts`) as a twin of the API one: the demo store
+  mirrors each API route in memory and cannot import API code (same as `inMyOrder` / `IN_MY_ORDER`). Both are now one
+  line. Nothing else in the app picks quick categories; `quick.ts` only splits the ids the API returns.

@@ -323,3 +323,14 @@ Edits from the skeptic's approval, with nothing else changed:
 - Base is ba52749, with its baseline.
 - The open questions are settled as Decisions.
 - Version unchanged (patch, 1.15.2 → 1.15.3).
+
+## Revision 2
+
+After review, nothing in the slices changed:
+
+- Rebased onto b546ccb. Main had taken 1.15.3, so the bump is 1.15.4, and main's brief 097 is reorder-web-selection, so
+  this brief is 098.
+- Six more cases pin errors that were pinned for one script only: an unknown flag (balances, income), and the
+  "Couldn't save" and "Couldn't read" lines (all three). They pass on the original scripts and after the move.
+- Review nits: `summary` and `candidate` names, braces, a comment on the `values` typing, and `runScript` rejects
+  instead of throwing. `runImporter` stays one function, about 70 lines, in the shape the plan approved.

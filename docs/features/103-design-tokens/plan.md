@@ -163,7 +163,7 @@ the only place for raw hex, font names and style numbers``. That's 155 character
     Income: `rowAmount` → `amount`; `small` (it renders `{eur(incomeCents(items))} total`) keeps caption and adds
     tabular digits.
   - Verify: `yarn lint` (the files are now guarded). Visual check for Budget and Income.
-- [ ] 4. Put Expenses and Statistics on tokens (~110 lines)
+- [x] 4. Put Expenses and Statistics on tokens (~110 lines)
   - Files: `src/app/(tabs)/expenses.tsx`, `src/app/(tabs)/statistics.tsx`, `eslint.config.js` (−2)
   - Change: snapping rules. Expenses `total` → `amountLg` (34 → 28, Open question 2). `rowAmount` → `amount`, and
     the nested "of €x" inherits it. `budget` → heading plus tabular digits, and `overText` → caption plus
@@ -283,6 +283,11 @@ differently from web.
   viewport rule is needed. 105 should also drop the `fontFamily` overrides that 103 keeps for today's weights.
 
 ## Deviations
+
+- Slice 4, measured: Statistics' two-line category rows each grow 0.5–1pt from the roles' line heights (body
+  20 vs 19.5 natural, caption 16 vs 15.6), so with 15 categories the last row ends about 15pt lower than before. Each
+  element moves less than 2pt; the drift is the sum, not a new step. Budget and Expenses rows don't drift (their
+  height comes from the 40pt tile). Listed for the PR; no change to the slices.
 
 ## Consolidate
 

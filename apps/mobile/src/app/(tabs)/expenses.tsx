@@ -19,7 +19,7 @@ import { tabTitle } from '@/data/tabItems';
 import { useCategoryOrder } from '@/data/useCategoryOrder';
 import { useMonth } from '@/data/useMonth';
 import { eur, kyivMonth, monthName, toCents } from '@/format';
-import { fonts, progressColor, type Palette } from '@/theme';
+import { fonts, progressColor, type Palette, radius, space, text } from '@/theme';
 
 export default function Expenses() {
   const colors = useColors();
@@ -81,14 +81,14 @@ export default function Expenses() {
             }
             style={styles.totalRow}
           >
-            <View style={{ gap: 2 }}>
+            <View style={styles.totalCol}>
               <Text style={styles.caption}>Spent this month</Text>
               {/* The total's own size, so the card doesn't change height when the amount arrives. */}
               <Text style={[styles.total, total === null && { color: colors.muted }]}>
                 {total === null ? '—' : eur(total)}
               </Text>
             </View>
-            <View style={{ alignItems: 'flex-end', gap: 2, paddingBottom: 6 }}>
+            <View style={styles.budgetCol}>
               <Text style={styles.caption}>Budget</Text>
               <Text style={styles.budget}>{plannedText === null ? '—' : noBudget ? 'Not set' : plannedText}</Text>
             </View>
@@ -104,7 +104,7 @@ export default function Expenses() {
           error ? (
             <LoadError message="Couldn’t load this month. Check your connection and try again." onRetry={reload} />
           ) : (
-            <ActivityIndicator color={colors.accent} style={{ marginTop: 24 }} />
+            <ActivityIndicator color={colors.accent} style={styles.loading} />
           )
         ) : (
           <>
@@ -151,7 +151,7 @@ export default function Expenses() {
                       style={[styles.row, index < rows.length - 1 && styles.divider]}
                     >
                       <CategoryTile techName={row.techName} label={row.displayName} />
-                      <View style={{ flex: 1, gap: 7 }}>
+                      <View style={styles.rowBody}>
                         <View style={styles.rowTop}>
                           <Text style={styles.rowName} numberOfLines={1}>
                             {row.displayName}
@@ -190,14 +190,15 @@ export default function Expenses() {
 
 const makeStyles = (colors: Palette) =>
   StyleSheet.create({
-    screen: { flex: 1, backgroundColor: colors.bg, paddingHorizontal: 20, paddingTop: 20 },
+    screen: { flex: 1, backgroundColor: colors.bg, paddingHorizontal: space.xl, paddingTop: space.xl },
     header: {
       flexDirection: 'row',
       alignItems: 'center',
-      paddingBottom: 10,
+      paddingBottom: space.sm,
       zIndex: 1,
     },
-    content: { gap: 14, paddingTop: 4, paddingBottom: 24 },
+    content: { gap: space.lg, paddingTop: space.xs, paddingBottom: space.xxl },
+    loading: { marginTop: space.xxl },
     // Equal-width sides keep the month switcher on the header's true centre; flexBasis 0 matters on web.
     side: { flex: 1, flexBasis: 0, flexDirection: 'row' },
     sideEnd: { justifyContent: 'flex-end' },
@@ -205,51 +206,48 @@ const makeStyles = (colors: Palette) =>
       backgroundColor: colors.surface,
       borderColor: colors.border,
       borderWidth: 1,
-      borderRadius: 22,
-      paddingVertical: 16,
-      paddingHorizontal: 18,
-      gap: 10,
+      borderRadius: radius.lg,
+      paddingVertical: space.lg,
+      paddingHorizontal: space.lg,
+      gap: space.sm,
     },
     totalRow: { flexDirection: 'row', alignItems: 'flex-end', justifyContent: 'space-between' },
-    caption: { fontFamily: fonts.body, fontSize: 13, color: colors.muted },
-    total: {
-      fontFamily: fonts.display,
-      fontSize: 34,
-      color: colors.text,
-      letterSpacing: -0.7,
-      fontVariant: ['tabular-nums'],
-    },
-    budget: { fontFamily: fonts.bodySemi, fontSize: 17, color: colors.muted },
+    totalCol: { gap: space.xxs },
+    budgetCol: { alignItems: 'flex-end', gap: space.xxs, paddingBottom: space.sm },
+    caption: { ...text.label, fontFamily: fonts.body, color: colors.muted },
+    total: { ...text.amountLg, color: colors.text },
+    budget: { ...text.heading, color: colors.muted, fontVariant: ['tabular-nums'] },
     sectionHead: {
       flexDirection: 'row',
       justifyContent: 'space-between',
       alignItems: 'baseline',
-      paddingHorizontal: 4,
+      paddingHorizontal: space.xs,
     },
-    sectionTitle: { fontFamily: fonts.display, fontSize: 17, color: colors.text },
-    small: { fontFamily: fonts.body, fontSize: 12, color: colors.muted },
+    sectionTitle: { ...text.heading, fontFamily: fonts.display, color: colors.text },
+    small: { ...text.caption, color: colors.muted },
     listCard: {
       backgroundColor: colors.surface,
       borderColor: colors.border,
       borderWidth: 1,
-      borderRadius: 22,
-      paddingVertical: 4,
+      borderRadius: radius.lg,
+      paddingVertical: space.xs,
     },
-    row: { flexDirection: 'row', alignItems: 'center', gap: 12, paddingVertical: 12, paddingHorizontal: 16 },
+    row: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: space.md,
+      paddingVertical: space.md,
+      paddingHorizontal: space.lg,
+    },
     divider: { borderBottomWidth: 1, borderBottomColor: colors.border },
-    rowTop: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'baseline', gap: 8 },
-    rowName: { flexShrink: 1, fontFamily: fonts.bodyMedium, fontSize: 15, color: colors.text },
+    rowBody: { flex: 1, gap: space.sm },
+    rowTop: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'baseline', gap: space.sm },
+    rowName: { ...text.body, flexShrink: 1, fontFamily: fonts.bodyMedium, color: colors.text },
     // The name gives way to the amount, which stays on one line.
-    rowAmount: {
-      flexShrink: 0,
-      fontFamily: fonts.bodySemi,
-      fontSize: 15,
-      color: colors.text,
-      fontVariant: ['tabular-nums'],
-    },
+    rowAmount: { ...text.amount, flexShrink: 0, color: colors.text },
     rowPlanned: { fontFamily: fonts.body, color: colors.muted },
     // Matches the row text; the bar's colour carries the state (brief 091).
-    overText: { fontFamily: fonts.bodyMedium, fontSize: 12, color: colors.text },
-    track: { height: 5, backgroundColor: colors.track, borderRadius: 3, overflow: 'hidden' },
-    bar: { height: 5, borderRadius: 3 },
+    overText: { ...text.caption, fontFamily: fonts.bodyMedium, color: colors.text, fontVariant: ['tabular-nums'] },
+    track: { height: 5, backgroundColor: colors.track, borderRadius: radius.pill, overflow: 'hidden' },
+    bar: { height: 5, borderRadius: radius.pill },
   });

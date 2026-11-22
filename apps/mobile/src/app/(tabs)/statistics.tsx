@@ -21,7 +21,7 @@ import {
 import { isEmptySummary, planGap } from '@/data/periodSummary';
 import { useSummary } from '@/data/useSummary';
 import { eur, shortMonthLabel, toCents } from '@/format';
-import { fonts, type Palette } from '@/theme';
+import { fonts, type Palette, radius, size, space, text } from '@/theme';
 
 /**
  * The open ledger's totals for a chosen period of whole months, all members together (brief 089). Home stays on the
@@ -62,7 +62,7 @@ export default function Statistics() {
           error ? (
             <LoadError message="Couldn’t load these figures. Check your connection and try again." onRetry={reload} />
           ) : (
-            <ActivityIndicator color={colors.accent} style={{ marginTop: 24 }} />
+            <ActivityIndicator color={colors.accent} style={styles.loading} />
           )
         ) : (
           <>
@@ -286,57 +286,76 @@ function PeriodMenu({
 
 const makeStyles = (colors: Palette) =>
   StyleSheet.create({
-    screen: { flex: 1, backgroundColor: colors.bg, paddingHorizontal: 20, paddingTop: 20 },
-    header: { flexDirection: 'row', alignItems: 'center', gap: 8, paddingBottom: 10 },
-    title: { fontFamily: fonts.display, fontSize: 22, color: colors.text },
-    content: { gap: 14, paddingTop: 4, paddingBottom: 24 },
-    switcher: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 4, paddingBottom: 6 },
-    iconButton: { width: 44, height: 44, alignItems: 'center', justifyContent: 'center', borderRadius: 12 },
-    periodButton: {
-      minHeight: 44,
+    screen: { flex: 1, backgroundColor: colors.bg, paddingHorizontal: space.xl, paddingTop: space.xl },
+    header: { flexDirection: 'row', alignItems: 'center', gap: space.sm, paddingBottom: space.sm },
+    title: { ...text.title, color: colors.text },
+    content: { gap: space.lg, paddingTop: space.xs, paddingBottom: space.xxl },
+    loading: { marginTop: space.xxl },
+    switcher: {
       flexDirection: 'row',
       alignItems: 'center',
-      gap: 4,
-      flexShrink: 1,
-      paddingHorizontal: 4,
+      justifyContent: 'center',
+      gap: space.xs,
+      paddingBottom: space.sm,
     },
-    periodText: { fontFamily: fonts.display, fontSize: 20, color: colors.text, flexShrink: 1 },
+    iconButton: {
+      width: size.iconButton,
+      height: size.iconButton,
+      alignItems: 'center',
+      justifyContent: 'center',
+      borderRadius: radius.md,
+    },
+    periodButton: {
+      minHeight: size.iconButton,
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: space.xs,
+      flexShrink: 1,
+      paddingHorizontal: space.xs,
+    },
+    periodText: { ...text.title, color: colors.text, flexShrink: 1 },
     // CategoryMenu's layer and card; the card's place comes from the switcher instead of a fixed corner.
     menuLayer: { ...StyleSheet.absoluteFill, zIndex: 2 },
     menuCard: {
       position: 'absolute',
       width: MENU_WIDTH,
-      borderRadius: 14,
+      borderRadius: radius.md,
       borderWidth: 1,
       borderColor: colors.borderStrong,
       backgroundColor: colors.surfaceRaised,
-      paddingVertical: 4,
+      paddingVertical: space.xs,
     },
     menuItem: {
-      minHeight: 44,
+      minHeight: size.iconButton,
       flexDirection: 'row',
       alignItems: 'center',
       justifyContent: 'space-between',
-      paddingHorizontal: 16,
+      paddingHorizontal: space.lg,
     },
-    menuText: { fontFamily: fonts.bodyMedium, fontSize: 15, color: colors.text },
+    menuText: { ...text.body, fontFamily: fonts.bodyMedium, color: colors.text },
     menuTextOn: { fontFamily: fonts.bodySemi },
     card: {
       backgroundColor: colors.surface,
       borderColor: colors.border,
       borderWidth: 1,
-      borderRadius: 22,
-      paddingVertical: 4,
+      borderRadius: radius.lg,
+      paddingVertical: space.xs,
     },
-    row: { flexDirection: 'row', alignItems: 'center', gap: 12, paddingVertical: 12, paddingHorizontal: 16 },
+    row: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: space.md,
+      paddingVertical: space.md,
+      paddingHorizontal: space.lg,
+    },
     divider: { borderBottomWidth: 1, borderBottomColor: colors.border },
-    rowName: { fontFamily: fonts.bodyMedium, fontSize: 15, color: colors.text },
-    rowAmount: { fontFamily: fonts.bodySemi, fontSize: 15, color: colors.text, fontVariant: ['tabular-nums'] },
+    rowName: { ...text.body, fontFamily: fonts.bodyMedium, color: colors.text },
+    rowAmount: { ...text.amount, color: colors.text },
     negative: { color: colors.danger },
     over: { color: colors.over },
-    sectionTitle: { fontFamily: fonts.display, fontSize: 17, color: colors.text, paddingHorizontal: 4 },
-    small: { fontFamily: fonts.body, fontSize: 12, color: colors.muted },
-    rowText: { flex: 1, gap: 2 },
+    sectionTitle: { ...text.heading, fontFamily: fonts.display, color: colors.text, paddingHorizontal: space.xs },
+    small: { ...text.caption, color: colors.muted, fontVariant: ['tabular-nums'] },
+    rowText: { flex: 1, gap: space.xxs },
     grow: { flex: 1 },
-    amounts: { alignItems: 'flex-end', gap: 2 },
+    amounts: { alignItems: 'flex-end', gap: space.xxs },
   });

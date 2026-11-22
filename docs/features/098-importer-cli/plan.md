@@ -115,9 +115,9 @@ first, follow §8b step 4.
 
 ## Slices
 
-- [x] 0. Bump version to 1.15.3
+- [x] 0. Bump version to 1.15.4
   - Files: package.json, apps/mobile/app.json
-  - Change: set both to 1.15.3
+  - Change: set both to 1.15.4 (planned as 1.15.3; main took it first, see Revision 2)
 - [x] 1. Pin the importers' flag, config and save handling
   - Files: apps/api/test/runScript.ts, apps/api/test/offlineFetch.ts, apps/api/test/importScripts.test.ts (new, no
     MySQL needed)

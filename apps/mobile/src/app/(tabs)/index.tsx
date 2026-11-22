@@ -16,7 +16,7 @@ import { useIncome } from '@/data/useIncome';
 import { useMonth } from '@/data/useMonth';
 import { useNotionSync } from '@/data/useNotionSync';
 import { kyivMonth, monthLabel } from '@/format';
-import { fonts, type Palette } from '@/theme';
+import { fonts, type Palette, space, text } from '@/theme';
 
 export default function Home() {
   const styles = useThemedStyles(makeStyles);
@@ -83,8 +83,14 @@ export default function Home() {
 
 const makeStyles = (colors: Palette) =>
   StyleSheet.create({
-    screen: { flex: 1, backgroundColor: colors.bg, paddingHorizontal: 20, paddingTop: 20, gap: 18 },
-    header: { gap: 2 },
-    title: { fontFamily: fonts.display, fontSize: 22, color: colors.text },
-    caption: { fontFamily: fonts.body, fontSize: 13, color: colors.muted },
+    screen: {
+      flex: 1,
+      backgroundColor: colors.bg,
+      paddingHorizontal: space.xl,
+      paddingTop: space.xl,
+      gap: space.lg,
+    },
+    header: { gap: space.xxs },
+    title: { ...text.title, color: colors.text },
+    caption: { ...text.label, fontFamily: fonts.body, color: colors.muted },
   });

@@ -20,8 +20,6 @@ const noRawStyleNumber = {
 
 // Files not moved onto tokens yet; briefs 103b and 103c empty this list.
 const notOnTokensYet = [
-  'src/app/(tabs)/index.tsx',
-  'src/app/(tabs)/settings.tsx',
   'src/app/category-form.tsx',
   'src/app/category/\\[categoryId\\].tsx',
   'src/app/delete-category.tsx',
@@ -48,11 +46,9 @@ const notOnTokensYet = [
   'src/components/MonthSwitcher.tsx',
   'src/components/NotionSyncPanel.tsx',
   'src/components/PendingInvites.tsx',
-  'src/components/PlaceholderPage.tsx',
   'src/components/ReorderList.tsx',
   'src/components/TabBar.tsx',
   'src/components/UndoToast.tsx',
-  'src/demo-app/(tabs)/index.tsx',
   'src/demo/DemoStrip.tsx',
 ];
 

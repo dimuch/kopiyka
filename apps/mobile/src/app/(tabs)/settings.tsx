@@ -10,7 +10,7 @@ import { PlaceholderPage } from '@/components/PlaceholderPage';
 import { Pressable } from '@/components/Pressable';
 import { useInvites } from '@/data/invites';
 import { usePushOnce } from '@/pushOnce';
-import { fonts, outlinedDangerButton, outlinedDangerText, type Palette } from '@/theme';
+import { fonts, outlinedDangerButton, outlinedDangerText, type Palette, radius, size, space, text } from '@/theme';
 
 export default function Settings() {
   const colors = useColors();
@@ -49,7 +49,7 @@ export default function Settings() {
           <View style={styles.avatar}>
             <Text style={styles.initial}>{user.username.slice(0, 1).toUpperCase()}</Text>
           </View>
-          <View style={{ flex: 1, gap: 2 }}>
+          <View style={styles.accountText}>
             <Text style={styles.caption}>Signed in as</Text>
             <Text numberOfLines={1} style={styles.username}>
               {user.username}
@@ -100,48 +100,49 @@ const SWITCH_FAILED = 'Couldn’t switch. Check your connection and try again.';
 const makeStyles = (colors: Palette) =>
   StyleSheet.create({
     account: {
-      marginTop: 12,
+      marginTop: space.md,
       flexDirection: 'row',
       alignItems: 'center',
-      gap: 12,
+      gap: space.md,
       backgroundColor: colors.surface,
       borderColor: colors.border,
       borderWidth: 1,
-      borderRadius: 22,
-      paddingVertical: 14,
-      paddingHorizontal: 16,
+      borderRadius: radius.lg,
+      paddingVertical: space.lg,
+      paddingHorizontal: space.lg,
     },
+    accountText: { flex: 1, gap: space.xxs },
     avatar: {
       width: 40,
       height: 40,
-      borderRadius: 20,
+      borderRadius: radius.pill,
       backgroundColor: colors.accentTint,
       alignItems: 'center',
       justifyContent: 'center',
     },
-    initial: { fontFamily: fonts.display, fontSize: 17, color: colors.accent },
-    section: { marginTop: 24, gap: 8 },
+    initial: { ...text.heading, fontFamily: fonts.display, color: colors.accent },
+    section: { marginTop: space.xxl, gap: space.sm },
     members: {
-      marginTop: 24,
-      minHeight: 44,
+      marginTop: space.xxl,
+      minHeight: size.iconButton,
       flexDirection: 'row',
       alignItems: 'center',
       justifyContent: 'space-between',
-      borderRadius: 18,
+      borderRadius: radius.lg,
       borderWidth: 1,
       borderColor: colors.border,
       backgroundColor: colors.surface,
-      paddingVertical: 10,
-      paddingLeft: 18,
-      paddingRight: 12,
+      paddingVertical: space.sm,
+      paddingLeft: space.lg,
+      paddingRight: space.md,
     },
-    membersText: { fontFamily: fonts.bodyMedium, fontSize: 15, color: colors.text },
-    error: { fontFamily: fonts.bodyMedium, fontSize: 14, color: colors.over },
-    caption: { fontFamily: fonts.body, fontSize: 12, color: colors.muted },
-    username: { fontFamily: fonts.bodySemi, fontSize: 16, color: colors.text },
-    // The same 6pt between sections as PlaceholderPage's own gap.
-    content: { flexGrow: 1, gap: 6 },
-    spacer: { flexGrow: 1, minHeight: 24 },
-    signOut: { ...outlinedDangerButton(colors), marginBottom: 20 },
+    membersText: { ...text.body, fontFamily: fonts.bodyMedium, color: colors.text },
+    error: { ...text.label, color: colors.over },
+    caption: { ...text.caption, color: colors.muted },
+    username: { ...text.bodyStrong, color: colors.text },
+    // The same 8pt between sections as PlaceholderPage's own gap.
+    content: { flexGrow: 1, gap: space.sm },
+    spacer: { flexGrow: 1, minHeight: space.xxl },
+    signOut: { ...outlinedDangerButton(colors), marginBottom: space.xl },
     signOutText: outlinedDangerText(colors),
   });

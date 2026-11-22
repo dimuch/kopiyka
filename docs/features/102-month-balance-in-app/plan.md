@@ -262,7 +262,7 @@ created_by, deleted_at)`). Nov gets a list via `storeMonthList(db, id, '2026-11'
     - Nov 2026 shows `Start −€35 → End …`, with End − Start equal to Statistics' November left;
     - Dec shows no line.
   - ~190 lines (tests ~140). A route and its tests don't split into two green halves.
-- [ ] 4. Say in the READMEs that months after the import are worked out in the app
+- [x] 4. Say in the READMEs that months after the import are worked out in the app
   - Files: README.md (the `import-balances` paragraph), deploy/README.md ("Importing each month's balances from Notion")
   - Change: one sentence each. The import covers January–October 2026, and from the month after the last imported one
     the API works each month out (brief 102).

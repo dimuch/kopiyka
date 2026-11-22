@@ -78,7 +78,8 @@ Each month's opening and closing balance comes the same way: `yarn api import-ba
 the Opening and Actual Closing tables into `month_balances` (brief 085), filling a side Notion has no row for from the
 neighbouring month or with 0. Same flags as `import-history`, plus `--month <YYYY-MM>` to write one month; `--save`
 needs `NOTION_OPENING_DATA_SOURCE_ID` and `NOTION_CLOSING_DATA_SOURCE_ID`. Steps: `deploy/README.md`, "Importing
-each month's balances from Notion".
+each month's balances from Notion". From the month after the last imported one, the API works each month out itself
+(brief 102): it starts at the previous month's end and ends at that plus the month's income − spent.
 
 January–October income comes once: `yarn api import-income` copies each row of the Income table into the ledger's
 income items (brief 088), added by the owner. It only inserts: a month that already has income is skipped whole, and

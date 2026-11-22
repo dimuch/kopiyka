@@ -207,16 +207,16 @@ async function recover(
       ORDER BY a.add_id`,
     [scope.ledgerId],
   );
-  for (const row of open) {
-    const fail = (error: string) => result.failed.push({ category: row.tech_name, month: row.month, error });
-    const confirm = () => db.query('UPDATE notion_total_adds SET confirmed = 1 WHERE add_id = ?', [row.add_id]);
+  for (const openAdd of open) {
+    const fail = (error: string) => result.failed.push({ category: openAdd.tech_name, month: openAdd.month, error });
+    const confirm = () => db.query('UPDATE notion_total_adds SET confirmed = 1 WHERE add_id = ?', [openAdd.add_id]);
     try {
-      const current = (await table.actualCents(row.notion_page_id)) ?? 0n;
-      if (current === toCents(row.expected_amount)) {
+      const current = (await table.actualCents(openAdd.notion_page_id)) ?? 0n;
+      if (current === toCents(openAdd.expected_amount)) {
         await confirm();
         result.added++;
-      } else if (current === toCents(row.base_amount)) {
-        await release(db, row.add_id);
+      } else if (current === toCents(openAdd.base_amount)) {
+        await release(db, openAdd.add_id);
       } else {
         await confirm(); // never add it twice
         fail('actual_amount_changed');
@@ -224,17 +224,20 @@ async function recover(
     } catch (err) {
       if (err instanceof NotionError && err.code === 'object_not_found') {
         // The row is gone, so the add can't be there.
-        const released = await release(db, row.add_id).then(
+        const released = await release(db, openAdd.add_id).then(
           () => true,
           (releaseErr: unknown) => {
-            log.warn({ err: releaseErr, category: row.tech_name, month: row.month }, 'Notion totals release failed');
+            log.warn(
+              { err: releaseErr, category: openAdd.tech_name, month: openAdd.month },
+              'Notion totals release failed',
+            );
             return false;
           },
         );
         if (!released) fail('internal');
         continue;
       }
-      log.warn({ err, category: row.tech_name, month: row.month }, 'Notion totals read-back failed');
+      log.warn({ err, category: openAdd.tech_name, month: openAdd.month }, 'Notion totals read-back failed');
       fail(err instanceof NotionError ? err.code : 'internal');
     }
   }

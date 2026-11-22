@@ -33,12 +33,12 @@ export type GroceryChange =
 
 /** What Notion still needs to hear about, in the given order. An update of a row in trash restores it. */
 export function planGroceries(states: GroceryState[]): GroceryChange[] {
-  return states.flatMap((state): GroceryChange[] => {
-    const { sent } = state;
-    if (!sent) return state.wanted ? [{ kind: 'create', expense: state }] : [];
-    if (!state.wanted) return sent.inTrash ? [] : [{ kind: 'trash', expense: state, sent }];
-    const changed = state.name !== sent.name || state.amountEur !== sent.amountEur || state.date !== sent.date;
-    return sent.inTrash || changed ? [{ kind: 'update', expense: state, sent }] : [];
+  return states.flatMap((expense): GroceryChange[] => {
+    const { sent } = expense;
+    if (!sent) return expense.wanted ? [{ kind: 'create', expense }] : [];
+    if (!expense.wanted) return sent.inTrash ? [] : [{ kind: 'trash', expense, sent }];
+    const changed = expense.name !== sent.name || expense.amountEur !== sent.amountEur || expense.date !== sent.date;
+    return sent.inTrash || changed ? [{ kind: 'update', expense, sent }] : [];
   });
 }
 

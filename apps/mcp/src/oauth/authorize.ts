@@ -1,6 +1,7 @@
 import type { FastifyInstance } from 'fastify';
 import { z } from 'zod';
 import type { AppDeps } from '../app.js';
+import { resourceUrl } from '../config.js';
 import { seal } from '../seal.js';
 import { SCOPES, type Scope } from './metadata.js';
 import { errorPage, faultPage, sendPage, signInPage } from './pages.js';
@@ -70,7 +71,7 @@ function requestFault(query: AuthorizeQuery, resource: string): string | null {
 
 export async function authorizeRoutes(app: FastifyInstance, { config, now }: AppDeps): Promise<void> {
   const issuer = config.publicUrl;
-  const resource = `${issuer}/mcp`;
+  const resource = resourceUrl(config.publicUrl);
 
   app.get('/oauth/authorize', async (req, reply) => {
     const parsed = AuthorizeQuery.safeParse(req.query);

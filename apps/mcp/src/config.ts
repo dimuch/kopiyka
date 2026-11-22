@@ -44,6 +44,11 @@ function parsePublicUrl(value: string, env: Config['env']): string {
   return url.origin;
 }
 
+/** The connector's resource and its tokens' audience: authorize, token and /mcp must agree on it. */
+export function resourceUrl(publicUrl: string): string {
+  return `${publicUrl}/mcp`;
+}
+
 function parseSealKey(value: string): Buffer {
   const key = Buffer.from(value, 'base64');
   if (key.length !== KEY_BYTES) throw new Error(`MCP_SEAL_KEY must be ${KEY_BYTES} bytes, base64`);

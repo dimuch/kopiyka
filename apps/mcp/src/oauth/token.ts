@@ -2,6 +2,7 @@ import { createHash } from 'node:crypto';
 import type { FastifyInstance } from 'fastify';
 import { z } from 'zod';
 import type { AppDeps } from '../app.js';
+import { resourceUrl } from '../config.js';
 import { DEFAULT_LIMITS } from '../limits.js';
 import { sealAccessToken } from '../mcp/auth.js';
 import { open } from '../seal.js';
@@ -33,7 +34,7 @@ function usedCodes(maxSize: number) {
 }
 
 export async function tokenRoutes(app: FastifyInstance, { config, now, limits }: AppDeps): Promise<void> {
-  const resource = `${config.publicUrl}/mcp`;
+  const resource = resourceUrl(config.publicUrl);
   const used = usedCodes({ ...DEFAULT_LIMITS, ...limits }.usedCodes);
 
   app.post('/oauth/token', async (req, reply) => {

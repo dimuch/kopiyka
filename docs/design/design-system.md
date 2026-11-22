@@ -126,8 +126,9 @@ Dark mode uses no shadows.
 
 ## Roll-out (one brief each, in order)
 
-1. **103 · Tokens and text roles:** add the token objects and move styles onto them. Nothing
-   visibly changes.
+1. **103 · Tokens and text roles** (split into 103 tabs, 103b components, 103c other screens): add
+   the token objects and move styles onto them. Only small shifts from snapping to the scale;
+   each PR lists the ones over 2pt.
 2. **104 · Shared components:** `Text`, `Card`, `Button`, `IconButton`, `Chip`, `ScreenHeader`
    and `ProgressBar`, replacing the copied styles. Nothing visibly changes.
 3. **105 · The fresh look:** the new palettes, Inter, radii, shadows, borders removed, one card

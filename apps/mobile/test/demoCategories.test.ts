@@ -88,7 +88,7 @@ describe('demo categories, a month’s list', () => {
     expect(september).toMatchObject({ displayName: 'legacy', inMonth: false, plannedEur: '0.00' });
   });
 
-  it('puts the quick row in order of latest expense from any month, never-used ones after, five at most', async () => {
+  it('puts the month’s first five in the quick row, whatever was spent last', async () => {
     const data = fixtureData();
     for (const categoryId of [4, 5, 6, 7]) {
       data.categories.push({
@@ -99,20 +99,13 @@ describe('demo categories, a month’s list', () => {
       });
       data.monthRows.push({ categoryId, month: '2026-11', displayName: `c${categoryId}`, removal: null });
     }
-    // 1's October expense was made later than its November one, and a deleted expense doesn't count.
-    data.expenses[2]!.createdAt = '2026-11-12T09:00:00.000Z';
-    data.expenses.push({
-      ...data.expenses[0]!,
-      expenseId: 13,
-      categoryId: 2,
-      createdAt: '2026-11-14T09:00:00.000Z',
-      removal: 1,
-    });
+    // 4's expense is the newest of all; the old most-recent rule put it first.
+    data.expenses.push({ ...data.expenses[0]!, expenseId: 13, categoryId: 4, createdAt: '2026-11-14T09:00:00.000Z' });
     const api = createStore(data, () => NOW);
 
     const list = await api<MonthList>('/api/ledgers/1/categories?month=2026-11');
 
-    // 1 (12 Nov), 2 (10 Nov), then never-used by sort order: 7 (43), 6 (44), 5 (45); 4 (46) is the sixth.
+    // Brief 098: 1 (10), 2 (20), 7 (43), 6 (44), 5 (45); 4 (46) is the sixth.
     expect(list.quickCategoryIds).toEqual([1, 2, 7, 6, 5]);
   });
 });
@@ -455,7 +448,7 @@ describe('demo categories, my order', () => {
     expect(await idsIn(api, '2026-11')).toEqual([2, 1]);
   });
 
-  it('breaks quick-row ties by sort order, never my own', async () => {
+  it('puts my order’s top in the quick row', async () => {
     const data = fixtureData();
     // Rent's and food's newest expenses were created at the same moment.
     for (const expense of data.expenses) expense.createdAt = '2026-11-10T09:00:00.000Z';
@@ -464,7 +457,8 @@ describe('demo categories, my order', () => {
     await saveOrder(api, [2, 1]);
 
     const list = await api<MonthList>('/api/ledgers/1/categories?month=2026-11');
-    expect(list.quickCategoryIds).toEqual([1, 2]);
+    // Under the old rule the tie went by sort order, giving [1, 2].
+    expect(list.quickCategoryIds).toEqual([2, 1]);
   });
 
   it('lists a category added after the save last', async () => {

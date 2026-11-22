@@ -27,7 +27,7 @@ describe('the demo’s sample data', () => {
       expect(expense.expenseDate <= today).toBe(true);
       expect(expense.createdAt <= now.toISOString()).toBe(true);
     }
-    // Distinct, so the quick row has an order.
+    // Distinct, so the expense list has an order.
     expect(new Set(data.expenses.map((expense) => expense.createdAt)).size).toBe(data.expenses.length);
 
     // €1,400 planned against €1,750 income: €100 more can be planned at once.

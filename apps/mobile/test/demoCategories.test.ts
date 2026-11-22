@@ -450,7 +450,7 @@ describe('demo categories, my order', () => {
 
   it('puts my order’s top in the quick row', async () => {
     const data = fixtureData();
-    // Rent's and food's newest expenses were created at the same moment.
+    // Equal created_at, so the old recency rule fell back to sort order ([1, 2]) and only my order can give [2, 1].
     for (const expense of data.expenses) expense.createdAt = '2026-11-10T09:00:00.000Z';
     const api = createStore(data, () => NOW);
 

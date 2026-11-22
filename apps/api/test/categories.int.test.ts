@@ -155,11 +155,11 @@ describe.skipIf(!(await testDbReachable()))('categories API (MySQL)', () => {
     return res.insertId;
   }
 
-  async function addExpense(techName: string, createdAt: string, deleted = false): Promise<void> {
+  async function addExpense(techName: string, createdAt: string): Promise<void> {
     await db.query(
-      `INSERT INTO expenses (category_id, expense_date, amount_eur, created_by, created_at, deleted_at)
-       SELECT category_id, '2026-10-01', 10, ?, ?, ? FROM categories WHERE ledger_id = ? AND tech_name = ?`,
-      [owner.userId, new Date(createdAt), deleted ? new Date(createdAt) : null, owner.ledgerId, techName],
+      `INSERT INTO expenses (category_id, expense_date, amount_eur, created_by, created_at)
+       SELECT category_id, '2026-10-01', 10, ?, ? FROM categories WHERE ledger_id = ? AND tech_name = ?`,
+      [owner.userId, new Date(createdAt), owner.ledgerId, techName],
     );
   }
 
@@ -191,26 +191,25 @@ describe.skipIf(!(await testDbReachable()))('categories API (MySQL)', () => {
     expect(quickCategoryIds).toEqual(categories.slice(0, 5).map((c: { categoryId: number }) => c.categoryId));
   });
 
-  it('puts recently used categories in the quick row, ignoring deleted expenses', async () => {
+  it('keeps the quick row to the first five, whatever was spent last', async () => {
+    // Brief 098: both are newer than anything else and outside the first five, so the old most-recent rule put them first.
     await addExpense('gym', '2026-10-02T09:00:00Z');
     await addExpense('car', '2026-10-04T09:00:00Z');
-    await addExpense('gift', '2026-10-05T09:00:00Z', true);
 
     const { categories, quickCategoryIds } = (await get(owner.ledgerId)).json();
     const idOf = (t: string) => categories.find((c: { techName: string }) => c.techName === t).categoryId;
-    expect(quickCategoryIds).toEqual([idOf('car'), idOf('gym'), idOf('rent'), idOf('groceries'), idOf('education')]);
+    expect(quickCategoryIds).toEqual(['rent', 'groceries', 'education', 'personal', 'parking'].map(idOf));
   });
 
   it('leaves deleted categories out of the list and the quick row', async () => {
-    // Without the filter, gym (the only one used) would lead the quick row.
-    await addExpense('gym', '2026-10-02T09:00:00Z');
-    await db.query("UPDATE categories SET deleted_at = ? WHERE ledger_id = ? AND tech_name = 'gym'", [
+    // Without the filter, rent would lead the quick row.
+    await db.query("UPDATE categories SET deleted_at = ? WHERE ledger_id = ? AND tech_name = 'rent'", [
       clock,
       owner.ledgerId,
     ]);
     const { categories, quickCategoryIds } = (await get(owner.ledgerId)).json();
     expect(categories).toHaveLength(14);
-    expect(categories.map((c: { techName: string }) => c.techName)).not.toContain('gym');
+    expect(categories.map((c: { techName: string }) => c.techName)).not.toContain('rent');
     expect(quickCategoryIds).toEqual(categories.slice(0, 5).map((c: { categoryId: number }) => c.categoryId));
   });
 

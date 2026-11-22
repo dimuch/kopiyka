@@ -60,7 +60,7 @@ the row. Precedent: the Statistics period rework that changed an existing screen
 - [x] 0. Bump version to 1.16.0
   - Files: package.json, apps/mobile/app.json
   - Change: set both to 1.16.0
-- [ ] 1. Fill the quick row with the first five of my order
+- [x] 1. Fill the quick row with the first five of my order
   - Files: apps/api/src/categories/routes.ts, apps/api/test/categories.test.ts, apps/api/test/categories.int.test.ts,
     apps/api/test/categoryOrder.int.test.ts
   - Change: `pickQuick(categories: CategoryDto[])` returns `categories.slice(0, QUICK_CATEGORY_COUNT).map(c =>
@@ -158,5 +158,12 @@ c.categoryId)`. Its JSDoc says why: the list is already in the caller's order, b
 - None found.
 
 ## Deviations
+
+- slice 1: the web check against the real API couldn't run here, because signing in needs the user's authenticator
+  code. The app code doesn't change on this branch, so the Add expense check ran on the demo build after slice 2
+  (same app code, same rule). The API side is covered by the integration tests, which ran against local MySQL
+  (`apps/api/.env` linked into the worktree, gitignored). The check with a real sign-in is left to the user.
+- slice 1: `addExpense` in `categories.int.test.ts` lost its `deleted` flag, because the only test that used it (the
+  recently-used one) is gone.
 
 ## Consolidate

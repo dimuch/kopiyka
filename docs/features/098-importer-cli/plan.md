@@ -3,8 +3,9 @@
 Status: approved
 Brief: ./brief.md
 Branch: chore/importer-cli
-Base: origin/main @ ba52749 (PR 138 merged), version 1.15.2. The branch is at ba52749. Baseline gates are green:
-format, lint and typecheck pass; API 642 passed | 1 skipped (integration tests ran); MCP 327; mobile 453.
+Base: origin/main @ b546ccb, version 1.15.3 (rebased after review from ba52749). The baseline was taken at ba52749:
+format, lint and typecheck pass; API 642 passed | 1 skipped (integration tests ran); MCP 327; mobile 453. Main's
+brief 097 is reorder-web-selection, so this brief is 098.
 
 ## Approach
 
@@ -106,7 +107,7 @@ changed lines. Script by script keeps each commit reviewable against its own pin
 
 ## Version
 
-Bump: patch — 1.15.2 → 1.15.3
+Bump: patch — 1.15.3 → 1.15.4 (main took 1.15.3 while this was in review; see Revision 2)
 Why: conventions §8b, "a refactor that touches shipped code is patch". The scripts ship and run on the droplet
 (`yarn api import-*`). Base's `package.json` and `apps/mobile/app.json` are already 1.15.2 because PR 138 took it,
 so the brief's 1.15.1 → 1.15.2 is out of date. There is no conflict with PR 138 any more. If another PR takes 1.15.3
@@ -304,6 +305,8 @@ first, follow §8b step 4.
 - Local runs: another session was running the API suite against the same `kopiyka_test` database, which broke both runs at random. Each test run here waited for that run to finish. The MySQL user can't create a second test database.
 
 ## Consolidate
+
+- n/a: this is the refactor itself.
 
 ## Revision 1
 

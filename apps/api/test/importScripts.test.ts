@@ -6,7 +6,7 @@ import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { runScript } from './runScript.js';
 
 // What the Notion importers print before they ever reach the database: flag and config errors, and --save. Written
-// out here, not imported, so a changed message fails these tests (brief 097).
+// out here, not imported, so a changed message fails these tests (brief 098).
 
 const HISTORY = 'scripts/import-history.ts';
 const BALANCES = 'scripts/import-balances.ts';

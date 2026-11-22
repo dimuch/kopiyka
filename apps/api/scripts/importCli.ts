@@ -57,6 +57,7 @@ function fail(message: string): never {
 
 /** Runs an importer's command line; exits the process on a usage, config, save or snapshot error. */
 export async function runImporter<Snapshot>(importer: Importer<Snapshot>): Promise<void> {
+  // Typed with --month for every importer; one without it just never has `values.month` set.
   let values: ReturnType<typeof parseArgs<{ options: typeof withMonth }>>['values'];
   try {
     ({ values } = parseArgs({ options: importer.hasMonth ? withMonth : sharedOptions }));
@@ -93,8 +94,9 @@ export async function runImporter<Snapshot>(importer: Importer<Snapshot>): Promi
 
   /** The snapshot to import: the file, else Notion itself; null when neither is available. */
   async function readSnapshot(): Promise<Snapshot | null> {
-    if (values.snapshot !== undefined)
+    if (values.snapshot !== undefined) {
       return importer.schema.parse(JSON.parse(await readFile(values.snapshot, 'utf8')));
+    }
     return readNotion ? readNotion() : null;
   }
 
@@ -114,15 +116,16 @@ export async function runImporter<Snapshot>(importer: Importer<Snapshot>): Promi
       db,
       ledgerId,
       apply: values.apply,
-      pickMonth: (months) => (month === undefined ? months : months.filter((picked) => picked.month === month)),
+      pickMonth: (months) => (month === undefined ? months : months.filter((candidate) => candidate.month === month)),
       written,
     };
-    const done = await importer.importSnapshot(snapshot, run);
-    console.log(values.apply ? done : 'Dry run: nothing was written. Run again with --apply to write.');
+    const summary = await importer.importSnapshot(snapshot, run);
+    console.log(values.apply ? summary : 'Dry run: nothing was written. Run again with --apply to write.');
   } catch (err) {
     console.error((err as Error).message);
-    if (values.apply)
+    if (values.apply) {
       console.error(written.length ? `Written before it stopped: ${written.join(', ')}.` : 'Nothing was written.');
+    }
     process.exitCode = 1;
   } finally {
     await db.end();

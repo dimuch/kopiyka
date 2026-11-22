@@ -7,8 +7,8 @@ import type { Db } from '../db.js';
 // run (the owner's choice, brief 072). A blocked username doesn't block a device
 // that has logged in as that user before (brief 064), so strangers' wrong codes
 // can't lock its owner out.
-export const MAX_FAILURES = 5;
-export const WINDOW_MS = 24 * 60 * 60 * 1000;
+const MAX_FAILURES = 5;
+const WINDOW_MS = 24 * 60 * 60 * 1000;
 export const LOCK_MS = 24 * 60 * 60 * 1000;
 
 export type ThrottleKeyType = 'username' | 'ip' | 'device';

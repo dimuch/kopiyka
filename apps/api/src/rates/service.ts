@@ -5,7 +5,7 @@ import type { Db } from '../db.js';
 import type { RateFetcher } from './nbu.js';
 
 /** How far back to look when the NBU has no rate for the asked date yet. */
-export const MAX_FALLBACK_DAYS = 7;
+const MAX_FALLBACK_DAYS = 7;
 
 /** A real 'YYYY-MM-DD' date from 2000-01-01 on: the dates both routes look NBU rates up for. */
 export const RateDate = z

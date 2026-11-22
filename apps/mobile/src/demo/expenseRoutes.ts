@@ -4,7 +4,7 @@ import { addDays, centsToInput, convertPreview, kyivToday, toCents } from '@/for
 import { DEMO_USER, type DemoExpense, inMonth, refuse, refuseIfEnded, type Route, type StoreData } from './state';
 
 /** The demo's EUR→UAH rate for every date: invented, close to the NBU's in late 2026. */
-export const SAMPLE_RATE = 50.483;
+const SAMPLE_RATE = 50.483;
 const SAMPLE_RATE_TEXT = SAMPLE_RATE.toFixed(4);
 
 const EXPENSE = /^\/api\/ledgers\/\d+\/expenses\/(\d+)$/;

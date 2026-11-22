@@ -110,7 +110,7 @@ export function wantedMonths(snapshot: Snapshot): WantedMonth[] {
           otherPosition > position &&
           (other.techName === row.techName || other.name.toLowerCase() === row.name.toLowerCase()),
       );
-      if (same.length) clashes.push(`${month}: ${[row, ...same].map((clashing) => clashing.title).join(', ')}`);
+      if (same.length) clashes.push(`${month}: ${[row, ...same].map((clash) => clash.title).join(', ')}`);
     }
   }
   if (clashes.length) throw new Error(`Two Notion rows name one category: ${clashes.join('; ')}`);

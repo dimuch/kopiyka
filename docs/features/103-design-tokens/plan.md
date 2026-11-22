@@ -130,7 +130,7 @@ slightly, but nothing new can be done and no API, schema or connector changes. 1
 
 ## Slices
 
-- [ ] 0. Bump version to 1.17.2
+- [x] 0. Bump version to 1.17.2
   - Files: package.json, apps/mobile/app.json
   - Change: set both to 1.17.2
 - [ ] 1. Add spacing, radius, size and type tokens to the theme (~50 lines)

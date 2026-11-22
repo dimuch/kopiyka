@@ -63,9 +63,9 @@ export default function Income() {
       setCopiedOver(before);
       reload();
     } catch (err) {
-      const text = err instanceof ApiError ? copyRefusedText(err.code, month) : null;
-      if (text) {
-        setRefused({ shown, text });
+      const refusedText = err instanceof ApiError ? copyRefusedText(err.code, month) : null;
+      if (refusedText) {
+        setRefused({ shown, text: refusedText });
         // An income_exists brings the list in; a no_previous_income refreshes the previous month.
         reload();
         previous.reload();

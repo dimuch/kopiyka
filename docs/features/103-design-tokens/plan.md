@@ -142,7 +142,7 @@ slightly, but nothing new can be done and no API, schema or connector changes. 1
     (Settings), Leave ledger (Members) and Sign out (no-ledger) look the same, apart from the role's line height and
     tracking: all three use these helpers. No unit test: these are constants,
     and §6 rules out snapshot-style asserts.
-- [ ] 2. Fail lint when a style sets a raw spacing, radius or type number (~60 lines)
+- [x] 2. Fail lint when a style sets a raw spacing, radius or type number (~60 lines)
   - Files: `apps/mobile/eslint.config.js`, `.claude/skills/kopiyka-conventions/SKILL.md`
   - Change: the rule from Contracts, with all 38 files on `notOnTokensYet`. In conventions §2, the `theme.ts` "Owns"
     cell becomes ``palettes, fonts, style tokens (`space`, `radius`, `size`, `text`), category hues, `phoneWidth` —

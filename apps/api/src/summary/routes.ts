@@ -4,8 +4,9 @@ import { z } from 'zod';
 import type { AppDeps } from '../app.js';
 import { NAME_IN_MONTH } from '../categories/monthLists.js';
 import { monthStart } from '../dates.js';
-import { centsToString, toCents } from '../money.js';
+import { centsToString } from '../money.js';
 import { MonthString } from '../monthChecks.js';
+import { addRows, incomeRows, spentRows } from './periodRows.js';
 
 /** A period's figures in EUR, as decimal strings; `leftEur` is income − spent and may be negative ('-12.50'). */
 export interface SummaryTotalsDto {
@@ -51,11 +52,6 @@ const PeriodQuery = z
   .refine((q) => q.from <= q.to, 'from must not be after to')
   .refine((q) => monthSpan(q.from, q.to) <= MAX_MONTHS, `at most ${MAX_MONTHS} months`);
 
-/** Sums one decimal-string column of the rows, in cents; with `month`, only that month's rows. */
-function addRows(rows: RowDataPacket[], column: string, month?: string): bigint {
-  return rows.reduce((sum, row) => (month === undefined || row.month === month ? sum + toCents(row[column]) : sum), 0n);
-}
-
 /** -1, 0 or 1, for sorting by an amount. */
 const compareCents = (a: bigint, b: bigint) => (a < b ? -1 : a > b ? 1 : 0);
 
@@ -90,22 +86,8 @@ export async function summaryRoutes(app: FastifyInstance, { db }: AppDeps): Prom
         WHERE c.ledger_id = ? AND c.deleted_at IS NULL AND m.deleted_at IS NULL AND m.list_month BETWEEN ? AND ?`,
       [ledgerId, first, last],
     );
-    const [spent] = await db.query<RowDataPacket[]>(
-      `SELECT e.category_id, DATE_FORMAT(e.expense_date, '%Y-%m') AS month, SUM(e.amount_eur) AS spent_eur
-         FROM expenses e
-         JOIN categories c ON c.category_id = e.category_id
-        WHERE c.ledger_id = ? AND c.deleted_at IS NULL AND e.deleted_at IS NULL
-          AND e.expense_date >= ? AND e.expense_date <= LAST_DAY(?)
-        GROUP BY e.category_id, month`,
-      [ledgerId, first, last],
-    );
-    const [income] = await db.query<RowDataPacket[]>(
-      `SELECT DATE_FORMAT(income_month, '%Y-%m') AS month, SUM(amount_eur) AS income_eur
-         FROM income_items
-        WHERE ledger_id = ? AND income_month BETWEEN ? AND ?
-        GROUP BY month`,
-      [ledgerId, first, last],
-    );
+    const spent = await spentRows(db, ledgerId, first, last);
+    const income = await incomeRows(db, ledgerId, first, last);
 
     const incomeCents = addRows(income, 'income_eur');
     const spentCents = addRows(spent, 'spent_eur');

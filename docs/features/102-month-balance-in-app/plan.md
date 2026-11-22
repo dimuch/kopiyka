@@ -196,7 +196,7 @@ PUT answers 404, which shows "Couldn’t save".
 - [x] 0. Bump version to 1.17.0
   - Files: package.json, apps/mobile/app.json
   - Change: set both to 1.17.0
-- [ ] 1. Move the Statistics income and spent queries into their own module
+- [x] 1. Move the Statistics income and spent queries into their own module
   - Files: apps/api/src/summary/periodRows.ts (new), apps/api/src/summary/routes.ts
   - Change: `incomeRows`, `spentRows` and `addRows` move as they are (Contracts). The summary route calls them.
     Behaviour-preserving.

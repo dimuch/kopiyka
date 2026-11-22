@@ -114,10 +114,10 @@ first, follow §8b step 4.
 
 ## Slices
 
-- [ ] 0. Bump version to 1.15.3
+- [x] 0. Bump version to 1.15.3
   - Files: package.json, apps/mobile/app.json
   - Change: set both to 1.15.3
-- [ ] 1. Pin the importers' flag, config and save handling
+- [x] 1. Pin the importers' flag, config and save handling
   - Files: apps/api/test/runScript.ts, apps/api/test/offlineFetch.ts, apps/api/test/importScripts.test.ts (new, no
     MySQL needed)
   - Change: a table-driven `it.each` of {script, args, env} → exact {code, stdout, stderr}; `describe` timeout 20 s.
@@ -146,7 +146,7 @@ first, follow §8b step 4.
 
     A break that leaves every case green in some script means that script's line isn't pinned: add a case before
     moving on. Record which cases went red for each script in the commit body.
-- [ ] 2. Pin the importers' dry run and --apply against MySQL
+- [x] 2. Pin the importers' dry run and --apply against MySQL
   - Files: apps/api/test/importScripts.int.test.ts (new; `describe.skipIf(!(await testDbReachable()))`,
     `resetSchema` once, `clearData` + `makeUser` before each case)
   - Change: snapshot files written to a temp dir; the DB checked after each spawn. These were worked out from the code
@@ -198,7 +198,7 @@ first, follow §8b step 4.
       `Skipped row` line ahead of `No ledger 999999`.
 
     Record which cases went red for each script in the commit body. A break that stays green means a gap: add a case.
-- [ ] 3. Name the scripts' callback values after what they hold
+- [x] 3. Name the scripts' callback values after what they hold
   - Files: apps/api/scripts/{import-history,import-balances,import-income,notion-start,create-user}.ts
   - Change: rename only: the 17 lines `find-short-names.sh` lists, plus notion-start's `{ kind, expense: e }` (lines 80–81, which the script misses; §4 covers destructuring). For example: history `(c)`→`(category)`,
     `(l)`/`(r)`→`(row)`, `(p)`→`(planned)`, `(t)`→`(total)`, `reduce((n, r)`→`reduce((sum, row)`; balances
@@ -215,7 +215,7 @@ first, follow §8b step 4.
     checked this on ba52749. With `--join y`, as first suggested, a `  join: 3–64 letters, digits, _ . -` line comes
     first, because `y` fails the username rule. `find-short-names.sh apps/api/scripts` →
     "No single-letter names found."
-- [ ] 4. Share the importer command line, starting with import-balances
+- [x] 4. Share the importer command line, starting with import-balances
   - Files: apps/api/scripts/importCli.ts (new), apps/api/scripts/import-balances.ts
   - Change: `runImporter` with flags (all with `--month`), config, save, snapshot read, `pickMonth`, and the dry-run
     or `--apply` run. On an `--apply` failure the `catch` prints `Nothing was written.`. Balances passes its
@@ -227,13 +227,13 @@ first, follow §8b step 4.
   - Commit body: note that an uncaught `loadConfig` error (a bad or missing env var) is now a rejected top-level
     `await runImporter(…)`. The exit code is still 1, but the stack frames are different.
   - Tests: importScripts.test.ts and importScripts.int.test.ts balances cases, and every existing test, unmodified.
-- [ ] 5. Run import-income through the shared command line
+- [x] 5. Run import-income through the shared command line
   - Files: apps/api/scripts/import-income.ts
   - Change: call-site move only; `importCli.ts` stays as it is. Delete the header's "repeat import-balances on purpose
     … refactoring follow-up" paragraph, which is stale now, and keep the skipped-rows comment with its line. About 75
     removed and 25 added.
   - Tests: the income cases in both files, and every existing test.
-- [ ] 6. Run import-history through the shared command line
+- [x] 6. Run import-history through the shared command line
   - Files: apps/api/scripts/importCli.ts, apps/api/scripts/import-history.ts
   - Change: the module gains `hasMonth`: no `month` option at all when it's false, so parseArgs still answers
     `Unknown option '--month'`. It also gains `written`, so the `catch` prints `Written before it stopped: <a, b>.`
@@ -298,6 +298,10 @@ first, follow §8b step 4.
 - A missing `DATABASE_URL` or `TOTP_ENC_KEY` prints a raw ZodError stack rather than a usage line.
 
 ## Deviations
+
+- Slice 2: history prints category display names, so the pinned lines read `planned: Groceries …`, `list: + Rent`, not the tech names the plan guessed. Expenses have no `ledger_id`, so the test joins through `categories`.
+- Slice 6: `importCli.ts`'s header said "table(s)", which find-short-names.sh flags; it now says "the importer's Notion tables".
+- Local runs: another session was running the API suite against the same `kopiyka_test` database, which broke both runs at random. Each test run here waited for that run to finish. The MySQL user can't create a second test database.
 
 ## Consolidate
 

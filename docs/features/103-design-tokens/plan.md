@@ -155,7 +155,7 @@ the only place for raw hex, font names and style numbers``. That's 155 character
     scratch `src/components/Scratch.tsx` exporting one `StyleSheet.create`) and see `yarn mobile lint` fail with the
     message. Add `accessibilityState={{ busy: true }}` there too and see it still fail, which shows the override kept
     095's rule. Revert, and record both in the PR test plan.
-- [ ] 3. Put Budget and Income on tokens (~85 lines)
+- [x] 3. Put Budget and Income on tokens (~85 lines)
   - Files: `src/app/(tabs)/budget.tsx`, `src/app/(tabs)/income.tsx`, `eslint.config.js` (−2 list entries)
   - Change: snapping rules. Budget's inline `{ paddingBottom: 104 }` becomes `styles.toastRoom`, with the one
     allowlist entry and the reason "UndoToast's bottom 32 + height 56 + 16pt gap: toast clearance, not a step".

@@ -257,7 +257,7 @@ export default function Budget() {
   );
 }
 
-/** The month's income, planned total and what's left to plan; below zero reads in the danger colour. */
+/** The month's income, budgeted total and what remains; below zero reads in the danger colour. */
 function IncomeFigures({ incomeCents, plannedCents }: { incomeCents: number; plannedCents: number }) {
   const colors = useColors();
   const styles = useThemedStyles(makeStyles);
@@ -267,13 +267,13 @@ function IncomeFigures({ incomeCents, plannedCents }: { incomeCents: number; pla
   const leftText = eur(left);
   const figures = [
     { label: 'Income', value: income },
-    { label: 'Planned', value: planned },
-    { label: 'Left to plan', value: leftText, over: left < 0 },
+    { label: 'Budgeted', value: planned },
+    { label: 'Remaining', value: leftText, over: left < 0 },
   ];
   return (
     <View
       accessible
-      accessibilityLabel={`Income ${income}, planned ${planned}, left to plan ${leftText}`}
+      accessibilityLabel={`Income ${income}, budgeted ${planned}, remaining ${leftText}`}
       style={styles.figures}
     >
       {figures.map((figure) => (

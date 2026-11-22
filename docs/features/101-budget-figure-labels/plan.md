@@ -39,7 +39,7 @@ Why: §8b `patch` row, "copy": the shipped app's labels and screen-reader text c
 - [x] 0. Bump version to 1.16.1
   - Files: package.json, apps/mobile/app.json
   - Change: set both to 1.16.1
-- [ ] 1. Label the Budget figures Budgeted and Remaining (~4 lines)
+- [x] 1. Label the Budget figures Budgeted and Remaining (~4 lines)
   - Files: apps/mobile/src/app/(tabs)/budget.tsx
   - Change: in `IncomeFigures`, labels `'Planned'` → `'Budgeted'`, `'Left to plan'` → `'Remaining'`; the
     `accessibilityLabel` → `Income …, budgeted …, remaining …`; the JSDoc to "The month's income, budgeted total and
@@ -87,8 +87,14 @@ None.
 
 ## Deviations
 
-<filled by the developer during build>
+- slice 1: verified on `web-demo` (Budget, November, 390px) instead of `api` + `web`. Port 8081 is held by another app
+  and the dev API's `CORS_ORIGINS` allows only 8081, and the dev login needs an authenticator code. Before: Income
+  €1,750 · Planned €1,400 · Left to plan €350; after: Income €1,750 · Budgeted €1,400 · Remaining €350, no wrapping;
+  accessible name "Income €1,750, budgeted €1,400, remaining €350".
+- slice 1: the negative Remaining wasn't seen live. The demo can't reach it (ended months are read-only, and from
+  2026-11 planned can't exceed income), and the dev DB needed the login above. The diff changes only the label strings;
+  `over: left < 0` and the danger-colour style are untouched lines.
 
 ## Consolidate
 
-<filled in /kopiyka-hos Phase 3a: CONSOLIDATE line, each reuse/extract, each LEAVE + reason>
+CONSOLIDATE: skipped — copy change only; the branch adds no function, hook, component, route or query.

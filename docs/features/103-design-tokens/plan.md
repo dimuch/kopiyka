@@ -294,6 +294,9 @@ differently from web.
 
 ## Consolidate
 
+Skipped: the branch adds no function, hook, component, route or query, only token constants and style entries.
+The screen, header and icon-button styles the tabs still repeat are brief 103b's shared components.
+
 ## Revision 1
 
 After the skeptic (approve with edits):

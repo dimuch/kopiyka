@@ -193,7 +193,7 @@ PUT answers 404, which shows "Couldn’t save".
 
 ### PR 1 — `feat/month-balance`: compute and read
 
-- [ ] 0. Bump version to 1.17.0
+- [x] 0. Bump version to 1.17.0
   - Files: package.json, apps/mobile/app.json
   - Change: set both to 1.17.0
 - [ ] 1. Move the Statistics income and spent queries into their own module

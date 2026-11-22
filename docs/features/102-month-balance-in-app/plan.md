@@ -474,3 +474,15 @@ created_by, deleted_at)`). Nov gets a list via `storeMonthList(db, id, '2026-11'
 ## Deviations
 
 ## Consolidate
+
+PR 1, against origin/main 24e1200: reused 3 · extracted 0 · left 3.
+
+- REUSE: income and spent come from Statistics' own queries (`incomeRows`, `spentRows`, moved in slice 1), and month
+  stepping uses `dates.ts` `nextMonthStart`/`monthOf`.
+- LEAVE the first-budgeted-month query in `balances/routes.ts` against `monthLists.ts` `hasBudget`: same predicate,
+  but `MIN(list_month)` over the ledger versus "does this one month have a row". Merging them would change one of
+  them.
+- LEAVE `summary/routes.ts`'s `monthIndex`/`periodMonths` arithmetic against `carry.ts`'s `nextMonth`: Statistics
+  steps by arithmetic on purpose (9999-12 has no next month), and the carry walk never goes past the current month.
+- LEAVE the per-month flow loop in `monthBalance` against `addRows`: `addRows` sums one month per call, so a walk of
+  n months would scan the rows n times. One pass builds the map.

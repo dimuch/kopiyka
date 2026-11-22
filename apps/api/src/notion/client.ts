@@ -147,6 +147,16 @@ function selectMonth(name: string | undefined): number | null {
   return SHORT_MONTHS.indexOf(name ?? '') + 1 || null;
 }
 
+/** A title property's text: every part of it, joined. */
+function titleText(title: Array<{ plain_text: string }>): string {
+  return title.map((part) => part.plain_text).join('');
+}
+
+/** A query answer's pages that aren't in trash, in Notion's order; a page without `in_trash` counts as live. */
+function livePages<Page>(answer: Record<string, unknown>): Page[] {
+  return ((answer.results ?? []) as Array<Page & { in_trash?: boolean }>).filter((page) => !page.in_trash);
+}
+
 /** Notion's numbers are floats: round to cents once, here at the boundary. */
 function notionCents(value: number | null | undefined): bigint | null {
   return value === null || value === undefined ? null : BigInt(Math.round(value * 100));
@@ -237,7 +247,7 @@ export function notionClient(
         page_size: 100,
         ...(cursor ? { start_cursor: cursor } : {}),
       });
-      for (const row of (answer.results ?? []) as Array<{ in_trash?: boolean }>) if (!row.in_trash) rows.push(row);
+      rows.push(...livePages(answer));
       cursor = answer.has_more && typeof answer.next_cursor === 'string' ? answer.next_cursor : undefined;
     } while (cursor);
     return rows;
@@ -260,8 +270,7 @@ export function notionClient(
         page_size: 10,
       });
       // The docs only promise to leave out archived pages, not ones in trash, so skip those here.
-      const results = (answer.results ?? []) as Array<{ id: string; in_trash?: boolean }>;
-      const live = results.find((row) => !row.in_trash);
+      const [live] = livePages<{ id: string }>(answer);
       return live ? pageId(live.id) : null;
     },
     async create(row) {
@@ -291,7 +300,7 @@ export function notionClient(
         filter: { property: 'Month', title: { equals: MONTHS[index] } },
         page_size: 10,
       });
-      const page = ((netto.results ?? []) as Array<{ id: string; in_trash?: boolean }>).find((row) => !row.in_trash);
+      const [page] = livePages<{ id: string }>(netto);
       if (!page) return null;
       const nettoId = pageId(page.id);
       const rows = await request('POST', `/data_sources/${totals.expensesDataSourceId}/query`, {
@@ -308,15 +317,13 @@ export function notionClient(
         },
         page_size: 100,
       });
-      type Row = { id: string; in_trash?: boolean; properties: { Category: { title: Array<{ plain_text: string }> } } };
+      type Row = { id: string; properties: { Category: { title: Array<{ plain_text: string }> } } };
       return {
         nettoPageId: nettoId,
-        rows: ((rows.results ?? []) as Row[])
-          .filter((row) => !row.in_trash)
-          .map((row) => ({
-            pageId: pageId(row.id),
-            category: row.properties.Category.title.map((text) => text.plain_text).join(''),
-          })),
+        rows: livePages<Row>(rows).map((row) => ({
+          pageId: pageId(row.id),
+          category: titleText(row.properties.Category.title),
+        })),
       };
     },
     async actualCents(id) {
@@ -341,7 +348,7 @@ export function notionClient(
         };
       };
       return ((await queryAll(totals.expensesDataSourceId)) as Row[]).map((row) => ({
-        category: row.properties.Category.title.map((text) => text.plain_text).join(''),
+        category: titleText(row.properties.Category.title),
         month: selectMonth(row.properties.Month?.select?.name),
         budgetCents: notionCents(row.properties.Budget?.number),
         actualCents: notionCents(row.properties['Actual Amount']?.number),
@@ -388,7 +395,7 @@ export function notionClient(
       };
     };
     return ((await queryAll(dataSourceId)) as Row[]).map((row) => ({
-      name: row.properties.Name.title.map((text) => text.plain_text).join(''),
+      name: titleText(row.properties.Name.title),
       month: selectMonth(row.properties.Month?.select?.name),
       amountCents: notionCents(row.properties.Amount?.number),
     }));

@@ -20,13 +20,13 @@ export interface IncomeMonthImport {
 
 /** The given months' stored items ('YYYY-MM' → count and total); a month without items is absent. */
 async function storedIncome(
-  q: Db | PoolConnection,
+  db: Db | PoolConnection,
   ledgerId: number,
   months: string[],
 ): Promise<Map<string, { count: number; cents: bigint }>> {
   if (!months.length) return new Map();
   // query, not execute: only query expands the array for IN (?).
-  const [rows] = await q.query<RowDataPacket[]>(
+  const [rows] = await db.query<RowDataPacket[]>(
     `SELECT income_month, COUNT(*) AS items, SUM(amount_eur) AS total FROM income_items
       WHERE ledger_id = ? AND income_month IN (?) GROUP BY income_month`,
     [ledgerId, months.map(monthStart)],
@@ -38,14 +38,14 @@ async function storedIncome(
 
 /** Each wanted month's import, from what the ledger stores there. Shared, so the dry run shows what --apply does. */
 async function planImport(
-  q: Db | PoolConnection,
+  db: Db | PoolConnection,
   ledgerId: number,
   wanted: WantedIncomeMonth[],
 ): Promise<IncomeMonthImport[]> {
   const stored = await storedIncome(
-    q,
+    db,
     ledgerId,
-    wanted.map((m) => m.month),
+    wanted.map((wantedMonth) => wantedMonth.month),
   );
   return wanted.map(({ month, items }) => {
     const { count, cents } = stored.get(month) ?? { count: 0, cents: 0n };

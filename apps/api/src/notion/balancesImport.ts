@@ -10,22 +10,22 @@ import { ledgerOwner } from './historyImport.js';
 
 /** The stored balances of the given months ('YYYY-MM' → balances); FOR UPDATE with `lock`. */
 async function storedBalances(
-  q: Db | PoolConnection,
+  db: Db | PoolConnection,
   ledgerId: number,
   months: string[],
   lock: boolean,
 ): Promise<Map<string, Balance>> {
   if (!months.length) return new Map();
   // query, not execute: only query expands the array for IN (?).
-  const [rows] = await q.query<RowDataPacket[]>(
+  const [rows] = await db.query<RowDataPacket[]>(
     `SELECT balance_month, opening_eur, closing_eur FROM month_balances
      WHERE ledger_id = ? AND balance_month IN (?)${lock ? ' FOR UPDATE' : ''}`,
     [ledgerId, months.map(monthStart)],
   );
   return new Map(
-    rows.map((r) => [
-      monthOf(String(r.balance_month)),
-      { openingCents: toCents(r.opening_eur), closingCents: toCents(r.closing_eur) },
+    rows.map((row) => [
+      monthOf(String(row.balance_month)),
+      { openingCents: toCents(row.opening_eur), closingCents: toCents(row.closing_eur) },
     ]),
   );
 }
@@ -36,7 +36,7 @@ export async function previewBalances(db: Db, ledgerId: number, wanted: MonthBal
   const stored = await storedBalances(
     db,
     ledgerId,
-    wanted.map((m) => m.month),
+    wanted.map((balance) => balance.month),
     false,
   );
   return planBalances(stored, wanted);
@@ -49,11 +49,11 @@ export async function importBalances(db: Db, ledgerId: number, wanted: MonthBala
     const stored = await storedBalances(
       conn,
       ledgerId,
-      wanted.map((m) => m.month),
+      wanted.map((balance) => balance.month),
       true,
     );
     const changes = planBalances(stored, wanted);
-    for (const { month, to } of changes.filter((c) => c.changed)) {
+    for (const { month, to } of changes.filter((change) => change.changed)) {
       await conn.query(
         `INSERT INTO month_balances (ledger_id, balance_month, opening_eur, closing_eur) VALUES (?, ?, ?, ?)
          ON DUPLICATE KEY UPDATE opening_eur = VALUES(opening_eur), closing_eur = VALUES(closing_eur)`,

@@ -36,13 +36,13 @@ export async function loadUncounted(db: Db, scope: NotionScope): Promise<Uncount
       ORDER BY e.expense_date, e.expense_id`,
     [scope.ledgerId, from, to],
   );
-  return rows.map((r) => ({
-    expenseId: r.expense_id,
-    categoryId: r.category_id,
-    techName: r.tech_name,
-    month: monthOf(r.expense_date as string),
-    amountEur: r.amount_eur,
-    pending: r.counted !== null,
+  return rows.map((row) => ({
+    expenseId: row.expense_id,
+    categoryId: row.category_id,
+    techName: row.tech_name,
+    month: monthOf(row.expense_date as string),
+    amountEur: row.amount_eur,
+    pending: row.counted !== null,
   }));
 }
 
@@ -86,18 +86,18 @@ export interface TotalAdd {
 /** Groups new expenses by category and month, ordered by month then tech_name; each sum rounds half up. */
 export function planTotals(expenses: UncountedExpense[]): TotalAdd[] {
   const groups = new Map<string, { add: Omit<TotalAdd, 'euros'>; cents: bigint }>();
-  for (const e of expenses) {
-    const key = `${e.month} ${e.techName}`;
+  for (const expense of expenses) {
+    const key = `${expense.month} ${expense.techName}`;
     const group = groups.get(key) ?? {
-      add: { categoryId: e.categoryId, techName: e.techName, month: e.month, expenseIds: [] },
+      add: { categoryId: expense.categoryId, techName: expense.techName, month: expense.month, expenseIds: [] },
       cents: 0n,
     };
-    group.add.expenseIds.push(e.expenseId);
-    group.cents += toCents(e.amountEur);
+    group.add.expenseIds.push(expense.expenseId);
+    group.cents += toCents(expense.amountEur);
     groups.set(key, group);
   }
   return [...groups.entries()]
-    .sort(([a], [b]) => (a < b ? -1 : a > b ? 1 : 0))
+    .sort(([leftKey], [rightKey]) => (leftKey < rightKey ? -1 : leftKey > rightKey ? 1 : 0))
     .map(([, { add, cents }]) => ({ ...add, euros: (cents + 50n) / 100n }));
 }
 
@@ -156,7 +156,7 @@ export async function syncTotals(
   let templates: Promise<ExpensesTemplate[]> | undefined;
   const allTemplates = () => (templates ??= table.allRows());
 
-  for (const add of planTotals((await loadUncounted(db, scope)).filter((e) => !e.pending))) {
+  for (const add of planTotals((await loadUncounted(db, scope)).filter((expense) => !expense.pending))) {
     const fail = (error: string) => result.failed.push({ category: add.techName, month: add.month, error });
     // Never build on an add that might not have landed: its expenses would be under-counted. recover() has listed it.
     if (unconfirmed.has(`${add.categoryId} ${add.month}`)) continue;
@@ -168,7 +168,7 @@ export async function syncTotals(
         fail('no_netto_page');
         continue;
       }
-      const rows = view.rows.filter((r) => matches(r.category, add.techName));
+      const rows = view.rows.filter((row) => matches(row.category, add.techName));
       if (rows.length > 1) {
         fail('duplicate_rows');
         continue;
@@ -207,16 +207,16 @@ async function recover(
       ORDER BY a.add_id`,
     [scope.ledgerId],
   );
-  for (const a of open) {
-    const fail = (error: string) => result.failed.push({ category: a.tech_name, month: a.month, error });
-    const confirm = () => db.query('UPDATE notion_total_adds SET confirmed = 1 WHERE add_id = ?', [a.add_id]);
+  for (const row of open) {
+    const fail = (error: string) => result.failed.push({ category: row.tech_name, month: row.month, error });
+    const confirm = () => db.query('UPDATE notion_total_adds SET confirmed = 1 WHERE add_id = ?', [row.add_id]);
     try {
-      const current = (await table.actualCents(a.notion_page_id)) ?? 0n;
-      if (current === toCents(a.expected_amount)) {
+      const current = (await table.actualCents(row.notion_page_id)) ?? 0n;
+      if (current === toCents(row.expected_amount)) {
         await confirm();
         result.added++;
-      } else if (current === toCents(a.base_amount)) {
-        await release(db, a.add_id);
+      } else if (current === toCents(row.base_amount)) {
+        await release(db, row.add_id);
       } else {
         await confirm(); // never add it twice
         fail('actual_amount_changed');
@@ -224,17 +224,17 @@ async function recover(
     } catch (err) {
       if (err instanceof NotionError && err.code === 'object_not_found') {
         // The row is gone, so the add can't be there.
-        const released = await release(db, a.add_id).then(
+        const released = await release(db, row.add_id).then(
           () => true,
           (releaseErr: unknown) => {
-            log.warn({ err: releaseErr, category: a.tech_name, month: a.month }, 'Notion totals release failed');
+            log.warn({ err: releaseErr, category: row.tech_name, month: row.month }, 'Notion totals release failed');
             return false;
           },
         );
         if (!released) fail('internal');
         continue;
       }
-      log.warn({ err, category: a.tech_name, month: a.month }, 'Notion totals read-back failed');
+      log.warn({ err, category: row.tech_name, month: row.month }, 'Notion totals read-back failed');
       fail(err instanceof NotionError ? err.code : 'internal');
     }
   }
@@ -256,7 +256,7 @@ async function unconfirmedMonths(db: Db, scope: NotionScope): Promise<Set<string
       WHERE c.ledger_id = ? AND a.confirmed = 0`,
     [scope.ledgerId],
   );
-  return new Set(rows.map((r) => `${r.category_id} ${r.month}`));
+  return new Set(rows.map((row) => `${row.category_id} ${row.month}`));
 }
 
 async function countExpenses(db: Db, expenseIds: number[], addId: number | null): Promise<void> {

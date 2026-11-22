@@ -33,12 +33,12 @@ export type GroceryChange =
 
 /** What Notion still needs to hear about, in the given order. An update of a row in trash restores it. */
 export function planGroceries(states: GroceryState[]): GroceryChange[] {
-  return states.flatMap((s): GroceryChange[] => {
-    const { sent } = s;
-    if (!sent) return s.wanted ? [{ kind: 'create', expense: s }] : [];
-    if (!s.wanted) return sent.inTrash ? [] : [{ kind: 'trash', expense: s, sent }];
-    const changed = s.name !== sent.name || s.amountEur !== sent.amountEur || s.date !== sent.date;
-    return sent.inTrash || changed ? [{ kind: 'update', expense: s, sent }] : [];
+  return states.flatMap((state): GroceryChange[] => {
+    const { sent } = state;
+    if (!sent) return state.wanted ? [{ kind: 'create', expense: state }] : [];
+    if (!state.wanted) return sent.inTrash ? [] : [{ kind: 'trash', expense: state, sent }];
+    const changed = state.name !== sent.name || state.amountEur !== sent.amountEur || state.date !== sent.date;
+    return sent.inTrash || changed ? [{ kind: 'update', expense: state, sent }] : [];
   });
 }
 
@@ -70,19 +70,19 @@ export async function loadGroceries(db: Db, scope: NotionScope): Promise<Grocery
       ORDER BY e.expense_date, e.expense_id`,
     [from, to, from, to, scope.ledgerId, from, to],
   );
-  return rows.map((r) => ({
-    expenseId: r.expense_id,
-    name: r.name,
-    amountEur: r.amount_eur,
-    date: r.expense_date,
-    wanted: r.wanted === 1,
-    sent: r.notion_page_id
+  return rows.map((row) => ({
+    expenseId: row.expense_id,
+    name: row.name,
+    amountEur: row.amount_eur,
+    date: row.expense_date,
+    wanted: row.wanted === 1,
+    sent: row.notion_page_id
       ? {
-          pageId: r.notion_page_id,
-          name: r.sent_name,
-          amountEur: r.sent_amount_eur,
-          date: r.sent_date,
-          inTrash: r.in_trash === 1,
+          pageId: row.notion_page_id,
+          name: row.sent_name,
+          amountEur: row.sent_amount_eur,
+          date: row.sent_date,
+          inTrash: row.in_trash === 1,
         }
       : null,
   }));
@@ -98,8 +98,13 @@ export async function adoptGroceries(
   scope: NotionScope,
   pairs: Array<{ expenseId: number; pageId: string }>,
 ): Promise<void> {
-  const rows = pairs.map((p) => ({ expenseId: p.expenseId, pageId: p.pageId.replaceAll('-', '').toLowerCase() }));
-  const badPages = rows.filter((r) => !/^[0-9a-f]{32}$/.test(r.pageId)).map((r) => `${r.expenseId}: bad page id`);
+  const rows = pairs.map((pair) => ({
+    expenseId: pair.expenseId,
+    pageId: pair.pageId.replaceAll('-', '').toLowerCase(),
+  }));
+  const badPages = rows
+    .filter((row) => !/^[0-9a-f]{32}$/.test(row.pageId))
+    .map((row) => `${row.expenseId}: bad page id`);
   if (badPages.length) throw new Error(badPages.join('\n'));
   if (!rows.length) return;
 
@@ -111,19 +116,21 @@ export async function adoptGroceries(
         WHERE e.expense_id IN (?) AND c.ledger_id = ? AND c.tech_name = 'groceries'
           AND e.deleted_at IS NULL AND c.deleted_at IS NULL AND e.expense_date >= ? AND e.expense_date < ?
           FOR UPDATE`,
-      [rows.map((r) => r.expenseId), scope.ledgerId, from, to],
+      [rows.map((row) => row.expenseId), scope.ledgerId, from, to],
     );
-    const byId = new Map(found.map((f) => [f.expense_id as number, f]));
-    const missing = rows.filter((r) => !byId.has(r.expenseId));
+    const byId = new Map(found.map((foundRow) => [foundRow.expense_id as number, foundRow]));
+    const missing = rows.filter((row) => !byId.has(row.expenseId));
     if (missing.length) {
-      throw new Error(missing.map((r) => `${r.expenseId}: not a live ${scope.year} grocery of this ledger`).join('\n'));
+      throw new Error(
+        missing.map((row) => `${row.expenseId}: not a live ${scope.year} grocery of this ledger`).join('\n'),
+      );
     }
-    for (const r of rows) {
-      const e = byId.get(r.expenseId)!;
+    for (const row of rows) {
+      const foundRow = byId.get(row.expenseId)!;
       await conn.query(
         `INSERT INTO notion_grocery_rows (expense_id, notion_page_id, sent_name, sent_amount_eur, sent_date)
          VALUES (?, ?, ?, ?, ?)`,
-        [r.expenseId, r.pageId, e.name, e.amount_eur, e.expense_date],
+        [row.expenseId, row.pageId, foundRow.name, foundRow.amount_eur, foundRow.expense_date],
       );
     }
   });

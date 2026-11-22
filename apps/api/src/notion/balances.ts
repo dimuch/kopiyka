@@ -17,7 +17,7 @@ export const BalancesSnapshot = z.object({ opening: z.array(Row), closing: z.arr
 export type BalancesSnapshot = z.infer<typeof BalancesSnapshot>;
 
 const snapshotRows = (rows: BalanceRow[]) =>
-  rows.map((r) => ({ month: r.month, amount: r.amountCents === null ? null : centsToString(r.amountCents) }));
+  rows.map((row) => ({ month: row.month, amount: row.amountCents === null ? null : centsToString(row.amountCents) }));
 
 /** Every row of both tables, all months. Throws on an amount the snapshot can't hold (over 8 digits). */
 export function toBalancesSnapshot(opening: BalanceRow[], closing: BalanceRow[]): BalancesSnapshot {
@@ -56,9 +56,9 @@ export function wantedBalances(snapshot: BalancesSnapshot): MonthBalance[] {
   const openings = sumByMonth(snapshot.opening);
   const closings = sumByMonth(snapshot.closing);
   const wanted: MonthBalance[] = [];
-  for (const [i, month] of months.entries()) {
-    const previous = wanted[i - 1];
-    const next = months[i + 1];
+  for (const [position, month] of months.entries()) {
+    const previous = wanted[position - 1];
+    const next = months[position + 1];
     const opening = openings.get(month);
     const closing = closings.get(month);
     const nextOpening = next === undefined ? undefined : openings.get(next);
@@ -76,8 +76,8 @@ export function wantedBalances(snapshot: BalancesSnapshot): MonthBalance[] {
 
 /** A line per month whose closing differs from the next month's opening: a hint at a mislabelled Notion row. */
 export function continuityWarnings(months: MonthBalance[]): string[] {
-  return months.slice(1).flatMap((next, i) => {
-    const month = months[i]!;
+  return months.slice(1).flatMap((next, position) => {
+    const month = months[position]!;
     return month.closingCents === next.openingCents
       ? []
       : [

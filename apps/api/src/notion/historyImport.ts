@@ -49,8 +49,9 @@ export interface MonthPlan {
 
 export function planMonth(state: MonthState, wanted: WantedMonth): MonthPlan {
   const plan: MonthPlan = { month: wanted.month, created: [], listed: [], removed: [], planned: [], totals: [] };
-  const expensesOf = (categoryId: number | undefined) => state.expenses.filter((e) => e.categoryId === categoryId);
-  const wantedTechNames = new Set(wanted.categories.map((c) => c.techName));
+  const expensesOf = (categoryId: number | undefined) =>
+    state.expenses.filter((expense) => expense.categoryId === categoryId);
+  const wantedTechNames = new Set(wanted.categories.map((category) => category.techName));
   for (const { techName, name, plannedCents, actualCents } of wanted.categories) {
     const id = state.categories.get(techName);
     if (id === undefined) plan.created.push({ techName, name });
@@ -59,46 +60,53 @@ export function planMonth(state: MonthState, wanted: WantedMonth): MonthPlan {
     const fromPlanned = (id === undefined ? undefined : state.planned.get(id)) ?? 0n;
     if (fromPlanned !== plannedCents) plan.planned.push({ techName, fromCents: fromPlanned, toCents: plannedCents });
     const expenses = expensesOf(id);
-    const isTotal = (e: MonthState['expenses'][number]) =>
-      e.name === TOTAL && e.date === monthStart(wanted.month) && e.currency === 'EUR' && e.eurCents === actualCents;
+    const isTotal = (expense: MonthState['expenses'][number]) =>
+      expense.name === TOTAL &&
+      expense.date === monthStart(wanted.month) &&
+      expense.currency === 'EUR' &&
+      expense.eurCents === actualCents;
     const [only] = expenses;
     const matches = actualCents === 0n ? !only : expenses.length === 1 && only !== undefined && isTotal(only);
     if (!matches) {
       plan.totals.push({
         techName,
-        expenseIds: expenses.map((e) => e.expenseId),
-        fromCents: expenses.reduce((sum, e) => sum + e.eurCents, 0n),
+        expenseIds: expenses.map((expense) => expense.expenseId),
+        fromCents: expenses.reduce((sum, expense) => sum + expense.eurCents, 0n),
         toCents: actualCents,
       });
     }
   }
   for (const [categoryId, row] of state.list) {
     if (wantedTechNames.has(row.techName)) continue;
-    plan.removed.push({ categoryId, name: row.name, expenseIds: expensesOf(categoryId).map((e) => e.expenseId) });
+    plan.removed.push({
+      categoryId,
+      name: row.name,
+      expenseIds: expensesOf(categoryId).map((expense) => expense.expenseId),
+    });
   }
   return plan;
 }
 
 /** Reads a 'YYYY-MM' month of the ledger; `lock` takes the month's expenses FOR UPDATE (inside a transaction). */
-async function loadMonth(q: Db | PoolConnection, ledgerId: number, month: string, lock: boolean): Promise<MonthState> {
+async function loadMonth(db: Db | PoolConnection, ledgerId: number, month: string, lock: boolean): Promise<MonthState> {
   const first = monthStart(month);
-  const [categories] = await q.query<RowDataPacket[]>(
+  const [categories] = await db.query<RowDataPacket[]>(
     'SELECT category_id, tech_name FROM categories WHERE ledger_id = ? AND deleted_at IS NULL',
     [ledgerId],
   );
-  const [list] = await q.query<RowDataPacket[]>(
+  const [list] = await db.query<RowDataPacket[]>(
     `SELECT c.category_id, c.tech_name, m.display_name AS row_name,
             COALESCE(NULLIF(m.display_name, ''), c.display_name) AS name
        FROM category_months m JOIN categories c ON c.category_id = m.category_id
       WHERE c.ledger_id = ? AND c.deleted_at IS NULL AND m.list_month = ? AND m.deleted_at IS NULL`,
     [ledgerId, first],
   );
-  const [planned] = await q.query<RowDataPacket[]>(
+  const [planned] = await db.query<RowDataPacket[]>(
     `SELECT b.category_id, b.planned_eur FROM category_budgets b JOIN categories c ON c.category_id = b.category_id
       WHERE c.ledger_id = ? AND b.budget_month = ?`,
     [ledgerId, first],
   );
-  const [expenses] = await q.query<RowDataPacket[]>(
+  const [expenses] = await db.query<RowDataPacket[]>(
     `SELECT e.expense_id, e.category_id, e.name, e.expense_date, e.entered_currency, e.amount_eur
        FROM expenses e JOIN categories c ON c.category_id = e.category_id
       WHERE c.ledger_id = ? AND c.deleted_at IS NULL AND e.deleted_at IS NULL
@@ -107,23 +115,25 @@ async function loadMonth(q: Db | PoolConnection, ledgerId: number, month: string
     [ledgerId, first, nextMonthStart(month)],
   );
   return {
-    categories: new Map(categories.map((r) => [r.tech_name as string, r.category_id as number])),
-    list: new Map(list.map((r) => [r.category_id, { techName: r.tech_name, rowName: r.row_name, name: r.name }])),
-    planned: new Map(planned.map((r) => [r.category_id as number, toCents(r.planned_eur)])),
-    expenses: expenses.map((r) => ({
-      expenseId: Number(r.expense_id),
-      categoryId: r.category_id,
-      name: r.name,
-      date: r.expense_date,
-      currency: r.entered_currency,
-      eurCents: toCents(r.amount_eur),
+    categories: new Map(categories.map((row) => [row.tech_name as string, row.category_id as number])),
+    list: new Map(
+      list.map((row) => [row.category_id, { techName: row.tech_name, rowName: row.row_name, name: row.name }]),
+    ),
+    planned: new Map(planned.map((row) => [row.category_id as number, toCents(row.planned_eur)])),
+    expenses: expenses.map((row) => ({
+      expenseId: Number(row.expense_id),
+      categoryId: row.category_id,
+      name: row.name,
+      date: row.expense_date,
+      currency: row.entered_currency,
+      eurCents: toCents(row.amount_eur),
     })),
   };
 }
 
 /** The ledger's owner; FOR UPDATE with `lock`. Throws `No ledger N` for an unknown ledger (also brief 085). */
-export async function ledgerOwner(q: Db | PoolConnection, ledgerId: number, lock: boolean): Promise<number> {
-  const [rows] = await q.query<RowDataPacket[]>(
+export async function ledgerOwner(db: Db | PoolConnection, ledgerId: number, lock: boolean): Promise<number> {
+  const [rows] = await db.query<RowDataPacket[]>(
     `SELECT owner_user_id FROM ledgers WHERE ledger_id = ?${lock ? ' FOR UPDATE' : ''}`,
     [ledgerId],
   );
@@ -191,7 +201,7 @@ export async function importMonth(
         [idOf(techName), first, centsToString(cents)],
       );
     }
-    const deleted = [...plan.removed, ...plan.totals].flatMap((c) => c.expenseIds);
+    const deleted = [...plan.removed, ...plan.totals].flatMap((change) => change.expenseIds);
     if (deleted.length) {
       await conn.query(
         `UPDATE expenses SET deleted_at = ?, updated_at = updated_at -- not an edit; keep ON UPDATE from firing

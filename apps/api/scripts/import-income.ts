@@ -35,6 +35,7 @@ await runImporter({
     '       yarn api import-income --ledger <id> [--snapshot <file>] [--month <YYYY-MM>] [--apply]',
   needsNotion: 'Set NOTION_TOKEN, NOTION_GROCERIES_DATA_SOURCE_ID and NOTION_INCOME_DATA_SOURCE_ID',
   noun: 'income',
+  hasMonth: true,
   schema: IncomeSnapshot,
   notionReader(config) {
     const income = config.notionApi?.incomeDataSourceId ? notionClient(config.notionApi).income : null;

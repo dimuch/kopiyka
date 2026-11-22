@@ -1,9 +1,10 @@
 // The command line the Notion importers share (brief 097): each `import-*.ts` passes in only what is its own.
 //
 //   yarn api import-<table> --save <file>
-//     saves the Notion table(s) to a snapshot file;
+//     saves the importer's Notion tables to a snapshot file;
 //   yarn api import-<table> --ledger <id> [--snapshot <file>] [--month <YYYY-MM>] [--apply]
 //     prints what importing into the ledger would change, from the file or else from Notion; with --apply it writes.
+//     --month is there only for an importer that has it (import-history doesn't).
 import { readFile, writeFile } from 'node:fs/promises';
 import { parseArgs } from 'node:util';
 import type { z } from 'zod';
@@ -19,6 +20,8 @@ export interface ImportRun {
   apply: boolean;
   /** The months --month picks; all of them without it. */
   pickMonth<Month extends { month: string }>(months: Month[]): Month[];
+  /** 'YYYY-MM' months written so far; only an importer that writes month by month (import-history) adds to it. */
+  written: string[];
 }
 
 export interface Importer<Snapshot> {
@@ -28,6 +31,8 @@ export interface Importer<Snapshot> {
   needsNotion: string;
   /** What the table holds, for "Couldn't save the <noun>" and "Couldn't read the <noun>". */
   noun: string;
+  /** False leaves --month out, so parseArgs refuses it as an unknown option. */
+  hasMonth: boolean;
   schema: z.ZodType<Snapshot>;
   /** Reads the snapshot from Notion; null when the config has no Notion tables for it. */
   notionReader(config: Config): (() => Promise<Snapshot>) | null;
@@ -37,13 +42,13 @@ export interface Importer<Snapshot> {
   importSnapshot(snapshot: Snapshot, run: ImportRun): Promise<string>;
 }
 
-const options = {
+const sharedOptions = {
   save: { type: 'string' },
   ledger: { type: 'string' },
   snapshot: { type: 'string' },
-  month: { type: 'string' },
   apply: { type: 'boolean', default: false },
 } as const;
+const withMonth = { ...sharedOptions, month: { type: 'string' } } as const;
 
 function fail(message: string): never {
   console.error(message);
@@ -52,9 +57,9 @@ function fail(message: string): never {
 
 /** Runs an importer's command line; exits the process on a usage, config, save or snapshot error. */
 export async function runImporter<Snapshot>(importer: Importer<Snapshot>): Promise<void> {
-  let values: ReturnType<typeof parseArgs<{ options: typeof options }>>['values'];
+  let values: ReturnType<typeof parseArgs<{ options: typeof withMonth }>>['values'];
   try {
-    ({ values } = parseArgs({ options }));
+    ({ values } = parseArgs({ options: importer.hasMonth ? withMonth : sharedOptions }));
   } catch (err) {
     fail(`${(err as Error).message}\n${importer.usage}`);
   }
@@ -103,18 +108,21 @@ export async function runImporter<Snapshot>(importer: Importer<Snapshot>): Promi
 
   const month = values.month;
   const db = createDb(config.databaseUrl);
+  const written: string[] = [];
   try {
     const run: ImportRun = {
       db,
       ledgerId,
       apply: values.apply,
       pickMonth: (months) => (month === undefined ? months : months.filter((picked) => picked.month === month)),
+      written,
     };
     const done = await importer.importSnapshot(snapshot, run);
     console.log(values.apply ? done : 'Dry run: nothing was written. Run again with --apply to write.');
   } catch (err) {
     console.error((err as Error).message);
-    if (values.apply) console.error('Nothing was written.');
+    if (values.apply)
+      console.error(written.length ? `Written before it stopped: ${written.join(', ')}.` : 'Nothing was written.');
     process.exitCode = 1;
   } finally {
     await db.end();

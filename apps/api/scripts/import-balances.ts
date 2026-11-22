@@ -44,6 +44,7 @@ await runImporter({
   needsNotion:
     'Set NOTION_TOKEN, NOTION_GROCERIES_DATA_SOURCE_ID, NOTION_OPENING_DATA_SOURCE_ID and NOTION_CLOSING_DATA_SOURCE_ID',
   noun: 'balances',
+  hasMonth: true,
   schema: BalancesSnapshot,
   notionReader(config) {
     const tables = config.notionApi?.balances ? notionClient(config.notionApi).balances : null;

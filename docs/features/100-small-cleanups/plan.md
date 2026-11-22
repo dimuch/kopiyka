@@ -108,10 +108,10 @@ Commits:
 
 Sizes are insertions/deletions from the scratch build.
 
-- [ ] 0. Bump version to 1.15.5
+- [x] 0. Bump version to 1.16.1
   - Files: package.json, apps/mobile/app.json
-  - Change: set both to 1.15.5
-- [ ] 1. Pin the Notion client's Netto trash skip and multi-part titles (+47, tests only)
+  - Change: set both to 1.16.1 (planned as 1.15.5; PR 141 took 1.16.0 first)
+- [x] 1. Pin the Notion client's Netto trash skip and multi-part titles (+47, tests only)
   - Files: `apps/api/test/notionClient.test.ts`. The cases are appended inside `describe('Expenses table')`. Nothing
     existing changes.
   - Tests (+3):
@@ -133,7 +133,7 @@ Sizes are insertions/deletions from the scratch build.
     - `client.ts:294` `.find((r) => !r.in_trash)` → `.find(() => true)`: test 1 fails.
     - `:318` `.join('')` → `.join(' ')`: test 2 fails.
     - `:344` `.join('')` → `.join(' ')`, or `title[0]?.plain_text ?? ''`: test 3 fails.
-- [ ] 2. Name the Notion client's request clock and rows (+23/−23, rename)
+- [x] 2. Name the Notion client's request clock and rows (+23/−23, rename)
   - Files: `apps/api/src/notion/client.ts`
   - Change (Base lines):
     - 196-198: `t` → `nowMs`.
@@ -146,7 +146,7 @@ Sizes are insertions/deletions from the scratch build.
     month's rows…", "reads every live row of the table, page by page", "reads the Opening and Actual Closing rows, page
     by page", "reads the Income rows, page by page".
   - Check: `find-short-names.sh apps/api/src/notion/client.ts` → none.
-- [ ] 3. Name the rows, expenses and positions in the Notion sync and imports (+132/−111, rename, 8 files)
+- [x] 3. Name the rows, expenses and positions in the Notion sync and imports (+132/−111, rename, 8 files)
   - Mechanical, so over the ~150-line slice target (refactoring §6). Prettier re-wraps a few lines that got longer:
     `history.ts` 52 and 107, `groceries.ts` 101-102 and 119, `historyImport.ts` 52, 62-63, 77 and 111.
   - Change (Base lines; TS names only, the SQL text stays byte-identical):
@@ -241,7 +241,7 @@ Sizes are insertions/deletions from the scratch build.
         ```
     - I bite-checked both of the last two in scratch. Renaming the alias on `groceries.ts:64`, `totals.ts:204` or
       `historyImport.ts:91` makes each one report.
-- [ ] 4. Read Notion titles and live pages through one helper each (+20/−13, extract)
+- [x] 4. Read Notion titles and live pages through one helper each (+20/−13, extract)
   - Files: `apps/api/src/notion/client.ts`
   - Change: add `titleText` and `livePages` (Contracts) above `notionCents`, then swap the 4 trash skips and 3 title
     reads for them. The comment at `find` ("The docs only promise to leave out archived pages…") stays on `find`.
@@ -249,7 +249,7 @@ Sizes are insertions/deletions from the scratch build.
   - Checks (AC1):
     - `rg "plain_text\)\.join" apps/api/src/notion/client.ts` → only `titleText`'s line.
     - `rg "in_trash\)" apps/api/src/notion/client.ts` → only `livePages`' line. Both verified in scratch.
-- [ ] 5. Build the connector's resource URL in one place (+11/−3, extract)
+- [x] 5. Build the connector's resource URL in one place (+11/−3, extract)
   - Files: `apps/mcp/src/config.ts`, `apps/mcp/src/mcp/routes.ts`, `apps/mcp/src/oauth/token.ts`,
     `apps/mcp/src/oauth/authorize.ts`
   - Change: add `resourceUrl` (Contracts). In each of the three files, `import { resourceUrl } from '../config.js'`
@@ -263,7 +263,7 @@ Sizes are insertions/deletions from the scratch build.
       "for an empty resource", "needs a resource: without one…".
     - `flow.test` "goes from registration to a tool answer…".
   - Check (AC2): ``rg '\}/mcp`' apps/mcp/src`` → only `config.ts` (`resourceUrl`).
-- [ ] 6. Stop exporting constants and functions nothing imports (+9/−9, un-export)
+- [x] 6. Stop exporting constants and functions nothing imports (+9/−9, un-export)
   - Files:
     - `apps/api/src/dates.ts` (`DATE_RE`)
     - `apps/api/src/auth/routes.ts` (`SESSION_COOKIE`)
@@ -355,6 +355,9 @@ PoolConnection` params are single letters. The script catches only 2 of them (on
 PoolConnection,` in `balancesImport.ts:13`, `incomeImport.ts:23,41`). It could also match `^\s+[a-z]: `.
 
 ## Deviations
+
+- Version: PR 141 merged while slice 1 was being built, taking 1.16.0, so the branch was rebased onto 41ad301 and bumps 1.16.0 → 1.16.1 (the risk this plan names). The commits were rebuilt as plan, bump, then slice 1; nothing else changed.
+- Slice 3: the keyword grep flags one line, totals' `confirm`, because its SQL string sits on the same line as the argument `a.add_id` → `row.add_id`. The string-by-string SQL comparison shows every SQL string in `notion/` unchanged.
 
 <filled by the developer during build>
 

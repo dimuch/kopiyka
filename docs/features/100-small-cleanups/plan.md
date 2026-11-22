@@ -81,7 +81,7 @@ Alternatives considered:
 
 ## Version
 
-Bump: patch — 1.15.4 → 1.15.5
+Bump: patch — 1.16.1 → 1.16.2 (planned as 1.15.4 → 1.15.5; PR 141 took 1.16.0 and brief 101 took 1.16.1 first)
 Why: conventions §8b says "a refactor that touches shipped code is `patch`, never `none`". The API, the connector and the
 app code all change, and their behaviour doesn't.
 
@@ -108,10 +108,10 @@ Commits:
 
 Sizes are insertions/deletions from the scratch build.
 
-- [x] 0. Bump version to 1.16.1
+- [x] 0. Bump version to 1.16.2
   - Files: package.json, apps/mobile/app.json
-  - Change: set both to 1.16.1 (planned as 1.15.5; PR 141 took 1.16.0 first)
-- [x] 1. Pin the Notion client's Netto trash skip and multi-part titles (+47, tests only)
+  - Change: set both to 1.16.2 (planned as 1.15.5; main took 1.16.0 and 1.16.1 first, see Deviations)
+- [x] 1. Pin the Notion client's Netto trash skip and multi-part titles (+52, tests only)
   - Files: `apps/api/test/notionClient.test.ts`. The cases are appended inside `describe('Expenses table')`. Nothing
     existing changes.
   - Tests (+3):
@@ -356,10 +356,8 @@ PoolConnection,` in `balancesImport.ts:13`, `incomeImport.ts:23,41`). It could a
 
 ## Deviations
 
-- Version: PR 141 merged while slice 1 was being built, taking 1.16.0, so the branch was rebased onto 41ad301 and bumps 1.16.0 → 1.16.1 (the risk this plan names). The commits were rebuilt as plan, bump, then slice 1; nothing else changed.
+- Version: PR 141 merged while slice 1 was being built, taking 1.16.0, so the branch was rebased onto 41ad301 and bumped 1.16.0 → 1.16.1 (the risk this plan names); main then took 1.16.1 too, so the final bump is 1.16.2 (see Revision 2). The commits were rebuilt as plan, bump, then slice 1; nothing else changed.
 - Slice 3: the keyword grep flags one line, totals' `confirm`, because its SQL string sits on the same line as the argument `a.add_id` → `row.add_id`. The string-by-string SQL comparison shows every SQL string in `notion/` unchanged.
-
-<filled by the developer during build>
 
 ## Consolidate
 
@@ -381,3 +379,13 @@ The skeptic approved with edits, and the brief moved to `100-small-cleanups` (PR
   - It names `importScripts.int.test.ts` as proof.
 - Commit author is a decision (Ivankatabachuk, no `Co-Authored-By`), no longer an open question. The working-copy
   branch note is dropped; the worktree resolves it.
+
+## Revision 2
+
+After review:
+
+- Main took 1.16.1 too (budget figure labels, brief 101), so the branch was rebased onto 24e1200. The 1.16.1 bump
+  was dropped as already upstream, and a new commit bumps to 1.16.2.
+- Three more renames from the review's nits: totals' `recover` loops over `openAdd`, not `row`, since `row` means the
+  Notion row elsewhere in totals.ts; `planGroceries` names its `GroceryState` `expense`, as the rest of groceries.ts
+  does; history's clashing rows are `clash`. Every SQL string is unchanged.

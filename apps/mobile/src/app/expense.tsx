@@ -181,15 +181,15 @@ function ExpenseForm({ draft, ledgerId }: { draft: ExpenseDraftData; ledgerId: n
   }
 
   // The alert role covers web; VoiceOver needs an explicit announcement.
-  function showError(text: string) {
-    setError(text);
-    AccessibilityInfo.announceForAccessibility(text);
+  function showError(message: string) {
+    setError(message);
+    AccessibilityInfo.announceForAccessibility(message);
   }
 
-  function typeAmount(currency: Currency, text: string) {
+  function typeAmount(currency: Currency, typed: string) {
     setEntered(currency);
     setStoredOther(null);
-    edit(setAmountText, text);
+    edit(setAmountText, typed);
   }
 
   function pickCategory(c: Category) {
@@ -322,7 +322,7 @@ function ExpenseForm({ draft, ledgerId }: { draft: ExpenseDraftData; ledgerId: n
           <TextField
             accessibilityLabel="What was it?"
             value={name}
-            onChangeText={(text) => edit(setName, text)}
+            onChangeText={(typed) => edit(setName, typed)}
             editable={!locked}
             placeholder="e.g. Delhaize"
             placeholderTextColor={colors.faint}

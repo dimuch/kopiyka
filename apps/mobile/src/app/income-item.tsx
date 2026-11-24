@@ -157,8 +157,8 @@ function IncomeForm({
     AccessibilityInfo.announceForAccessibility(message);
   }
 
-  function edit(set: (text: string) => void, text: string) {
-    set(text);
+  function edit(set: (value: string) => void, typed: string) {
+    set(typed);
     setError(null);
   }
 
@@ -214,7 +214,7 @@ function IncomeForm({
         <TextField
           accessibilityLabel="Title"
           value={title}
-          onChangeText={(text) => edit(setTitle, text)}
+          onChangeText={(typed) => edit(setTitle, typed)}
           onSubmitEditing={save}
           editable={!locked}
           autoFocus
@@ -227,7 +227,7 @@ function IncomeForm({
       <AmountField
         currency="EUR"
         value={amountText}
-        onChangeText={(text) => edit(setAmountText, text)}
+        onChangeText={(typed) => edit(setAmountText, typed)}
         onSubmitEditing={save}
         editable={!locked}
       />

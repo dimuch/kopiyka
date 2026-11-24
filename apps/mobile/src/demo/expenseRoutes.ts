@@ -1,6 +1,6 @@
-import type { Currency, EurUahRate, Expense } from '@/api/types';
+import type { Currency, EurUahRate, Expense, ExpenseNames } from '@/api/types';
 import type { ExpenseInput } from '@/data/expenses';
-import { addDays, centsToInput, convertPreview, kyivToday, toCents } from '@/format';
+import { addDays, centsToInput, convertPreview, kyivToday, shiftMonth, toCents } from '@/format';
 import { DEMO_USER, type DemoExpense, inMonth, refuse, refuseIfEnded, type Route, type StoreData } from './state';
 
 /** The demo's EUR→UAH rate for every date: invented, close to the NBU's in late 2026. */
@@ -49,6 +49,40 @@ function price(input: ExpenseInput, now: Date): Pick<Expense, 'amountEur' | 'amo
   return sampleAmounts(input.amount, input.currency);
 }
 
+/** Newest first, as the API orders expenses: date, then creation, then id. */
+function newestFirst(left: Expense, right: Expense): number {
+  return (
+    right.expenseDate.localeCompare(left.expenseDate) ||
+    right.createdAt.localeCompare(left.createdAt) ||
+    right.expenseId - left.expenseId
+  );
+}
+
+/**
+ * The API's `rankNames` (apps/api/src/expenses/nameSuggestions.ts) over newest-first expenses: one entry per name
+ * ignoring case and surrounding spaces, in its newest spelling, without empty names; most uses, then the newest date,
+ * then A–Z ignoring case.
+ */
+function rankNames(newest: Expense[]): string[] {
+  const byKey = new Map<string, { name: string; key: string; uses: number; latestDate: string }>();
+  for (const expense of newest) {
+    const name = expense.name.trim();
+    if (!name) continue;
+    const key = name.toLowerCase();
+    const seen = byKey.get(key);
+    if (seen) seen.uses += 1;
+    else byKey.set(key, { name, key, uses: 1, latestDate: expense.expenseDate });
+  }
+  return [...byKey.values()]
+    .sort(
+      (a, b) =>
+        b.uses - a.uses ||
+        (a.latestDate === b.latestDate ? 0 : a.latestDate > b.latestDate ? -1 : 1) ||
+        (a.key === b.key ? 0 : a.key < b.key ? -1 : 1),
+    )
+    .map((suggestion) => suggestion.name);
+}
+
 export const expenseRoutes: Route[] = [
   {
     method: 'GET',
@@ -69,14 +103,24 @@ export const expenseRoutes: Route[] = [
       const expenses = data.expenses
         .filter((expense) => expense.removal === null && expense.expenseDate.startsWith(`${month}-`))
         .filter((expense) => !categoryId || expense.categoryId === categoryId)
-        // Newest first, as the API orders them: date, then creation, then id.
-        .sort(
-          (left, right) =>
-            right.expenseDate.localeCompare(left.expenseDate) ||
-            right.createdAt.localeCompare(left.createdAt) ||
-            right.expenseId - left.expenseId,
-        );
+        .sort(newestFirst);
       return { expenses: expenses.map(toDto) };
+    },
+  },
+  {
+    method: 'GET',
+    pattern: /^\/api\/ledgers\/\d+\/expenses\/names$/,
+    answer: (data, { query }) => {
+      const month = query.get('month') ?? '';
+      const categoryId = Number(query.get('categoryId') ?? 0);
+      // The month before is included so the list isn't empty early in a month (brief 108).
+      const months = [month, shiftMonth(month, -1)];
+      const window = data.expenses
+        .filter((expense) => expense.removal === null && expense.categoryId === categoryId)
+        .filter((expense) => months.includes(expense.expenseDate.slice(0, 7)))
+        .sort(newestFirst);
+      const reply: ExpenseNames = { names: rankNames(window) };
+      return reply;
     },
   },
   {

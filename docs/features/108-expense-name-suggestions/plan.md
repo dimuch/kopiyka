@@ -122,7 +122,7 @@ shape, and there's no migration.
     - "del " (trailing space) gives the same as "del"
     - "сільп" → "Сільпо"
     - no match → `[]`
-- [ ] 4. Answer name suggestions in the demo (~70 lines)
+- [x] 4. Answer name suggestions in the demo (~70 lines)
   - Files: apps/mobile/src/demo/expenseRoutes.ts, apps/mobile/test/demoExpenses.test.ts
   - Change: extract `newestFirst(left, right)` from the list route's sort. Add a GET route
     `/^\/api\/ledgers\/\d+\/expenses\/names$/`. It takes live expenses of `categoryId` whose month is `month` or

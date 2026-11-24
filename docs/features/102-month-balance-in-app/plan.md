@@ -381,7 +381,7 @@ created_by, deleted_at)`). Nov gets a list via `storeMonthList(db, id, '2026-11'
     - `'0'` and `'-0'` → `'0.00'`;
     - `''`, `'-'`, `'12.345'`, `'123456789'`, `'1e3'` and `'--5'` → `null`.
   - ~60 lines
-- [ ] 13. Add the actual End form
+- [x] 13. Add the actual End form
   - Files: apps/mobile/src/app/actual-end.tsx (new), apps/mobile/src/app/\_layout.tsx,
     apps/mobile/src/demo-app/actual-end.tsx (new), apps/mobile/src/demo-app/\_layout.tsx,
     apps/mobile/src/closeToBudget.ts (its JSDoc says "category modal"; widen it to any modal opened from Budget),

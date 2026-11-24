@@ -144,7 +144,7 @@ Before slice 1, the orchestrator takes the **before** set on Base (see Visual ch
     - `destructive` radius 18 → `lg`, padding → `lg`; `destructiveText` → `bodyStrong` (16 → 15)
     - `dangerText` as in Contracts
   - Verify: `yarn lint`. Views e–g, and the category ⋯ menu again (it uses `dangerText`).
-- [ ] 4. Put the expense and income item screens on design tokens (~90 lines)
+- [x] 4. Put the expense and income item screens on design tokens (~90 lines)
   - Files: `src/app/{expense,income-item}.tsx`, `eslint.config.js` (−2, which leaves exactly the 3 103d paths), and
     change the comment above `notOnTokensYet` from 'brief 103c empties this list' to 'brief 103d empties this list'.
     `docs/design/design-system.md` roll-out line: "103c other screens" → "103c/103d other screens" (only if Gate A
@@ -388,11 +388,21 @@ Base: main after 103c. Version: patch. ≈ 210 lines.
 
 ## Deviations
 
-<filled by the developer during build>
+- Measured after slice 4 (web, 390×844, against the Base set; light and dark matched):
+  - Category screen: total 32 → 28; the first day 3.5–5pt lower; each expense row about 3.5pt shorter, so a day with 2
+    expenses ends 7pt shorter. The compact header still appears on scroll; the ⋯ menu doesn't move.
+  - Add/edit category: title 18 → 17, re-centred up to 6pt; Remove from November moves under 1pt.
+  - Delete category: question 24 → 22, warning 16/24 → 15/20 (three lines, 12pt shorter), so the button sits 14pt
+    higher, slightly past the 8–13pt estimate.
+  - Expense form: Add 11.5pt lower (14.5pt with the error line), Update/Delete 12.5pt lower; all three inputs 16px.
+  - The "Added" note: at 13pt, "Added “Snapshot test” to rent · €5 · 24 Nov 2026" fits on one line instead of two, so
+    the note is 15pt shorter (estimate: 4pt taller). It depends on the name's length; a long one still wraps.
+  - Income item: shifts of 1pt or less, caption 14 → 13, Save 16 → 15; both inputs 16px.
+  - Demo: category screen and both forms render with no console errors.
 
 ## Consolidate
 
-<filled in /kopiyka-hos Phase 3a>
+Skipped: the branch adds no function, hook, component, route or query, only style entries and renames.
 
 ## Revision 1
 

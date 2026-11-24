@@ -20,6 +20,7 @@ import { type Palette, radius, size, space, text } from '@/theme';
 /** Rows shown before the list scrolls; each row is the 44pt touch minimum high. */
 const VISIBLE_ROWS = 5;
 const ROW_HEIGHT = size.iconButton;
+const LIST_BORDER = 1;
 const isWeb = Platform.OS === 'web';
 
 // On web a press on an option would blur the field first, closing the list before the press lands; keeping the
@@ -48,6 +49,8 @@ export function NameCombobox({ value, onChangeText, names, editable, style, ...f
   const styles = useThemedStyles(makeStyles);
   const listId = useId();
   const listRef = useRef<ScrollViewInstance>(null);
+  // How far the list is scrolled, so moving the highlight only scrolls when the row is out of view.
+  const scrollY = useRef(0);
   const [open, setOpen] = useState(false);
   const shown = open && editable ? matchingNames(names, value) : [];
   const shownKey = shown.join('\n');
@@ -66,19 +69,34 @@ export function NameCombobox({ value, onChangeText, names, editable, style, ...f
     wasShowing.current = showing;
   }, [shown.length]);
 
+  /** Closes the list and drops the highlight, so a reopened list starts at the top with none. */
+  function close() {
+    setOpen(false);
+    setActive(null);
+    scrollY.current = 0;
+  }
+
   function pick(name: string) {
     onChangeText(name);
-    setOpen(false);
+    close();
   }
 
   function highlight(index: number) {
     setActive({ list: shownKey, index });
-    listRef.current?.scrollTo({ y: Math.max(0, (index - VISIBLE_ROWS + 1) * ROW_HEIGHT), animated: false });
+    const top = index * ROW_HEIGHT;
+    const visible = VISIBLE_ROWS * ROW_HEIGHT;
+    const y =
+      top < scrollY.current ? top : top + ROW_HEIGHT > scrollY.current + visible ? top + ROW_HEIGHT - visible : null;
+    if (y === null) return;
+    listRef.current?.scrollTo({ y, animated: false });
+    // Set now: onScroll comes later, and not at all when the list is already there.
+    scrollY.current = y;
   }
 
   function onKeyPress(event: TextInputKeyPressEvent) {
     const { key } = event.nativeEvent;
-    if (key === 'ArrowDown' || key === 'ArrowUp') {
+    // With no names at all the arrows keep moving the caret, as in any field.
+    if ((key === 'ArrowDown' || key === 'ArrowUp') && names.length > 0) {
       event.preventDefault();
       if (!shown.length) return setOpen(true);
       const step = key === 'ArrowDown' ? 1 : -1;
@@ -89,7 +107,7 @@ export function NameCombobox({ value, onChangeText, names, editable, style, ...f
       event.preventDefault();
       pick(shown[activeIndex]!);
     } else if (key === 'Escape') {
-      setOpen(false);
+      close();
     }
   }
 
@@ -120,7 +138,7 @@ export function NameCombobox({ value, onChangeText, names, editable, style, ...f
         onFocus={() => setOpen(true)}
         // A tap on a field that already has focus reopens the list after a pick (iOS; web has no onPressIn here).
         onPressIn={() => setOpen(true)}
-        onBlur={() => setOpen(false)}
+        onBlur={close}
       />
       {shown.length > 0 && (
         <ScrollView
@@ -129,7 +147,12 @@ export function NameCombobox({ value, onChangeText, names, editable, style, ...f
           nativeID={listId}
           // RN's Role union has no listbox; AccessibilityRole takes any string, and the web reads this one.
           accessibilityRole={isWeb ? 'listbox' : undefined}
-          style={[styles.list, { maxHeight: VISIBLE_ROWS * ROW_HEIGHT }]}
+          onScroll={(event) => {
+            scrollY.current = event.nativeEvent.contentOffset.y;
+          }}
+          scrollEventThrottle={16}
+          // The border adds to the height, so five whole rows still fit.
+          style={[styles.list, { maxHeight: VISIBLE_ROWS * ROW_HEIGHT + 2 * LIST_BORDER }]}
           keyboardShouldPersistTaps="handled"
           nestedScrollEnabled
         >
@@ -161,7 +184,7 @@ const makeStyles = (colors: Palette) =>
       marginTop: space.xs,
       borderRadius: radius.md,
       backgroundColor: colors.surface,
-      borderWidth: 1,
+      borderWidth: LIST_BORDER,
       borderColor: colors.borderStrong,
     },
     option: { height: ROW_HEIGHT, justifyContent: 'center', paddingHorizontal: space.md },

@@ -2,7 +2,7 @@ import { StyleSheet, Text, View } from 'react-native';
 import { useThemedStyles } from '@/appearance/AppearanceContext';
 import type { ThemePreference } from '@/appearance/preference';
 import { Pressable } from '@/components/Pressable';
-import { fonts, type Palette } from '@/theme';
+import { fonts, type Palette, radius, size, space, text } from '@/theme';
 
 const OPTIONS: { value: ThemePreference; label: string }[] = [
   { value: 'light', label: 'Light' },
@@ -44,15 +44,21 @@ const makeStyles = (colors: Palette) =>
   StyleSheet.create({
     group: {
       flexDirection: 'row',
-      gap: 6,
-      padding: 4,
-      borderRadius: 18,
+      gap: space.sm,
+      padding: space.xs,
+      borderRadius: radius.lg,
       borderWidth: 1,
       borderColor: colors.border,
       backgroundColor: colors.surface,
     },
-    option: { flex: 1, minHeight: 44, borderRadius: 14, alignItems: 'center', justifyContent: 'center' },
+    option: {
+      flex: 1,
+      minHeight: size.iconButton,
+      borderRadius: radius.md,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
     optionOn: { backgroundColor: colors.accentTint, borderWidth: 1, borderColor: colors.accent },
-    label: { fontFamily: fonts.bodyMedium, fontSize: 15, color: colors.muted },
+    label: { ...text.body, fontFamily: fonts.bodyMedium, color: colors.muted },
     labelOn: { color: colors.text },
   });

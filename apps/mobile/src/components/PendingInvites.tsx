@@ -2,7 +2,7 @@ import { ActivityIndicator, type StyleProp, StyleSheet, Text, View, type ViewSty
 import type { Invite } from '@/api/types';
 import { useColors, useThemedStyles } from '@/appearance/AppearanceContext';
 import { Pressable } from '@/components/Pressable';
-import { fonts, type Palette } from '@/theme';
+import { fonts, type Palette, radius, size, space, text } from '@/theme';
 
 /**
  * The signed-in user's invites, each with Decline and Accept (Home, Settings, no-ledger); nothing while there are none
@@ -71,29 +71,29 @@ export function PendingInvites({
 
 const makeStyles = (colors: Palette) =>
   StyleSheet.create({
-    section: { gap: 8 },
-    caption: { fontFamily: fonts.body, fontSize: 12, color: colors.muted },
+    section: { gap: space.sm },
+    caption: { ...text.caption, color: colors.muted },
     card: {
-      gap: 8,
-      padding: 14,
-      borderRadius: 18,
+      gap: space.sm,
+      padding: space.lg,
+      borderRadius: radius.lg,
       borderWidth: 1,
       borderColor: colors.border,
       backgroundColor: colors.surface,
     },
-    text: { fontFamily: fonts.bodyMedium, fontSize: 15, color: colors.text },
-    buttons: { flexDirection: 'row', justifyContent: 'flex-end', alignItems: 'center', gap: 8 },
-    decline: { minHeight: 44, justifyContent: 'center', paddingHorizontal: 12 },
-    declineText: { fontFamily: fonts.bodyMedium, fontSize: 15, color: colors.muted },
+    text: { ...text.body, fontFamily: fonts.bodyMedium, color: colors.text },
+    buttons: { flexDirection: 'row', justifyContent: 'flex-end', alignItems: 'center', gap: space.sm },
+    decline: { minHeight: size.iconButton, justifyContent: 'center', paddingHorizontal: space.md },
+    declineText: { ...text.body, fontFamily: fonts.bodyMedium, color: colors.muted },
     accept: {
-      minHeight: 44,
+      minHeight: size.iconButton,
       flexDirection: 'row',
       alignItems: 'center',
-      gap: 8,
-      borderRadius: 22,
-      paddingHorizontal: 18,
+      gap: space.sm,
+      borderRadius: radius.pill,
+      paddingHorizontal: space.lg,
       backgroundColor: colors.accent,
     },
-    acceptText: { fontFamily: fonts.bodySemi, fontSize: 15, color: colors.onAccent },
-    failure: { fontFamily: fonts.bodyMedium, fontSize: 14, color: colors.over },
+    acceptText: { ...text.bodyStrong, color: colors.onAccent },
+    failure: { ...text.label, color: colors.over },
   });

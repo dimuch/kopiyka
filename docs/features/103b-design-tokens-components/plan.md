@@ -144,7 +144,7 @@ version numbers.
     - Save keeps `minHeight: 56`. Its radius 18 → `lg`, and `primaryText` → `bodyStrong` (16 → 15).
     - `body` `paddingBottom` 40 → `huge`.
   - Verify: `yarn lint`, and the same `fontSize` check on `/category-form` (both inputs 16px, AC4).
-- [ ] 5. Put the Settings pickers, invites and Notion panel on tokens (~92 lines)
+- [x] 5. Put the Settings pickers, invites and Notion panel on tokens (~92 lines)
   - Files: `src/components/{AppearancePicker,LedgerPicker,PendingInvites,NotionSyncPanel}.tsx`, `eslint.config.js`
     (−4 entries, and the list comment says only 103c is left)
   - Change: the snapping rules, with these specifics:
@@ -309,6 +309,18 @@ Otherwise its moves come from the diff.
 - 103c: `CategoryInMonth`'s `spinnerMargin` default 32 → `space.xxxl`, with its caller passing `space.xxl`.
 
 ## Deviations
+
+- Measured after slice 5 (web, 390×844, light and dark, against the Base snapshots; layout matched in both themes):
+  - Home: card figures 20 → 22; each card 4.5pt taller; card text 2pt left (padding 18 → 16); the Settings card,
+    in the third row, sits 9.5pt lower.
+  - Every tab's month title re-centres by up to 3.5pt (`title` tracking); nothing else on Income, Budget and Expenses
+    moves more than 1.5pt. Statistics is unchanged; Settings moves at most 1pt.
+  - Empty month: button text 16 → 15, card 2.5pt taller. Undo toast: radius 18 → 20, text within 2.5pt.
+  - Expense form: date chips 14 → 13; all three text inputs render at 16px. Category sheet: about 4.5–6pt taller
+    (gaps 14 → 16, top padding 10 → 8), title 18 → 17, items 14 → 13 and 4pt further left.
+  - Category form: caption 14 → 13, Save 16 → 15 and 6pt lower; both inputs at 16px.
+  - Compact category header: label 14 → 13, figure 18 → 17, the centred group re-centres by 7–10pt.
+  - Demo: the same changes, no console errors.
 
 <filled by the developer during build>
 

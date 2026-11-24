@@ -2,7 +2,7 @@ import { StyleSheet, Text, View } from 'react-native';
 import type { Ledger } from '@/api/types';
 import { useThemedStyles } from '@/appearance/AppearanceContext';
 import { Pressable } from '@/components/Pressable';
-import { fonts, type Palette } from '@/theme';
+import { fonts, type Palette, radius, size, space, text } from '@/theme';
 
 /** "Yours" for the user's own ledger, else whose it is: until a label is set, every ledger shows as "Home". */
 function whose(ledger: Ledger): string {
@@ -52,25 +52,25 @@ export function LedgerPicker({
 const makeStyles = (colors: Palette) =>
   StyleSheet.create({
     group: {
-      gap: 6,
-      padding: 4,
-      borderRadius: 18,
+      gap: space.sm,
+      padding: space.xs,
+      borderRadius: radius.lg,
       borderWidth: 1,
       borderColor: colors.border,
       backgroundColor: colors.surface,
     },
     option: {
-      minHeight: 44,
-      borderRadius: 14,
-      paddingHorizontal: 14,
+      minHeight: size.iconButton,
+      borderRadius: radius.md,
+      paddingHorizontal: space.lg,
       flexDirection: 'row',
       alignItems: 'center',
       justifyContent: 'space-between',
-      gap: 12,
+      gap: space.md,
     },
     optionOn: { backgroundColor: colors.activeTint, borderWidth: 1, borderColor: colors.activeLine },
-    name: { flexShrink: 1, fontFamily: fonts.bodyMedium, fontSize: 15, color: colors.text },
+    name: { flexShrink: 1, ...text.body, fontFamily: fonts.bodyMedium, color: colors.text },
     // Kept whole beside a long label, but never more than half the row, so a long owner name can't push it out.
-    whose: { flexShrink: 0, maxWidth: '50%', fontFamily: fonts.body, fontSize: 14, color: colors.muted },
+    whose: { flexShrink: 0, maxWidth: '50%', ...text.label, fontFamily: fonts.body, color: colors.muted },
     textOn: { fontFamily: fonts.bodySemi, color: colors.active },
   });

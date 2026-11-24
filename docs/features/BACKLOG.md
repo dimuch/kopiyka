@@ -3,27 +3,25 @@
 A snapshot so work can pick up in any tool (Claude Code or Copilot) without the chat history.
 Update it when a brief ships, is planned or is dropped.
 
-Snapshot: 2026-11-24, `main` at v1.23.0 (`904351f`, after PR #155). PR #156 (104 part 1) is open.
+Snapshot: 2026-11-24, `main` at v1.23.1 (`6b547bc`, after PR #156, 104 part 1).
 
 ## In progress
 
-### 104 · Shared components (part 1 of 6 in review)
+### 104 · Shared components (part 1 of 6 merged)
 
 Brief and plan: `docs/features/104-shared-components/`. At Gate A the brief was split into six sequential briefs,
 each branched from `main` after the previous one merges, each a patch bump. The plan's "Later parts" outlines
 104b–104f with their call sites. Write each brief from it (in the format of `brief.md`), then run `/kopiyka-hos` on it.
 
-| Part | What                                                                              | State                                             |
-| ---- | --------------------------------------------------------------------------------- | ------------------------------------------------- |
-| 104  | `Card` (all 17 cards) and `ProgressBar`; nothing moves                            | PR #156 open (`chore/shared-components`, v1.23.1) |
-| 104b | `Button`, filled (accent, danger): 12 buttons, incl. the actual End form's Save   | **next**, after #156 merges; brief not written    |
-| 104c | `Button`, outlined and text; `outlinedDanger*` and `dangerText` leave `theme.ts`  | not started                                       |
-| 104d | `IconButton` and `Chip`                                                           | not started                                       |
-| 104e | `ScreenHeader` (`modal`, `month`, `page`), incl. the actual End form's header     | not started                                       |
-| 104f | `Text` at every remaining site; name the recurring role + face combinations in it | not started                                       |
+| Part | What                                                                              | State                       |
+| ---- | --------------------------------------------------------------------------------- | --------------------------- |
+| 104  | `Card` (all 17 cards) and `ProgressBar`; nothing moves                            | merged (#156), v1.23.1      |
+| 104b | `Button`, filled (accent, danger): 12 buttons, incl. the actual End form's Save   | **next**; brief not written |
+| 104c | `Button`, outlined and text; `outlinedDanger*` and `dangerText` leave `theme.ts`  | not started                 |
+| 104d | `IconButton` and `Chip`                                                           | not started                 |
+| 104e | `ScreenHeader` (`modal`, `month`, `page`), incl. the actual End form's header     | not started                 |
+| 104f | `Text` at every remaining site; name the recurring role + face combinations in it | not started                 |
 
-- **Left on #156:** CI, and the user's iPhone check (Expo Go): Home, Expenses (bars), Settings and a category screen
-  look unchanged. Tick that box in the PR's test plan, then rebase-merge.
 - **Gate A decisions (2026-11-24):**
   - six parts, Card and ProgressBar first
   - ProgressBar extracted now, with one caller
@@ -39,10 +37,19 @@ each branched from `main` after the previous one merges, each a patch bump. The 
   - NotionSync's 13pt button text
   - the Undo button's 56pt height
 
+## Next: 109 · Remove the Notion sync and import code
+
+Brief: `docs/features/109-remove-notion/brief.md` (2026-11-24). Run `/kopiyka-hos` on it. It removes the sync,
+`notion-start` and the three importers, the `NOTION_*` settings and the Home Sync panel. It keeps all imported data,
+and it leaves the four `notion_*` tables unused for a later brief to drop. Minor version: installed builds get a 404
+from the old status route and already hide the panel on any error. It can run alongside 104b–104f; expect conflicts
+only on Home (the Sync panel).
+
 ## Recently finished
 
 - **102 · Month balance in the app**: all 4 PRs are merged (#144, #152, #153 v1.22.0, #155 v1.23.0). Its AC7 iPhone
   check (Expo Go: the Budget tab's Start → End line and the actual End form) was left for the user with PR 4.
+- **108 · Expense name suggestions**: #148 (with #150) merged, v1.20.0.
 - **Releases:** the newest tag is v1.20.0. Versions 1.20.1–1.23.0 are merged but untagged. Tag a version only once it's
   deployed (conventions §8b).
 
@@ -71,17 +78,19 @@ Order: A → C → G → B → D, E, F. Run each through `/kopiyka-hos-refactori
 | A   | API month guards                                        | merged (#138, brief 096) |
 | C   | Importer scripts' shared command-line code              | merged (#140, brief 098) |
 | G   | Small cleanups                                          | merged (#143, brief 100) |
-| B   | Shared SQL between the Notion import and the API routes | not briefed              |
+| B   | Shared SQL between the Notion import and the API routes | dropped: goes with 109   |
 | D   | App: data hooks                                         | not briefed              |
 | E   | App: button actions                                     | not briefed              |
 | F   | App: UI pieces                                          | not briefed              |
 
-B may not be worth doing if the Notion code goes (next section).
+B is dropped: brief 109 removes the Notion import code it would have shared.
 
 ### Named in earlier briefs and plans as "its own brief"
 
-- **Remove the Notion sync and import code** (Sync to Notion, `notion-start`, `import-history`, `import-balances`,
-  `import-income`). The user's decision, 2026-11-22 (brief 102, Out of scope). 102 has shipped, so it can start.
+- **Drop the four `notion_*` tables** (`notion_grocery_rows`, `notion_syncs`, `notion_total_adds`,
+  `notion_counted_expenses`) once brief 109's release has run fine (109, Out of scope).
+- **One modal-form kit** for `income-item.tsx`, `category-form.tsx` and `actual-end.tsx` (102 follow-up). A refactor
+  session holds it until 104b's `Button` and 104e's `ScreenHeader` are on `main`.
 - **Statistics' category list follows the member's order** as a tie-break, if wanted (092 follow-up).
 - **Chips that are silent on web**: `aria-selected` isn't valid on `role="button"`, so the category and date chips
   may not say "selected" on web. Pick `aria-pressed` or a radio group as in `AppearancePicker` (095 follow-up).

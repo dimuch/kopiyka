@@ -3,7 +3,7 @@ import { useThemedStyles } from '@/appearance/AppearanceContext';
 import { DateField } from '@/components/DateField';
 import { Pressable } from '@/components/Pressable';
 import { addDays } from '@/format';
-import { fonts, type Palette } from '@/theme';
+import { type Palette, radius, size, space, text } from '@/theme';
 
 interface Props {
   /** 'YYYY-MM-DD' */
@@ -44,16 +44,16 @@ export function DateChips({ value, today, min, onChange, disabled = false }: Pro
 
 const makeStyles = (colors: Palette) =>
   StyleSheet.create({
-    row: { flexDirection: 'row', gap: 8 },
+    row: { flexDirection: 'row', gap: space.sm },
     chip: {
-      height: 48,
-      borderRadius: 14,
+      height: size.control,
+      borderRadius: radius.md,
       borderWidth: 1,
       borderColor: colors.borderStrong,
       backgroundColor: colors.surface,
-      paddingHorizontal: 14,
+      paddingHorizontal: space.lg,
       justifyContent: 'center',
     },
     chipOn: { borderColor: colors.accent, backgroundColor: colors.accentTint },
-    chipText: { fontFamily: fonts.bodyMedium, fontSize: 14, color: colors.text },
+    chipText: { ...text.label, color: colors.text },
   });

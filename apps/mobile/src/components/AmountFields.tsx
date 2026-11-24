@@ -3,7 +3,7 @@ import type { Currency } from '@/api/types';
 import { useColors, useThemedStyles } from '@/appearance/AppearanceContext';
 import { Icon } from '@/components/Icon';
 import { TextField } from '@/components/TextField';
-import { fonts, type Palette } from '@/theme';
+import { fonts, type Palette, radius, size, space, text } from '@/theme';
 
 interface Props {
   /** The side the user typed; it shows `amountText`, the other side shows `otherText`. */
@@ -57,7 +57,7 @@ export function AmountField({
   const colors = useColors();
   const styles = useThemedStyles(makeStyles);
   return (
-    <View style={{ flex: 1, gap: 8 }}>
+    <View style={styles.column}>
       <Text style={styles.label}>Amount in {currency}</Text>
       <View>
         <Text style={styles.symbol}>{currency === 'UAH' ? '₴' : '€'}</Text>
@@ -79,29 +79,29 @@ export function AmountField({
 
 const makeStyles = (colors: Palette) =>
   StyleSheet.create({
-    row: { flexDirection: 'row', alignItems: 'flex-end', gap: 8 },
-    swap: { height: 48, width: 20, alignItems: 'center', justifyContent: 'center' },
-    label: { fontFamily: fonts.bodySemi, fontSize: 13, color: colors.muted },
+    row: { flexDirection: 'row', alignItems: 'flex-end', gap: space.sm },
+    column: { flex: 1, gap: space.sm },
+    swap: { height: size.control, width: 20, alignItems: 'center', justifyContent: 'center' },
+    label: { ...text.label, fontFamily: fonts.bodySemi, color: colors.muted },
     symbol: {
       position: 'absolute',
       left: 14,
       top: 13,
       zIndex: 1,
-      fontFamily: fonts.body,
-      fontSize: 16,
+      ...text.input,
       color: colors.muted,
     },
     input: {
-      height: 48,
-      borderRadius: 14,
+      height: size.control,
+      borderRadius: radius.md,
       borderWidth: 1,
       borderColor: colors.borderStrong,
       backgroundColor: colors.surface,
-      paddingLeft: 32,
-      paddingRight: 14,
+      paddingLeft: space.xxxl,
+      paddingRight: space.lg,
       color: colors.text,
+      ...text.input,
       fontFamily: fonts.bodyMedium,
-      fontSize: 16,
       fontVariant: ['tabular-nums'],
     },
   });

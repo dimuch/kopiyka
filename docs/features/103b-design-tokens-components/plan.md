@@ -120,7 +120,7 @@ version numbers.
     - `DemoStrip`: `text` → `label` + body face, and `link` → `label` + `bodySemi` + `lineHeight: size.iconButton`.
   - Verify: `yarn lint`. Check an empty month (a future month on Budget), the Undo toast after a delete, and the demo
     Home with its toast.
-- [ ] 3. Put the expense form's fields on tokens, with a 16pt input role (~110 lines; 103's token slices ran about
+- [x] 3. Put the expense form's fields on tokens, with a 16pt input role (~110 lines; 103's token slices ran about
       35% over their estimates, so if this one passes ~150, commit "Add a 16pt input text role" (`theme.ts` and the
       spec row) first on its own)
   - Files: `src/theme.ts`, `docs/design/design-system.md`,

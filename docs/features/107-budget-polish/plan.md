@@ -83,7 +83,7 @@ add it allowed is still possible: the row "+" opens the same form, where the cat
     colour, with no "total". The a11y tree / DOM shows `aria-label="Total €1,750"`. On iPhone, VoiceOver reads
     "Total €1,750".
   - ~8 lines
-- [ ] 3. Show a category's "over" line in red on Expenses
+- [x] 3. Show a category's "over" line in red on Expenses
   - Files: apps/mobile/src/app/(tabs)/expenses.tsx
   - Change: `overText` colour `colors.text` → `colors.danger`. The comment says why: the words, not only the bar,
     say it's over. Contrast is 5.3:1 (light) and 7.6:1 (dark) on `surface`.

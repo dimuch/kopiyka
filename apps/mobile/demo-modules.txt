@@ -43,6 +43,7 @@ src/app/(tabs)/_layout.tsx
 src/app/(tabs)/budget.tsx
 src/app/(tabs)/expenses.tsx
 src/app/(tabs)/income.tsx
+src/app/actual-end.tsx
 src/app/category-form.tsx
 src/app/category/[categoryId].tsx
 src/app/delete-category.tsx
@@ -77,6 +78,7 @@ src/components/TabBar.tsx
 src/components/TextField.tsx
 src/components/UndoToast.tsx
 src/components/blockTextGestures.ts
+src/data/actualEnd.ts
 src/data/budgetProgress.ts
 src/data/categories.ts
 src/data/categoryForm.ts
@@ -112,6 +114,7 @@ src/demo-app/(tabs)/income.tsx
 src/demo-app/(tabs)/index.tsx
 src/demo-app/+not-found.tsx
 src/demo-app/_layout.tsx
+src/demo-app/actual-end.tsx
 src/demo-app/category-form.tsx
 src/demo-app/category/[categoryId].tsx
 src/demo-app/delete-category.tsx

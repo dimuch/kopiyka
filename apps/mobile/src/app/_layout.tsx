@@ -29,6 +29,7 @@ function Screens() {
         <Stack.Screen name="delete-category" options={{ presentation: 'modal' }} />
         <Stack.Screen name="category-form" options={{ presentation: 'modal' }} />
         <Stack.Screen name="income-item" options={{ presentation: 'modal' }} />
+        <Stack.Screen name="actual-end" options={{ presentation: 'modal' }} />
       </Stack.Protected>
       <Stack.Protected guard={state.status === 'noLedger'} redirectTo={landing}>
         <Stack.Screen name="no-ledger" />

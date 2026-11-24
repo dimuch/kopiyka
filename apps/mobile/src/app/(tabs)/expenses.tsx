@@ -13,6 +13,7 @@ import { HomeButton } from '@/components/HomeButton';
 import { LoadError } from '@/components/LoadError';
 import { MonthSwitcher } from '@/components/MonthSwitcher';
 import { Pressable } from '@/components/Pressable';
+import { ProgressBar } from '@/components/ProgressBar';
 import { ReorderList } from '@/components/ReorderList';
 import { budgetProgress } from '@/data/budgetProgress';
 import { spendingFigures, spentByCategory } from '@/data/monthSummary';
@@ -20,7 +21,7 @@ import { tabTitle } from '@/data/tabItems';
 import { useCategoryOrder } from '@/data/useCategoryOrder';
 import { useMonth } from '@/data/useMonth';
 import { eur, kyivMonth, monthName, toCents } from '@/format';
-import { fonts, progressColor, type Palette, radius, space, text } from '@/theme';
+import { fonts, type Palette, space, text } from '@/theme';
 
 export default function Expenses() {
   const colors = useColors();
@@ -170,17 +171,7 @@ export default function Expenses() {
                               <Text style={styles.rowPlanned}> of {eur(row.planned)}</Text>
                             </Text>
                           </View>
-                          <View style={styles.track}>
-                            <View
-                              style={[
-                                styles.bar,
-                                {
-                                  width: `${row.progress.fill * 100}%`,
-                                  backgroundColor: progressColor(row.progress.state, colors),
-                                },
-                              ]}
-                            />
-                          </View>
+                          <ProgressBar fill={row.progress.fill} state={row.progress.state} />
                           {row.progress.overCents > 0 && (
                             <Text style={styles.overText}>{eur(row.progress.overCents)} over</Text>
                           )}
@@ -246,6 +237,4 @@ const makeStyles = (colors: Palette) =>
     rowPlanned: { fontFamily: fonts.body, color: colors.muted },
     // Red like the bar, so the words say it's over too (brief 107); 5.3:1 on light `surface`, 7.6:1 on dark.
     overText: { ...text.caption, fontFamily: fonts.bodyMedium, color: colors.danger, fontVariant: ['tabular-nums'] },
-    track: { height: 5, backgroundColor: colors.track, borderRadius: radius.pill, overflow: 'hidden' },
-    bar: { height: 5, borderRadius: radius.pill },
   });

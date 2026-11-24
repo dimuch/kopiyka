@@ -7,7 +7,7 @@ import { LoadError } from '@/components/LoadError';
 import { PendingInvites } from '@/components/PendingInvites';
 import { Pressable } from '@/components/Pressable';
 import { useInvites } from '@/data/invites';
-import { fonts, outlinedDangerButton, outlinedDangerText, type Palette } from '@/theme';
+import { outlinedDangerButton, outlinedDangerText, type Palette, size, space, text } from '@/theme';
 
 /** Shown to a signed-in user who is in no ledger: they can accept an invite or sign out. */
 export default function NoLedger() {
@@ -21,7 +21,7 @@ export default function NoLedger() {
   return (
     <SafeAreaView style={styles.screen}>
       <ScrollView contentContainerStyle={styles.body}>
-        <View style={{ gap: 8 }}>
+        <View style={{ gap: space.sm }}>
           <Text accessibilityRole="header" style={styles.title}>
             You’re not in any ledger
           </Text>
@@ -52,17 +52,23 @@ const makeStyles = (colors: Palette) =>
     screen: { flex: 1, backgroundColor: colors.bg },
     body: {
       flexGrow: 1,
-      padding: 24,
+      padding: space.xxl,
       justifyContent: 'center',
-      gap: 32,
+      gap: space.xxxl,
       width: '100%',
       maxWidth: 420,
       alignSelf: 'center',
     },
-    title: { fontFamily: fonts.display, fontSize: 28, color: colors.text, letterSpacing: -0.4 },
-    text: { fontFamily: fonts.body, fontSize: 15, color: colors.muted },
-    check: { minHeight: 44, justifyContent: 'center', alignSelf: 'flex-start', marginLeft: -8, paddingHorizontal: 8 },
-    checkText: { fontFamily: fonts.bodySemi, fontSize: 15, color: colors.accent },
+    title: { ...text.display, color: colors.text },
+    text: { ...text.body, color: colors.muted },
+    check: {
+      minHeight: size.iconButton,
+      justifyContent: 'center',
+      alignSelf: 'flex-start',
+      marginLeft: -space.sm,
+      paddingHorizontal: space.sm,
+    },
+    checkText: { ...text.bodyStrong, color: colors.accent },
     signOut: outlinedDangerButton(colors),
     signOutText: outlinedDangerText(colors),
   });

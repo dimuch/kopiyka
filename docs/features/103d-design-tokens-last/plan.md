@@ -102,7 +102,7 @@ Before slice 1, the orchestrator takes the **before** set on Base (Visual check)
   - Change: the renames in Contracts. No style changes.
   - Verify: gates. `rg -n "(const|let) text\b|\[text,|\(text\b|, text\b" apps/mobile/src/app/{login,members,no-ledger}.tsx`
     finds nothing.
-- [ ] 2. Put the login and no-ledger screens on design tokens (~75 lines)
+- [x] 2. Put the login and no-ledger screens on design tokens (~75 lines)
   - Files: `apps/mobile/src/app/{login,no-ledger}.tsx`, `apps/mobile/eslint.config.js` (−2 paths from the list)
   - Change: Contracts → Login and No-ledger, and the one allowlist.
   - Verify: `yarn lint` with both files guarded. In the browser, views l and n (Visual check), light and dark. AC3 on

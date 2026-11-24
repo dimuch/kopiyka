@@ -15,6 +15,12 @@ describe('balanceLine', () => {
     expect(balanceLine({ openingEur: '-180.00', closingEur: '-52.00', actual: false })).not.toContain('-');
   });
 
+  it('says when the End was set by hand', () => {
+    expect(balanceLine({ openingEur: '-35.00', closingEur: '120.00', actual: true })).toBe(
+      'Start −€35 → End €120 (actual)',
+    );
+  });
+
   it('gives no line for a month without balances', () => {
     expect(balanceLine(null)).toBeNull();
   });

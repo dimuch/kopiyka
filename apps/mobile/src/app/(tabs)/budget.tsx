@@ -46,7 +46,7 @@ export default function Budget() {
   const { data, error, reload } = useMonth(ledger.ledgerId, month);
   // How the month started and ended (briefs 090, 102): every month from the ledger's first up to now has a line.
   const monthBalance = useMonthBalance(ledger.ledgerId, month);
-  const balance = balanceLine(monthBalance.balance);
+  const balance = monthBalance.status === 'ready' ? balanceLine(monthBalance.balance) : null;
   // A removal started from this tab's category form comes back here with its Undo (brief 044). Restoring it brings
   // expenses back, so the current month's End moves too.
   const toast = useUndoOffer(() => {

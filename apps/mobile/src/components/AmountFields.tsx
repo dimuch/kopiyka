@@ -24,7 +24,7 @@ export function AmountFields({ entered, amountText, otherText, onChange, disable
       <AmountField
         currency="UAH"
         value={entered === 'UAH' ? amountText : otherText}
-        onChangeText={(text) => onChange('UAH', text)}
+        onChangeText={(typed) => onChange('UAH', typed)}
         editable={!disabled}
       />
       <View style={styles.swap}>
@@ -33,7 +33,7 @@ export function AmountFields({ entered, amountText, otherText, onChange, disable
       <AmountField
         currency="EUR"
         value={entered === 'EUR' ? amountText : otherText}
-        onChangeText={(text) => onChange('EUR', text)}
+        onChangeText={(typed) => onChange('EUR', typed)}
         editable={!disabled}
       />
     </View>

@@ -148,10 +148,10 @@ in code but draw the same. There's no new capability, and no API, schema or conn
 
 Before slice 1, the orchestrator takes the **before** set on Base (Visual check). Slice 0 only touches the version.
 
-- [ ] 0. Bump version to 1.22.1
+- [x] 0. Bump version to 1.22.1
   - Files: package.json, apps/mobile/app.json
   - Change: set both to 1.22.1
-- [ ] 1. Draw the shared components' cards with one Card component (~105 lines)
+- [x] 1. Draw the shared components' cards with one Card component (~105 lines)
   - Files: `src/components/Card.tsx` (new), `src/components/{HomeCards,NotionSyncPanel,PendingInvites,EmptyMonth,AppearancePicker,LedgerPicker}.tsx`,
     `apps/mobile/demo-modules.txt`
   - Change: Card as in Contracts. The six sites follow the call-site table, and each style keeps only its "Caller
@@ -159,14 +159,14 @@ Before slice 1, the orchestrator takes the **before** set on Base (Visual check)
     HomeCards.
   - Verify: gates; `export:web` + `check-builds --accept`, with only the Card line added. In the browser: Home, Settings
     (Appearance) and an empty month on Budget against their before snapshots.
-- [ ] 2. Draw the screens' cards with Card (~112 lines)
+- [x] 2. Draw the screens' cards with Card (~112 lines)
   - Files: `src/app/(tabs)/{budget,expenses,income,statistics,settings}.tsx`, `src/app/category/[categoryId].tsx`,
     `src/app/members.tsx`
   - Change: the other 11 rows of the call-site table, and drop imports that go unused.
   - Verify: gates. `rg -n "borderColor: colors\.border[,} ]" apps/mobile/src` → only `src/components/Card.tsx`, where
     Base has 17 (AC2 for cards). In the browser: Budget, Income, Expenses, Statistics, Settings, the category screen
     and Members against their before snapshots.
-- [ ] 3. Draw the Expenses tab's bars with a ProgressBar component (~44 lines)
+- [x] 3. Draw the Expenses tab's bars with a ProgressBar component (~44 lines)
   - Files: `src/components/ProgressBar.tsx` (new), `src/app/(tabs)/expenses.tsx`, `apps/mobile/demo-modules.txt`,
     `docs/design/design-system.md`
   - Change: ProgressBar as in Contracts. The row's 11-line track block becomes one line. The `track` and `bar` styles
@@ -386,11 +386,34 @@ Each part: base main after the previous one, patch bump, before/after snapshots 
 
 ## Deviations
 
-<filled by the developer during build>
+- **Snapshot script.** No 103 snapshot script survived, so the before and after sets used a new one: every rendered
+  element's box (to 0.5px), background, top border, top-left radius, padding and opacity, in DOM order, plus the
+  `[role],[aria-label]` record, in local storage under `snap:before:104:*` and `snap:after:104:*`. It measures
+  off-screen elements too, so no `expenses-end` view was needed.
+- **Result:** all 18 pairs (9 views × light and dark) are identical, with 0 differing elements and the same roles and
+  labels.
+- **Behaviour checks after slice 2:** Expenses scrolls and its summary card fades out (opacity 0) as before. On Budget, a long
+  press lifts the groceries row (the held style shows) and it drops back in place; Budget then matches its before
+  snapshot again.
+- **Main moved during the build** (1.22.0, a88d277, which also added a draft 104 brief). The branch was rebased onto
+  it: the brief approved at Gate A replaces main's unreviewed draft, `BACKLOG.md`'s 104 row records the split, and
+  slice 0 now bumps 1.22.0 → 1.22.1. Main's changes since 1caa333 touch the demo store and docs, none of the files this
+  branch changes.
+- The demo (port 8082) showed Home, Budget, Income, Expenses (with bars) and a category, light and dark, with no console
+  errors. The app's console shows only the pre-existing 404s for `notion/status` (the QA ledger isn't synced) and
+  the 401 from before sign-in.
 
 ## Consolidate
 
-<filled in /kopiyka-hos Phase 3a>
+CONSOLIDATE: reused 0 · extracted 0 · left 3.
+
+- `Card` / `useCardStyle`: LEAVE. Their twins were the 17 card styles, which slices 1–2 already replaced. The other
+  `surface` boxes (menus, the toast, sheets, `ConfirmPanel`, `NameCombobox`'s list, the "Added" note) differ in colour
+  or radius, as Contracts lists, and belong to 105 or the later parts.
+- `ProgressBar`: LEAVE. It has no twin: `rg "colors\.track|progressColor\("` finds only `ProgressBar.tsx` and the
+  definition in `theme.ts`.
+- `EmptyMonth`'s and the Members row's own padding stay in their callers (`none`): two one-offs, under the rule of
+  three.
 
 ## Gate A (2026-11-24)
 

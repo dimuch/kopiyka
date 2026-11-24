@@ -77,8 +77,11 @@ export default function Expenses() {
               { label: 'Spent', value: figures?.spent },
               { label: 'Remaining', value: figures?.remaining, over: figures?.over },
               { label: 'Budgeted', value: figures?.budgeted },
-            ].map((figure) => (
-              <View key={figure.label} style={styles.figure}>
+            ].map((figure, index) => (
+              <View
+                key={figure.label}
+                style={[styles.figure, index === 1 && styles.figureCentre, index === 2 && styles.figureEnd]}
+              >
                 <Text style={styles.small}>{figure.label}</Text>
                 {/* "—" in the value's own size until the month loads, so the card keeps its height. */}
                 <Text
@@ -215,9 +218,11 @@ const makeStyles = (colors: Palette) =>
       paddingHorizontal: space.lg,
       gap: space.sm,
     },
-    // Spent, Remaining and Budgeted in equal columns, the same look as Budget's figures (brief 107).
-    figures: { flexDirection: 'row', gap: space.sm },
-    figure: { flex: 1, gap: space.xs },
+    // Spread across the card's full width: Spent at the left edge, Remaining centred, Budgeted at the right edge.
+    figures: { flexDirection: 'row', justifyContent: 'space-between', gap: space.sm },
+    figure: { gap: space.xs },
+    figureCentre: { alignItems: 'center' },
+    figureEnd: { alignItems: 'flex-end' },
     figureValue: { ...text.amount, color: colors.text },
     sectionHead: {
       flexDirection: 'row',

@@ -194,6 +194,11 @@ Total: about 190 changed lines without the bump.
 
 ## Deviations
 
+- slice 4: the three figures spread across the card's full width (Spent at the left edge, Remaining centred,
+  Budgeted at the right edge, `justifyContent: 'space-between'`) instead of three equal `flex: 1` columns like
+  Budget's strip. The user asked for this after seeing it (2026-11-24, side session). Remaining sits midway
+  between the other two, so it is only exactly centred when Spent and Budgeted are the same width.
+
 ## Consolidate
 
 Pass over `origin/main...HEAD`: reused 0 · extracted 0 · left 2.

@@ -4,7 +4,7 @@ Status: approved <!-- draft → skeptic-approved → approved (by the user) -->
 Brief: ./brief.md
 Branch: feat/expense-name-suggestions (PR A, slices 0–2); feat/expense-name-suggestions-app (PR B, slices B0 and 3–6,
 stacked on PR A)
-Base: origin/main (b70a5d4, version 1.17.2)
+Base: origin/main (4e1ad93 after a rebase, version 1.18.0)
 
 ## Approach
 
@@ -66,15 +66,15 @@ with no error or retry, because the brief says "nothing to suggest → no dropdo
 
 ## Version
 
-Bump: minor — 1.17.2 → 1.18.0 (PR A); minor — 1.18.0 → 1.19.0 (PR B)
+Bump: minor — 1.18.0 → 1.19.0 (PR A); minor — 1.19.0 → 1.20.0 (PR B)
 Why: §8b `minor` covers a new API route and a new user action (picking a suggested name). Nothing existing changes
 shape, and there's no migration.
 
 ## Slices
 
-- [ ] 0. Bump version to 1.18.0
+- [x] 0. Bump version to 1.19.0
   - Files: package.json, apps/mobile/app.json
-  - Change: set both to 1.18.0
+  - Change: set both to 1.19.0
 - [ ] 1. Rank an expense window's names by use for suggestions (~65 lines)
   - Files: apps/api/src/expenses/nameSuggestions.ts, apps/api/test/nameSuggestions.test.ts
   - Change: add pure `rankNames` as in Contracts. Rows come in newest first; the first spelling seen per key wins.
@@ -106,9 +106,9 @@ shape, and there's no migration.
     - 404 `ledger_not_found` for a non-member
       PR B starts here, on `feat/expense-name-suggestions-app` branched from PR A's head.
 
-- [ ] B0. Bump version to 1.19.0
+- [ ] B0. Bump version to 1.20.0
   - Files: package.json, apps/mobile/app.json
-  - Change: set both to 1.19.0 (PR B adds the user-facing picker, a minor change of its own)
+  - Change: set both to 1.20.0 (PR B adds the user-facing picker, a minor change of its own)
 - [ ] 3. Load and filter name suggestions in the app (~80 lines)
   - Files: apps/mobile/src/api/types.ts, apps/mobile/src/data/nameSuggestions.ts, apps/mobile/src/data/useExpenseNames.ts,
     apps/mobile/test/nameSuggestions.test.ts
@@ -248,7 +248,7 @@ shape, and there's no migration.
 ## Open questions
 
 - decided — Size: about 480 changed lines, above the ~400 guide. The user chose the split at Gate A (2026-11-24): PR A =
-  slices 0–2 (API route, ~175 lines, 1.18.0); PR B = slices B0 and 3–6 (app and demo, ~310 lines, 1.19.0), stacked
+  slices 0–2 (API route, ~175 lines, 1.19.0); PR B = slices B0 and 3–6 (app and demo, ~310 lines, 1.20.0), stacked
   on A.
 - no — Loading or failing suggestions show nothing, with no error or retry. Assumption: the brief's "nothing to suggest
   → no dropdown" covers this, and free text always works.
@@ -265,7 +265,8 @@ None found while planning.
 
 ## Deviations
 
-<filled by the developer during build>
+- slice 0: brief 107 (budget polish) merged first with 1.18.0, so the branch was rebased onto 4e1ad93 and PR A bumps
+  1.18.0 → 1.19.0, PR B 1.19.0 → 1.20.0.
 
 ## Consolidate
 

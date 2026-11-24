@@ -319,7 +319,7 @@ created_by, deleted_at)`). Nov gets a list via `storeMonthList(db, id, '2026-11'
     - an API token (write scope) gets 403 `insufficient_scope` on PUT;
     - 409 `no_balance` for Dec (after the current month) and Aug (before the first), for both PUT and DELETE.
   - ~170 lines
-- [ ] 8. Note hand-set actual Ends next to the balances import
+- [x] 8. Note hand-set actual Ends next to the balances import
   - Files: README.md, deploy/README.md
   - Change: one sentence each. Actual Ends set on the Budget tab live in `month_actual_ends`, so a re-import never
     touches them.

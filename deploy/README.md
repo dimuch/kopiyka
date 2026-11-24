@@ -288,7 +288,8 @@ October 2026. A month's side is the sum of its Notion rows; a side with no row i
 (opening ← previous closing, closing ← next opening) or else set to 0. It writes only the `month_balances` table, so it
 can run before or after the history import. Production never gets `NOTION_*`: it imports a snapshot file. From the
 month after the last imported one, the API works each month's balance out itself (brief 102), so nothing needs
-importing for November 2026 on.
+importing for November 2026 on. Actual ends set by hand on the Budget tab live in `month_actual_ends`, which the import
+never touches.
 
 1. **Snapshot**, on the laptop. With `NOTION_TOKEN`, `NOTION_GROCERIES_DATA_SOURCE_ID` and the two data source ids
    `NOTION_OPENING_DATA_SOURCE_ID` / `NOTION_CLOSING_DATA_SOURCE_ID` in `apps/api/.env`:

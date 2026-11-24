@@ -80,6 +80,7 @@ export default function Income() {
   }
 
   const refusal = refused?.shown === shown ? refused.text : null;
+  const totalText = items ? eur(incomeCents(items)) : null;
   const canCopy = !ended && !!previous.items?.length && !refusal && items !== copiedOver;
   const note = refusal ?? (failed === shown ? 'Couldn’t copy. Check your connection and try again.' : null);
 
@@ -142,8 +143,8 @@ export default function Income() {
               <>
                 <View style={styles.sectionHead}>
                   <Text style={styles.sectionTitle}>Income</Text>
-                  <View accessible accessibilityLabel={`Total ${eur(incomeCents(items))}`}>
-                    <Text style={styles.total}>{eur(incomeCents(items))}</Text>
+                  <View accessible accessibilityLabel={`Total ${totalText}`}>
+                    <Text style={styles.total}>{totalText}</Text>
                   </View>
                 </View>
                 <View style={styles.listCard}>

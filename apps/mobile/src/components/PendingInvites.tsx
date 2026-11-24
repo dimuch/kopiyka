@@ -1,6 +1,7 @@
 import { ActivityIndicator, type StyleProp, StyleSheet, Text, View, type ViewStyle } from 'react-native';
 import type { Invite } from '@/api/types';
 import { useColors, useThemedStyles } from '@/appearance/AppearanceContext';
+import { Card } from '@/components/Card';
 import { Pressable } from '@/components/Pressable';
 import { fonts, type Palette, radius, size, space, text } from '@/theme';
 
@@ -33,7 +34,7 @@ export function PendingInvites({
       {invites.map((invite) => {
         const from = `${invite.owner} to ${invite.ledgerName}`;
         return (
-          <View key={invite.inviteId} style={styles.card}>
+          <Card key={invite.inviteId} padding="padded" style={styles.card}>
             <Text style={styles.text}>{`${invite.owner} invited you to ${invite.ledgerName}`}</Text>
             <View style={styles.buttons}>
               <Pressable
@@ -57,7 +58,7 @@ export function PendingInvites({
                 <Text style={styles.acceptText}>Accept</Text>
               </Pressable>
             </View>
-          </View>
+          </Card>
         );
       })}
       {failure ? (
@@ -73,14 +74,7 @@ const makeStyles = (colors: Palette) =>
   StyleSheet.create({
     section: { gap: space.sm },
     caption: { ...text.caption, color: colors.muted },
-    card: {
-      gap: space.sm,
-      padding: space.lg,
-      borderRadius: radius.lg,
-      borderWidth: 1,
-      borderColor: colors.border,
-      backgroundColor: colors.surface,
-    },
+    card: { gap: space.sm },
     text: { ...text.body, fontFamily: fonts.bodyMedium, color: colors.text },
     buttons: { flexDirection: 'row', justifyContent: 'flex-end', alignItems: 'center', gap: space.sm },
     decline: { minHeight: size.iconButton, justifyContent: 'center', paddingHorizontal: space.md },

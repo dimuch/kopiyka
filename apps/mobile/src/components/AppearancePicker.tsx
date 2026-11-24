@@ -1,6 +1,7 @@
-import { StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, Text } from 'react-native';
 import { useThemedStyles } from '@/appearance/AppearanceContext';
 import type { ThemePreference } from '@/appearance/preference';
+import { Card } from '@/components/Card';
 import { Pressable } from '@/components/Pressable';
 import { fonts, type Palette, radius, size, space, text } from '@/theme';
 
@@ -20,7 +21,7 @@ export function AppearancePicker({
 }) {
   const styles = useThemedStyles(makeStyles);
   return (
-    <View accessibilityRole="radiogroup" style={styles.group}>
+    <Card padding="group" accessibilityRole="radiogroup" style={styles.group}>
       {OPTIONS.map((o) => {
         const checked = value === o.value;
         return (
@@ -36,21 +37,13 @@ export function AppearancePicker({
           </Pressable>
         );
       })}
-    </View>
+    </Card>
   );
 }
 
 const makeStyles = (colors: Palette) =>
   StyleSheet.create({
-    group: {
-      flexDirection: 'row',
-      gap: space.sm,
-      padding: space.xs,
-      borderRadius: radius.lg,
-      borderWidth: 1,
-      borderColor: colors.border,
-      backgroundColor: colors.surface,
-    },
+    group: { flexDirection: 'row', gap: space.sm },
     option: {
       flex: 1,
       minHeight: size.iconButton,

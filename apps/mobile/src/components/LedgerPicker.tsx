@@ -1,6 +1,7 @@
-import { StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, Text } from 'react-native';
 import type { Ledger } from '@/api/types';
 import { useThemedStyles } from '@/appearance/AppearanceContext';
+import { Card } from '@/components/Card';
 import { Pressable } from '@/components/Pressable';
 import { fonts, type Palette, radius, size, space, text } from '@/theme';
 
@@ -23,7 +24,7 @@ export function LedgerPicker({
 }) {
   const styles = useThemedStyles(makeStyles);
   return (
-    <View accessibilityRole="radiogroup" style={styles.group}>
+    <Card padding="group" accessibilityRole="radiogroup" style={styles.group}>
       {ledgers.map((ledger) => {
         const checked = ledger.ledgerId === selectedId;
         return (
@@ -45,20 +46,13 @@ export function LedgerPicker({
           </Pressable>
         );
       })}
-    </View>
+    </Card>
   );
 }
 
 const makeStyles = (colors: Palette) =>
   StyleSheet.create({
-    group: {
-      gap: space.sm,
-      padding: space.xs,
-      borderRadius: radius.lg,
-      borderWidth: 1,
-      borderColor: colors.border,
-      backgroundColor: colors.surface,
-    },
+    group: { gap: space.sm },
     option: {
       minHeight: size.iconButton,
       borderRadius: radius.md,

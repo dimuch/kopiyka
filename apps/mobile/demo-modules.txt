@@ -69,6 +69,7 @@ src/components/HomeCards.tsx
 src/components/Icon.tsx
 src/components/LoadError.tsx
 src/components/MonthSwitcher.tsx
+src/components/NameCombobox.tsx
 src/components/PhoneColumn.tsx
 src/components/Pressable.tsx
 src/components/ReorderList.tsx
@@ -89,6 +90,7 @@ src/data/monthBalance.ts
 src/data/monthCopy.ts
 src/data/monthEnded.ts
 src/data/monthSummary.ts
+src/data/nameSuggestions.ts
 src/data/overIncome.ts
 src/data/quick.ts
 src/data/reorder.ts
@@ -96,6 +98,7 @@ src/data/undo.ts
 src/data/useCategoryOrder.ts
 src/data/useCategoryTotals.ts
 src/data/useExpenseDraft.ts
+src/data/useExpenseNames.ts
 src/data/useIncome.ts
 src/data/useMonth.ts
 src/data/useMonthBalance.ts

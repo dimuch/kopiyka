@@ -356,7 +356,7 @@ created_by, deleted_at)`). Nov gets a list via `storeMonthList(db, id, '2026-11'
 ### PR 4 — `feat/month-actual-end-app`: the app control
 
 - [x] 0. Bump version to 1.23.0 (`main`'s next minor)
-- [ ] 11. Mark an actual End on the Budget line
+- [x] 11. Mark an actual End on the Budget line
   - Files: apps/mobile/src/data/useMonthBalance.ts, apps/mobile/src/data/monthBalance.ts,
     apps/mobile/src/app/(tabs)/budget.tsx, apps/mobile/test/monthBalance.test.ts
   - Change: the hook returns `MonthBalanceState` (Contracts). Budget reads

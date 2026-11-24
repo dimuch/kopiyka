@@ -7,6 +7,7 @@ import { useSession } from '@/auth/AuthContext';
 import { AddExpenseButton } from '@/components/AddExpenseButton';
 import { CategoryTile } from '@/components/CategoryTile';
 import { HeaderDivider, useCollapsingSummary } from '@/components/CollapsingSummary';
+import { useCardStyle } from '@/components/Card';
 import { EmptyMonth } from '@/components/EmptyMonth';
 import { HomeButton } from '@/components/HomeButton';
 import { LoadError } from '@/components/LoadError';
@@ -24,6 +25,8 @@ import { fonts, progressColor, type Palette, radius, space, text } from '@/theme
 export default function Expenses() {
   const colors = useColors();
   const styles = useThemedStyles(makeStyles);
+  const cardStyle = useCardStyle('padded');
+  const listCard = useCardStyle('list');
   const { ledger } = useSession();
   const [thisMonth] = useState(() => kyivMonth(new Date()));
   const [month, setMonth] = useState(thisMonth);
@@ -67,7 +70,7 @@ export default function Expenses() {
         scrollEnabled={!dragging}
         contentContainerStyle={styles.content}
       >
-        <Animated.View onLayout={collapse.onCardLayout} style={[styles.card, collapse.cardStyle]}>
+        <Animated.View onLayout={collapse.onCardLayout} style={[cardStyle, styles.card, collapse.cardStyle]}>
           <View
             accessible
             accessibilityLabel={figures?.label ?? `Spent this month, ${error ? 'not available' : 'loading'}`}
@@ -136,7 +139,7 @@ export default function Expenses() {
                   disabled={order.saving}
                   onDragChange={setDragging}
                   scrollRef={scrollRef}
-                  style={styles.listCard}
+                  style={listCard}
                   renderRow={(row, index, drag) => (
                     // Two sibling buttons, not one inside the other: VoiceOver couldn't reach a nested one, and web
                     // would nest role="button" (as on Budget). Only the row drags; an ended month takes no new expenses.
@@ -209,15 +212,7 @@ const makeStyles = (colors: Palette) =>
     loading: { marginTop: space.xxl },
     // Equal-width sides keep the month switcher on the header's true centre; flexBasis 0 matters on web.
     side: { flex: 1, flexBasis: 0, flexDirection: 'row' },
-    card: {
-      backgroundColor: colors.surface,
-      borderColor: colors.border,
-      borderWidth: 1,
-      borderRadius: radius.lg,
-      paddingVertical: space.lg,
-      paddingHorizontal: space.lg,
-      gap: space.sm,
-    },
+    card: { gap: space.sm },
     // Spread across the card's full width: Spent at the left edge, Remaining centred, Budgeted at the right edge.
     figures: { flexDirection: 'row', justifyContent: 'space-between', gap: space.sm },
     figure: { gap: space.xs },
@@ -232,13 +227,6 @@ const makeStyles = (colors: Palette) =>
     },
     sectionTitle: { ...text.heading, fontFamily: fonts.display, color: colors.text },
     small: { ...text.caption, color: colors.muted },
-    listCard: {
-      backgroundColor: colors.surface,
-      borderColor: colors.border,
-      borderWidth: 1,
-      borderRadius: radius.lg,
-      paddingVertical: space.xs,
-    },
     row: {
       flexDirection: 'row',
       alignItems: 'center',

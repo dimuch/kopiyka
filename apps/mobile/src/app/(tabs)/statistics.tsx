@@ -3,6 +3,7 @@ import { ActivityIndicator, type LayoutRectangle, ScrollView, StyleSheet, Text, 
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useColors, useThemedStyles } from '@/appearance/AppearanceContext';
 import { useSession } from '@/auth/AuthContext';
+import { Card } from '@/components/Card';
 import { EmptyMonth } from '@/components/EmptyMonth';
 import { HomeButton } from '@/components/HomeButton';
 import { LoadError } from '@/components/LoadError';
@@ -71,7 +72,7 @@ export default function Statistics() {
               <EmptyMonth text="Nothing planned, spent or earned in this period." />
             ) : (
               <>
-                <View style={styles.card}>
+                <Card padding="list">
                   {(
                     [
                       ['Income', summary.totals.incomeEur],
@@ -95,11 +96,11 @@ export default function Statistics() {
                       </View>
                     );
                   })}
-                </View>
+                </Card>
                 {summary.categories.length > 0 && (
                   <>
                     <Text style={styles.sectionTitle}>By category</Text>
-                    <View style={styles.card}>
+                    <Card padding="list">
                       {summary.categories.map((category, index) => {
                         const planned = eur(toCents(category.plannedEur));
                         const spent = eur(toCents(category.spentEur));
@@ -123,13 +124,13 @@ export default function Statistics() {
                           </View>
                         );
                       })}
-                    </View>
+                    </Card>
                   </>
                 )}
                 {summary.months.length > 1 && (
                   <>
                     <Text style={styles.sectionTitle}>By month</Text>
-                    <View style={styles.card}>
+                    <Card padding="list">
                       {summary.months.map((month, index) => {
                         const income = eur(toCents(month.incomeEur));
                         const spent = eur(toCents(month.spentEur));
@@ -152,7 +153,7 @@ export default function Statistics() {
                           </View>
                         );
                       })}
-                    </View>
+                    </Card>
                   </>
                 )}
               </>
@@ -334,13 +335,6 @@ const makeStyles = (colors: Palette) =>
     },
     menuText: { ...text.body, fontFamily: fonts.bodyMedium, color: colors.text },
     menuTextOn: { fontFamily: fonts.bodySemi },
-    card: {
-      backgroundColor: colors.surface,
-      borderColor: colors.border,
-      borderWidth: 1,
-      borderRadius: radius.lg,
-      paddingVertical: space.xs,
-    },
     row: {
       flexDirection: 'row',
       alignItems: 'center',

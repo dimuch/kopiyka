@@ -136,7 +136,7 @@ version numbers.
   - Verify: `yarn lint`. On the expense form in the browser, run
     `[...document.querySelectorAll('input:not([type=date])')].map((i) => getComputedStyle(i).fontSize)`. Every entry
     is `"16px"` (AC4). Open "N more" to see the CategorySheet.
-- [ ] 4. Put the category form on tokens (~32 lines)
+- [x] 4. Put the category form on tokens (~32 lines)
   - Files: `src/components/CategoryForm.tsx`, `eslint.config.js` (−1)
   - Change: the snapping rules, with these specifics:
     - Both inputs and the € symbol → `input` (`bodyMedium` kept on the inputs). `amount` `paddingLeft` → `xxxl`.

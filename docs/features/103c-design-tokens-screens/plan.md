@@ -115,7 +115,7 @@ and no API, schema or connector change. 103d bumps patch again.
 
 Before slice 1, the orchestrator takes the **before** set on Base (see Visual check). Slice 0 only touches the version.
 
-- [ ] 0. Bump version to 1.18.1
+- [x] 0. Bump version to 1.18.1
   - Files: package.json, apps/mobile/app.json
   - Change: set both to 1.18.1
 - [ ] 1. Rename local text names that would hide the text tokens (~26 lines)

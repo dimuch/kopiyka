@@ -124,7 +124,8 @@ bigint> }` (`actual` from PR 2).
     `useMonthBalance(ledgerId, month): MonthBalanceState`, where
     `MonthBalanceState = { reload: () => void } & ({ status: 'loading' } | { status: 'error' } | { status: 'ready';
 balance: MonthBalance | null })`.
-    - Shaped like `useMonthCategories`, with the key `${ledgerId}/${month}/${version}`, and it still refetches on focus.
+    - Shaped like `useIncome`: the loaded balance is keyed `${ledgerId}/${month}` and a failure `${key}#${version}`, so a
+      reload or a focus refetch keeps the line shown while a reload's fetch can still be cancelled.
     - A failed refetch of the same key keeps the ready state, as today.
   - `data/monthBalance.ts` `balanceLine` (PR 4) adds ` (actual)`: `'Start −€35 → End €120 (actual)'`.
   - `format.ts` `normalizeBalance(text): string | null` (PR 4) → a signed `'-35.00'`-style string, or null.
@@ -485,7 +486,9 @@ created_by, deleted_at)`). Nov gets a list via `storeMonthList(db, id, '2026-11'
 - PR 2 slice 0: briefs 103–108 took 1.17.x–1.20.1 first, so PR 2 bumps 1.20.1 → 1.21.0 (rule 4); it branches from
   `origin/main` 3168377.
 - PR 3 slice 0: PR 2 shipped as 1.21.0, so PR 3 bumps 1.21.0 → 1.22.0; it branches from `origin/main` 1caa333.
-- PR 4 slice 0: PR 3 shipped as 1.22.0, so PR 4 bumps 1.22.0 → 1.23.0; it branches from `origin/main` b4d23ab.
+- PR 4 slice 0: PR 3 shipped as 1.22.0, so PR 4 bumps 1.22.0 → 1.23.0; it branches from `origin/main` a88d277.
+- PR 4 slice 11: the hook keys the loaded balance without the version (as `useIncome` does), not
+  `${ledgerId}/${month}/${version}`, so an Undo reload doesn't blank the line while it refetches.
 
 ## Consolidate
 
@@ -518,7 +521,7 @@ PR 3, against origin/main 1caa333: reused 2 · extracted 1 · left 1.
 - LEAVE the demo walk against the API's `carry.ts`: a deliberate mirror (conventions §2: the demo answers with the
   API's rules, and the apps share no package). It's simpler because the demo has no imported months.
 
-PR 4, against origin/main b4d23ab: reused 4 · extracted 0 · left 1.
+PR 4, against origin/main a88d277: reused 4 · extracted 0 · left 1.
 
 - REUSE: `closeToBudget` (JSDoc widened to any modal opened from Budget), `normalizePlanned` inside
   `normalizeBalance`, `useMonthBalance` for both the Budget line and the form, and `usePushOnce`, `TextField`,

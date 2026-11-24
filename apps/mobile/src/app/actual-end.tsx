@@ -154,6 +154,8 @@ function ActualEndForm({ month, balance, busy, setBusy }: { month: string; balan
           onSubmitEditing={save}
           editable={!locked}
           autoFocus
+          // Typing replaces the prefilled End instead of adding to it.
+          selectTextOnFocus
           // `decimal-pad` has no minus key on iOS, and an End can be negative.
           keyboardType="numbers-and-punctuation"
           placeholder="e.g. 120 or −35.50"

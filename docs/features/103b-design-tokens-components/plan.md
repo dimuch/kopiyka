@@ -326,6 +326,8 @@ Otherwise its moves come from the diff.
 
 ## Consolidate
 
+Skipped: the branch adds no function, hook, component, route or query, only one token role and style entries.
+
 <filled in /kopiyka-hos Phase 3a>
 
 ## Revision 1

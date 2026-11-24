@@ -51,6 +51,7 @@ export function fixtureData(): StoreData {
     ],
     income: [{ incomeId: 20, month: '2026-11', title: 'Salary', amountEur: '200.00', addedBy: 'you' }],
     order: [],
+    actualEnds: new Map(),
     nextId: 100,
   };
 }

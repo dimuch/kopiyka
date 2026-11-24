@@ -341,7 +341,7 @@ created_by, deleted_at)`). Nov gets a list via `storeMonthList(db, id, '2026-11'
   - Verify: `yarn mobile export:web` + `yarn mobile check-builds` (no module-list change is expected), and the demo web
     build at 390×844: Budget for last month shows `Start €0 → End …`, and this month starts from that End.
   - ~85 lines
-- [ ] 10. Let the demo set and clear a month's actual End
+- [x] 10. Let the demo set and clear a month's actual End
   - Files: apps/mobile/src/demo/state.ts (`actualEnds`), apps/mobile/src/demo/sampleData.ts,
     apps/mobile/test/demoFixture.ts (`actualEnds: new Map()`), apps/mobile/src/demo/balanceRoutes.ts,
     apps/mobile/test/demoBalance.test.ts

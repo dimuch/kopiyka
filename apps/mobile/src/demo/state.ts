@@ -38,6 +38,8 @@ export interface StoreData {
   income: DemoIncome[];
   /** The demo user's own category order, top first (the API's `category_orders`); empty until they reorder. */
   order: number[];
+  /** Months' actual Ends set by hand, EUR cents by 'YYYY-MM' (the API's `month_actual_ends`). */
+  actualEnds: Map<string, number>;
   /** The next id for anything created, and the next removal number. */
   nextId: number;
 }

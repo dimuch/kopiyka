@@ -7,12 +7,16 @@ import type { Db } from '../db.js';
 import { centsToString, toCents } from '../money.js';
 import { MonthString } from '../monthChecks.js';
 import { incomeRows, spentRows } from '../summary/periodRows.js';
-import { carryBalance, type KnownMonths, type MonthBalanceCents, walkStart } from './carry.js';
+import { carryBalance, type CarriedBalance, type KnownMonths, walkStart } from './carry.js';
 
-/** A month's balances: signed decimal strings, '-180.00'. The month runs from opening to closing. */
+/**
+ * A month's balances: signed decimal strings, '-180.00'. The month runs from opening to closing; `closingEur` is the
+ * End the line shows, and `actual` says it was set by hand (brief 102).
+ */
 export interface MonthBalanceDto {
   openingEur: string;
   closingEur: string;
+  actual: boolean;
 }
 
 const MonthParams = z.object({ month: MonthString });
@@ -20,9 +24,10 @@ const MonthParams = z.object({ month: MonthString });
 /**
  * A 'YYYY-MM' month's Start and End for a ledger (brief 102), or null when it has none: after the current month in
  * Kyiv, before the ledger's first month (its first budgeted or imported month, whichever is earlier), or for a
- * ledger with neither. Imported months (brief 085) keep their stored numbers; the rest follow `carryBalance`.
+ * ledger with neither. Imported months (brief 085) keep their stored numbers, an actual End replaces a month's End,
+ * and the rest follow `carryBalance`.
  */
-async function monthBalance(db: Db, ledgerId: number, month: string, now: Date): Promise<MonthBalanceCents | null> {
+async function monthBalance(db: Db, ledgerId: number, month: string, now: Date): Promise<CarriedBalance | null> {
   if (month > monthOf(kyivToday(now))) return null;
   const [firstRows] = await db.query<RowDataPacket[]>(
     `SELECT DATE_FORMAT(MIN(m.list_month), '%Y-%m') AS first_month
@@ -35,6 +40,11 @@ async function monthBalance(db: Db, ledgerId: number, month: string, now: Date):
        FROM month_balances WHERE ledger_id = ? AND balance_month <= ?`,
     [ledgerId, monthStart(month)],
   );
+  const [actualRows] = await db.query<RowDataPacket[]>(
+    `SELECT DATE_FORMAT(balance_month, '%Y-%m') AS month, closing_eur
+       FROM month_actual_ends WHERE ledger_id = ? AND balance_month <= ?`,
+    [ledgerId, monthStart(month)],
+  );
   const known: KnownMonths = {
     stored: new Map(
       storedRows.map((row) => [
@@ -42,6 +52,7 @@ async function monthBalance(db: Db, ledgerId: number, month: string, now: Date):
         { openingCents: toCents(row.opening_eur), closingCents: toCents(row.closing_eur) },
       ]),
     ),
+    actual: new Map(actualRows.map((row) => [row.month as string, toCents(row.closing_eur)])),
   };
   const firstMonth = [firstRows[0]?.first_month as string | null, ...known.stored.keys()]
     .filter((candidate): candidate is string => Boolean(candidate))
@@ -73,7 +84,11 @@ export async function balanceRoutes(app: FastifyInstance, { db, now }: AppDeps):
     const { month } = MonthParams.parse(req.params);
     const cents = await monthBalance(db, req.ledger!.ledgerId, month, now());
     const balance: MonthBalanceDto | null = cents
-      ? { openingEur: centsToString(cents.openingCents), closingEur: centsToString(cents.closingCents) }
+      ? {
+          openingEur: centsToString(cents.openingCents),
+          closingEur: centsToString(cents.closingCents),
+          actual: cents.actual,
+        }
       : null;
     return { balance };
   });

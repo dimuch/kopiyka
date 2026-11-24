@@ -109,7 +109,7 @@ shape, and there's no migration.
 - [x] B0. Bump version to 1.20.0
   - Files: package.json, apps/mobile/app.json
   - Change: set both to 1.20.0 (PR B adds the user-facing picker, a minor change of its own)
-- [ ] 3. Load and filter name suggestions in the app (~80 lines)
+- [x] 3. Load and filter name suggestions in the app (~80 lines)
   - Files: apps/mobile/src/api/types.ts, apps/mobile/src/data/nameSuggestions.ts, apps/mobile/src/data/useExpenseNames.ts,
     apps/mobile/test/nameSuggestions.test.ts
   - Change: add `ExpenseNames`, `matchingNames` + `SUGGESTION_LIMIT`, and the hook. The hook copies `useRate`'s

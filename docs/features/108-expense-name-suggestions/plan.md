@@ -281,6 +281,16 @@ PR A (slices 0–2), searched across `apps/api/src`:
   callers.
 - Reuses as planned: `previousMonthStart`, `nextMonthStart`, `MonthString`, `guards`, `badMonthReply` in the tests.
 
+PR B (slices B0 and 3–6), searched across `apps/mobile/src`:
+
+- `newestFirst` — EXTRACTED in slice 4 from the demo list route's sort; two callers now.
+- demo `rankNames` — LEAVE: a deliberate mirror of the API's `rankNames`, like the demo's `checkCategory` and `price`
+  (conventions §2: the demo answers with the API's rules; the apps share no package).
+- `useExpenseNames` — LEAVE: the same keyed-state + `let live` shape as nine other `data/` hooks (`useRate`,
+  `useMonth`, …); each fetches a different thing with its own fallback, and a generic hook is a refactor of its own.
+- `matchingNames` — LEAVE: no other case-insensitive "contains" filter in the app.
+- `NameCombobox` — LEAVE: the first combobox; `TextField` and `Pressable` are reused, not copied.
+
 ## Revision 1
 
 After the skeptic (APPROVE WITH EDITS):

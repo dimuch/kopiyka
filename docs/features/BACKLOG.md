@@ -3,35 +3,58 @@
 A snapshot so work can pick up in any tool (Claude Code or Copilot) without the chat history.
 Update it when a brief ships, is planned or is dropped.
 
-Snapshot: 2026-11-24, `main` at v1.21.0 (`1caa333`, after PR #152).
+Snapshot: 2026-11-24, `main` at v1.23.0 (`904351f`, after PR #155). PR #156 (104 part 1) is open.
 
 ## In progress
 
-### 102 · Month balance in the app (2 of 4 PRs merged)
+### 104 · Shared components (part 1 of 6 in review)
 
-Brief and plan: `docs/features/102-month-balance-in-app/`. The plan holds every remaining slice with files, tests
-and checks; resume with `/kopiyka-hos resume month-balance-in-app`.
+Brief and plan: `docs/features/104-shared-components/`. At Gate A the brief was split into six sequential briefs,
+each branched from `main` after the previous one merges, each a patch bump. The plan's "Later parts" outlines
+104b–104f with their call sites. Write each brief from it (in the format of `brief.md`), then run `/kopiyka-hos` on it.
 
-| PR  | Branch                      | What                                                          | State                   |
-| --- | --------------------------- | ------------------------------------------------------------- | ----------------------- |
-| 1   | `feat/month-balance`        | API works out each month's Start and End                      | merged (#144)           |
-| 2   | `feat/month-actual-end`     | API: set and clear a month's actual End (migration 018)       | merged (#152), v1.21.0  |
-| 3   | `feat/month-balance-demo`   | Demo store follows the rule (slices 9–10)                     | **next**, not started   |
-| 4   | `feat/month-actual-end-app` | Budget-tab form to set and clear an actual End (slices 11–14) | not started, after PR 3 |
+| Part | What                                                                              | State                                             |
+| ---- | --------------------------------------------------------------------------------- | ------------------------------------------------- |
+| 104  | `Card` (all 17 cards) and `ProgressBar`; nothing moves                            | PR #156 open (`chore/shared-components`, v1.23.1) |
+| 104b | `Button`, filled (accent, danger): 12 buttons, incl. the actual End form's Save   | **next**, after #156 merges; brief not written    |
+| 104c | `Button`, outlined and text; `outlinedDanger*` and `dangerText` leave `theme.ts`  | not started                                       |
+| 104d | `IconButton` and `Chip`                                                           | not started                                       |
+| 104e | `ScreenHeader` (`modal`, `month`, `page`), incl. the actual End form's header     | not started                                       |
+| 104f | `Text` at every remaining site; name the recurring role + face combinations in it | not started                                       |
 
-- The plan's version lines (1.19.0, 1.20.0) are stale: briefs 103–108 used those numbers. Take `main`'s next minor
-  (1.22.0 for PR 3) and note it under the plan's Deviations, as PR 2 did.
-- AC7's iPhone check (Expo Go) is left for the user at PR 4.
+- **Left on #156:** CI, and the user's iPhone check (Expo Go): Home, Expenses (bars), Settings and a category screen
+  look unchanged. Tick that box in the PR's test plan, then rebase-merge.
+- **Gate A decisions (2026-11-24):**
+  - six parts, Card and ProgressBar first
+  - ProgressBar extracted now, with one caller
+  - Card takes a required `padding` (`padded`, `list`, `group` or `none`), with layout in `style`
+  - hosts that can't be a plain View (Pressable, Animated.View, ReorderList) use `useCardStyle(padding)`
+- **"Nothing moves" is proved with layout snapshots, not screenshots.** The script and how to use it are in the 104
+  plan, under "Snapshot script". Take the before set on `main` before the first code slice.
+- **Differences the later parts keep as they are**, because unifying them would move things more than 2pt (105
+  unifies them):
+  - filled buttons at 56, 48 or 44pt, radius 20, pill or 14, and disabled opacity 0.6, 0.5 or 0.4
+  - the form screens' 8pt top padding and 52pt header spacer
+  - chips at 48pt
+  - NotionSync's 13pt button text
+  - the Undo button's 56pt height
+
+## Recently finished
+
+- **102 · Month balance in the app**: all 4 PRs are merged (#144, #152, #153 v1.22.0, #155 v1.23.0). Its AC7 iPhone
+  check (Expo Go: the Budget tab's Start → End line and the actual End form) was left for the user with PR 4.
+- **Releases:** the newest tag is v1.20.0. Versions 1.20.1–1.23.0 are merged but untagged. Tag a version only once it's
+  deployed (conventions §8b).
 
 ## Planned: design-system roll-out (`docs/design/design-system.md`)
 
-103, 103b, 103c and 103d (tokens) are merged (#145, #147, #149, #151). The rest, in order:
+103, 103b, 103c and 103d (tokens) are merged (#145, #147, #149, #151). The rest, in order (105 waits for all of 104):
 
-| Brief | Draft                                          | What                                                                                                                                                                                                                          |
-| ----- | ---------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| 104   | `docs/features/104-shared-components/brief.md` | `Text`, `Card`, `Button`, `IconButton`, `Chip`, `ScreenHeader`, `ProgressBar`; nothing visibly changes. Reviewed and split at Gate A into 104–104f: 104 is `Card` and `ProgressBar`, the plan's Later parts outline 104b–104f |
-| 105   | `docs/features/105-fresh-look/brief.md`        | New palettes, Inter, radii, shadows, no borders, card per row, violet bars, caution label                                                                                                                                     |
-| 106   | `docs/features/106-floating-tab-bar/brief.md`  | Floating pill tab bar with a round "+" (add expense) button                                                                                                                                                                   |
+| Brief | Draft                                          | What                                                                                      |
+| ----- | ---------------------------------------------- | ----------------------------------------------------------------------------------------- |
+| 104   | `docs/features/104-shared-components/brief.md` | Shared components, split into 104–104f: see In progress                                   |
+| 105   | `docs/features/105-fresh-look/brief.md`        | New palettes, Inter, radii, shadows, no borders, card per row, violet bars, caution label |
+| 106   | `docs/features/106-floating-tab-bar/brief.md`  | Floating pill tab bar with a round "+" (add expense) button                               |
 
 The 105 and 106 briefs are **drafts** written from the design doc and the follow-ups earlier plans handed on. Read and
 correct each before running `/kopiyka-hos` on it. 107 (budget polish, #146) already brought forward one 105 item:
@@ -58,7 +81,7 @@ B may not be worth doing if the Notion code goes (next section).
 ### Named in earlier briefs and plans as "its own brief"
 
 - **Remove the Notion sync and import code** (Sync to Notion, `notion-start`, `import-history`, `import-balances`,
-  `import-income`). The user's decision, 2026-11-22 (brief 102, Out of scope). Do it after 102 ships.
+  `import-income`). The user's decision, 2026-11-22 (brief 102, Out of scope). 102 has shipped, so it can start.
 - **Statistics' category list follows the member's order** as a tie-break, if wanted (092 follow-up).
 - **Chips that are silent on web**: `aria-selected` isn't valid on `role="button"`, so the category and date chips
   may not say "selected" on web. Pick `aria-pressed` or a radio group as in `AppearancePicker` (095 follow-up).
@@ -82,12 +105,22 @@ B may not be worth doing if the Notion code goes (next section).
 
 ## Outside this repo
 
-- Briefs 082 and 083 (PWA) were written in a separate checkout, `../kopiyka-pwa`, on the old laptop. They aren't on
-  GitHub. Numbers 073–078 aren't in `docs/features/` either. Copy anything still wanted into `docs/features/`
-  before that laptop goes.
+- Briefs 082 and 083 (PWA) were written in a separate checkout, `../kopiyka-pwa`, on the old laptop, as untracked
+  folders `docs/features/082-installable-web-app/` and `083-launch-and-resume/`. They aren't on GitHub. Numbers
+  073–078 aren't in `docs/features/` either. Copy anything still wanted into `docs/features/` before that laptop goes.
+- A few untracked files in the old laptop's main checkout are kept out of the repo on purpose. Copy them across by
+  hand if they're still wanted.
 - Personal Claude skills (`~/.claude/skills`: `incremental-implementation`, `test-driven-development`,
   `debugging-and-error-recovery`, `security-and-hardening`, `source-driven-development`, `code-simplification`) don't
   travel with the repo. Copy them to `~/.copilot/skills/` on the new laptop if you want them (conventions §8a).
+- Claude's memory for this project (`~/.claude/projects/…/memory`) stays on the old laptop. This file and the plans in
+  `docs/features/` are the record to work from.
+- Local QA data doesn't travel either: the dev database, its QA user `claude-qa-103b` and that user's TOTP secret exist
+  only on the old laptop.
+  - On a new laptop, create a fresh user per brief with `yarn api create-user`, using `--username claude-qa-<NNN>`
+    and `--email claude-qa-<NNN>@example.test`. Keep its secret out of the repo, and delete the user when the brief
+    is done.
+  - For the 104 snapshot views, seed November data with at least one bar under plan, one near it and one over it.
 
 ## Plans with unticked boxes
 

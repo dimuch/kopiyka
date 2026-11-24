@@ -37,13 +37,9 @@ const notOnTokensYet = [
   'src/components/CategorySheet.tsx',
   'src/components/DateChips.tsx',
   'src/components/DateField.tsx',
-  'src/components/EmptyMonth.tsx',
   'src/components/LedgerPicker.tsx',
-  'src/components/LoadError.tsx',
   'src/components/NotionSyncPanel.tsx',
   'src/components/PendingInvites.tsx',
-  'src/components/UndoToast.tsx',
-  'src/demo/DemoStrip.tsx',
 ];
 
 module.exports = defineConfig([

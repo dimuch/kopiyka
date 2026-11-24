@@ -1,7 +1,7 @@
 import { Link } from 'expo-router';
 import { StyleSheet, Text, View } from 'react-native';
 import { useThemedStyles } from '@/appearance/AppearanceContext';
-import { fonts, type Palette } from '@/theme';
+import { fonts, type Palette, size, space, text } from '@/theme';
 
 /** The real app's sign-in page, for a visitor who wants their own budget. */
 const SIGN_IN_URL = 'https://kopiyka.englishplus.com.ua/login';
@@ -25,20 +25,20 @@ const makeStyles = (colors: Palette) =>
       flexDirection: 'row',
       alignItems: 'center',
       justifyContent: 'space-between',
-      gap: 12,
-      paddingLeft: 20,
+      gap: space.md,
+      paddingLeft: space.xl,
       backgroundColor: colors.accentTint,
       borderBottomWidth: StyleSheet.hairlineWidth,
       borderBottomColor: colors.border,
     },
-    text: { flexShrink: 1, fontFamily: fonts.body, fontSize: 13, color: colors.text },
+    text: { ...text.label, flexShrink: 1, fontFamily: fonts.body, color: colors.text },
     // A 44pt touch target, as the conventions ask.
     link: {
-      minHeight: 44,
-      paddingHorizontal: 20,
-      lineHeight: 44,
+      ...text.label,
+      minHeight: size.iconButton,
+      paddingHorizontal: space.xl,
+      lineHeight: size.iconButton,
       fontFamily: fonts.bodySemi,
-      fontSize: 13,
       color: colors.accent,
     },
   });

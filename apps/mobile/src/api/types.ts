@@ -93,6 +93,11 @@ export interface Expense {
   updatedAt: string;
 }
 
+/** The names already used in a category, best first (brief 108). */
+export interface ExpenseNames {
+  names: string[];
+}
+
 export interface EurUahRate {
   /** The date asked for. */
   date: string;

@@ -2,7 +2,7 @@ import { useEffect } from 'react';
 import { AccessibilityInfo, StyleSheet, Text, View } from 'react-native';
 import { useThemedStyles } from '@/appearance/AppearanceContext';
 import { Pressable } from '@/components/Pressable';
-import { fonts, type Palette } from '@/theme';
+import { fonts, type Palette, size, space, text } from '@/theme';
 
 /** A failed load: the message (announced to screen readers) and Retry, when trying again can help. */
 export function LoadError({ message, onRetry }: { message: string; onRetry?: () => void }) {
@@ -27,8 +27,13 @@ export function LoadError({ message, onRetry }: { message: string; onRetry?: () 
 
 const makeStyles = (colors: Palette) =>
   StyleSheet.create({
-    box: { gap: 4, paddingVertical: 12 },
-    message: { fontFamily: fonts.body, fontSize: 14, color: colors.muted },
-    retry: { minHeight: 44, justifyContent: 'center', alignSelf: 'flex-start', paddingHorizontal: 8 },
-    retryText: { fontFamily: fonts.bodySemi, fontSize: 15, color: colors.accent },
+    box: { gap: space.xs, paddingVertical: space.md },
+    message: { ...text.label, fontFamily: fonts.body, color: colors.muted },
+    retry: {
+      minHeight: size.iconButton,
+      justifyContent: 'center',
+      alignSelf: 'flex-start',
+      paddingHorizontal: space.sm,
+    },
+    retryText: { ...text.bodyStrong, color: colors.accent },
   });

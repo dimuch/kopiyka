@@ -2,7 +2,7 @@ import { ActivityIndicator, StyleSheet, Text, View } from 'react-native';
 import { useColors, useThemedStyles } from '@/appearance/AppearanceContext';
 import { LoadError } from '@/components/LoadError';
 import { Pressable } from '@/components/Pressable';
-import { fonts, type Palette } from '@/theme';
+import { fonts, type Palette, radius, size, space, text } from '@/theme';
 
 /** A month with nothing in it yet ("No budget for November yet"), an optional action and its outcome. */
 export function EmptyMonth({
@@ -48,21 +48,21 @@ const makeStyles = (colors: Palette) =>
       backgroundColor: colors.surface,
       borderColor: colors.border,
       borderWidth: 1,
-      borderRadius: 22,
-      paddingVertical: 20,
-      paddingHorizontal: 18,
-      gap: 14,
+      borderRadius: radius.lg,
+      paddingVertical: space.xl,
+      paddingHorizontal: space.lg,
+      gap: space.lg,
       alignItems: 'center',
     },
-    text: { fontFamily: fonts.bodyMedium, fontSize: 15, color: colors.text, textAlign: 'center' },
+    text: { ...text.body, fontFamily: fonts.bodyMedium, color: colors.text, textAlign: 'center' },
     button: {
-      minHeight: 48,
+      minHeight: size.control,
       alignSelf: 'stretch',
-      borderRadius: 16,
+      borderRadius: radius.md,
       backgroundColor: colors.accent,
       alignItems: 'center',
       justifyContent: 'center',
-      paddingHorizontal: 16,
+      paddingHorizontal: space.lg,
     },
-    buttonText: { fontFamily: fonts.bodySemi, fontSize: 16, color: colors.onAccent, textAlign: 'center' },
+    buttonText: { ...text.bodyStrong, color: colors.onAccent, textAlign: 'center' },
   });

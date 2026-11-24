@@ -111,7 +111,7 @@ version numbers.
       the tile (26–52pt): tile maths, no token."
   - Verify: `yarn lint` passes with the 8 files guarded. Look at Home, Budget and Expenses in the browser, plus a pushed
     page's tab bar with the invite badge.
-- [ ] 2. Put the empty-month, load-error, Undo and demo strips on tokens (~70 lines)
+- [x] 2. Put the empty-month, load-error, Undo and demo strips on tokens (~70 lines)
   - Files: `src/components/{EmptyMonth,LoadError,UndoToast}.tsx`, `src/demo/DemoStrip.tsx`, `eslint.config.js` (−4)
   - Change: the snapping rules, with these specifics:
     - `EmptyMonth`: card radius 22 → `lg`, button radius 16 → `md`, `buttonText` → `bodyStrong` (16 → 15).

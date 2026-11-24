@@ -1,5 +1,5 @@
 import type { Category, Expense, IncomeItem } from '@/api/types';
-import { toCents } from '@/format';
+import { eur, toCents } from '@/format';
 
 /** Sum of one amount column over `expenses`, in integer cents. */
 export function sumCents(expenses: Expense[], field: 'amountEur' | 'amountUah'): number {
@@ -9,6 +9,31 @@ export function sumCents(expenses: Expense[], field: 'amountEur' | 'amountUah'):
 /** The month's planned EUR over `categories`, in integer cents. */
 export function plannedCents(categories: Category[]): number {
   return categories.reduce((sum, category) => sum + toCents(category.plannedEur), 0);
+}
+
+/**
+ * The Expenses card's Spent, Remaining (Budgeted − Spent) and Budgeted (brief 107). A month without categories
+ * has no budget; otherwise its plan is the sum of theirs, €0 plans included. `over` colours Remaining.
+ */
+export function spendingFigures(
+  spentCents: number,
+  categories: Category[],
+): { spent: string; remaining: string; budgeted: string; over: boolean; label: string } {
+  const spent = eur(spentCents);
+  if (categories.length === 0) {
+    return { spent, remaining: '—', budgeted: 'Not set', over: false, label: `Spent ${spent}, budget not set` };
+  }
+  const budgetedCents = plannedCents(categories);
+  const remainingCents = budgetedCents - spentCents;
+  const remaining = eur(remainingCents);
+  const budgeted = eur(budgetedCents);
+  return {
+    spent,
+    remaining,
+    budgeted,
+    over: remainingCents < 0,
+    label: `Spent ${spent}, remaining ${remaining}, budgeted ${budgeted}`,
+  };
 }
 
 /** The month's income over `items`, in integer cents. */

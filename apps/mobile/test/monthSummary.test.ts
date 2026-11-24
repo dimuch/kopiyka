@@ -1,6 +1,14 @@
 import { describe, expect, it } from 'vitest';
 import type { Category, Expense, IncomeItem } from '@/api/types';
-import { expenseCount, groupByDay, incomeCents, plannedCents, spentByCategory, sumCents } from '@/data/monthSummary';
+import {
+  expenseCount,
+  groupByDay,
+  incomeCents,
+  plannedCents,
+  spendingFigures,
+  spentByCategory,
+  sumCents,
+} from '@/data/monthSummary';
 
 describe('expenseCount', () => {
   it('says how many expenses, singular for one', () => {
@@ -99,5 +107,74 @@ describe('incomeCents', () => {
     expect(incomeCents([])).toBe(0);
     // In floats 0.1 + 0.2 isn't 0.3; in cents it's exactly 30.
     expect(incomeCents([item('0.10', 1), item('0.20', 2)])).toBe(30);
+  });
+});
+
+describe('spendingFigures', () => {
+  const category = (plannedEur: string, categoryId = 1): Category => ({
+    categoryId,
+    techName: `category_${categoryId}`,
+    displayName: `Category ${categoryId}`,
+    sortOrder: categoryId,
+    plannedEur,
+  });
+
+  it.each([
+    {
+      name: 'under plan',
+      spent: 25050,
+      categories: [category('600.00', 1), category('400.00', 2)],
+      expected: {
+        spent: '€250.50',
+        remaining: '€749.50',
+        budgeted: '€1,000',
+        over: false,
+        label: 'Spent €250.50, remaining €749.50, budgeted €1,000',
+      },
+    },
+    {
+      name: 'over plan',
+      spent: 100900,
+      categories: [category('1000.00')],
+      expected: {
+        spent: '€1,009',
+        remaining: '−€9',
+        budgeted: '€1,000',
+        over: true,
+        label: 'Spent €1,009, remaining −€9, budgeted €1,000',
+      },
+    },
+    {
+      name: 'exactly on plan',
+      spent: 100000,
+      categories: [category('1000.00')],
+      expected: {
+        spent: '€1,000',
+        remaining: '€0',
+        budgeted: '€1,000',
+        over: false,
+        label: 'Spent €1,000, remaining €0, budgeted €1,000',
+      },
+    },
+    {
+      name: 'categories planned at €0',
+      spent: 1200,
+      categories: [category('0.00', 1), category('0.00', 2)],
+      expected: {
+        spent: '€12',
+        remaining: '−€12',
+        budgeted: '€0',
+        over: true,
+        label: 'Spent €12, remaining −€12, budgeted €0',
+      },
+    },
+    {
+      name: 'no budget',
+      spent: 0,
+      categories: [],
+      expected: { spent: '€0', remaining: '—', budgeted: 'Not set', over: false, label: 'Spent €0, budget not set' },
+    },
+  ])('shows Spent, Remaining and Budgeted: $name', ({ spent, categories, expected }) => {
+    expect(spendingFigures(spent, categories)).toEqual(expected);
   });
 });

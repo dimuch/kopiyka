@@ -17,7 +17,7 @@ import { overIncomeText } from '@/data/overIncome';
 import { useIncome } from '@/data/useIncome';
 import { monthName, normalizeAmount } from '@/format';
 import { parseIdParam, parseMonthParam } from '@/linkParams';
-import { dangerText, fonts, type Palette } from '@/theme';
+import { dangerText, fonts, type Palette, radius, size, space, text } from '@/theme';
 
 /**
  * Closes the modal. Opened straight from a web link there's nothing to go back to, so it falls back to the Income
@@ -263,36 +263,35 @@ function IncomeForm({
 
 const makeStyles = (colors: Palette) =>
   StyleSheet.create({
-    screen: { flex: 1, backgroundColor: colors.bg, paddingHorizontal: 20, paddingTop: 8 },
-    header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 },
-    back: { height: 44, justifyContent: 'center', marginLeft: -8, paddingHorizontal: 8 },
-    backText: { fontFamily: fonts.bodyMedium, fontSize: 15, color: colors.muted },
-    title: { fontFamily: fonts.display, fontSize: 18, color: colors.text },
-    body: { gap: 16, paddingTop: 16, paddingBottom: 40 },
-    caption: { fontFamily: fonts.body, fontSize: 14, color: colors.muted },
-    group: { gap: 8 },
-    label: { fontFamily: fonts.bodySemi, fontSize: 13, color: colors.muted },
+    screen: { flex: 1, backgroundColor: colors.bg, paddingHorizontal: space.xl, paddingTop: space.sm },
+    header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: space.sm },
+    back: { height: size.iconButton, justifyContent: 'center', marginLeft: -space.sm, paddingHorizontal: space.sm },
+    backText: { ...text.body, fontFamily: fonts.bodyMedium, color: colors.muted },
+    title: { ...text.heading, fontFamily: fonts.display, color: colors.text },
+    body: { gap: space.lg, paddingTop: space.lg, paddingBottom: space.huge },
+    caption: { ...text.label, fontFamily: fonts.body, color: colors.muted },
+    group: { gap: space.sm },
+    label: { ...text.label, fontFamily: fonts.bodySemi, color: colors.muted },
     input: {
-      height: 48,
-      borderRadius: 14,
+      height: size.control,
+      borderRadius: radius.md,
       borderWidth: 1,
       borderColor: colors.borderStrong,
       backgroundColor: colors.surface,
-      paddingHorizontal: 14,
+      paddingHorizontal: space.lg,
       color: colors.text,
-      fontFamily: fonts.body,
-      fontSize: 16,
+      ...text.input,
     },
-    error: { fontFamily: fonts.bodyMedium, fontSize: 13, color: colors.over },
+    error: { ...text.label, color: colors.over },
     primary: {
       minHeight: 56,
-      borderRadius: 18,
-      paddingHorizontal: 16,
+      borderRadius: radius.lg,
+      paddingHorizontal: space.lg,
       backgroundColor: colors.accent,
       alignItems: 'center',
       justifyContent: 'center',
     },
-    primaryText: { fontFamily: fonts.bodySemi, fontSize: 16, color: colors.onAccent },
-    delete: { height: 48, alignItems: 'center', justifyContent: 'center' },
+    primaryText: { ...text.bodyStrong, color: colors.onAccent },
+    delete: { height: size.control, alignItems: 'center', justifyContent: 'center' },
     deleteText: dangerText(colors),
   });

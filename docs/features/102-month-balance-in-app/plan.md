@@ -181,7 +181,7 @@ number and bumps once more (rule 4).
 | PR  | Bump  | From → to       | Why (§8b row)                                                                                                                                                                           |
 | --- | ----- | --------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | 1   | minor | 1.16.1 → 1.17.0 | New capability: the Budget line exists for November onwards. The response shape is unchanged and there's no migration. A rollback just hides the line from November on again, as today. |
-| 2   | minor | → 1.18.0        | New routes, an optional new field and an additive migration. The previous release runs on 018 and ignores it.                                                                           |
+| 2   | minor | 1.20.1 → 1.21.0 | New routes, an optional new field and an additive migration. The previous release runs on 018 and ignores it.                                                                           |
 | 3   | minor | → 1.19.0        | The live demo build shows a line it didn't have (a new capability in a production build).                                                                                               |
 | 4   | minor | → 1.20.0        | A new user action (set or clear the actual End).                                                                                                                                        |
 
@@ -270,7 +270,7 @@ created_by, deleted_at)`). Nov gets a list via `storeMonthList(db, id, '2026-11'
 
 ### PR 2 — `feat/month-actual-end`: actual End in the API
 
-- [ ] 0. Bump version to 1.18.0 (or `main`'s next minor)
+- [x] 0. Bump version to 1.21.0 (`main`'s next minor)
   - Files: package.json, apps/mobile/app.json
 - [ ] 5. Add the month_actual_ends table
   - Files: apps/api/migrations/018_month_actual_ends.sql (new), apps/api/test/monthActualEnds.migration.int.test.ts
@@ -479,6 +479,8 @@ created_by, deleted_at)`). Nov gets a list via `storeMonthList(db, id, '2026-11'
   current month's End moves without leaving the tab (it refetched only on focus, fine while every line was a static
   import). PR 4 slice 11 reshapes the hook anyway and keeps that call. Checked on web: removing groceries (€112.50)
   raised End to €2,465; Undo brought it back to €2,352.50 in place.
+- PR 2 slice 0: briefs 103–108 took 1.17.x–1.20.1 first, so PR 2 bumps 1.20.1 → 1.21.0 (rule 4); it branches from
+  `origin/main` 3168377.
 
 ## Consolidate
 

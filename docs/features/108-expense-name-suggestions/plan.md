@@ -270,7 +270,14 @@ None found while planning.
 
 ## Consolidate
 
-<filled in /kopiyka-hos Phase 3a>
+PR A (slices 0–2), searched across `apps/api/src`:
+
+- `rankNames` — LEAVE: no other code groups or ranks names. The `toLowerCase()` matches elsewhere (auth throttle,
+  Notion import, category tech names) are one-line key builders with their own rules.
+- `GET /expenses/names` query — LEAVE: it shares the join and live-row filters with `GET /expenses`, but selects two
+  columns over a two-month window for one category. A shared builder would mean a third shape of options for two
+  callers.
+- Reuses as planned: `previousMonthStart`, `nextMonthStart`, `MonthString`, `guards`, `badMonthReply` in the tests.
 
 ## Revision 1
 

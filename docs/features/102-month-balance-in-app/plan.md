@@ -328,7 +328,7 @@ created_by, deleted_at)`). Nov gets a list via `storeMonthList(db, id, '2026-11'
 ### PR 3 — `feat/month-balance-demo`: the demo follows the rule
 
 - [x] 0. Bump version to 1.22.0 (`main`'s next minor)
-- [ ] 9. Work out the demo's month balances
+- [x] 9. Work out the demo's month balances
   - Files: apps/mobile/src/demo/balanceRoutes.ts, apps/mobile/test/demoBalance.test.ts
   - Change: GET walks from the first listed month (live `monthRows`) at €0 up to the asked month. Its flow is income
     `toCents` minus live expenses (`removal === null`, `expenseDate` in the month). It answers `null` outside

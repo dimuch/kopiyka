@@ -118,6 +118,18 @@ export function normalizePlanned(text: string): string | null {
   return `${Number(whole)}.${frac.padEnd(2, '0')}`;
 }
 
+/**
+ * Typed balance → a signed '-35.00'-style string the API accepts, or null (brief 102). One leading minus, a hyphen or
+ * the app's own U+2212, makes it negative; the rest reads like a planned amount. Zero has no sign.
+ */
+export function normalizeBalance(text: string): string | null {
+  const t = text.trim();
+  const negative = t.startsWith('-') || t.startsWith('\u2212');
+  const value = normalizePlanned(negative ? t.slice(1) : t);
+  if (value === null) return null;
+  return negative && toCents(value) !== 0 ? `-${value}` : value;
+}
+
 /** Typed expense amount → '12.50'-style string the API accepts, or null; it must be more than €0. */
 export function normalizeAmount(text: string): string | null {
   const value = normalizePlanned(text);

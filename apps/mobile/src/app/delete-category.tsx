@@ -111,7 +111,7 @@ function Confirm({
       router.dismissTo(toBudget ? { pathname: '/budget', params: { month } } : '/');
     } catch (err) {
       const code = err instanceof ApiError ? err.code : null;
-      const text =
+      const message =
         code === 'month_ended'
           ? monthEndedText(month)
           : code === 'not_found'
@@ -119,8 +119,8 @@ function Confirm({
             : 'Couldn’t remove. Check your connection and try again.';
       setGone(code === 'month_ended' || code === 'not_found');
       // The alert role covers web; VoiceOver needs an explicit announcement.
-      setError(text);
-      AccessibilityInfo.announceForAccessibility(text);
+      setError(message);
+      AccessibilityInfo.announceForAccessibility(message);
       inFlight.current = false;
       setBusy(false);
     }

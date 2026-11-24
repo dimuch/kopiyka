@@ -118,7 +118,7 @@ Before slice 1, the orchestrator takes the **before** set on Base (see Visual ch
 - [x] 0. Bump version to 1.18.1
   - Files: package.json, apps/mobile/app.json
   - Change: set both to 1.18.1
-- [ ] 1. Rename local text names that would hide the text tokens (~26 lines)
+- [x] 1. Rename local text names that would hide the text tokens (~26 lines)
   - Files: `src/app/{delete-category,expense,income-item}.tsx`
   - Change: the renames in Contracts. There's no token change yet.
   - Verify: gates. `rg -n "(const|let) text\b|\(text\b|, text\b" <the 3 files>` finds nothing.

@@ -74,6 +74,7 @@ src/components/MonthSwitcher.tsx
 src/components/NameCombobox.tsx
 src/components/PhoneColumn.tsx
 src/components/Pressable.tsx
+src/components/ProgressBar.tsx
 src/components/ReorderList.tsx
 src/components/TabBar.tsx
 src/components/TextField.tsx

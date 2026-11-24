@@ -1,18 +1,30 @@
-import { useState } from 'react';
-import { Platform, ScrollView, StyleSheet, Text, View, type StyleProp, type TextStyle } from 'react-native';
+import { useEffect, useId, useRef, useState } from 'react';
+import {
+  AccessibilityInfo,
+  Platform,
+  ScrollView,
+  StyleSheet,
+  Text,
+  View,
+  type ScrollViewInstance,
+  type StyleProp,
+  type TextInputKeyPressEvent,
+  type TextStyle,
+} from 'react-native';
 import { useThemedStyles } from '@/appearance/AppearanceContext';
 import { Pressable } from '@/components/Pressable';
 import { TextField } from '@/components/TextField';
 import { matchingNames } from '@/data/nameSuggestions';
 import { type Palette, radius, size, space, text } from '@/theme';
 
-/** Rows shown before the list scrolls. */
+/** Rows shown before the list scrolls; each row is the 44pt touch minimum high. */
 const VISIBLE_ROWS = 5;
+const ROW_HEIGHT = size.iconButton;
+const isWeb = Platform.OS === 'web';
 
 // On web a press on an option would blur the field first, closing the list before the press lands; keeping the
 // mouse-down from moving focus lets it through. RN's ViewProps don't type onMouseDown, so it's spread in.
-const keepFieldFocus =
-  Platform.OS === 'web' ? { onMouseDown: (event: { preventDefault: () => void }) => event.preventDefault() } : {};
+const keepFieldFocus = isWeb ? { onMouseDown: (event: { preventDefault: () => void }) => event.preventDefault() } : {};
 
 interface Props {
   value: string;
@@ -29,22 +41,74 @@ interface Props {
 
 /**
  * A text field with a list of earlier names under it (brief 108): one can be picked, or any text typed. The list
- * opens on focus, a tap or typing, and closes on blur or a pick.
+ * opens on focus, a tap, typing or ↓, and closes on blur, a pick or Escape. On web it's an ARIA combobox: arrows move
+ * the highlight and Enter picks it, while focus stays in the field.
  */
 export function NameCombobox({ value, onChangeText, names, editable, style, ...field }: Props) {
   const styles = useThemedStyles(makeStyles);
+  const listId = useId();
+  const listRef = useRef<ScrollViewInstance>(null);
   const [open, setOpen] = useState(false);
   const shown = open && editable ? matchingNames(names, value) : [];
+  const shownKey = shown.join('\n');
+  // The highlighted row, tagged with the list it was chosen in, so a changed list starts with none.
+  const [active, setActive] = useState<{ list: string; index: number } | null>(null);
+  const activeIndex = active?.list === shownKey ? active.index : null;
+  const optionId = (index: number) => `${listId}-option-${index}`;
+
+  // VoiceOver has no combobox role: say how many names there are when the list opens, not on every keystroke.
+  const wasShowing = useRef(false);
+  useEffect(() => {
+    const showing = shown.length > 0;
+    if (showing && !wasShowing.current && !isWeb) {
+      AccessibilityInfo.announceForAccessibility(`${shown.length} suggestions`);
+    }
+    wasShowing.current = showing;
+  }, [shown.length]);
 
   function pick(name: string) {
     onChangeText(name);
     setOpen(false);
   }
 
+  function highlight(index: number) {
+    setActive({ list: shownKey, index });
+    listRef.current?.scrollTo({ y: Math.max(0, (index - VISIBLE_ROWS + 1) * ROW_HEIGHT), animated: false });
+  }
+
+  function onKeyPress(event: TextInputKeyPressEvent) {
+    const { key } = event.nativeEvent;
+    if (key === 'ArrowDown' || key === 'ArrowUp') {
+      event.preventDefault();
+      if (!shown.length) return setOpen(true);
+      const step = key === 'ArrowDown' ? 1 : -1;
+      const from = activeIndex ?? (step === 1 ? -1 : 0);
+      highlight((from + step + shown.length) % shown.length);
+    } else if (key === 'Enter' && activeIndex !== null) {
+      // Stops react-native-web submitting and blurring the field.
+      event.preventDefault();
+      pick(shown[activeIndex]!);
+    } else if (key === 'Escape') {
+      setOpen(false);
+    }
+  }
+
+  // RN doesn't type these ARIA props; react-native-web passes them to the input.
+  const comboboxProps = isWeb
+    ? {
+        role: 'combobox' as const,
+        'aria-expanded': shown.length > 0,
+        'aria-autocomplete': 'list',
+        'aria-controls': listId,
+        ...(activeIndex !== null && { 'aria-activedescendant': optionId(activeIndex) }),
+      }
+    : {};
+
   return (
     <View>
       <TextField
         {...field}
+        {...comboboxProps}
         value={value}
         editable={editable}
         style={style}
@@ -52,6 +116,7 @@ export function NameCombobox({ value, onChangeText, names, editable, style, ...f
           onChangeText(typed);
           setOpen(true);
         }}
+        onKeyPress={onKeyPress}
         onFocus={() => setOpen(true)}
         // A tap on a field that already has focus reopens the list after a pick (iOS; web has no onPressIn here).
         onPressIn={() => setOpen(true)}
@@ -60,12 +125,25 @@ export function NameCombobox({ value, onChangeText, names, editable, style, ...f
       {shown.length > 0 && (
         <ScrollView
           {...keepFieldFocus}
-          style={[styles.list, { maxHeight: VISIBLE_ROWS * size.iconButton }]}
+          ref={listRef}
+          nativeID={listId}
+          // RN's Role union has no listbox; AccessibilityRole takes any string, and the web reads this one.
+          accessibilityRole={isWeb ? 'listbox' : undefined}
+          style={[styles.list, { maxHeight: VISIBLE_ROWS * ROW_HEIGHT }]}
           keyboardShouldPersistTaps="handled"
           nestedScrollEnabled
         >
-          {shown.map((name) => (
-            <Pressable key={name} accessibilityRole="button" onPress={() => pick(name)} style={styles.option}>
+          {shown.map((name, index) => (
+            <Pressable
+              key={name}
+              nativeID={optionId(index)}
+              role={isWeb ? 'option' : 'button'}
+              aria-selected={isWeb ? index === activeIndex : undefined}
+              // Tab skips the options on web: the arrows move through them from the field.
+              tabIndex={isWeb ? -1 : undefined}
+              onPress={() => pick(name)}
+              style={[styles.option, index === activeIndex && styles.active]}
+            >
               <Text style={styles.optionText} numberOfLines={1}>
                 {name}
               </Text>
@@ -86,6 +164,7 @@ const makeStyles = (colors: Palette) =>
       borderWidth: 1,
       borderColor: colors.borderStrong,
     },
-    option: { minHeight: size.iconButton, justifyContent: 'center', paddingHorizontal: space.md },
+    option: { height: ROW_HEIGHT, justifyContent: 'center', paddingHorizontal: space.md },
+    active: { backgroundColor: colors.accentTint },
     optionText: { ...text.body, color: colors.text },
   });

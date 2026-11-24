@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import { fixtureStore, refusal } from './demoFixture';
+import { createStore } from '@/demo/store';
+import { fixtureData, fixtureStore, NOW, refusal } from './demoFixture';
 
 const balanceOf = (api: ReturnType<typeof fixtureStore>, month: string) =>
   api(`/api/ledgers/1/months/${month}/balance`);
@@ -43,6 +44,18 @@ describe('demo actual End', () => {
     });
     expect(await balanceOf(api, '2026-11')).toEqual({
       balance: { openingEur: '50.00', closingEur: '230.00', actual: false },
+    });
+  });
+
+  it('carries an actual End through a worked-out month', async () => {
+    const data = fixtureData();
+    data.monthRows.push({ categoryId: 1, month: '2026-09', displayName: 'rent', removal: null });
+    const api = createStore(data, () => NOW);
+    await api(actualEnd('2026-09'), { method: 'PUT', body: { amount: '100.00' } });
+
+    // October: 100.00 − 10.00; November: 90.00 + 200.00 − 20.00.
+    expect(await balanceOf(api, '2026-11')).toEqual({
+      balance: { openingEur: '90.00', closingEur: '270.00', actual: false },
     });
   });
 

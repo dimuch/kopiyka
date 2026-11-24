@@ -1,9 +1,10 @@
 import { type Href, router } from 'expo-router';
 import { StyleSheet, Text, View } from 'react-native';
 import { useColors, useThemedStyles } from '@/appearance/AppearanceContext';
+import { useCardStyle } from '@/components/Card';
 import { Icon, type IconName } from '@/components/Icon';
 import { Pressable } from '@/components/Pressable';
-import { fonts, type Palette, radius, space, text } from '@/theme';
+import { fonts, type Palette, space, text } from '@/theme';
 
 export interface HomeCard {
   title: string;
@@ -17,6 +18,7 @@ export interface HomeCard {
 export function HomeCards({ cards }: { cards: readonly HomeCard[] }) {
   const colors = useColors();
   const styles = useThemedStyles(makeStyles);
+  const cardStyle = useCardStyle('padded');
   return (
     <View style={styles.grid}>
       {cards.map((card) => (
@@ -25,7 +27,7 @@ export function HomeCards({ cards }: { cards: readonly HomeCard[] }) {
           accessibilityRole="button"
           accessibilityLabel={`${card.title}, ${card.figure ?? (card.failed ? 'not available' : 'loading')}`}
           onPress={() => router.navigate(card.href)}
-          style={styles.card}
+          style={[cardStyle, styles.card]}
         >
           <Icon name={card.icon} color={colors.accent} size={24} />
           <Text style={styles.cardTitle}>{card.title}</Text>
@@ -45,12 +47,6 @@ const makeStyles = (colors: Palette) =>
       // Two per row: each starts just under half the width and grows into the gap.
       flexBasis: '45%',
       flexGrow: 1,
-      backgroundColor: colors.surface,
-      borderColor: colors.border,
-      borderWidth: 1,
-      borderRadius: radius.lg,
-      paddingVertical: space.lg,
-      paddingHorizontal: space.lg,
       gap: space.sm,
     },
     cardTitle: { ...text.body, fontFamily: fonts.bodyMedium, color: colors.text },

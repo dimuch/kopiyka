@@ -1,5 +1,6 @@
-import { ActivityIndicator, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, StyleSheet, Text } from 'react-native';
 import { useColors, useThemedStyles } from '@/appearance/AppearanceContext';
+import { Card } from '@/components/Card';
 import { LoadError } from '@/components/LoadError';
 import { Pressable } from '@/components/Pressable';
 import { fonts, type Palette, radius, size, space, text } from '@/theme';
@@ -18,7 +19,7 @@ export function EmptyMonth({
   const colors = useColors();
   const styles = useThemedStyles(makeStyles);
   return (
-    <View style={styles.card}>
+    <Card padding="none" style={styles.card}>
       <Text style={styles.text}>{text}</Text>
       {action && (
         <Pressable
@@ -38,17 +39,14 @@ export function EmptyMonth({
         </Pressable>
       )}
       {note ? <LoadError message={note} /> : null}
-    </View>
+    </Card>
   );
 }
 
 const makeStyles = (colors: Palette) =>
   StyleSheet.create({
     card: {
-      backgroundColor: colors.surface,
-      borderColor: colors.border,
-      borderWidth: 1,
-      borderRadius: radius.lg,
+      // 20 above and below, more than a padded card's 16.
       paddingVertical: space.xl,
       paddingHorizontal: space.lg,
       gap: space.lg,

@@ -2,6 +2,7 @@ import { useEffect } from 'react';
 import { AccessibilityInfo, StyleSheet, Text, View } from 'react-native';
 import type { NotionStatus } from '@/api/types';
 import { useThemedStyles } from '@/appearance/AppearanceContext';
+import { Card } from '@/components/Card';
 import { Pressable } from '@/components/Pressable';
 import { statusText, syncErrorText, syncReport, type SyncOutcome } from '@/data/notionSync';
 import { fonts, type Palette, radius, size, space, text } from '@/theme';
@@ -31,7 +32,7 @@ export function NotionSyncPanel({ status, syncing, outcome, onSync }: Props) {
   }, [outcome]);
 
   return (
-    <View style={styles.card}>
+    <Card padding="padded" style={styles.card}>
       <View style={styles.row}>
         <Text style={styles.status}>{statusText(status)}</Text>
         <Pressable
@@ -81,21 +82,13 @@ export function NotionSyncPanel({ status, syncing, outcome, onSync }: Props) {
           ) : null}
         </View>
       ) : null}
-    </View>
+    </Card>
   );
 }
 
 const makeStyles = (colors: Palette) =>
   StyleSheet.create({
-    card: {
-      backgroundColor: colors.surface,
-      borderColor: colors.border,
-      borderWidth: 1,
-      borderRadius: radius.lg,
-      paddingVertical: space.lg,
-      paddingHorizontal: space.lg,
-      gap: space.sm,
-    },
+    card: { gap: space.sm },
     row: { flexDirection: 'row', alignItems: 'center', gap: space.md },
     status: { flex: 1, ...text.label, fontFamily: fonts.body, color: colors.muted },
     button: {

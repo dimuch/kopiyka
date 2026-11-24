@@ -252,6 +252,43 @@ last commit.
 **Gate B, iPhone (Expo Go):** glance at Home, Expenses (the bars), Settings and a category screen. Nothing should
 look different.
 
+## Snapshot script (reuse it in 104b–104f)
+
+Two snippets for the browser console (or `javascript_exec`), stored in the app origin's local storage, so they
+survive reloads. Run the first once per origin.
+
+```js
+// Install: `snap(key)` records every rendered element's box (to 0.5px), background, top border, top-left radius,
+// padding, opacity and, for leaves, the first 24 characters of text, in DOM order, plus the roles and labels.
+// `cmp(view, scheme)` takes the after snapshot and lists what differs from `snap:before:104:<view>:<scheme>`.
+localStorage.setItem(
+  '__snapSrc',
+  `(key) => { const rows = []; for (const el of document.body.querySelectorAll('*')) { const r = el.getBoundingClientRect(); if (!r.width && !r.height) continue; const s = getComputedStyle(el); const own = el.childElementCount === 0 ? (el.textContent || '').trim().slice(0, 24) : ''; rows.push([Math.round(r.x * 2) / 2, Math.round(r.y * 2) / 2, Math.round(r.width * 2) / 2, Math.round(r.height * 2) / 2, s.backgroundColor, s.borderTopWidth + ' ' + s.borderTopColor, s.borderTopLeftRadius, s.padding, s.opacity, own].join('|')); } const a11y = [...document.querySelectorAll('[role],[aria-label]')].map((e) => e.getAttribute('role') + '|' + e.getAttribute('aria-label')); localStorage.setItem(key, JSON.stringify({ rows, a11y })); return [key, rows.length, a11y.length, innerWidth, innerHeight]; }`,
+);
+localStorage.setItem(
+  '__cmpSrc',
+  `(view, scheme) => { const before = JSON.parse(localStorage.getItem('snap:before:104:' + view + ':' + scheme)); const afterKey = 'snap:after:104:' + view + ':' + scheme; eval(localStorage.__snapSrc)(afterKey); const after = JSON.parse(localStorage.getItem(afterKey)); const diffs = []; for (let i = 0; i < Math.max(before.rows.length, after.rows.length); i++) if (before.rows[i] !== after.rows[i]) diffs.push(i + ': ' + before.rows[i] + '  =>  ' + after.rows[i]); return { view, scheme, rows: [before.rows.length, after.rows.length], diffs: diffs.length, first: diffs.slice(0, 4), a11ySame: JSON.stringify(before.a11y) === JSON.stringify(after.a11y) }; }`,
+);
+```
+
+How to use it:
+
+1. Start `api` and `web` (port 8081) from the branch's worktree. Sign in from the page with
+   `fetch('http://localhost:3000/api/auth/login', { method: 'POST', credentials: 'include', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ username, code, deviceId: 'qa-snapshots' }) })`.
+   Generate the TOTP code from a scratch script outside the repo, and never print the secret. A session lasts 30 min.
+2. Set the viewport to 390×844 and check `innerWidth === 390` in every result. A pane resize clears the emulated size
+   and makes every row differ.
+3. Pick the theme with `localStorage.setItem('kopiyka.theme', 'light')` (or `'dark'`) and reload.
+4. **Before** (on `main`, before the first code slice), for each view: navigate, wait about 2 s, then
+   `eval(localStorage.__snapSrc)('snap:before:104:<view>:<scheme>')`.
+5. **After**: the same views, then `eval(localStorage.__cmpSrc)('<view>', '<scheme>')`. `diffs: 0` and `a11ySame: true`
+   mean nothing moved. Otherwise `first` shows the elements that moved, before ⇒ after.
+6. To check that the page really runs the new code, fetch the `.bundle` URL from `performance.getEntriesByType('resource')`
+   and search it for the new component's name.
+7. When `main` changes a view between the before set and the rebase, take a fresh baseline: check out `main`'s copy of
+   that one file in the worktree, snapshot it under a new view name (as `budget2` here), restore the branch's file,
+   and compare.
+
 ## AC → evidence
 
 | AC                                                                  | Evidence                                                                                                                                                                                                                                                                                            |
@@ -386,7 +423,7 @@ Each part: base main after the previous one, patch bump, before/after snapshots 
 
 ## Deviations
 
-- **Snapshot script.** No 103 snapshot script survived, so the before and after sets used a new one: every rendered
+- **Snapshot script.** No 103 snapshot script survived, so the before and after sets used a new one (now under "Snapshot script"): every rendered
   element's box (to 0.5px), background, top border, top-left radius, padding and opacity, in DOM order, plus the
   `[role],[aria-label]` record, in local storage under `snap:before:104:*` and `snap:after:104:*`. It measures
   off-screen elements too, so no `expenses-end` view was needed.

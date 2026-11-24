@@ -36,6 +36,15 @@ describe.skipIf(!(await testDbReachable()))('GET /api/ledgers/:id/months/:month/
     );
   }
 
+  /** A month's actual End, set by hand: with raw SQL, as the Budget tab's PUT will. */
+  async function storeActualEnd(month: string, closing: string) {
+    await db.query('INSERT INTO month_actual_ends (ledger_id, balance_month, closing_eur) VALUES (?, ?, ?)', [
+      owner.ledgerId,
+      `${month}-01`,
+      closing,
+    ]);
+  }
+
   /** One income item for a month of the owner's ledger. */
   async function storeIncome(month: string, amount: string) {
     await db.query(
@@ -92,14 +101,16 @@ describe.skipIf(!(await testDbReachable()))('GET /api/ledgers/:id/months/:month/
 
     const february = await balance('2026-02');
     expect(february.statusCode).toBe(200);
-    expect(february.json()).toEqual({ balance: { openingEur: '-180.00', closingEur: '-52.00' } });
-    expect((await balance('2026-01')).json()).toEqual({ balance: { openingEur: '0.00', closingEur: '-180.00' } });
+    expect(february.json()).toEqual({ balance: { openingEur: '-180.00', closingEur: '-52.00', actual: false } });
+    expect((await balance('2026-01')).json()).toEqual({
+      balance: { openingEur: '0.00', closingEur: '-180.00', actual: false },
+    });
   });
 
   it('lets any member read it', async () => {
     await storeBalance(owner.ledgerId, '2026-02', '-180.00', '-52.00');
     const res = await balance('2026-02', await authHeader(app, member, clock));
-    expect(res.json()).toEqual({ balance: { openingEur: '-180.00', closingEur: '-52.00' } });
+    expect(res.json()).toEqual({ balance: { openingEur: '-180.00', closingEur: '-52.00', actual: false } });
   });
 
   describe('months after the imported ones', () => {
@@ -118,7 +129,35 @@ describe.skipIf(!(await testDbReachable()))('GET /api/ledgers/:id/months/:month/
       // −35.00 + 2500.00 − 12.50 − 100.00 = 2352.50
       const res = await balance('2026-11');
       expect(res.statusCode).toBe(200);
-      expect(res.json()).toEqual({ balance: { openingEur: '-35.00', closingEur: '2352.50' } });
+      expect(res.json()).toEqual({ balance: { openingEur: '-35.00', closingEur: '2352.50', actual: false } });
+    });
+
+    it('ends a month at its actual End, and starts the next month from it', async () => {
+      await storeIncome('2026-11', '2500.00');
+      await storeActualEnd('2026-11', '120.00');
+
+      expect((await balance('2026-11')).json()).toEqual({
+        balance: { openingEur: '-35.00', closingEur: '120.00', actual: true },
+      });
+
+      at = new Date('2027-01-10T10:00:00Z');
+      auth = await authHeader(app, owner, at);
+      await storeIncome('2026-12', '100.00');
+      expect((await balance('2026-12')).json()).toEqual({
+        balance: { openingEur: '120.00', closingEur: '220.00', actual: false },
+      });
+    });
+
+    it('replaces only the End of an imported month with an actual End', async () => {
+      await storeActualEnd('2026-10', '50.00');
+      await storeIncome('2026-11', '10.00');
+
+      expect((await balance('2026-10')).json()).toEqual({
+        balance: { openingEur: '0.00', closingEur: '50.00', actual: true },
+      });
+      expect((await balance('2026-11')).json()).toEqual({
+        balance: { openingEur: '50.00', closingEur: '60.00', actual: false },
+      });
     });
 
     it('carries a chain of computed months', async () => {
@@ -131,8 +170,12 @@ describe.skipIf(!(await testDbReachable()))('GET /api/ledgers/:id/months/:month/
       await storeExpense('2026-12-02', '40.00');
 
       // December: 2352.50 + 100.00 − 40.00; January 2027 has neither.
-      expect((await balance('2026-12')).json()).toEqual({ balance: { openingEur: '2352.50', closingEur: '2412.50' } });
-      expect((await balance('2027-01')).json()).toEqual({ balance: { openingEur: '2412.50', closingEur: '2412.50' } });
+      expect((await balance('2026-12')).json()).toEqual({
+        balance: { openingEur: '2352.50', closingEur: '2412.50', actual: false },
+      });
+      expect((await balance('2027-01')).json()).toEqual({
+        balance: { openingEur: '2412.50', closingEur: '2412.50', actual: false },
+      });
     });
 
     it("follows the current month's expenses and income", async () => {
@@ -190,7 +233,9 @@ describe.skipIf(!(await testDbReachable()))('GET /api/ledgers/:id/months/:month/
       await storeIncome('2026-10', '500.00');
       await storeExpense('2026-10-10', '10.00');
 
-      expect((await balance('2026-10')).json()).toEqual({ balance: { openingEur: '0.00', closingEur: '-35.00' } });
+      expect((await balance('2026-10')).json()).toEqual({
+        balance: { openingEur: '0.00', closingEur: '-35.00', actual: false },
+      });
     });
   });
 
@@ -198,8 +243,12 @@ describe.skipIf(!(await testDbReachable()))('GET /api/ledgers/:id/months/:month/
     // makeUser's first list is September 2026.
     await storeExpense('2026-09-12', '15.00');
 
-    expect((await balance('2026-09')).json()).toEqual({ balance: { openingEur: '0.00', closingEur: '-15.00' } });
-    expect((await balance('2026-10')).json()).toEqual({ balance: { openingEur: '-15.00', closingEur: '-15.00' } });
+    expect((await balance('2026-09')).json()).toEqual({
+      balance: { openingEur: '0.00', closingEur: '-15.00', actual: false },
+    });
+    expect((await balance('2026-10')).json()).toEqual({
+      balance: { openingEur: '-15.00', closingEur: '-15.00', actual: false },
+    });
   });
 
   it('has no balance before the first month, after the current one, or without a budget', async () => {
@@ -221,7 +270,9 @@ describe.skipIf(!(await testDbReachable()))('GET /api/ledgers/:id/months/:month/
 
     at = new Date('2026-11-30T22:30:00Z'); // 00:30 on 1 December
     auth = await authHeader(app, owner, at);
-    expect((await balance('2026-12')).json()).toEqual({ balance: { openingEur: '0.00', closingEur: '0.00' } });
+    expect((await balance('2026-12')).json()).toEqual({
+      balance: { openingEur: '0.00', closingEur: '0.00', actual: false },
+    });
   });
 
   it("never shows another ledger's balance", async () => {

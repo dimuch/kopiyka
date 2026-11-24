@@ -278,7 +278,7 @@ created_by, deleted_at)`). Nov gets a list via `storeMonthList(db, id, '2026-11'
   - Tests: the columns `ledger_id int unsigned NO`, `balance_month date NO`, `closing_eur decimal(12,2) NO`, and a
     second `runMigrations` → `[]`.
   - ~40 lines
-- [ ] 6. Show a month's actual End and start the next month from it
+- [x] 6. Show a month's actual End and start the next month from it
   - Files:
     - apps/api/src/balances/carry.ts, apps/api/test/balanceCarry.test.ts
     - apps/api/src/balances/routes.ts (query 3, `actual` in the DTO), apps/api/test/balances.int.test.ts

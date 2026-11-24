@@ -73,7 +73,7 @@ add it allowed is still possible: the row "+" opens the same form, where the cat
     change. "keeps every bar colour visible on the track" skips only light `near`, with the reason in a comment.
     Every other pair still has to reach 3:1.
   - ~25 lines
-- [ ] 2. Show the Income total in the heading's size and colour
+- [x] 2. Show the Income total in the heading's size and colour
   - Files: apps/mobile/src/app/(tabs)/income.tsx
   - Change: the section head's amount drops " total". It gets its own style,
     `{ ...text.heading, fontFamily: fonts.display, color: colors.text, fontVariant: ['tabular-nums'] }`. It sits in a

@@ -142,7 +142,9 @@ export default function Income() {
               <>
                 <View style={styles.sectionHead}>
                   <Text style={styles.sectionTitle}>Income</Text>
-                  <Text style={styles.small}>{eur(incomeCents(items))} total</Text>
+                  <View accessible accessibilityLabel={`Total ${eur(incomeCents(items))}`}>
+                    <Text style={styles.total}>{eur(incomeCents(items))}</Text>
+                  </View>
                 </View>
                 <View style={styles.listCard}>
                   {items.map((item, index) => {
@@ -212,6 +214,8 @@ const makeStyles = (colors: Palette) =>
       paddingHorizontal: space.xs,
     },
     sectionTitle: { ...text.heading, fontFamily: fonts.display, color: colors.text },
+    // The month's total, as big and bold as the heading beside it (brief 107).
+    total: { ...text.heading, fontFamily: fonts.display, color: colors.text, fontVariant: ['tabular-nums'] },
     small: { ...text.caption, color: colors.muted, fontVariant: ['tabular-nums'] },
     listCard: {
       backgroundColor: colors.surface,

@@ -1,5 +1,5 @@
-import { centsToInput, toCents } from '@/format';
-import { plannedKey, refuse, type StoreData } from './state';
+import { centsToInput } from '@/format';
+import { monthIncomeCents, plannedKey, refuse, type StoreData } from './state';
 
 /** A month's totals, or a change to them, in EUR cents (the API's `MonthTotals`). */
 interface MonthTotals {
@@ -12,10 +12,7 @@ function monthTotals(data: StoreData, month: string): MonthTotals {
   const plannedCents = data.monthRows
     .filter((row) => row.month === month && row.removal === null)
     .reduce((sum, row) => sum + (data.planned.get(plannedKey(row.categoryId, month)) ?? 0), 0);
-  const incomeCents = data.income
-    .filter((item) => item.month === month)
-    .reduce((sum, item) => sum + toCents(item.amountEur), 0);
-  return { plannedCents, incomeCents };
+  return { plannedCents, incomeCents: monthIncomeCents(data, month) };
 }
 
 /**

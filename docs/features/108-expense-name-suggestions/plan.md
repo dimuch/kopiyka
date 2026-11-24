@@ -85,7 +85,7 @@ shape, and there's no migration.
     - "delhaize " newest, "Delhaize", "DELHAIZE" → one entry, `'delhaize'`
     - `''` and `'  '` dropped
     - `[]` → `[]`
-- [ ] 2. Add a route listing a category's recent expense names (~110 lines)
+- [x] 2. Add a route listing a category's recent expense names (~110 lines)
   - Files: apps/api/src/expenses/routes.ts, apps/api/test/expenses.int.test.ts
   - Change: add a `NamesQuery` Zod schema (`categoryId` coerced to a positive int, `month: MonthString`), then the
     route. It runs a SQL read joined through `categories.ledger_id`, with `c.deleted_at IS NULL`,

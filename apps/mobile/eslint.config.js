@@ -20,14 +20,8 @@ const noRawStyleNumber = {
     'Use space, radius, size or text from @/theme. Layout maths with no token: eslint-disable-next-line no-restricted-syntax, with the reason on the line above.',
 };
 
-// Files not moved onto tokens yet; brief 103c empties this list.
-const notOnTokensYet = [
-  'src/app/expense.tsx',
-  'src/app/income-item.tsx',
-  'src/app/login.tsx',
-  'src/app/members.tsx',
-  'src/app/no-ledger.tsx',
-];
+// Files not moved onto tokens yet; brief 103d empties this list.
+const notOnTokensYet = ['src/app/login.tsx', 'src/app/members.tsx', 'src/app/no-ledger.tsx'];
 
 module.exports = defineConfig([
   expoConfig,

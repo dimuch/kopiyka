@@ -33,7 +33,7 @@ import { useMonthCategories } from '@/data/useMonthCategories';
 import { type Rate, useRate } from '@/data/useRate';
 import { eur, kyivToday, monthName, normalizeAmount, otherAmountText, shortDate, toCents } from '@/format';
 import { parseIdParam } from '@/linkParams';
-import { dangerText, fonts, type Palette } from '@/theme';
+import { dangerText, fonts, type Palette, radius, size, space, text } from '@/theme';
 
 function errorText(err: unknown, doing: 'load' | 'save'): string {
   if (err instanceof ApiError) {
@@ -103,7 +103,7 @@ function ExpenseLoader({ expenseId, categoryId }: { expenseId: number | null; ca
   const gone = draft.status === 'error' && draft.error instanceof ApiError && draft.error.code === 'not_found';
 
   return draft.status === 'loading' ? (
-    <ActivityIndicator color={colors.accent} style={{ marginTop: 32 }} />
+    <ActivityIndicator color={colors.accent} style={{ marginTop: space.xxxl }} />
   ) : draft.status === 'error' ? (
     <LoadFailed message={errorText(draft.error, 'load')} onRetry={gone ? undefined : draft.reload} />
   ) : (
@@ -390,8 +390,8 @@ function ExpenseForm({ draft, ledgerId }: { draft: ExpenseDraftData; ledgerId: n
 
 const makeStyles = (colors: Palette) => {
   const field = {
-    height: 48,
-    borderRadius: 14,
+    height: size.control,
+    borderRadius: radius.md,
     borderWidth: 1,
     borderColor: colors.borderStrong,
     backgroundColor: colors.surface,
@@ -399,40 +399,40 @@ const makeStyles = (colors: Palette) => {
 
   return StyleSheet.create({
     page: { flex: 1, backgroundColor: colors.bg },
-    screen: { flex: 1, backgroundColor: colors.bg, paddingHorizontal: 20, paddingTop: 8 },
-    header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 },
-    back: { height: 44, justifyContent: 'center', marginLeft: -8, paddingHorizontal: 8 },
-    backText: { fontFamily: fonts.bodyMedium, fontSize: 15, color: colors.muted },
-    title: { fontFamily: fonts.display, fontSize: 18, color: colors.text },
-    form: { gap: 22, paddingBottom: 40 },
-    group: { gap: 8 },
-    label: { fontFamily: fonts.bodySemi, fontSize: 13, color: colors.muted },
-    input: { ...field, paddingHorizontal: 14, color: colors.text, fontFamily: fonts.body, fontSize: 16 },
-    small: { fontFamily: fonts.body, fontSize: 12, color: colors.muted, fontVariant: ['tabular-nums'] },
-    locked: { fontFamily: fonts.bodyMedium, fontSize: 15, color: colors.text },
-    error: { fontFamily: fonts.bodyMedium, fontSize: 13, color: colors.over },
+    screen: { flex: 1, backgroundColor: colors.bg, paddingHorizontal: space.xl, paddingTop: space.sm },
+    header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: space.sm },
+    back: { height: size.iconButton, justifyContent: 'center', marginLeft: -space.sm, paddingHorizontal: space.sm },
+    backText: { ...text.body, fontFamily: fonts.bodyMedium, color: colors.muted },
+    title: { ...text.heading, fontFamily: fonts.display, color: colors.text },
+    form: { gap: space.xxl, paddingBottom: space.huge },
+    group: { gap: space.sm },
+    label: { ...text.label, fontFamily: fonts.bodySemi, color: colors.muted },
+    input: { ...field, ...text.input, paddingHorizontal: space.lg, color: colors.text },
+    small: { ...text.caption, color: colors.muted, fontVariant: ['tabular-nums'] },
+    locked: { ...text.body, fontFamily: fonts.bodyMedium, color: colors.text },
+    error: { ...text.label, color: colors.over },
     primary: {
       height: 56,
-      borderRadius: 18,
+      borderRadius: radius.lg,
       backgroundColor: colors.accent,
       flexDirection: 'row',
       alignItems: 'center',
       justifyContent: 'center',
-      gap: 8,
+      gap: space.sm,
     },
-    primaryText: { fontFamily: fonts.bodySemi, fontSize: 16, color: colors.onAccent },
-    delete: { height: 48, alignItems: 'center', justifyContent: 'center' },
+    primaryText: { ...text.bodyStrong, color: colors.onAccent },
+    delete: { height: size.control, alignItems: 'center', justifyContent: 'center' },
     deleteText: dangerText(colors),
     added: {
       flexDirection: 'row',
       alignItems: 'center',
-      gap: 10,
-      padding: 14,
-      borderRadius: 14,
+      gap: space.sm,
+      padding: space.lg,
+      borderRadius: radius.md,
       backgroundColor: colors.accentTint,
       borderWidth: 1,
       borderColor: colors.accentLine,
     },
-    addedText: { flex: 1, fontFamily: fonts.body, fontSize: 14, color: colors.text },
+    addedText: { ...text.label, flex: 1, fontFamily: fonts.body, color: colors.text },
   });
 };

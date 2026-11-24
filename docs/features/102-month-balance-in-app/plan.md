@@ -504,3 +504,12 @@ PR 2, against origin/main 3168377: reused 2 · extracted 1 · left 1.
 - EXTRACT: `toDto` in `balances/routes.ts`, shared by GET, PUT and DELETE; `changeActualEnd` holds the check → write →
   read-again order for both writes.
 - LEAVE the `month_actual_ends` read next to the `month_balances` read: different columns and maps, two short queries.
+
+PR 3, against origin/main 1caa333: reused 2 · extracted 1 · left 1.
+
+- REUSE: `shiftMonth`, `kyivMonth`, `centsToInput`, `toCents` (format.ts) and `refuse` (demo state); the PUT/DELETE
+  pair mirrors the API's `changeActualEnd` (check → change → read again).
+- EXTRACT: `monthIncomeCents` (demo `state.ts`), the month's income total that `incomeLimit.ts` summed too; both use
+  it now (tests unchanged).
+- LEAVE the demo walk against the API's `carry.ts`: a deliberate mirror (conventions §2: the demo answers with the
+  API's rules, and the apps share no package). It's simpler because the demo has no imported months.

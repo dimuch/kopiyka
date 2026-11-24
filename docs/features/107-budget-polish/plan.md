@@ -196,6 +196,14 @@ Total: about 190 changed lines without the bump.
 
 ## Consolidate
 
+Pass over `origin/main...HEAD`: reused 0 · extracted 0 · left 2.
+
+- `spendingFigures` (`data/monthSummary.ts`): no twin. Budget's `IncomeFigures` works out income − budgeted inline,
+  a different sum with no "no budget" case; it reuses `plannedCents` and `eur`. LEAVE.
+- The Expenses card's three columns (`figures`/`figure`/`figureValue`) mirror Budget's `IncomeFigures` markup and
+  styles. LEAVE: two callers, under the rule of three, and brief 104 brings the shared `Card`; a new component in
+  `src/components` now would also land in 103b's area.
+
 ## Revision 1
 
 User chose option (c) for the row "+" label: slice 5 uses `AddExpenseButton` unchanged (label "Add expense"),

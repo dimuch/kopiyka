@@ -75,7 +75,7 @@ shape, and there's no migration.
 - [x] 0. Bump version to 1.19.0
   - Files: package.json, apps/mobile/app.json
   - Change: set both to 1.19.0
-- [ ] 1. Rank an expense window's names by use for suggestions (~65 lines)
+- [x] 1. Rank an expense window's names by use for suggestions (~65 lines)
   - Files: apps/api/src/expenses/nameSuggestions.ts, apps/api/test/nameSuggestions.test.ts
   - Change: add pure `rankNames` as in Contracts. Rows come in newest first; the first spelling seen per key wins.
   - Tests: `nameSuggestions.test.ts`, table style:

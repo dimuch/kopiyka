@@ -122,7 +122,7 @@ Before slice 1, the orchestrator takes the **before** set on Base (see Visual ch
   - Files: `src/app/{delete-category,expense,income-item}.tsx`
   - Change: the renames in Contracts. There's no token change yet.
   - Verify: gates. `rg -n "(const|let) text\b|\(text\b|, text\b" <the 3 files>` finds nothing.
-- [ ] 2. Put the category screen on design tokens (~110 lines)
+- [x] 2. Put the category screen on design tokens (~110 lines)
   - Files: `src/app/category/[categoryId].tsx`, `src/components/CategoryInMonth.tsx`, `eslint.config.js` (−1)
   - Change: the snapping rules, the spinner prop (Contracts) and the two allowlists. Specifics:
     - `header` `paddingBottom` 6 → `sm`, `content` gap 14 → `lg`, `titleRow` gap 14 → `lg`

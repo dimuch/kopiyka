@@ -20,7 +20,7 @@ import { useMonth } from '@/data/useMonth';
 import { dayLabel, eur, kyivMonth, monthLabel, monthName, toCents, uah } from '@/format';
 import { parseIdParam, parseMonthParam } from '@/linkParams';
 import { usePushOnce } from '@/pushOnce';
-import { dangerText, fonts, type Palette } from '@/theme';
+import { dangerText, fonts, type Palette, radius, size, space, text } from '@/theme';
 
 // Opened straight from a web link there's nothing to go back to, so fall back to Expenses (current month).
 function goBack() {
@@ -119,7 +119,7 @@ function CategoryBreakdown({ categoryId, month, ended }: { categoryId: number; m
       {!data && error ? (
         <LoadError message="Couldn’t load this category. Check your connection and try again." onRetry={reload} />
       ) : !data ? (
-        <ActivityIndicator color={colors.accent} style={{ marginTop: 24 }} />
+        <ActivityIndicator color={colors.accent} style={styles.loading} />
       ) : !category ? (
         <NotInMonth categoryId={categoryId} month={month} />
       ) : (
@@ -141,12 +141,12 @@ function CategoryBreakdown({ categoryId, month, ended }: { categoryId: number; m
             <Text style={styles.caption}>≈ {uah(totalUah)} at entry-day rates</Text>
           </Animated.View>
 
-          <View style={{ gap: 16 }}>
+          <View style={styles.days}>
             {days.length === 0 && (
-              <Text style={[styles.caption, { paddingHorizontal: 4 }]}>No expenses in {monthName(month)}.</Text>
+              <Text style={[styles.caption, styles.empty]}>No expenses in {monthName(month)}.</Text>
             )}
             {days.map((d) => (
-              <View key={d.date} style={{ gap: 8 }}>
+              <View key={d.date} style={styles.day}>
                 <View style={styles.dayHead}>
                   <Text style={styles.dayLabel}>{dayLabel(d.date)}</Text>
                   <Text style={styles.caption}>{eur(d.totalCents)}</Text>
@@ -160,7 +160,7 @@ function CategoryBreakdown({ categoryId, month, ended }: { categoryId: number; m
                       onPress={() => router.push({ pathname: '/expense', params: { expenseId: e.expenseId } })}
                       style={[styles.item, i < d.items.length - 1 && styles.divider]}
                     >
-                      <View style={{ gap: 2, flex: 1 }}>
+                      <View style={styles.itemText}>
                         <Text style={styles.itemName}>{e.name || category.displayName}</Text>
                         <Text style={styles.small}>{uah(toCents(e.amountUah))}</Text>
                       </View>
@@ -217,7 +217,7 @@ function NotInMonth({ categoryId, month }: { categoryId: number; month: string }
   const totals = useCategoryTotals(ledger.ledgerId, categoryId, month);
   // In the month after all (another member restored it since the list loaded): nothing to say until the next reload.
   return (
-    <CategoryInMonth totals={totals} spinnerMargin={24}>
+    <CategoryInMonth totals={totals} spinnerMargin={space.xxl}>
       {() => null}
     </CategoryInMonth>
   );
@@ -226,66 +226,92 @@ function NotInMonth({ categoryId, month }: { categoryId: number; month: string }
 const makeStyles = (colors: Palette) =>
   StyleSheet.create({
     page: { flex: 1, backgroundColor: colors.bg },
-    screen: { flex: 1, backgroundColor: colors.bg, paddingHorizontal: 20, paddingTop: 20 },
+    screen: { flex: 1, backgroundColor: colors.bg, paddingHorizontal: space.xl, paddingTop: space.xl },
     header: {
       flexDirection: 'row',
       alignItems: 'center',
       justifyContent: 'space-between',
-      gap: 12,
-      paddingBottom: 6,
+      gap: space.md,
+      paddingBottom: space.sm,
       zIndex: 1,
     },
-    content: { gap: 14, paddingTop: 8, paddingBottom: 104 },
-    trailing: { flexDirection: 'row', alignItems: 'center', gap: 4, flexShrink: 1 },
-    more: { width: 44, height: 44, alignItems: 'center', justifyContent: 'center', borderRadius: 12 },
+    content: {
+      gap: space.lg,
+      paddingTop: space.sm,
+      // UndoToast's bottom 32 + height 56 + a 16pt gap: toast clearance, not a step on the scale.
+      // eslint-disable-next-line no-restricted-syntax
+      paddingBottom: 104,
+    },
+    loading: { marginTop: space.xxl },
+    days: { gap: space.lg },
+    day: { gap: space.sm },
+    empty: { paddingHorizontal: space.xs },
+    itemText: { gap: space.xxs, flex: 1 },
+    trailing: { flexDirection: 'row', alignItems: 'center', gap: space.xs, flexShrink: 1 },
+    more: {
+      width: size.iconButton,
+      height: size.iconButton,
+      alignItems: 'center',
+      justifyContent: 'center',
+      borderRadius: radius.md,
+    },
     // Above the header's zIndex 1, so its buttons don't take taps while the menu is open.
     menuLayer: { ...StyleSheet.absoluteFill, zIndex: 2 },
     menuCard: {
       position: 'absolute',
       right: 20,
       minWidth: 200,
-      borderRadius: 14,
+      borderRadius: radius.md,
       borderWidth: 1,
       borderColor: colors.borderStrong,
       backgroundColor: colors.surfaceRaised,
-      paddingVertical: 4,
+      paddingVertical: space.xs,
     },
-    menuItem: { minHeight: 44, justifyContent: 'center', paddingHorizontal: 16 },
+    menuItem: { minHeight: size.iconButton, justifyContent: 'center', paddingHorizontal: space.lg },
     menuDelete: dangerText(colors),
-    back: { height: 44, flexDirection: 'row', alignItems: 'center', gap: 4, marginLeft: -8, paddingHorizontal: 8 },
-    backText: { fontFamily: fonts.bodyMedium, fontSize: 15, color: colors.muted },
-    titleRow: { flexDirection: 'row', alignItems: 'center', gap: 14 },
-    title: { fontFamily: fonts.display, fontSize: 28, color: colors.text, letterSpacing: -0.3 },
-    caption: { fontFamily: fonts.body, fontSize: 13, color: colors.muted },
-    small: { fontFamily: fonts.body, fontSize: 12, color: colors.muted, fontVariant: ['tabular-nums'] },
+    back: {
+      height: size.iconButton,
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: space.xs,
+      marginLeft: -space.sm,
+      paddingHorizontal: space.sm,
+    },
+    backText: { ...text.body, fontFamily: fonts.bodyMedium, color: colors.muted },
+    titleRow: { flexDirection: 'row', alignItems: 'center', gap: space.lg },
+    title: { ...text.display, color: colors.text },
+    caption: { ...text.label, fontFamily: fonts.body, color: colors.muted, fontVariant: ['tabular-nums'] },
+    small: { ...text.caption, color: colors.muted, fontVariant: ['tabular-nums'] },
     card: {
       backgroundColor: colors.surface,
       borderColor: colors.border,
       borderWidth: 1,
-      borderRadius: 22,
-      paddingVertical: 16,
-      paddingHorizontal: 18,
-      gap: 2,
+      borderRadius: radius.lg,
+      paddingVertical: space.lg,
+      paddingHorizontal: space.lg,
+      gap: space.xxs,
     },
-    total: {
-      fontFamily: fonts.display,
-      fontSize: 32,
-      color: colors.text,
-      letterSpacing: -0.6,
-      fontVariant: ['tabular-nums'],
+    total: { ...text.amountLg, color: colors.text },
+    dayHead: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'baseline',
+      paddingHorizontal: space.xs,
     },
-    dayHead: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'baseline', paddingHorizontal: 4 },
-    dayLabel: { fontFamily: fonts.bodySemi, fontSize: 13, color: colors.muted, letterSpacing: 0.5 },
-    dayCard: { backgroundColor: colors.surface, borderColor: colors.border, borderWidth: 1, borderRadius: 18 },
+    // All capitals (`dayLabel` upper-cases the date) need positive tracking, and the scale has no overline role
+    // (brief 105 decides).
+    // eslint-disable-next-line no-restricted-syntax
+    dayLabel: { ...text.label, fontFamily: fonts.bodySemi, color: colors.muted, letterSpacing: 0.5 },
+    dayCard: { backgroundColor: colors.surface, borderColor: colors.border, borderWidth: 1, borderRadius: radius.lg },
     item: {
       flexDirection: 'row',
       alignItems: 'center',
       justifyContent: 'space-between',
-      gap: 12,
-      paddingVertical: 10,
-      paddingHorizontal: 16,
+      gap: space.md,
+      paddingVertical: space.sm,
+      paddingHorizontal: space.lg,
     },
     divider: { borderBottomWidth: 1, borderBottomColor: colors.border },
-    itemName: { fontFamily: fonts.bodyMedium, fontSize: 15, color: colors.text },
-    itemAmount: { fontFamily: fonts.bodySemi, fontSize: 15, color: colors.text, fontVariant: ['tabular-nums'] },
+    itemName: { ...text.body, fontFamily: fonts.bodyMedium, color: colors.text },
+    itemAmount: { ...text.amount, color: colors.text },
   });

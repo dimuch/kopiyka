@@ -6,15 +6,16 @@ import { useColors } from '@/appearance/AppearanceContext';
 import { LoadError } from '@/components/LoadError';
 import type { CategoryTotals } from '@/data/useCategoryTotals';
 import { monthName } from '@/format';
+import { space } from '@/theme';
 
 /** Every state of loading one category in one month but the one a screen wants: the category, in that month. */
 export function CategoryInMonth({
   totals,
-  spinnerMargin = 32,
+  spinnerMargin = space.xxxl,
   children,
 }: {
   totals: CategoryTotals;
-  /** The spinner's top margin: 32 in the modals, 24 under the Category screen's header. */
+  /** The spinner's top margin: `space.xxxl` in the modals, `space.xxl` under the Category screen's header. */
   spinnerMargin?: number;
   children: (category: CategoryWithTotals, month: string) => ReactNode;
 }) {

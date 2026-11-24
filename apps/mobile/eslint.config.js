@@ -23,7 +23,6 @@ const noRawStyleNumber = {
 // Files not moved onto tokens yet; brief 103c empties this list.
 const notOnTokensYet = [
   'src/app/category-form.tsx',
-  'src/app/category/\\[categoryId\\].tsx',
   'src/app/delete-category.tsx',
   'src/app/expense.tsx',
   'src/app/income-item.tsx',

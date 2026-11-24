@@ -2,12 +2,13 @@ import type { FastifyInstance, FastifyReply, FastifyRequest } from 'fastify';
 import type { ResultSetHeader, RowDataPacket } from 'mysql2/promise';
 import { z } from 'zod';
 import type { AppDeps } from '../app.js';
-import { monthOf, monthStart, nextMonthStart } from '../dates.js';
+import { monthOf, monthStart, nextMonthStart, previousMonthStart } from '../dates.js';
 import { withTransaction } from '../db.js';
 import { inMonthList } from '../categories/monthLists.js';
 import { AMOUNT_RE, centsToString, convert, e4ToString, rateToE4, toCents } from '../money.js';
 import { checkMonthOpen, MonthString } from '../monthChecks.js';
 import { getEurUahRate, isAfterRateHorizon, RateDate, rateUnavailableReason } from '../rates/service.js';
+import { rankNames } from './nameSuggestions.js';
 import { findRepeat } from './repeatCall.js';
 
 export interface ExpenseDto {
@@ -62,6 +63,11 @@ const ExpenseParams = z.object({ expenseId: z.coerce.number().int().positive() }
 const MonthQuery = z.object({
   month: MonthString,
   categoryId: z.coerce.number().int().positive().optional(),
+});
+
+const NamesQuery = z.object({
+  categoryId: z.coerce.number().int().positive(),
+  month: MonthString,
 });
 
 export async function expenseRoutes(app: FastifyInstance, deps: AppDeps): Promise<void> {
@@ -130,6 +136,20 @@ export async function expenseRoutes(app: FastifyInstance, deps: AppDeps): Promis
       [req.ledger!.ledgerId, first, next, ...(categoryId ? [categoryId] : [])],
     );
     return { expenses: rows.map(toDto) };
+  });
+
+  // Name suggestions for the expense form (brief 108). The month before is included so the list isn't empty early in
+  // a month. A category of another ledger simply has no rows here.
+  app.get('/api/ledgers/:id/expenses/names', guards, async (req) => {
+    const { categoryId, month } = NamesQuery.parse(req.query);
+    const [rows] = await db.query<RowDataPacket[]>(
+      `SELECT e.name, e.expense_date FROM expenses e JOIN categories c ON c.category_id = e.category_id
+        WHERE c.ledger_id = ? AND c.deleted_at IS NULL AND e.deleted_at IS NULL AND e.category_id = ?
+          AND e.expense_date >= ? AND e.expense_date < ?
+        ORDER BY e.expense_date DESC, e.created_at DESC, e.expense_id DESC`,
+      [req.ledger!.ledgerId, categoryId, previousMonthStart(month), nextMonthStart(month)],
+    );
+    return { names: rankNames(rows.map((r) => ({ name: r.name, expenseDate: r.expense_date }))) };
   });
 
   app.get('/api/ledgers/:id/expenses/:expenseId', guards, async (req, reply) => {

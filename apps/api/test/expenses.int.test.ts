@@ -390,8 +390,86 @@ describe.skipIf(!(await testDbReachable()))('expenses API (MySQL)', () => {
     });
   });
 
+  describe('GET names', () => {
+    const names = async (query: string, headers = auth) => {
+      const res = await list(`/names${query}`, headers);
+      return [res.statusCode, res.json()];
+    };
+    const groceryNames = () => names(`?categoryId=${cat.groceries}&month=2026-10`);
+    /** A row written with SQL, so any date and author can exist. */
+    async function addRow(name: string, expenseDate: string, extra: { categoryId?: number; by?: number } = {}) {
+      await db.query(
+        `INSERT INTO expenses (category_id, expense_date, name, amount_eur, created_by, created_at)
+         VALUES (?, ?, ?, 10, ?, ?)`,
+        [extra.categoryId ?? cat.groceries, expenseDate, name, extra.by ?? owner.userId, clock],
+      );
+    }
+
+    it('lists the most used names first', async () => {
+      await addRow('Colruyt', '2026-10-05');
+      for (const day of ['01', '02', '03']) await addRow('Delhaize', `2026-10-${day}`);
+      expect(await groceryNames()).toEqual([200, { names: ['Delhaize', 'Colruyt'] }]);
+    });
+
+    it('includes the month before and nothing older or later', async () => {
+      await addRow('September', '2026-09-01');
+      await addRow('August', '2026-08-31');
+      await addRow('November', '2026-11-01');
+      expect(await groceryNames()).toEqual([200, { names: ['September'] }]);
+    });
+
+    it("lists only the category's names", async () => {
+      await addRow('Delhaize', '2026-10-02');
+      await addRow('Basic-Fit', '2026-10-03', { categoryId: cat.gym });
+      expect(await groceryNames()).toEqual([200, { names: ['Delhaize'] }]);
+      expect(await names(`?categoryId=${cat.gym}&month=2026-10`)).toEqual([200, { names: ['Basic-Fit'] }]);
+    });
+
+    it('merges names that differ only in case or spaces', async () => {
+      await addRow('Delhaize', '2026-10-01');
+      await addRow('delhaize ', '2026-10-04');
+      expect(await groceryNames()).toEqual([200, { names: ['delhaize'] }]);
+    });
+
+    it("includes another member's names", async () => {
+      const partner = await makeUser(db, config, 'partner');
+      await db.query(`INSERT INTO ledger_members (ledger_id, user_id, role, joined_at) VALUES (?, ?, 'member', ?)`, [
+        owner.ledgerId,
+        partner.userId,
+        clock,
+      ]);
+      await addRow('Carrefour', '2026-10-02', { by: partner.userId });
+      expect(await groceryNames()).toEqual([200, { names: ['Carrefour'] }]);
+    });
+
+    it('leaves out deleted expenses and empty names', async () => {
+      await addRow('Gone', '2026-10-02');
+      await db.query("UPDATE expenses SET deleted_at = ? WHERE name = 'Gone'", [clock]);
+      await addRow('', '2026-10-03');
+      await addRow('Colruyt', '2026-10-04');
+      expect(await groceryNames()).toEqual([200, { names: ['Colruyt'] }]);
+    });
+
+    it("gives no names for another ledger's category", async () => {
+      const stranger = await makeUser(db, config, 'stranger');
+      const [rows] = await db.query<RowDataPacket[]>(
+        "SELECT category_id FROM categories WHERE ledger_id = ? AND tech_name = 'groceries'",
+        [stranger.ledgerId],
+      );
+      await addRow('Secret shop', '2026-10-02', { categoryId: rows[0]!.category_id, by: stranger.userId });
+      expect(await names(`?categoryId=${rows[0]!.category_id}&month=2026-10`)).toEqual([200, { names: [] }]);
+    });
+
+    it('requires a category id and a valid month', async () => {
+      const [missing, missingBody] = await names('?month=2026-10');
+      expect([missing, missingBody.error]).toEqual([400, 'invalid_request']);
+      expect(await names(`?categoryId=${cat.groceries}&month=2026-13`)).toEqual([400, badMonthReply('month')]);
+    });
+  });
+
   describe.each([
     { route: 'GET list', method: 'GET', path: () => '?month=2026-10', byId: false },
+    { route: 'GET names', method: 'GET', path: () => '/names?categoryId=1&month=2026-10', byId: false },
     { route: 'GET one', method: 'GET', path: (id: number | string) => `/${id}`, byId: true },
     { route: 'PUT', method: 'PUT', path: (id: number | string) => `/${id}`, byId: true },
     { route: 'DELETE', method: 'DELETE', path: (id: number | string) => `/${id}`, byId: true },

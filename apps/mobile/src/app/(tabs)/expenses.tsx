@@ -246,8 +246,8 @@ const makeStyles = (colors: Palette) =>
     // The name gives way to the amount, which stays on one line.
     rowAmount: { ...text.amount, flexShrink: 0, color: colors.text },
     rowPlanned: { fontFamily: fonts.body, color: colors.muted },
-    // Matches the row text; the bar's colour carries the state (brief 091).
-    overText: { ...text.caption, fontFamily: fonts.bodyMedium, color: colors.text, fontVariant: ['tabular-nums'] },
+    // Red like the bar, so the words say it's over too (brief 107); 5.3:1 on light `surface`, 7.6:1 on dark.
+    overText: { ...text.caption, fontFamily: fonts.bodyMedium, color: colors.danger, fontVariant: ['tabular-nums'] },
     track: { height: 5, backgroundColor: colors.track, borderRadius: radius.pill, overflow: 'hidden' },
     bar: { height: 5, borderRadius: radius.pill },
   });

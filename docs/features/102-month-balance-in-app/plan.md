@@ -468,6 +468,9 @@ created_by, deleted_at)`). Nov gets a list via `storeMonthList(db, id, '2026-11'
 
 ## Follow-ups
 
+- Refactor: one modal-form kit (header with Back, caption, labelled field, Save, secondary action, styles) for
+  `income-item.tsx`, `category-form.tsx` and `actual-end.tsx`.
+
 - Migration 016's comment "Nothing in the app reads it yet" is stale since brief 090, but migrations aren't edited
   after merge.
 - `withTransaction`-free reads across several queries, here and in Statistics, could give a mixed snapshot under a
@@ -514,3 +517,12 @@ PR 3, against origin/main 1caa333: reused 2 · extracted 1 · left 1.
   it now (tests unchanged).
 - LEAVE the demo walk against the API's `carry.ts`: a deliberate mirror (conventions §2: the demo answers with the
   API's rules, and the apps share no package). It's simpler because the demo has no imported months.
+
+PR 4, against origin/main b4d23ab: reused 4 · extracted 0 · left 1.
+
+- REUSE: `closeToBudget` (JSDoc widened to any modal opened from Budget), `normalizePlanned` inside
+  `normalizeBalance`, `useMonthBalance` for both the Budget line and the form, and `usePushOnce`, `TextField`,
+  `Pressable`, `LoadError` and `Icon`.
+- LEAVE `actual-end.tsx`'s form scaffolding and `makeStyles` against `income-item.tsx` (and `category-form.tsx`):
+  the plan's Contracts copy that pattern on purpose. A shared modal-form kit would change three screens, so it's a
+  `/kopiyka-hos-refactoring` brief of its own (Follow-ups).

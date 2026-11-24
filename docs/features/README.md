@@ -29,6 +29,9 @@ description works too, and Claude drafts the brief for you to confirm.
    the conventions. Findings are fixed as new commits and re-reviewed, for up to 3 rounds.
 6. **You approve the push** (Gate B). Then Claude pushes and opens the PR.
 
+In GitHub Copilot the same `/kopiyka-hos` skill runs from `.github/skills/`, with the agents in
+`.github/agents/`; see `docs/copilot.md`. What's next and what's in flight: `BACKLOG.md`.
+
 Flags: `dry-run` (plan only), `auto` (no pauses between slices; the two gates still apply).
 Resume a run with `/kopiyka-hos resume <slug>`.
 

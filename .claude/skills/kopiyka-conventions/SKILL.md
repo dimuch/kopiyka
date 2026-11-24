@@ -262,7 +262,7 @@ count. The highest row that applies wins.
 | `major` | Something that works today stops working for a real client or user, or rollback is lost | API route or field a shipped app build uses removed or reshaped; MCP tool removed, renamed or given a new required input; people must re-enrol or lose access; a migration the previous release can't run on |
 | `minor` | A new capability, and everything that exists keeps working                              | New screen, tab or user action; new API route or optional field; new MCP tool; additive migration                                                                                                            |
 | `patch` | Production changes, with no new capability                                              | Bug fix, copy, styling, performance, security fix, behaviour-preserving refactor, dependency update, `deploy/` config or scripts                                                                             |
-| `none`  | Nothing reaches production                                                              | Only `docs/`, `.claude/`, `.github/`, `CLAUDE.md`, READMEs, or tests                                                                                                                                         |
+| `none`  | Nothing reaches production                                                              | Only `docs/`, `.claude/`, `.github/`, `CLAUDE.md`, `AGENTS.md`, READMEs, or tests                                                                                                                            |
 
 Close calls:
 

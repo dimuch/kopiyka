@@ -495,3 +495,11 @@ PR 1, against origin/main 24e1200: reused 3 · extracted 0 · left 3.
   steps by arithmetic on purpose (9999-12 has no next month), and the carry walk never goes past the current month.
 - LEAVE the per-month flow loop in `monthBalance` against `addRows`: `addRows` sums one month per call, so a walk of
   n months would scan the rows n times. One pass builds the map.
+
+PR 2, against origin/main 3168377: reused 2 · extracted 1 · left 1.
+
+- REUSE: `SIGNED_AMOUNT_RE` (money.ts) for the body, and `monthBalance` for the "has a line" check and the reply, so
+  the PUT/DELETE answer is the GET's answer.
+- EXTRACT: `toDto` in `balances/routes.ts`, shared by GET, PUT and DELETE; `changeActualEnd` holds the check → write →
+  read-again order for both writes.
+- LEAVE the `month_actual_ends` read next to the `month_balances` read: different columns and maps, two short queries.

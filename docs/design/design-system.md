@@ -32,7 +32,7 @@ is the only place raw colours, font names and sizes may appear (conventions §2)
    number in a style is a review finding, except for one-off layout maths.
 5. **Accessible by construction.** Text is at least 4.5:1, bars and icons at least 3:1, and touch
    targets at least 44pt. Every pair below has been checked. The one exception is the light
-   `caution` bar, which always comes with a text label.
+   `caution` bar, which always comes with text next to it (see "Caution is the same yellow").
 
 ## Colour (light)
 
@@ -60,9 +60,10 @@ is the only place raw colours, font names and sizes may appear (conventions §2)
 This replaces brief 091's green for under-plan bars. Brief 105 makes that change.
 
 **Caution is the same yellow in both themes** (user decision, 2026-11-22). In light it fails
-brief 091's 3:1 bar rule, so colour is never the only signal. A near-plan row also shows a
-caution label (for example "€15 left") in `cautionText`, just as an over-plan row shows "€9 over"
-today. Brief 105 adds the label and records the exception to 091.
+brief 091's 3:1 bar rule, so colour is never the only signal. Brief 107 made the change and
+records the exception to 091; until brief 105, the row's "€X of €Y" amounts are the text next
+to the bar. Brief 105 adds a caution label (for example "€15 left") in `cautionText`, just as an
+over-plan row shows "€9 over".
 
 ## Colour (dark, first pass)
 

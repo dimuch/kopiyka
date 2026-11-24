@@ -33,8 +33,8 @@ describe.skipIf(!(await testDbReachable()))('PUT and DELETE …/months/:month/ba
     `/api/ledgers/${ledgerId}/months/${month}/balance/actual-end`;
   const put = (month: string, payload: unknown, headers: Record<string, string> = auth, ledgerId = owner.ledgerId) =>
     app.inject({ method: 'PUT', url: url(month, ledgerId), payload: payload as object, headers });
-  const del = (month: string, headers: Record<string, string> = auth) =>
-    app.inject({ method: 'DELETE', url: url(month), headers });
+  const del = (month: string, headers: Record<string, string> = auth, ledgerId = owner.ledgerId) =>
+    app.inject({ method: 'DELETE', url: url(month, ledgerId), headers });
   const get = (month: string) =>
     app.inject({ method: 'GET', url: `/api/ledgers/${owner.ledgerId}/months/${month}/balance`, headers: auth });
   const reply = (res: { statusCode: number; json: () => unknown }) => [res.statusCode, res.json()];
@@ -134,10 +134,9 @@ describe.skipIf(!(await testDbReachable()))('PUT and DELETE …/months/:month/ba
 
   it("answers 404 for a ledger the user isn't a member of", async () => {
     const stranger = await makeUser(db, config, 'stranger');
-    expect(reply(await put('2026-11', { amount: '1.00' }, auth, stranger.ledgerId))).toEqual([
-      404,
-      { error: 'ledger_not_found' },
-    ]);
+    const notFound = [404, { error: 'ledger_not_found' }];
+    expect(reply(await put('2026-11', { amount: '1.00' }, auth, stranger.ledgerId))).toEqual(notFound);
+    expect(reply(await del('2026-11', auth, stranger.ledgerId))).toEqual(notFound);
   });
 
   it('refuses a write-scope API token', async () => {

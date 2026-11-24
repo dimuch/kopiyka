@@ -54,7 +54,7 @@ export interface Category {
   plannedEur: string;
 }
 
-/** A month's balances (brief 090): signed decimal strings as stored, '-180.00'. The month runs from opening to closing. */
+/** A month's balances (briefs 090, 102): signed decimal strings, '-180.00'. The month runs from opening to closing. */
 export interface MonthBalance {
   openingEur: string;
   /** The End the line shows: an actual End set by hand, else the stored or worked-out one (brief 102). */

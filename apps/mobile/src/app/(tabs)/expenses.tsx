@@ -27,6 +27,7 @@ export default function Expenses() {
   const { ledger } = useSession();
   const [thisMonth] = useState(() => kyivMonth(new Date()));
   const [month, setMonth] = useState(thisMonth);
+  const ended = month < thisMonth;
   const { data, error, reload } = useMonth(ledger.ledgerId, month);
   // My order of the month's rows, changed by long-press and drag (brief 092).
   const order = useCategoryOrder(ledger.ledgerId, data?.categories ?? null, reload);
@@ -55,9 +56,8 @@ export default function Expenses() {
           <HomeButton />
         </View>
         <MonthSwitcher title={tabTitle('expenses')} month={month} onChange={setMonth} />
-        <View style={[styles.side, styles.sideEnd]}>
-          <AddExpenseButton />
-        </View>
+        {/* Adding starts from a category's row now (brief 107); the empty side keeps the month centred. */}
+        <View style={styles.side} />
         <HeaderDivider style={collapse.dividerStyle} />
       </View>
 
@@ -114,7 +114,7 @@ export default function Expenses() {
                 text={`No budget for ${monthName(month)} yet`}
                 // An ended month can't be set up any more, so there's nothing to go to (brief 035, Gate A).
                 action={
-                  month < thisMonth
+                  ended
                     ? undefined
                     : {
                         label: 'Go to Budget',
@@ -135,48 +135,53 @@ export default function Expenses() {
                   scrollRef={scrollRef}
                   style={styles.listCard}
                   renderRow={(row, index, drag) => (
-                    <Pressable
-                      {...drag}
-                      accessibilityRole="button"
-                      accessibilityLabel={
-                        `${row.displayName}, ${eur(row.spent)} of ${eur(row.planned)} spent` +
-                        (row.progress.overCents > 0 ? `, ${eur(row.progress.overCents)} over` : '')
-                      }
-                      onPress={() =>
-                        router.push({
-                          pathname: '/category/[categoryId]',
-                          params: { categoryId: row.categoryId, month },
-                        })
-                      }
-                      style={[styles.row, index < rows.length - 1 && styles.divider]}
-                    >
-                      <CategoryTile techName={row.techName} label={row.displayName} />
-                      <View style={styles.rowBody}>
-                        <View style={styles.rowTop}>
-                          <Text style={styles.rowName} numberOfLines={1}>
-                            {row.displayName}
-                          </Text>
-                          <Text style={styles.rowAmount}>
-                            {eur(row.spent)}
-                            <Text style={styles.rowPlanned}> of {eur(row.planned)}</Text>
-                          </Text>
+                    // Two sibling buttons, not one inside the other: VoiceOver couldn't reach a nested one, and web
+                    // would nest role="button" (as on Budget). Only the row drags; an ended month takes no new expenses.
+                    <View style={[styles.openRow, index < rows.length - 1 && styles.divider, !ended && styles.withAdd]}>
+                      <Pressable
+                        {...drag}
+                        accessibilityRole="button"
+                        accessibilityLabel={
+                          `${row.displayName}, ${eur(row.spent)} of ${eur(row.planned)} spent` +
+                          (row.progress.overCents > 0 ? `, ${eur(row.progress.overCents)} over` : '')
+                        }
+                        onPress={() =>
+                          router.push({
+                            pathname: '/category/[categoryId]',
+                            params: { categoryId: row.categoryId, month },
+                          })
+                        }
+                        style={[styles.row, { flex: 1 }]}
+                      >
+                        <CategoryTile techName={row.techName} label={row.displayName} />
+                        <View style={styles.rowBody}>
+                          <View style={styles.rowTop}>
+                            <Text style={styles.rowName} numberOfLines={1}>
+                              {row.displayName}
+                            </Text>
+                            <Text style={styles.rowAmount}>
+                              {eur(row.spent)}
+                              <Text style={styles.rowPlanned}> of {eur(row.planned)}</Text>
+                            </Text>
+                          </View>
+                          <View style={styles.track}>
+                            <View
+                              style={[
+                                styles.bar,
+                                {
+                                  width: `${row.progress.fill * 100}%`,
+                                  backgroundColor: progressColor(row.progress.state, colors),
+                                },
+                              ]}
+                            />
+                          </View>
+                          {row.progress.overCents > 0 && (
+                            <Text style={styles.overText}>{eur(row.progress.overCents)} over</Text>
+                          )}
                         </View>
-                        <View style={styles.track}>
-                          <View
-                            style={[
-                              styles.bar,
-                              {
-                                width: `${row.progress.fill * 100}%`,
-                                backgroundColor: progressColor(row.progress.state, colors),
-                              },
-                            ]}
-                          />
-                        </View>
-                        {row.progress.overCents > 0 && (
-                          <Text style={styles.overText}>{eur(row.progress.overCents)} over</Text>
-                        )}
-                      </View>
-                    </Pressable>
+                      </Pressable>
+                      {!ended && <AddExpenseButton categoryId={row.categoryId} />}
+                    </View>
                   )}
                 />
               </>
@@ -201,7 +206,6 @@ const makeStyles = (colors: Palette) =>
     loading: { marginTop: space.xxl },
     // Equal-width sides keep the month switcher on the header's true centre; flexBasis 0 matters on web.
     side: { flex: 1, flexBasis: 0, flexDirection: 'row' },
-    sideEnd: { justifyContent: 'flex-end' },
     card: {
       backgroundColor: colors.surface,
       borderColor: colors.border,
@@ -238,6 +242,9 @@ const makeStyles = (colors: Palette) =>
       paddingHorizontal: space.lg,
     },
     divider: { borderBottomWidth: 1, borderBottomColor: colors.border },
+    openRow: { flexDirection: 'row', alignItems: 'center' },
+    // The row's "+" sits this far from the card's edge, like Budget's edit button.
+    withAdd: { paddingRight: space.sm },
     rowBody: { flex: 1, gap: space.sm },
     rowTop: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'baseline', gap: space.sm },
     rowName: { ...text.body, flexShrink: 1, fontFamily: fonts.bodyMedium, color: colors.text },

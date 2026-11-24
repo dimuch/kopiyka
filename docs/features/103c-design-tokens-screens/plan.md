@@ -425,3 +425,9 @@ The slices and the version are unchanged.
 Approved by the user: the split into 103c (this plan, slices 0–4) and 103d (login, Members, no-ledger and removing
 `notOnTokensYet`, its own brief and PR); and the three >1pt changes asked about (category total 32 → 28, delete
 question 24 → 22, delete warning 16/24 → 15/20). Login's title 40 → 28 was not asked here; 103d's Gate A decides it.
+
+## Gate B (2026-11-24)
+
+Approved by the user: push and PR, including the measured shifts (delete button 14pt higher, expense Add/Update
+11.5–12.5pt lower, category rows ~3.5pt shorter, the one-line "Added" note 15pt shorter). iPhone check left for the
+user.

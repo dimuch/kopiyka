@@ -1,6 +1,6 @@
 import { ApiError } from '@/api/apiError';
 import type { Expense, IncomeItem, User } from '@/api/types';
-import { kyivMonth } from '@/format';
+import { kyivMonth, toCents } from '@/format';
 
 /** The one person in the demo, shown as the one who added income. */
 export const DEMO_USER: User = { userId: 1, username: 'you' };
@@ -38,8 +38,15 @@ export interface StoreData {
   income: DemoIncome[];
   /** The demo user's own category order, top first (the API's `category_orders`); empty until they reorder. */
   order: number[];
+  /** Months' actual Ends set by hand, EUR cents by 'YYYY-MM' (the API's `month_actual_ends`). */
+  actualEnds: Map<string, number>;
   /** The next id for anything created, and the next removal number. */
   nextId: number;
+}
+
+/** A 'YYYY-MM' month's income total, in EUR cents. */
+export function monthIncomeCents(data: StoreData, month: string): number {
+  return data.income.filter((item) => item.month === month).reduce((sum, item) => sum + toCents(item.amountEur), 0);
 }
 
 /** What a route gets from one `api()` call. */

@@ -48,6 +48,7 @@ export function sampleData(now: Date): StoreData {
     expenses: [],
     income: [],
     order: [],
+    actualEnds: new Map(),
     nextId: 1,
   };
 

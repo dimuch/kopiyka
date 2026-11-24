@@ -172,7 +172,7 @@ shape, and there's no migration.
     - on iPhone, after a pick, a tap on the still-focused field reopens the list
     - web build by touch (iPhone Safari, or Chrome device emulation with touch): tapping an option fills the name and
       closes the list, and the list scrolls by drag
-- [ ] 6. Let the name suggestions work with the keyboard and screen readers (~55 lines)
+- [x] 6. Let the name suggestions work with the keyboard and screen readers (~55 lines)
   - Files: apps/mobile/src/components/NameCombobox.tsx
   - Change:
     - `active: number | null` state, reset whenever the shown list changes.
@@ -267,6 +267,8 @@ None found while planning.
 
 - slice 0: brief 107 (budget polish) merged first with 1.18.0, so the branch was rebased onto 4e1ad93 and PR A bumps
   1.18.0 → 1.19.0, PR B 1.19.0 → 1.20.0.
+- slice 6: options use `tabIndex={-1}` on web instead of `focusable={false}`, which react-native-web's `Pressable`
+  ignored (the options still took Tab focus); `PhoneColumn` does the same.
 
 ## Consolidate
 

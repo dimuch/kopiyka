@@ -44,20 +44,20 @@ export const balanceRoutes: Route[] = [
   {
     method: 'GET',
     pattern: /^\/api\/ledgers\/\d+\/months\/(\d{4}-\d{2})\/balance$/,
-    answer: (data, { now }, [month]): { balance: MonthBalance | null } => ({ balance: demoBalance(data, month!, now) }),
+    answer: (data, { now }, [month = '']): { balance: MonthBalance | null } => ({
+      balance: demoBalance(data, month, now),
+    }),
   },
   {
     method: 'PUT',
     pattern: ACTUAL_END,
     // The app sends a checked signed amount ('-35.00'), as the API's Zod requires; the demo doesn't check it again.
-    answer: (data, { body, now }, [month]) =>
-      changeActualEnd(data, month!, now, () =>
-        data.actualEnds.set(month!, toCents((body as { amount: string }).amount)),
-      ),
+    answer: (data, { body, now }, [month = '']) =>
+      changeActualEnd(data, month, now, () => data.actualEnds.set(month, toCents((body as { amount: string }).amount))),
   },
   {
     method: 'DELETE',
     pattern: ACTUAL_END,
-    answer: (data, { now }, [month]) => changeActualEnd(data, month!, now, () => data.actualEnds.delete(month!)),
+    answer: (data, { now }, [month = '']) => changeActualEnd(data, month, now, () => data.actualEnds.delete(month)),
   },
 ];

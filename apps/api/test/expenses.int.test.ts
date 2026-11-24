@@ -450,6 +450,12 @@ describe.skipIf(!(await testDbReachable()))('expenses API (MySQL)', () => {
       expect(await groceryNames()).toEqual([200, { names: ['Colruyt'] }]);
     });
 
+    it('gives no names for a deleted category', async () => {
+      await addRow('Delhaize', '2026-10-02');
+      await db.query('UPDATE categories SET deleted_at = ? WHERE category_id = ?', [clock, cat.groceries]);
+      expect(await groceryNames()).toEqual([200, { names: [] }]);
+    });
+
     it("gives no names for another ledger's category", async () => {
       const stranger = await makeUser(db, config, 'stranger');
       const [rows] = await db.query<RowDataPacket[]>(

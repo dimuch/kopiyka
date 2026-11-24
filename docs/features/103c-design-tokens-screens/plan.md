@@ -398,7 +398,12 @@ Base: main after 103c. Version: patch. ≈ 210 lines.
   - The "Added" note: at 13pt, "Added “Snapshot test” to rent · €5 · 24 Nov 2026" fits on one line instead of two, so
     the note is 15pt shorter (estimate: 4pt taller). It depends on the name's length; a long one still wraps.
   - Income item: shifts of 1pt or less, caption 14 → 13, Save 16 → 15; both inputs 16px.
-  - Demo: category screen and both forms render with no console errors.
+  - Category total tracking also goes −0.6 → −1 (from `amountLg`), not only the title's −0.3 → −1.
+  - The category screen's five inline styles became sheet entries (`loading`, `days`, `day`, `empty`, `itemText`)
+    instead of inline tokens; same values. The expense loader keeps an inline `{ marginTop: space.xxxl }`, because
+    `ExpenseLoader` doesn't read the themed styles.
+  - Demo check covered the category screen (Rent), add expense, add category and add income, with no console errors.
+    Edit expense, edit category, delete category and edit income were checked in the real app only.
 
 ## Consolidate
 
@@ -418,5 +423,5 @@ The slices and the version are unchanged.
 ## Gate A (2026-11-24)
 
 Approved by the user: the split into 103c (this plan, slices 0–4) and 103d (login, Members, no-ledger and removing
-`notOnTokensYet`, its own brief and PR); and all four >1pt changes (category total 32 → 28, delete question 24 → 22,
-delete warning 16/24 → 15/20).
+`notOnTokensYet`, its own brief and PR); and the three >1pt changes asked about (category total 32 → 28, delete
+question 24 → 22, delete warning 16/24 → 15/20). Login's title 40 → 28 was not asked here; 103d's Gate A decides it.

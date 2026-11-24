@@ -60,7 +60,7 @@ add it allowed is still possible: the row "+" opens the same form, where the cat
 - [x] 0. Bump version to 1.18.0
   - Files: package.json, apps/mobile/app.json
   - Change: set both to 1.18.0
-- [ ] 1. Use the dark theme's yellow for near-plan bars in light too
+- [x] 1. Use the dark theme's yellow for near-plan bars in light too
   - Files: apps/mobile/src/theme.ts, apps/mobile/test/theme.test.ts, docs/design/design-system.md
   - Change: light `caution` → `#F2C94C`. The comment above it says it's the dark yellow, 1.3:1 on the light track
     (under brief 091's 3:1, an accepted exception), with the row's amounts next to the bar. The dark key's JSDoc

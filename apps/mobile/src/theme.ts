@@ -14,7 +14,7 @@ export const darkColors = {
   accent: '#7CB0FF',
   onAccent: '#0E1013',
   over: '#FFA65C',
-  /** A category bar from 90% of plan up to plan; ≥ 3:1 on `track`. */
+  /** A category bar from 90% of plan up to plan; the same yellow in both themes (brief 107). */
   caution: '#F2C94C',
   danger: '#FF8A80',
   /** Selected chips and the "Added" note. */
@@ -47,8 +47,9 @@ export const lightColors: Palette = {
   accent: '#1F5FD1',
   onAccent: '#FFFFFF',
   over: '#B25E09',
-  // The yellowest value that keeps 3:1 on the light `track`; paler ones fall below it.
-  caution: '#9A7400',
+  // The dark theme's yellow (brief 107). 1.3:1 on the light `track`, under brief 091's 3:1: an accepted exception,
+  // since the row's amounts sit next to the bar.
+  caution: '#F2C94C',
   danger: '#C23B31',
   accentTint: '#E4EEFF',
   accentLine: '#A9C6F5',

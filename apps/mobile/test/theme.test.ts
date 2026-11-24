@@ -28,10 +28,16 @@ describe('progressColor', () => {
   it.each([
     ['dark', darkColors],
     ['light', lightColors],
-  ])('keeps every bar colour visible on the track in the %s theme', (_, colors) => {
+  ])('keeps every bar colour visible on the track in the %s theme', (scheme, colors) => {
     for (const state of ['under', 'near', 'over'] as const) {
+      // Light's near-plan yellow is 1.3:1, an accepted exception to 091's 3:1 (brief 107): the amounts sit next to it.
+      if (scheme === 'light' && state === 'near') continue;
       expect(contrast(progressColor(state, colors), colors.track)).toBeGreaterThanOrEqual(3);
     }
+  });
+
+  it('uses the same yellow for near-plan bars in both themes', () => {
+    expect(lightColors.caution).toBe(darkColors.caution);
   });
 });
 

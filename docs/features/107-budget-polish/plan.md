@@ -48,7 +48,7 @@ callers, under the rule of three, and brief 104 brings `Card` anyway. The figure
 
 ## Version
 
-Bump: minor — 1.17.2 → 1.18.0
+Bump: minor — 1.17.3 → 1.18.0 (rebased after #147 took 1.17.3)
 Why: §8b `minor`, "a new user action". Each category row on Expenses gets its own "+" that adds an expense to that
 category, and the card shows a new Remaining figure. Brief 094 counted its month arrows the same way. Nothing a client
 relies on changes: there's no API, connector or DB change, and rollback is untouched. The header "+" goes, but every
@@ -57,7 +57,7 @@ add it allowed is still possible: the row "+" opens the same form, where the cat
 
 ## Slices
 
-- [ ] 0. Bump version to 1.18.0
+- [x] 0. Bump version to 1.18.0
   - Files: package.json, apps/mobile/app.json
   - Change: set both to 1.18.0
 - [ ] 1. Use the dark theme's yellow for near-plan bars in light too

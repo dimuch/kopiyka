@@ -6,6 +6,7 @@ import { ApiError } from '@/api/apiError';
 import { useColors, useThemedStyles } from '@/appearance/AppearanceContext';
 import { useSession } from '@/auth/AuthContext';
 import { CategoryTile } from '@/components/CategoryTile';
+import { Card, useCardStyle } from '@/components/Card';
 import { EmptyMonth } from '@/components/EmptyMonth';
 import { HomeButton } from '@/components/HomeButton';
 import { Icon } from '@/components/Icon';
@@ -37,6 +38,7 @@ import { fonts, type Palette, radius, size, space, text } from '@/theme';
 export default function Budget() {
   const colors = useColors();
   const styles = useThemedStyles(makeStyles);
+  const listCard = useCardStyle('list');
   const pushOnce = usePushOnce();
   const { ledger } = useSession();
   const params = useLocalSearchParams<{ month?: string | string[] }>();
@@ -207,7 +209,7 @@ export default function Budget() {
                   disabled={order.saving}
                   onDragChange={setDragging}
                   scrollRef={scrollRef}
-                  style={styles.listCard}
+                  style={listCard}
                   renderRow={(category, index, drag) => {
                     const last = index === data.categories.length - 1;
                     const planned = eur(toCents(category.plannedEur));
@@ -288,7 +290,8 @@ function IncomeFigures({ incomeCents, plannedCents }: { incomeCents: number; pla
     { label: 'Remaining', value: leftText, over: left < 0 },
   ];
   return (
-    <View
+    <Card
+      padding="padded"
       accessible
       accessibilityLabel={`Income ${income}, budgeted ${planned}, remaining ${leftText}`}
       style={styles.figures}
@@ -299,7 +302,7 @@ function IncomeFigures({ incomeCents, plannedCents }: { incomeCents: number; pla
           <Text style={[styles.figureValue, figure.over && { color: colors.danger }]}>{figure.value}</Text>
         </View>
       ))}
-    </View>
+    </Card>
   );
 }
 
@@ -341,13 +344,6 @@ const makeStyles = (colors: Palette) =>
     },
     sectionTitle: { ...text.heading, fontFamily: fonts.display, color: colors.text },
     small: { ...text.caption, color: colors.muted, fontVariant: ['tabular-nums'] },
-    listCard: {
-      backgroundColor: colors.surface,
-      borderColor: colors.border,
-      borderWidth: 1,
-      borderRadius: radius.lg,
-      paddingVertical: space.xs,
-    },
     row: {
       flexDirection: 'row',
       alignItems: 'center',
@@ -356,16 +352,7 @@ const makeStyles = (colors: Palette) =>
       paddingHorizontal: space.lg,
     },
     divider: { borderBottomWidth: 1, borderBottomColor: colors.border },
-    figures: {
-      flexDirection: 'row',
-      backgroundColor: colors.surface,
-      borderColor: colors.border,
-      borderWidth: 1,
-      borderRadius: radius.lg,
-      paddingVertical: space.lg,
-      paddingHorizontal: space.lg,
-      gap: space.sm,
-    },
+    figures: { flexDirection: 'row', gap: space.sm },
     figure: { flex: 1, gap: space.xs },
     figureValue: { ...text.amount, color: colors.text },
     openRow: { flexDirection: 'row', alignItems: 'center' },

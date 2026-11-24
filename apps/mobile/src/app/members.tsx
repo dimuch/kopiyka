@@ -6,6 +6,7 @@ import { ApiError } from '@/api/apiError';
 import type { Ledger, Member, PendingInvite } from '@/api/types';
 import { useColors, useThemedStyles } from '@/appearance/AppearanceContext';
 import { useSession } from '@/auth/AuthContext';
+import { Card } from '@/components/Card';
 import { Icon } from '@/components/Icon';
 import { LoadError } from '@/components/LoadError';
 import { Pressable } from '@/components/Pressable';
@@ -203,7 +204,7 @@ function OwnerMembers({ ledgerId }: { ledgerId: number }) {
     <>
       {error && <LoadError message="Couldn’t refresh. Check your connection and try again." onRetry={reload} />}
       {/* Never empty: the list always has the owner, who is the viewer. */}
-      <View style={styles.list}>
+      <Card padding="none">
         {data.members.map((member, index) => {
           const isYou = member.userId === user.userId;
           return (
@@ -237,7 +238,7 @@ function OwnerMembers({ ledgerId }: { ledgerId: number }) {
             </View>
           );
         })}
-      </View>
+      </Card>
       <PendingList ledgerId={ledgerId} invites={data.invites} onChange={reload} />
       <InviteForm ledgerId={ledgerId} onInvited={reload} />
     </>
@@ -292,7 +293,7 @@ function PendingList({
     <View style={styles.section}>
       <Text style={styles.caption}>Invited</Text>
       {invites.length ? (
-        <View style={styles.list}>
+        <Card padding="none">
           {invites.map((invite, index) => (
             <View key={invite.inviteId} style={[styles.row, index > 0 && styles.divider]}>
               <View style={styles.line}>
@@ -313,7 +314,7 @@ function PendingList({
               </View>
             </View>
           ))}
-        </View>
+        </Card>
       ) : null}
       {failure ? (
         <Text accessibilityRole="alert" style={styles.failure}>
@@ -532,7 +533,6 @@ const makeStyles = (colors: Palette) =>
     content: { gap: space.lg, paddingTop: space.sm, paddingBottom: space.huge },
     title: { ...text.display, color: colors.text },
     caption: { ...text.label, fontFamily: fonts.body, color: colors.muted },
-    list: { backgroundColor: colors.surface, borderColor: colors.border, borderWidth: 1, borderRadius: radius.lg },
     row: { paddingVertical: space.sm, paddingHorizontal: space.lg, gap: space.sm },
     divider: { borderTopWidth: 1, borderTopColor: colors.border },
     line: { flexDirection: 'row', alignItems: 'center', gap: space.md },

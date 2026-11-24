@@ -6,6 +6,7 @@ import { ApiError } from '@/api/apiError';
 import type { IncomeItem } from '@/api/types';
 import { useColors, useThemedStyles } from '@/appearance/AppearanceContext';
 import { useSession } from '@/auth/AuthContext';
+import { Card } from '@/components/Card';
 import { EmptyMonth } from '@/components/EmptyMonth';
 import { HomeButton } from '@/components/HomeButton';
 import { Icon } from '@/components/Icon';
@@ -147,7 +148,7 @@ export default function Income() {
                     <Text style={styles.total}>{totalText}</Text>
                   </View>
                 </View>
-                <View style={styles.listCard}>
+                <Card padding="list">
                   {items.map((item, index) => {
                     const amount = eur(toCents(item.amountEur));
                     const label = `${item.title}, ${amount}, added by ${item.addedBy}`;
@@ -182,7 +183,7 @@ export default function Income() {
                       </Pressable>
                     );
                   })}
-                </View>
+                </Card>
               </>
             )}
           </>
@@ -218,13 +219,6 @@ const makeStyles = (colors: Palette) =>
     // The month's total, as big and bold as the heading beside it (brief 107).
     total: { ...text.heading, fontFamily: fonts.display, color: colors.text, fontVariant: ['tabular-nums'] },
     small: { ...text.caption, color: colors.muted, fontVariant: ['tabular-nums'] },
-    listCard: {
-      backgroundColor: colors.surface,
-      borderColor: colors.border,
-      borderWidth: 1,
-      borderRadius: radius.lg,
-      paddingVertical: space.xs,
-    },
     row: {
       flexDirection: 'row',
       alignItems: 'center',

@@ -5,6 +5,7 @@ import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context'
 import { useColors, useThemedStyles } from '@/appearance/AppearanceContext';
 import { useSession } from '@/auth/AuthContext';
 import { AddExpenseButton } from '@/components/AddExpenseButton';
+import { Card, useCardStyle } from '@/components/Card';
 import { CategoryInMonth } from '@/components/CategoryInMonth';
 import { CategoryTile } from '@/components/CategoryTile';
 import { CompactTotal, HeaderDivider, useCollapsingSummary } from '@/components/CollapsingSummary';
@@ -68,6 +69,7 @@ function InvalidLink() {
 function CategoryBreakdown({ categoryId, month, ended }: { categoryId: number; month: string; ended: boolean }) {
   const colors = useColors();
   const styles = useThemedStyles(makeStyles);
+  const cardStyle = useCardStyle('padded');
   const { ledger } = useSession();
   const { data, error, reload } = useMonth(ledger.ledgerId, month, categoryId);
   const toast = useUndoOffer(reload);
@@ -135,7 +137,7 @@ function CategoryBreakdown({ categoryId, month, ended }: { categoryId: number; m
             </View>
           </View>
 
-          <Animated.View onLayout={collapse.onCardLayout} style={[styles.card, collapse.cardStyle]}>
+          <Animated.View onLayout={collapse.onCardLayout} style={[cardStyle, styles.card, collapse.cardStyle]}>
             <Text style={styles.caption}>Spent</Text>
             <Text style={styles.total}>{eur(totalEur)}</Text>
             <Text style={styles.caption}>≈ {uah(totalUah)} at entry-day rates</Text>
@@ -151,7 +153,7 @@ function CategoryBreakdown({ categoryId, month, ended }: { categoryId: number; m
                   <Text style={styles.dayLabel}>{dayLabel(d.date)}</Text>
                   <Text style={styles.caption}>{eur(d.totalCents)}</Text>
                 </View>
-                <View style={styles.dayCard}>
+                <Card padding="none">
                   {d.items.map((e, i) => (
                     <Pressable
                       key={e.expenseId}
@@ -167,7 +169,7 @@ function CategoryBreakdown({ categoryId, month, ended }: { categoryId: number; m
                       <Text style={styles.itemAmount}>{eur(toCents(e.amountEur))}</Text>
                     </Pressable>
                   ))}
-                </View>
+                </Card>
               </View>
             ))}
           </View>
@@ -282,15 +284,7 @@ const makeStyles = (colors: Palette) =>
     title: { ...text.display, color: colors.text },
     caption: { ...text.label, fontFamily: fonts.body, color: colors.muted, fontVariant: ['tabular-nums'] },
     small: { ...text.caption, color: colors.muted, fontVariant: ['tabular-nums'] },
-    card: {
-      backgroundColor: colors.surface,
-      borderColor: colors.border,
-      borderWidth: 1,
-      borderRadius: radius.lg,
-      paddingVertical: space.lg,
-      paddingHorizontal: space.lg,
-      gap: space.xxs,
-    },
+    card: { gap: space.xxs },
     total: { ...text.amountLg, color: colors.text },
     dayHead: {
       flexDirection: 'row',
@@ -302,7 +296,6 @@ const makeStyles = (colors: Palette) =>
     // (brief 105 decides).
     // eslint-disable-next-line no-restricted-syntax
     dayLabel: { ...text.label, fontFamily: fonts.bodySemi, color: colors.muted, letterSpacing: 0.5 },
-    dayCard: { backgroundColor: colors.surface, borderColor: colors.border, borderWidth: 1, borderRadius: radius.lg },
     item: {
       flexDirection: 'row',
       alignItems: 'center',

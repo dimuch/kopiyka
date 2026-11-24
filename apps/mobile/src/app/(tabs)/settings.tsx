@@ -3,6 +3,7 @@ import { AccessibilityInfo, ScrollView, StyleSheet, Text, View } from 'react-nat
 import { useAppearance, useColors, useThemedStyles } from '@/appearance/AppearanceContext';
 import { useSession } from '@/auth/AuthContext';
 import { AppearancePicker } from '@/components/AppearancePicker';
+import { Card, useCardStyle } from '@/components/Card';
 import { Icon } from '@/components/Icon';
 import { LedgerPicker } from '@/components/LedgerPicker';
 import { PendingInvites } from '@/components/PendingInvites';
@@ -15,6 +16,7 @@ import { fonts, outlinedDangerButton, outlinedDangerText, type Palette, radius, 
 export default function Settings() {
   const colors = useColors();
   const styles = useThemedStyles(makeStyles);
+  const membersCard = useCardStyle('none');
   const pushOnce = usePushOnce();
   const { preference, setPreference } = useAppearance();
   const { user, ledger, ledgers, logout, openLedger } = useSession();
@@ -45,7 +47,7 @@ export default function Settings() {
     <PlaceholderPage title="Settings">
       {/* Scrolls once invites and the Ledger picker no longer fit above the tab bar. */}
       <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
-        <View style={styles.account}>
+        <Card padding="padded" style={styles.account}>
           <View style={styles.avatar}>
             <Text style={styles.initial}>{user.username.slice(0, 1).toUpperCase()}</Text>
           </View>
@@ -55,7 +57,7 @@ export default function Settings() {
               {user.username}
             </Text>
           </View>
-        </View>
+        </Card>
         {/* Under the account card, so the tab's invite badge leads straight to them. */}
         <PendingInvites
           invites={invites.invites ?? []}
@@ -77,7 +79,11 @@ export default function Settings() {
           </View>
         )}
         {/* On its own, always shown: with one ledger there's no Ledger section to put it in. */}
-        <Pressable accessibilityRole="button" onPress={() => pushOnce('/members')} style={styles.members}>
+        <Pressable
+          accessibilityRole="button"
+          onPress={() => pushOnce('/members')}
+          style={[membersCard, styles.members]}
+        >
           <Text style={styles.membersText}>Members</Text>
           <Icon name="forward" color={colors.muted} />
         </Pressable>
@@ -104,12 +110,6 @@ const makeStyles = (colors: Palette) =>
       flexDirection: 'row',
       alignItems: 'center',
       gap: space.md,
-      backgroundColor: colors.surface,
-      borderColor: colors.border,
-      borderWidth: 1,
-      borderRadius: radius.lg,
-      paddingVertical: space.lg,
-      paddingHorizontal: space.lg,
     },
     accountText: { flex: 1, gap: space.xxs },
     avatar: {
@@ -128,10 +128,6 @@ const makeStyles = (colors: Palette) =>
       flexDirection: 'row',
       alignItems: 'center',
       justifyContent: 'space-between',
-      borderRadius: radius.lg,
-      borderWidth: 1,
-      borderColor: colors.border,
-      backgroundColor: colors.surface,
       paddingVertical: space.sm,
       paddingLeft: space.lg,
       paddingRight: space.md,

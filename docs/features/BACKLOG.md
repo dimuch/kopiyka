@@ -27,13 +27,13 @@ and checks; resume with `/kopiyka-hos resume month-balance-in-app`.
 
 103, 103b, 103c and 103d (tokens) are merged (#145, #147, #149, #151). The rest, in order:
 
-| Brief | Draft                                          | What                                                                                                   |
-| ----- | ---------------------------------------------- | ------------------------------------------------------------------------------------------------------ |
-| 104   | `docs/features/104-shared-components/brief.md` | `Text`, `Card`, `Button`, `IconButton`, `Chip`, `ScreenHeader`, `ProgressBar`; nothing visibly changes |
-| 105   | `docs/features/105-fresh-look/brief.md`        | New palettes, Inter, radii, shadows, no borders, card per row, violet bars, caution label              |
-| 106   | `docs/features/106-floating-tab-bar/brief.md`  | Floating pill tab bar with a round "+" (add expense) button                                            |
+| Brief | Draft                                          | What                                                                                                                                                                                                                          |
+| ----- | ---------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 104   | `docs/features/104-shared-components/brief.md` | `Text`, `Card`, `Button`, `IconButton`, `Chip`, `ScreenHeader`, `ProgressBar`; nothing visibly changes. Reviewed and split at Gate A into 104–104f: 104 is `Card` and `ProgressBar`, the plan's Later parts outline 104b–104f |
+| 105   | `docs/features/105-fresh-look/brief.md`        | New palettes, Inter, radii, shadows, no borders, card per row, violet bars, caution label                                                                                                                                     |
+| 106   | `docs/features/106-floating-tab-bar/brief.md`  | Floating pill tab bar with a round "+" (add expense) button                                                                                                                                                                   |
 
-The three briefs are **drafts** written from the design doc and the follow-ups earlier plans handed on. Read and
+The 105 and 106 briefs are **drafts** written from the design doc and the follow-ups earlier plans handed on. Read and
 correct each before running `/kopiyka-hos` on it. 107 (budget polish, #146) already brought forward one 105 item:
 the same caution yellow in both themes.
 

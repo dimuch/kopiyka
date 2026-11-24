@@ -8,8 +8,8 @@ describe('rankNames', () => {
     {
       why: 'most used first',
       rows: [
-        row('Delhaize', '2026-10-20'),
-        row('Colruyt', '2026-10-19'),
+        row('Colruyt', '2026-10-20'),
+        row('Delhaize', '2026-10-19'),
         row('Delhaize', '2026-10-10'),
         row('Delhaize', '2026-10-02'),
       ],
@@ -18,12 +18,12 @@ describe('rankNames', () => {
     {
       why: 'a tie on uses goes to the newer date',
       rows: [
-        row('Aldi', '2026-10-20'),
-        row('Lidl', '2026-10-18'),
-        row('Lidl', '2026-10-15'),
-        row('Aldi', '2026-10-01'),
+        row('Lidl', '2026-10-20'),
+        row('Aldi', '2026-10-18'),
+        row('Aldi', '2026-10-15'),
+        row('Lidl', '2026-10-01'),
       ],
-      want: ['Aldi', 'Lidl'],
+      want: ['Lidl', 'Aldi'],
     },
     {
       why: 'a tie on uses and date goes A–Z, ignoring case',

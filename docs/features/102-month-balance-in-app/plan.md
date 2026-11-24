@@ -182,7 +182,7 @@ number and bumps once more (rule 4).
 | --- | ----- | --------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | 1   | minor | 1.16.1 → 1.17.0 | New capability: the Budget line exists for November onwards. The response shape is unchanged and there's no migration. A rollback just hides the line from November on again, as today. |
 | 2   | minor | 1.20.1 → 1.21.0 | New routes, an optional new field and an additive migration. The previous release runs on 018 and ignores it.                                                                           |
-| 3   | minor | → 1.19.0        | The live demo build shows a line it didn't have (a new capability in a production build).                                                                                               |
+| 3   | minor | 1.21.0 → 1.22.0 | The live demo build shows a line it didn't have (a new capability in a production build).                                                                                               |
 | 4   | minor | → 1.20.0        | A new user action (set or clear the actual End).                                                                                                                                        |
 
 Nothing reaches major: no field is removed or reshaped, no MCP tool changes, and every rollback keeps working. With
@@ -327,7 +327,7 @@ created_by, deleted_at)`). Nov gets a list via `storeMonthList(db, id, '2026-11'
 
 ### PR 3 — `feat/month-balance-demo`: the demo follows the rule
 
-- [ ] 0. Bump version to 1.19.0 (or `main`'s next minor)
+- [x] 0. Bump version to 1.22.0 (`main`'s next minor)
 - [ ] 9. Work out the demo's month balances
   - Files: apps/mobile/src/demo/balanceRoutes.ts, apps/mobile/test/demoBalance.test.ts
   - Change: GET walks from the first listed month (live `monthRows`) at €0 up to the asked month. Its flow is income
@@ -481,6 +481,7 @@ created_by, deleted_at)`). Nov gets a list via `storeMonthList(db, id, '2026-11'
   raised End to €2,465; Undo brought it back to €2,352.50 in place.
 - PR 2 slice 0: briefs 103–108 took 1.17.x–1.20.1 first, so PR 2 bumps 1.20.1 → 1.21.0 (rule 4); it branches from
   `origin/main` 3168377.
+- PR 3 slice 0: PR 2 shipped as 1.21.0, so PR 3 bumps 1.21.0 → 1.22.0; it branches from `origin/main` 1caa333.
 
 ## Consolidate
 

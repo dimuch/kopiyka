@@ -272,7 +272,7 @@ created_by, deleted_at)`). Nov gets a list via `storeMonthList(db, id, '2026-11'
 
 - [x] 0. Bump version to 1.21.0 (`main`'s next minor)
   - Files: package.json, apps/mobile/app.json
-- [ ] 5. Add the month_actual_ends table
+- [x] 5. Add the month_actual_ends table
   - Files: apps/api/migrations/018_month_actual_ends.sql (new), apps/api/test/monthActualEnds.migration.int.test.ts
     (new, like `categoryOrders.migration.int.test.ts`), apps/api/test/helpers.ts (`DATA_TABLES`)
   - Tests: the columns `ledger_id int unsigned NO`, `balance_month date NO`, `closing_eur decimal(12,2) NO`, and a

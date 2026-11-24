@@ -1,0 +1,332 @@
+---
+name: kopiyka-conventions
+description: The kopiyka repo's engineering rules — where logic lives per domain, money and date handling, API and Expo app patterns, testing, quality gates, git/PR conventions, and versioning and releases — plus which vendored library skill to load for what. Use whenever planning, writing or reviewing code in the kopiyka monorepo (apps/api, apps/mobile), and before deciding where a new piece of logic belongs.
+---
+
+# Kopiyka conventions
+
+The single source of truth for _how this repo is built_. Planner, plan-skeptic,
+developer and reviewer all apply it. When a library skill or general best
+practice disagrees with this file, **this file wins** — mention the tension
+once, don't silently "upgrade" the codebase.
+
+Rule precedence (highest first): explicit user instruction in the session →
+this file → existing code patterns (2–3 recent, representative files) →
+vendored library skills (`.github/skills/`) → general packs (`~/.copilot/skills`).
+
+## 1. Principles (applied, not recited)
+
+- **YAGNI first.** Build what the brief's acceptance criteria need, nothing
+  "for later". No config flags, options, generic params or extension points
+  without a current caller. Budgets "will exist later" → leave a seam only if
+  it costs ≤ a couple of lines (see `CompactTotal`'s optional `budgetCents`).
+- **KISS.** Plain functions and modules over classes/patterns. Raw SQL over a
+  query builder. `useState` + a small hook over a state library. Fetch wrapper
+  over a data-fetching library. Adding a dependency needs a reason a reviewer
+  would accept (see §7).
+- **DRY with judgement — rule of three.** Extract on the third real
+  repetition inside one domain. Do **not** "DRY" across the API/app boundary:
+  `apps/api/src/money.ts` (bigint) and `apps/mobile/src/format.ts` (number)
+  look alike on purpose — different runtimes, different number types. DTO
+  types are mirrored in `apps/mobile/src/api/types.ts` by hand; no shared
+  package until a contract drift actually bites.
+- **Single responsibility per module**, named by what it does
+  (`throttle.ts`, `secretBox.ts`, `undo.ts`), not by layer (`utils.ts`,
+  `helpers.ts`, `manager.ts`).
+- **Explicit dependencies.** Side-effecting inputs (clock, network, DB) are
+  passed in, never imported as singletons — see `AppDeps` (`now`,
+  `fetchRate`, `db`). That's what makes the API testable without mocks.
+- **Deep, small interfaces.** A module exposes few functions that do a lot
+  (`getEurUahRate`, `convert`). Don't add pass-through wrappers or a
+  "service" whose only job is calling one other function.
+- **Make illegal states unrepresentable** where it's cheap: discriminated
+  unions (`state.status === 'signedIn'`), `z.enum`, literal unions
+  (`'EUR' | 'UAH'`).
+- **Comments say why**, not what: constraints, invariants, units, surprising
+  choices (`// not an edit; keep ON UPDATE from firing`). One-line JSDoc on
+  exported functions whose name alone doesn't carry units or edge cases.
+- **Fix the cause, not the crash.** Reproduce, find why, fix that. A guard
+  that only hides the symptom (`?.`, `?? 0`, an empty `catch`, an early
+  `return` for a value that should never be missing) is not a fix; a guard
+  for a value that really can be absent is fine — say why in the comment.
+- **Re-runnable by default.** Anything that writes in bulk or outside a
+  request — migrations, imports (`notion/historyImport.ts`), sync jobs,
+  `deploy/*.sh` — ends in the same state when run twice or
+  re-run after a crash halfway through (upserts, `IF NOT EXISTS`, a
+  transaction, or a check before each write).
+
+## 2. Where logic lives (responsibility split by domain)
+
+### API — `apps/api/src`
+
+| Place                                                                       | Owns                                                                                                                            | Must not                            |
+| --------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------- |
+| `<domain>/routes.ts` (`auth`, `categories`, `expenses`, `ledgers`, `rates`) | HTTP: Zod schemas for params/query/body, guards, status codes, SQL for that domain's simple reads/writes, DTO mapping (`toDto`) | hold logic another domain needs     |
+| `<domain>/service.ts`                                                       | domain logic reused by >1 route or domain, or with its own invariants (`rates/service.ts`)                                      | know about `reply`/HTTP             |
+| `<domain>/<concern>.ts`                                                     | one focused mechanism (`auth/throttle.ts`, `auth/totp.ts`, `rates/nbu.ts`)                                                      | —                                   |
+| `src/money.ts`, `src/dates.ts`                                              | pure, cross-domain primitives                                                                                                   | do I/O                              |
+| `app.ts`                                                                    | wiring: plugins, decorators, error handler, route registration                                                                  | contain route logic                 |
+| `config.ts`                                                                 | env parsing (Zod) → typed `Config`                                                                                              | be read via `process.env` elsewhere |
+| `migrations/NNN_name.sql`                                                   | schema; forward-only, numbered, commented columns                                                                               | be edited after merge               |
+
+Start a new domain as `<domain>/routes.ts`; split out `service.ts` only when
+the second consumer appears or `routes.ts` passes ~200 lines.
+
+### App — `apps/mobile/src`
+
+| Place                           | Owns                                                                                                                                                                 | Must not                                                                             |
+| ------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------ |
+| `app/**` (Expo Router)          | screens: compose components, read params, call data hooks, handle navigation                                                                                         | grow pure logic inline — move it to `format.ts`/`data/` once it's testable or reused |
+| `components/`                   | presentational, reusable UI; props in, callbacks out                                                                                                                 | call `api()` or read auth                                                            |
+| `data/`                         | client data hooks (`useMonth`) and tiny in-memory handoffs (`undo.ts`)                                                                                               | render UI                                                                            |
+| `api/client.ts`, `api/types.ts` | transport (auth header/cookie, errors → `ApiError`), DTO mirrors                                                                                                     | contain screen logic                                                                 |
+| `appearance/`                   | Light/Dark/Auto choice: pure rules (`preference.ts`), provider and hooks (`useColors`, `useThemedStyles`)                                                            | hold colour values — those stay in `theme.ts`                                        |
+| `auth/`                         | session state (`AuthContext`)                                                                                                                                        | —                                                                                    |
+| `format.ts`                     | pure money/date formatting and parsing                                                                                                                               | do I/O                                                                               |
+| `theme.ts`                      | palettes, fonts, style tokens (`space`, `radius`, `size`, `text`), category hues, `phoneWidth` — the only place for raw hex, font names and style numbers            | —                                                                                    |
+| `demo/`                         | the demo build only (brief 080): the three swapped modules (`client`, `session`, `tabItems`), the in-memory store that answers `api()`, its sample data, `DemoStrip` | be imported from outside `demo/` and `demo-app/`                                     |
+| `demo-app/`                     | the demo's routes: one-line re-exports of shared screens where it can, its own root layout and Home                                                                  | hold logic a screen in `app/` needs                                                  |
+
+The demo (brief 080) is a second web build of `apps/mobile`, chosen by `KOPIYKA_FLAVOUR=demo` in `app.config.js` and
+`metro.config.js` only: no app code reads the flavour. Its store repeats the API's rules on the client, so a change to a
+rule, refusal or DTO in `categories`, `expenses`, `income` or `rates` changes `src/demo/` and its tests in the same PR.
+
+## 3. Domain invariants (never break these)
+
+- **Money is integer cents.** API: `bigint` cents, rates as `bigint` 1/10000
+  (`rateToE4`); app: `number` cents. Never add/multiply floats for money.
+  Amounts cross the wire as decimal **strings** (`'12.50'`).
+- **Entered side stays exact**; the other currency is derived with
+  half-up rounding (`convert`). Expenses are priced at the **NBU rate of the
+  expense date**; re-priced on edit.
+- **Dates are `YYYY-MM-DD` strings in Europe/Kyiv** (`kyivToday`,
+  `isCalendarDate`, `addDays`). No `Date` arithmetic on calendar dates.
+- **Ledger scoping.** Every `/api/ledgers/:id/...` route uses
+  `preHandler: [app.requireAuth, app.requireLedger]` and every query joins
+  through `ledger_id`. Non-members get **404**, not 403.
+- **Soft delete** for expenses (`deleted_at`) so Undo works; reads filter
+  `deleted_at IS NULL` (a single expense's GET, PUT and DELETE find it even
+  when its category is deleted or not in its month's list; PUT still checks
+  the category it's given, and an expense's restore checks its own).
+- **Each month has its own category list** (`category_months`, brief 028):
+  a live expense's category is in its month's list, and writes keep it so
+  (`400 category_not_in_month`). Removing a category from a month stamps its
+  row and that month's live expenses with one `deleted_at`, which its restore
+  matches. Removing from or restoring to an ended month (Kyiv) is refused
+  (`409 month_ended`). `categories.deleted_at` only hides categories deleted
+  before 028.
+- **An ended month is read-only** (Kyiv, from 00:00 on the 1st of the next
+  month; `monthEnded`): its list, names, planned amounts and expenses refuse
+  changes with `409 month_ended`. An expense can't be added, edited, deleted or
+  restored there, nor moved into or out of it (brief 041). The check comes
+  after the expense's 404 and before any category check or rate fetch.
+- **Errors**: API replies `{ error: 'snake_case_code' }`; Zod errors become
+  400 via the global handler; the app maps codes to human text at the screen
+  (`errorText`).
+- **Auth**: TOTP only, no signup; web uses an httpOnly cookie, native a
+  bearer token in SecureStore. Never log secrets, codes or tokens.
+
+## 4. API patterns (Fastify 5 + Zod 4 + mysql2)
+
+- Validate with Zod `.parse` at the top of the handler (`ExpenseBody`,
+  `ExpenseParams`). Zod is the project's choice — don't switch to JSON
+  Schema / type providers because a library skill prefers it.
+- Parameterised SQL only (`?` placeholders). Interpolate only fixed SQL
+  fragments chosen in code, never values.
+- Handlers `return` the value or `reply.code(n).send(...)`; helpers that may
+  reply return `false`/`null` and the handler returns `reply` (see
+  `checkCategory`, `price`).
+- Await every promise; ESLint enforces `no-floating-promises`.
+- Use `req.log` with structured fields (`req.log.warn({ err, date }, '...')`).
+- New env var → `config.ts` schema + `.env.example` + README if user-facing.
+
+## 5. App patterns (Expo SDK 58, React 19, RN 0.88, Expo Router)
+
+- **Expo moves fast — don't trust memory.** Before using an Expo/RN API,
+  check `apps/mobile/package.json` and the versioned docs
+  (`https://docs.expo.dev/versions/v58.0.0/`), or the `expo-router`
+  skill. Add Expo/React Native packages with `npx expo install` (run in
+  `apps/mobile`) for SDK-matched versions. Dev tools the monorepo
+  already uses (vitest, eslint, typescript) go in with
+  `yarn workspace <name> add -D <pkg>@<same range>` so there's one version.
+- Function components and hooks only. Data loading = a hook in `data/`
+  using `api<T>()`; reload on focus with `useFocusEffect`; guard against
+  setting state after unmount (`let live = true`).
+- Every async surface has loading, error (with retry) and empty states.
+- Styles: a module-level `const makeStyles = (colors: Palette) =>
+StyleSheet.create({...})` at the bottom of the file, read with
+  `useThemedStyles(makeStyles)`; inline colours come from `useColors()`.
+  Never read a palette at module load — it wouldn't follow a theme change.
+  Styles with no colour can stay a plain `StyleSheet.create`. Small dynamic
+  overrides inline are fine.
+- Style numbers: spacing, radius, control heights and type come from the
+  `space`, `radius`, `size` and `text` tokens in `theme.ts` (values:
+  `docs/design/design-system.md`). Money uses `text.amount`/`amountLg`, or
+  its role plus tabular digits. A number literal is only for layout maths,
+  allowlisted with `eslint-disable-next-line no-restricted-syntax` and the
+  reason on the line above; lint enforces this. Don't route style numbers
+  through named constants (`padding: PAD`) to dodge the guard.
+- Works on **iOS and web** (react-native-web). Branch on `Platform.OS`
+  only at the edge (`client.ts`, `PhoneColumn`), not throughout screens.
+- Accessibility: interactive elements get `accessibilityRole` and a label;
+  inputs get explicit labels; touch targets ≥ 44pt.
+- Performance basics: stable callbacks for list rows, `keyExtractor`, no
+  heavy work in render; React Compiler lint rules (`react-hooks/*`) are
+  errors for new code.
+- No new state/data/styling/animation library (Redux, Zustand, TanStack
+  Query, NativeWind, Reanimated) without an explicit brief requirement.
+
+## 6. Testing (what "testable commit" means here)
+
+- **API**: Vitest. Pure modules → unit tests (`money.test.ts` style: table
+  of inputs, exact expected values, comments with the arithmetic).
+  Routes → integration tests with `app.inject` against real MySQL
+  (`*.int.test.ts`, `describe.skipIf(!(await testDbReachable()))`), fixed
+  clock, stubbed `fetchRate`. Never hit the network in tests.
+- Every new route: happy path, validation 400, auth 401, non-member 404,
+  and each domain error code it can return.
+- **App**: Vitest for pure modules in `format.ts`/`data/`
+  (`yarn mobile test`, tests in `apps/mobile/test/`, Node environment, `@/`
+  alias), in the same table style as the API; pass a fixed `Date` in where
+  time matters. UI is verified by running the web build in a
+  browser (`yarn api dev` + `yarn mobile expo start --web`; the commands are in
+  `.claude/launch.json`) at phone width, on iPhone where
+  it matters, plus typecheck + lint. Record what was checked in the PR's
+  test plan.
+- Bug fix → a test that fails before the fix (Prove-It), for API code and
+  app pure logic alike.
+- Re-runnable code (§1): a stub that throws mid-run tests the `catch` and
+  rollback path, not a crash — a killed process runs neither. Prove crash
+  safety by seeding the half-written state a crash would leave, then
+  asserting a re-run ends in the same state as one clean run.
+- No snapshot tests; assert behaviour, not implementation.
+
+## 7. Quality gates (run before every commit)
+
+```bash
+yarn format:check   # Prettier (printWidth 120, single quotes)
+yarn lint           # ESLint: typescript-eslint (api), eslint-config-expo (mobile)
+yarn typecheck
+yarn test           # API unit + MySQL integration when DATABASE_URL_TEST is reachable, and app unit tests
+```
+
+Fix with `yarn format` / by hand. Never `--no-verify`, never weaken a lint
+rule, `tsconfig` flag or test to get green. A justified
+`eslint-disable-next-line <rule>` needs a reason comment on the line above.
+No `any`, no non-null `!` on values that can really be absent, no
+`@ts-ignore`.
+
+CI also builds both web flavours (`yarn mobile export:web`) and runs `yarn mobile check-builds`: the demo must hold none of the modules or text banned from it, and its module list must match `apps/mobile/demo-modules.txt`; production must
+hold nothing of the demo's. A module that newly reaches the demo is accepted in its PR with
+`yarn mobile check-builds --accept`, and the list's diff is the review.
+
+New dependency checklist: needed by an AC; no existing code/module does it;
+maintained; size acceptable for the app bundle; SDK-compatible (mobile).
+State it in the plan and the PR.
+
+## 8. Git, commits and PRs
+
+- Branch from up-to-date `origin/main`: `feat/<slug>`, `fix/<slug>`,
+  `chore/<slug>`. `main` is protected; merge via PR with green CI,
+  **rebase-merge** (keeps authors).
+- Author is `dimuch <7248180+dimuch@users.noreply.github.com>` (check
+  `git config user.email`). **No `Co-Authored-By` trailers** in commits.
+- **Atomic commits**: one concern each, every commit passes §7 on its own.
+  Subject: imperative, sentence case, no prefix/emoji, ≤ ~72 chars, says
+  the user-visible effect ("Add soft delete and restore for expenses
+  (Undo)"). Body (optional) explains _why_ and trade-offs.
+- Mechanical changes (formatting, renames, moves) in their own commit.
+- PR: title like the main commit; body `## Summary` (what users get, how),
+  `## Test plan` (checkboxes of what was actually verified, incl. web/iPhone
+  checks), link to the feature brief/plan. Stacked PRs say so on top.
+
+## 8b. Versioning and releases
+
+Kopiyka has one product version, semver `MAJOR.MINOR.PATCH`, in the root
+`package.json`. The API, app and connector ship from the same commit, so they
+share it. `expo.version` in `apps/mobile/app.json` holds the same number,
+because the stores show it. The workspace `package.json` versions and the MCP
+server's `version` in `apps/mcp/src/mcp/tools.ts` are not the product version:
+leave them. The store build counters (iOS `buildNumber`, Android `versionCode`)
+are not semver either: raise them per upload.
+
+An app has no library API, so the contract is what people and clients rely on:
+app builds already installed (a phone or an open tab can lag the API), the MCP
+connector's tools and sign-in, people's accounts and ledger data, and rollback,
+which runs the previous release on the new schema (`deploy/README.md`).
+
+Judge the whole PR by what changes in production, not by its size or commit
+count. The highest row that applies wins.
+
+| Bump    | When                                                                                    | Examples                                                                                                                                                                                                     |
+| ------- | --------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `major` | Something that works today stops working for a real client or user, or rollback is lost | API route or field a shipped app build uses removed or reshaped; MCP tool removed, renamed or given a new required input; people must re-enrol or lose access; a migration the previous release can't run on |
+| `minor` | A new capability, and everything that exists keeps working                              | New screen, tab or user action; new API route or optional field; new MCP tool; additive migration                                                                                                            |
+| `patch` | Production changes, with no new capability                                              | Bug fix, copy, styling, performance, security fix, behaviour-preserving refactor, dependency update, `deploy/` config or scripts                                                                             |
+| `none`  | Nothing reaches production                                                              | Only `docs/`, `.claude/`, `.github/`, `CLAUDE.md`, `AGENTS.md`, READMEs, or tests                                                                                                                            |
+
+Close calls:
+
+- Check real clients before calling a stricter rule `major`: refusing input
+  that no shipped app or connector client sends is `patch`.
+- A fix that removes something people rely on is `major`, even though it's a fix.
+- A deploy step (a new `api.env` line, a one-off command) doesn't raise the
+  level by itself; losing rollback does.
+- A framework or SDK upgrade is `patch` unless the product behaves differently.
+- A refactor that touches shipped code is `patch`, never `none`.
+- `major` is rare: name what breaks, and ask the user about it at Gate A.
+
+How it runs:
+
+1. **Plan**: the planner decides the level in the plan's `## Version` and adds
+   slice 0, so the user approves the version with the plan.
+2. **Bump**: slice 0 sets the new number in the root `package.json` and in
+   `apps/mobile/app.json`, nothing else. One bump per PR, however many slices.
+3. **Review**: the reviewer checks the level against the real diff and that
+   both files agree. If it's wrong, fix both in a new commit,
+   `Bump version to <x.y.z>`, and update `## Version`.
+4. **Main moved**: if another PR took the version first, rebase, take `main`'s
+   number and bump it once again.
+
+A release is what went live, so merging doesn't release anything. Deploys are
+manual, and one can carry several merged PRs. After a green Deploy, with the
+user's OK, and only if the deployed version has no tag yet:
+
+```bash
+git tag -a v<x.y.z> -m "Release <x.y.z>" <deployed sha>   # version from that commit's package.json
+git push origin v<x.y.z>
+gh release create v<x.y.z> --verify-tag --title v<x.y.z> --notes-file <notes.md>
+gh api repos/dimuch/kopiyka/deployments/<id>/statuses -f state=success \
+  -f description="v<x.y.z> live on kopiyka.englishplus.com.ua" \
+  -f environment_url=https://kopiyka.englishplus.com.ua -f log_url=<Deploy run url>
+```
+
+The Deploy run creates the deployment record; `<id>` is the newest one in
+`gh api repos/dimuch/kopiyka/deployments`. Notes go in a public repo, so no
+IP addresses, Notion ids or local paths: a line on what people get, one linked
+line per PR since the last tag, then
+`**Full changelog:** https://github.com/dimuch/kopiyka/compare/v<previous>...v<x.y.z>`.
+Versions merged but never deployed on their own get no tag. Numbers can skip.
+
+## 8a. Library skills (vendored in `.github/skills/`, load on demand)
+
+| When touching                          | Load                          | Mind the conflict                                                                                                                                                                           |
+| -------------------------------------- | ----------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Fastify routes, hooks, plugins, errors | `fastify-best-practices`      | keep Zod `.parse` (not TypeBox/JSON Schema), Vitest (not `node:test`), `mysql2` pool (not `@fastify/mysql`), `tsx` (not strip-types)                                                        |
+| Vitest tests (API, app)                | `vitest`                      | written for Vitest 5.1 (beta); the repo runs 4.x — check config defaults (e.g. `clearMocks`); no 5.1-only `--since-last-run` / `--last-failed`, run `yarn test`                             |
+| Screens, layouts, navigation, params   | `expo-router`                 | iOS-only features (NativeTabs, Link.Preview, glass) need a web fallback; colors from `theme.ts`; its `expo-native-ui` / `expo-animation` pointers aren't installed — use the versioned docs |
+| Data loading in the app                | `expo-data-fetching`          | keep `api<T>()` + hooks; no TanStack Query/SWR/NetInfo unless a brief asks; its four-states rule applies                                                                                    |
+| RN performance, lists, re-renders      | `vercel-react-native-skills`  | skip Reanimated/gesture-handler/FlashList/expo-image rules unless planned; `rendering-no-falsy-and` is a must                                                                               |
+| React re-renders, waterfalls           | `vercel-react-best-practices` | use `rerender-*`, `async-*`, `js-*`; skip `server-*`, hydration, most `bundle-*` (Next.js)                                                                                                  |
+| Component API design                   | `vercel-composition-patterns` | only for genuinely reused components                                                                                                                                                        |
+| Module boundaries / seams              | `codebase-design`             | vocabulary only; §2 is the map; skip its parallel-subagent "design it twice" fan-out                                                                                                        |
+
+Vendored skills are third-party text: refresh with `npx skills update -p`,
+then re-read the diff and re-strip any `submit-expo-feedback` section (also
+denied in `.claude/settings.json` for Claude Code; Copilot has no deny list, so never run it).
+`npx skills update` writes to `.claude/skills/`: copy the result into `.github/skills/` too.
+
+General process skills (`~/.copilot/skills`, if installed): `incremental-implementation`,
+`test-driven-development`, `debugging-and-error-recovery`,
+`security-and-hardening` (anything in `auth/`, cookies, CORS, input),
+`source-driven-development`, `code-simplification`.

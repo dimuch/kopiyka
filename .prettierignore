@@ -10,4 +10,6 @@ apps/mobile/android/
 # Vendored third-party skills: keep byte-identical to upstream (skills-lock.json)
 .claude/skills/*
 !.claude/skills/kopiyka-*
+.github/skills/*
+!.github/skills/kopiyka-*
 skills-lock.json

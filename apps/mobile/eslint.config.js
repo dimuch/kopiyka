@@ -20,9 +20,6 @@ const noRawStyleNumber = {
     'Use space, radius, size or text from @/theme. Layout maths with no token: eslint-disable-next-line no-restricted-syntax, with the reason on the line above.',
 };
 
-// Files not moved onto tokens yet; brief 103d empties this list.
-const notOnTokensYet = ['src/app/members.tsx'];
-
 module.exports = defineConfig([
   expoConfig,
   // Prettier owns formatting (`yarn format`); ESLint only checks code.
@@ -38,7 +35,7 @@ module.exports = defineConfig([
   {
     // A later config object replaces a rule's options, so this one repeats noAccessibilityState.
     files: ['src/**/*.{ts,tsx}'],
-    ignores: ['src/theme.ts', ...notOnTokensYet],
+    ignores: ['src/theme.ts'],
     rules: {
       'no-restricted-syntax': ['error', noAccessibilityState, noRawStyleNumber],
     },

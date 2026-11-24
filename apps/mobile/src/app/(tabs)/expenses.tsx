@@ -14,7 +14,7 @@ import { MonthSwitcher } from '@/components/MonthSwitcher';
 import { Pressable } from '@/components/Pressable';
 import { ReorderList } from '@/components/ReorderList';
 import { budgetProgress } from '@/data/budgetProgress';
-import { plannedCents, spentByCategory } from '@/data/monthSummary';
+import { spendingFigures, spentByCategory } from '@/data/monthSummary';
 import { tabTitle } from '@/data/tabItems';
 import { useCategoryOrder } from '@/data/useCategoryOrder';
 import { useMonth } from '@/data/useMonth';
@@ -45,9 +45,7 @@ export default function Expenses() {
   }, [data, ordered]);
   // Null until the month has loaded: €0 would read as "spent nothing".
   const total = rows ? rows.reduce((s, r) => s + r.spent, 0) : null;
-  // A month without categories has no budget; otherwise its plan is the sum of theirs, €0 included.
-  const noBudget = data?.categories.length === 0;
-  const plannedText = data ? eur(plannedCents(data.categories)) : null;
+  const figures = data && total !== null ? spendingFigures(total, data.categories) : null;
   const collapse = useCollapsingSummary();
 
   return (
@@ -72,26 +70,28 @@ export default function Expenses() {
         <Animated.View onLayout={collapse.onCardLayout} style={[styles.card, collapse.cardStyle]}>
           <View
             accessible
-            accessibilityLabel={
-              total === null
-                ? `Spent this month, ${error ? 'not available' : 'loading'}`
-                : noBudget
-                  ? `Spent this month, ${eur(total)}, budget not set`
-                  : `Spent this month, ${eur(total)} of ${plannedText}`
-            }
-            style={styles.totalRow}
+            accessibilityLabel={figures?.label ?? `Spent this month, ${error ? 'not available' : 'loading'}`}
+            style={styles.figures}
           >
-            <View style={styles.totalCol}>
-              <Text style={styles.caption}>Spent this month</Text>
-              {/* The total's own size, so the card doesn't change height when the amount arrives. */}
-              <Text style={[styles.total, total === null && { color: colors.muted }]}>
-                {total === null ? '—' : eur(total)}
-              </Text>
-            </View>
-            <View style={styles.budgetCol}>
-              <Text style={styles.caption}>Budget</Text>
-              <Text style={styles.budget}>{plannedText === null ? '—' : noBudget ? 'Not set' : plannedText}</Text>
-            </View>
+            {[
+              { label: 'Spent', value: figures?.spent },
+              { label: 'Remaining', value: figures?.remaining, over: figures?.over },
+              { label: 'Budgeted', value: figures?.budgeted },
+            ].map((figure) => (
+              <View key={figure.label} style={styles.figure}>
+                <Text style={styles.small}>{figure.label}</Text>
+                {/* "—" in the value's own size until the month loads, so the card keeps its height. */}
+                <Text
+                  style={[
+                    styles.figureValue,
+                    !figures && { color: colors.muted },
+                    figure.over && { color: colors.danger },
+                  ]}
+                >
+                  {figure.value ?? '—'}
+                </Text>
+              </View>
+            ))}
           </View>
         </Animated.View>
 
@@ -211,12 +211,10 @@ const makeStyles = (colors: Palette) =>
       paddingHorizontal: space.lg,
       gap: space.sm,
     },
-    totalRow: { flexDirection: 'row', alignItems: 'flex-end', justifyContent: 'space-between' },
-    totalCol: { gap: space.xxs },
-    budgetCol: { alignItems: 'flex-end', gap: space.xxs, paddingBottom: space.sm },
-    caption: { ...text.label, fontFamily: fonts.body, color: colors.muted },
-    total: { ...text.amountLg, color: colors.text },
-    budget: { ...text.heading, color: colors.muted, fontVariant: ['tabular-nums'] },
+    // Spent, Remaining and Budgeted in equal columns, the same look as Budget's figures (brief 107).
+    figures: { flexDirection: 'row', gap: space.sm },
+    figure: { flex: 1, gap: space.xs },
+    figureValue: { ...text.amount, color: colors.text },
     sectionHead: {
       flexDirection: 'row',
       justifyContent: 'space-between',

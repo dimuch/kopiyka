@@ -90,7 +90,7 @@ add it allowed is still possible: the row "+" opens the same form, where the cat
   - Verify: web at phone width, light and dark, with a category over plan: "€X over" is `danger` (computed colour
     `rgb(194, 59, 49)` light, `rgb(255, 138, 128)` dark).
   - ~3 lines
-- [ ] 4. Show Spent, Remaining and Budgeted on the Expenses card
+- [x] 4. Show Spent, Remaining and Budgeted on the Expenses card
   - Files: apps/mobile/src/data/monthSummary.ts, apps/mobile/test/monthSummary.test.ts,
     apps/mobile/src/app/(tabs)/expenses.tsx
   - Change: add `spendingFigures` (Contracts). The card's `totalRow`/`totalCol`/`budgetCol` become one accessible

@@ -59,12 +59,12 @@ function LabelForm({ ledger }: { ledger: Ledger }) {
   const colors = useColors();
   const styles = useThemedStyles(makeStyles);
   const { openLedger } = useSession();
-  const [text, setText] = useState(ledger.label ?? '');
+  const [draft, setDraft] = useState(ledger.label ?? '');
   const [busy, setBusy] = useState(false);
   const [failure, setFailure] = useState<string | null>(null);
   // `busy` disables the button only after a re-render; two taps in one tick would both get here.
   const inFlight = useRef(false);
-  const unchanged = text.trim() === (ledger.label ?? '');
+  const unchanged = draft.trim() === (ledger.label ?? '');
 
   function fail(message: string) {
     // role="alert" covers web; VoiceOver needs an explicit announcement.
@@ -74,7 +74,7 @@ function LabelForm({ ledger }: { ledger: Ledger }) {
 
   async function save() {
     if (inFlight.current) return;
-    const label = normalizeLabel(text);
+    const label = normalizeLabel(draft);
     if (label === null) return fail('A label can have up to 40 characters.');
     inFlight.current = true;
     setBusy(true);
@@ -87,7 +87,7 @@ function LabelForm({ ledger }: { ledger: Ledger }) {
         if (err instanceof ApiError && err.code === 'ledger_not_found') return router.dismissTo('/');
         return fail('Couldn’t save. Check your connection and try again.');
       }
-      setText(label);
+      setDraft(label);
       // Reloads the ledgers, so the picker, Home and this caption show it; the open ledger stays open.
       try {
         await openLedger(ledger.ledgerId);
@@ -106,8 +106,8 @@ function LabelForm({ ledger }: { ledger: Ledger }) {
       <Text style={styles.caption}>Your label</Text>
       <TextField
         accessibilityLabel="Your label"
-        value={text}
-        onChangeText={setText}
+        value={draft}
+        onChangeText={setDraft}
         placeholder={ledger.name}
         placeholderTextColor={colors.faint}
         returnKeyType="done"
@@ -169,13 +169,13 @@ function OwnerMembers({ ledgerId }: { ledgerId: number }) {
       reload();
     } catch (err) {
       const notHere = err instanceof ApiError && err.code === 'not_found';
-      const text = notHere
+      const message = notHere
         ? `${member.username} isn’t in this ledger any more.`
         : 'Couldn’t remove. Check your connection and try again.';
       setGone(notHere);
       // role="alert" covers web; VoiceOver needs an explicit announcement.
-      setFailure(text);
-      AccessibilityInfo.announceForAccessibility(text);
+      setFailure(message);
+      AccessibilityInfo.announceForAccessibility(message);
     } finally {
       inFlight.current = false;
       setBusy(false);
@@ -264,12 +264,12 @@ function PendingList({
     } catch (err) {
       // Expired, or answered meanwhile: the row is stale, so the list reloads under the message.
       const gone = err instanceof ApiError && err.code === 'not_found';
-      const text = gone
+      const message = gone
         ? `${invite.username}’s invite has already expired or been answered.`
         : 'Couldn’t revoke. Check your connection and try again.';
       // role="alert" covers web; VoiceOver needs an explicit announcement.
-      setFailure(text);
-      AccessibilityInfo.announceForAccessibility(text);
+      setFailure(message);
+      AccessibilityInfo.announceForAccessibility(message);
       if (gone) onChange();
     } finally {
       inFlight.current = false;
@@ -336,13 +336,13 @@ function InviteForm({ ledgerId, onInvited }: { ledgerId: number; onInvited: () =
       onInvited();
     } catch (err) {
       // One answer for an unknown user, a member and someone already invited: the API doesn't say which.
-      const text =
+      const message =
         err instanceof ApiError && err.code === 'cannot_invite'
           ? `Can’t invite ${name}. Check the spelling; they may already be in this ledger or invited to it.`
           : 'Couldn’t invite. Check your connection and try again.';
       // role="alert" covers web; VoiceOver needs an explicit announcement.
-      setFailure(text);
-      AccessibilityInfo.announceForAccessibility(text);
+      setFailure(message);
+      AccessibilityInfo.announceForAccessibility(message);
     } finally {
       inFlight.current = false;
       setBusy(false);
@@ -423,9 +423,9 @@ function MemberLeave({ ledger }: { ledger: Ledger }) {
     } catch (err) {
       // Removed by the owner meanwhile: they're out either way, and the ledger-gone handler is already moving them.
       if (!(err instanceof ApiError && err.code === 'ledger_not_found')) {
-        const text = 'Couldn’t leave. Check your connection and try again.';
-        setFailure(text);
-        AccessibilityInfo.announceForAccessibility(text);
+        const message = 'Couldn’t leave. Check your connection and try again.';
+        setFailure(message);
+        AccessibilityInfo.announceForAccessibility(message);
         inFlight.current = false;
         setBusy(false);
         return;

@@ -322,13 +322,9 @@ Otherwise its moves come from the diff.
   - Compact category header: label 14 → 13, figure 18 → 17, the centred group re-centres by 7–10pt.
   - Demo: the same changes, no console errors.
 
-<filled by the developer during build>
-
 ## Consolidate
 
 Skipped: the branch adds no function, hook, component, route or query, only one token role and style entries.
-
-<filled in /kopiyka-hos Phase 3a>
 
 ## Revision 1
 

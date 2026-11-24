@@ -12,6 +12,7 @@ import {
   monthLabel,
   monthName,
   normalizeAmount,
+  normalizeBalance,
   normalizePlanned,
   numericDate,
   otherAmountText,
@@ -208,5 +209,22 @@ describe('format: dates', () => {
     expect(shortDate('2026-09-06')).toBe('6 Sep 2026');
     expect(numericDate('2026-10-13')).toBe('13/10/2026');
     expect(numericDate('2027-01-01')).toBe('01/01/2027');
+  });
+});
+
+describe('normalizeBalance', () => {
+  it.each([
+    ['120', '120.00'],
+    ['-35', '-35.00'],
+    ['\u221235,5', '-35.50'],
+    [' 12.05 ', '12.05'],
+    ['0', '0.00'],
+    ['-0', '0.00'],
+  ])('reads %j as %j', (typed, amount) => {
+    expect(normalizeBalance(typed)).toBe(amount);
+  });
+
+  it.each(['', '-', '12.345', '123456789', '1e3', '--5'])('refuses %j', (typed) => {
+    expect(normalizeBalance(typed)).toBeNull();
   });
 });

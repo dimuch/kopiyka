@@ -370,7 +370,7 @@ created_by, deleted_at)`). Nov gets a list via `storeMonthList(db, id, '2026-11'
     - `null` → `null`.
   - Verify: a browser check that the Budget line looks as before.
   - ~70 lines
-- [ ] 12. Add signed amount parsing and the actual End requests
+- [x] 12. Add signed amount parsing and the actual End requests
   - Files: apps/mobile/src/format.ts (`normalizeBalance`), apps/mobile/src/data/actualEnd.ts (new),
     apps/mobile/test/format.test.ts
   - Tests, a `normalizeBalance` table:

@@ -135,7 +135,7 @@ shape, and there's no migration.
     - case and space merge
     - a removed expense left out
     - an empty name left out
-- [ ] 5. Suggest names already used in the category on the expense form (~105 lines)
+- [x] 5. Suggest names already used in the category on the expense form (~105 lines)
   - Files: apps/mobile/src/components/NameCombobox.tsx, apps/mobile/src/components/TextField.tsx,
     apps/mobile/src/app/expense.tsx, apps/mobile/demo-modules.txt
   - Change:

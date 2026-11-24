@@ -20,15 +20,16 @@ import { CategoryPicker } from '@/components/CategoryPicker';
 import { DateChips } from '@/components/DateChips';
 import { Icon } from '@/components/Icon';
 import { LoadError } from '@/components/LoadError';
+import { NameCombobox } from '@/components/NameCombobox';
 import { Pressable } from '@/components/Pressable';
 import { TabBar } from '@/components/TabBar';
-import { TextField } from '@/components/TextField';
 import { expenseLocked, firstOpenDate } from '@/data/expenseLock';
 import { lockedText, restoreRefusedText } from '@/data/monthEnded';
 import { deleteExpense, restoreExpense, saveExpense } from '@/data/expenses';
 import { setPendingUndo } from '@/data/undo';
 import { monthPicker } from '@/data/quick';
 import { type ExpenseDraftData, useExpenseDraft } from '@/data/useExpenseDraft';
+import { useExpenseNames } from '@/data/useExpenseNames';
 import { useMonthCategories } from '@/data/useMonthCategories';
 import { type Rate, useRate } from '@/data/useRate';
 import { eur, kyivToday, monthName, normalizeAmount, otherAmountText, shortDate, toCents } from '@/format';
@@ -158,6 +159,8 @@ function ExpenseForm({ draft, ledgerId }: { draft: ExpenseDraftData; ledgerId: n
   const month = date.slice(0, 7);
   const list = useMonthCategories(ledgerId, month);
   const selectedId = categoryId ?? list.firstQuickId;
+  // Names already used in the category, to pick instead of typing (brief 108); a locked form has nothing to fill.
+  const names = useExpenseNames(ledgerId, locked ? null : selectedId, month);
   const picker = list.status === 'ready' ? monthPicker(list.categories, list.quickIds, selectedId) : null;
   // A month with no categories has to be set up on the Budget tab first (brief 035). The date can't reach an ended
   // month unless the form is locked, and a locked form has nothing to fix.
@@ -319,8 +322,9 @@ function ExpenseForm({ draft, ledgerId }: { draft: ExpenseDraftData; ledgerId: n
 
         <View style={styles.group}>
           <Text style={styles.label}>What was it?</Text>
-          <TextField
+          <NameCombobox
             accessibilityLabel="What was it?"
+            names={names}
             value={name}
             onChangeText={(text) => edit(setName, text)}
             editable={!locked}

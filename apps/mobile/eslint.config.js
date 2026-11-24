@@ -20,7 +20,7 @@ const noRawStyleNumber = {
     'Use space, radius, size or text from @/theme. Layout maths with no token: eslint-disable-next-line no-restricted-syntax, with the reason on the line above.',
 };
 
-// Files not moved onto tokens yet; briefs 103b and 103c empty this list.
+// Files not moved onto tokens yet; brief 103c empties this list.
 const notOnTokensYet = [
   'src/app/category-form.tsx',
   'src/app/category/\\[categoryId\\].tsx',
@@ -30,10 +30,6 @@ const notOnTokensYet = [
   'src/app/login.tsx',
   'src/app/members.tsx',
   'src/app/no-ledger.tsx',
-  'src/components/AppearancePicker.tsx',
-  'src/components/LedgerPicker.tsx',
-  'src/components/NotionSyncPanel.tsx',
-  'src/components/PendingInvites.tsx',
 ];
 
 module.exports = defineConfig([

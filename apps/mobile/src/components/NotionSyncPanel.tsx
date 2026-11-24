@@ -4,7 +4,7 @@ import type { NotionStatus } from '@/api/types';
 import { useThemedStyles } from '@/appearance/AppearanceContext';
 import { Pressable } from '@/components/Pressable';
 import { statusText, syncErrorText, syncReport, type SyncOutcome } from '@/data/notionSync';
-import { fonts, type Palette } from '@/theme';
+import { fonts, type Palette, radius, size, space, text } from '@/theme';
 
 interface Props {
   status: NotionStatus;
@@ -91,28 +91,28 @@ const makeStyles = (colors: Palette) =>
       backgroundColor: colors.surface,
       borderColor: colors.border,
       borderWidth: 1,
-      borderRadius: 22,
-      paddingVertical: 14,
-      paddingHorizontal: 16,
-      gap: 10,
+      borderRadius: radius.lg,
+      paddingVertical: space.lg,
+      paddingHorizontal: space.lg,
+      gap: space.sm,
     },
-    row: { flexDirection: 'row', alignItems: 'center', gap: 12 },
-    status: { flex: 1, fontFamily: fonts.body, fontSize: 13, color: colors.muted },
+    row: { flexDirection: 'row', alignItems: 'center', gap: space.md },
+    status: { flex: 1, ...text.label, fontFamily: fonts.body, color: colors.muted },
     button: {
-      minHeight: 44,
-      paddingHorizontal: 16,
-      borderRadius: 22,
+      minHeight: size.iconButton,
+      paddingHorizontal: space.lg,
+      borderRadius: radius.pill,
       backgroundColor: colors.accent,
       alignItems: 'center',
       justifyContent: 'center',
     },
     dimmed: { opacity: 0.5 },
-    buttonText: { fontFamily: fonts.bodySemi, fontSize: 14, color: colors.onAccent },
-    result: { gap: 2 },
-    done: { fontFamily: fonts.body, fontSize: 14, color: colors.text },
-    failedRow: { flexDirection: 'row', alignItems: 'center', gap: 12 },
-    failed: { fontFamily: fonts.bodyMedium, fontSize: 14, color: colors.danger },
-    reason: { fontFamily: fonts.body, fontSize: 13, color: colors.muted },
-    retry: { minHeight: 44, minWidth: 44, alignItems: 'center', justifyContent: 'center' },
-    retryText: { fontFamily: fonts.bodySemi, fontSize: 14, color: colors.accent },
+    buttonText: { ...text.label, fontFamily: fonts.bodySemi, color: colors.onAccent },
+    result: { gap: space.xxs },
+    done: { ...text.label, fontFamily: fonts.body, color: colors.text },
+    failedRow: { flexDirection: 'row', alignItems: 'center', gap: space.md },
+    failed: { ...text.label, color: colors.danger },
+    reason: { ...text.label, fontFamily: fonts.body, color: colors.muted },
+    retry: { minHeight: size.iconButton, minWidth: size.iconButton, alignItems: 'center', justifyContent: 'center' },
+    retryText: { ...text.label, fontFamily: fonts.bodySemi, color: colors.accent },
   });

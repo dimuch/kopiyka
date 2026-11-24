@@ -294,3 +294,9 @@ config.
 
 Approved by the user: the plan (slices 0–3, one PR), the login title 40 → 28 (`display`), and three temporary local
 test users for the Members and no-ledger views, deleted after Gate B.
+
+## Gate B (2026-11-24)
+
+Approved by the user: push and PR on main 02b27ed at version 1.20.1, including the measured shifts (login title
+40 → 28 and the Username field 11.5pt higher, Members' list 5.5pt lower with rows 8pt shorter in total). iPhone check
+left for the user.

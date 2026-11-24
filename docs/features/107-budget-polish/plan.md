@@ -113,7 +113,7 @@ add it allowed is still possible: the row "+" opens the same form, where the cat
     refresh" note, and the card keeps its three amounts, not "—". `spendingFigures` never sees the error, so this
     is a screen check, not a unit case. The card still fades under the header on scroll.
   - ~120 lines
-- [ ] 5. Add an expense from its category row on Expenses
+- [x] 5. Add an expense from its category row on Expenses
   - Files: apps/mobile/src/app/(tabs)/expenses.tsx (`AddExpenseButton.tsx` is not touched)
   - Change:
     - Expenses: the header's right side becomes an empty `<View style={styles.side} />`, which keeps the switcher

@@ -183,7 +183,7 @@ number and bumps once more (rule 4).
 | 1   | minor | 1.16.1 → 1.17.0 | New capability: the Budget line exists for November onwards. The response shape is unchanged and there's no migration. A rollback just hides the line from November on again, as today. |
 | 2   | minor | 1.20.1 → 1.21.0 | New routes, an optional new field and an additive migration. The previous release runs on 018 and ignores it.                                                                           |
 | 3   | minor | 1.21.0 → 1.22.0 | The live demo build shows a line it didn't have (a new capability in a production build).                                                                                               |
-| 4   | minor | → 1.20.0        | A new user action (set or clear the actual End).                                                                                                                                        |
+| 4   | minor | 1.22.0 → 1.23.0 | A new user action (set or clear the actual End).                                                                                                                                        |
 
 Nothing reaches major: no field is removed or reshaped, no MCP tool changes, and every rollback keeps working. With
 a new native build on a rolled-back API, a missing `actual` reads as falsy, so there's no "Use calculated end", and a
@@ -355,7 +355,7 @@ created_by, deleted_at)`). Nov gets a list via `storeMonthList(db, id, '2026-11'
 
 ### PR 4 — `feat/month-actual-end-app`: the app control
 
-- [ ] 0. Bump version to 1.20.0 (or `main`'s next minor)
+- [x] 0. Bump version to 1.23.0 (`main`'s next minor)
 - [ ] 11. Mark an actual End on the Budget line
   - Files: apps/mobile/src/data/useMonthBalance.ts, apps/mobile/src/data/monthBalance.ts,
     apps/mobile/src/app/(tabs)/budget.tsx, apps/mobile/test/monthBalance.test.ts
@@ -482,6 +482,7 @@ created_by, deleted_at)`). Nov gets a list via `storeMonthList(db, id, '2026-11'
 - PR 2 slice 0: briefs 103–108 took 1.17.x–1.20.1 first, so PR 2 bumps 1.20.1 → 1.21.0 (rule 4); it branches from
   `origin/main` 3168377.
 - PR 3 slice 0: PR 2 shipped as 1.21.0, so PR 3 bumps 1.21.0 → 1.22.0; it branches from `origin/main` 1caa333.
+- PR 4 slice 0: PR 3 shipped as 1.22.0, so PR 4 bumps 1.22.0 → 1.23.0; it branches from `origin/main` b4d23ab.
 
 ## Consolidate
 

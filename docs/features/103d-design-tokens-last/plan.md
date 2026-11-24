@@ -97,7 +97,7 @@ Before slice 1, the orchestrator takes the **before** set on Base (Visual check)
 - [x] 0. Bump version to 1.20.1
   - Files: package.json, apps/mobile/app.json
   - Change: set both to 1.20.1
-- [ ] 1. Rename Members' local text names that would hide the text tokens (~36 lines)
+- [x] 1. Rename Members' local text names that would hide the text tokens (~36 lines)
   - Files: `apps/mobile/src/app/members.tsx`
   - Change: the renames in Contracts. No style changes.
   - Verify: gates. `rg -n "(const|let) text\b|\[text,|\(text\b|, text\b" apps/mobile/src/app/{login,members,no-ledger}.tsx`

@@ -100,13 +100,15 @@ export async function balanceRoutes(app: FastifyInstance, { db, now }: AppDeps):
   });
 
   /**
-   * Checks the month has a line, runs `write`, then answers the month read again. No lock: racing a category-list
-   * edit leaves at most an unused row.
+   * Checks the month has a line, runs `write`, then answers the month read again. No lock: if a category-list edit
+   * takes the month's line away in between, the write leaves an unused row and the reply is 409 too.
    */
   async function changeActualEnd(ledgerId: number, month: string, reply: FastifyReply, write: () => Promise<unknown>) {
-    if (!(await monthBalance(db, ledgerId, month, now()))) return reply.code(409).send({ error: 'no_balance' });
+    const noBalance = () => reply.code(409).send({ error: 'no_balance' });
+    if (!(await monthBalance(db, ledgerId, month, now()))) return noBalance();
     await write();
-    return { balance: toDto((await monthBalance(db, ledgerId, month, now()))!) };
+    const after = await monthBalance(db, ledgerId, month, now());
+    return after ? { balance: toDto(after) } : noBalance();
   }
 
   app.put('/api/ledgers/:id/months/:month/balance/actual-end', guards, async (req, reply) => {

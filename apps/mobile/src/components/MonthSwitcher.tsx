@@ -3,7 +3,7 @@ import { useColors, useThemedStyles } from '@/appearance/AppearanceContext';
 import { Icon } from '@/components/Icon';
 import { Pressable } from '@/components/Pressable';
 import { monthCaption, monthName, shiftMonth } from '@/format';
-import { fonts, type Palette } from '@/theme';
+import { type Palette, radius, size, space, text } from '@/theme';
 
 /**
  * Previous / "INCOME ’26 · October" / Next, for a screen that shows one 'YYYY-MM' month at a time. `title` is the
@@ -48,9 +48,18 @@ export function MonthSwitcher({
 
 const makeStyles = (colors: Palette) =>
   StyleSheet.create({
-    monthSwitch: { flexDirection: 'row', alignItems: 'center', gap: 4 },
+    monthSwitch: { flexDirection: 'row', alignItems: 'center', gap: space.xs },
     monthLabel: { alignItems: 'center' },
-    iconButton: { width: 44, height: 44, alignItems: 'center', justifyContent: 'center', borderRadius: 12 },
-    eyebrow: { fontFamily: fonts.body, fontSize: 12, color: colors.muted, letterSpacing: 0.5 },
-    month: { fontFamily: fonts.display, fontSize: 22, color: colors.text },
+    iconButton: {
+      width: size.iconButton,
+      height: size.iconButton,
+      alignItems: 'center',
+      justifyContent: 'center',
+      borderRadius: radius.md,
+    },
+    // All capitals (`monthCaption` upper-cases the title) need positive tracking, and the scale has no overline role
+    // (brief 105 decides).
+    // eslint-disable-next-line no-restricted-syntax
+    eyebrow: { ...text.caption, color: colors.muted, letterSpacing: 0.5 },
+    month: { ...text.title, color: colors.text },
   });

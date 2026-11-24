@@ -6,7 +6,7 @@ import { useColors, useThemedStyles } from '@/appearance/AppearanceContext';
 import { Icon } from '@/components/Icon';
 import { Pressable } from '@/components/Pressable';
 import { readTabs, type TabName, useTabItems } from '@/data/tabItems';
-import type { Palette } from '@/theme';
+import { type Palette, radius, space } from '@/theme';
 
 // The library bar's phone metrics (expo-router 58, BottomTabBar.js, TabBarIcon.js, Badge.js), so this copy lines up
 // with the bar on the tab pages. Recheck them after an expo-router upgrade.
@@ -67,6 +67,8 @@ function makeStyles(colors: Palette) {
       borderTopWidth: StyleSheet.hairlineWidth,
       borderTopColor: colors.border,
     },
+    // expo-router's BottomTabItem pads 5, so these icons line up with the library bar on the tab pages.
+    // eslint-disable-next-line no-restricted-syntax
     item: { flex: 1, alignItems: 'center', padding: 5 },
     icon: { ...StyleSheet.absoluteFill, alignItems: 'center', justifyContent: 'center' },
     badge: {
@@ -75,11 +77,15 @@ function makeStyles(colors: Palette) {
       end: -3,
       height: BADGE_SIZE,
       minWidth: BADGE_SIZE,
-      borderRadius: BADGE_SIZE / 2,
-      paddingHorizontal: 4,
+      borderRadius: radius.pill,
+      paddingHorizontal: space.xs,
       overflow: 'hidden',
       textAlign: 'center',
+      // Badge.js sizes its text from the badge: layout maths, no role.
+      // eslint-disable-next-line no-restricted-syntax
       fontSize: Math.floor((BADGE_SIZE * 3) / 4),
+      // Badge.js sizes its text from the badge: layout maths, no role.
+      // eslint-disable-next-line no-restricted-syntax
       lineHeight: BADGE_SIZE - 1,
       color: colors.onAccent,
       backgroundColor: colors.accent,

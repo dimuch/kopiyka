@@ -10,13 +10,23 @@ export function CategoryTile({ techName, label, size = 40 }: { techName: string;
       style={{
         width: size,
         height: size,
+        // The corner and letter scale with the tile (26–52pt): tile maths, no token.
+        // eslint-disable-next-line no-restricted-syntax
         borderRadius: size * 0.3,
         backgroundColor: tile.bg,
         alignItems: 'center',
         justifyContent: 'center',
       }}
     >
-      <Text style={{ fontFamily: fonts.display, fontSize: size * 0.43, color: tile.fg }}>
+      <Text
+        style={{
+          fontFamily: fonts.display,
+          // The corner and letter scale with the tile (26–52pt): tile maths, no token.
+          // eslint-disable-next-line no-restricted-syntax
+          fontSize: size * 0.43,
+          color: tile.fg,
+        }}
+      >
         {/* By code point: an emoji is two UTF-16 units. */}
         {[...label][0]?.toUpperCase()}
       </Text>

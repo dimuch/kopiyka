@@ -110,7 +110,7 @@ export function progressColor(state: BudgetState, colors: Palette): string {
 
 /** The text of a button that deletes or removes something (expense form, Category menu, category form). */
 export function dangerText(colors: Palette): TextStyle {
-  return { fontFamily: fonts.bodyMedium, fontSize: 15, color: colors.danger };
+  return { ...text.body, fontFamily: fonts.bodyMedium, color: colors.danger };
 }
 
 /**

@@ -10,6 +10,8 @@ only calls the API). Setup and commands: `README.md`.
   (plan → skeptic → your approval → atomic commits → review → your approval → PR).
   Behaviour-preserving cleanups run through `/kopiyka-hos-refactoring` instead
   (rules: `.claude/skills/kopiyka-refactoring/SKILL.md`).
+- Where things stand (open PRs of a brief, planned briefs, follow-ups): `docs/features/BACKLOG.md`.
+  Update it when a brief ships or is planned. `AGENTS.md` is this file's Copilot twin; keep them in step.
 - Before every commit: `yarn format:check && yarn lint && yarn typecheck && yarn test`.
 - Commits are authored by `dimuch` with no `Co-Authored-By` trailer; never push without
   the user's explicit OK.

@@ -106,7 +106,7 @@ shape, and there's no migration.
     - 404 `ledger_not_found` for a non-member
       PR B starts here, on `feat/expense-name-suggestions-app` branched from PR A's head.
 
-- [ ] B0. Bump version to 1.20.0
+- [x] B0. Bump version to 1.20.0
   - Files: package.json, apps/mobile/app.json
   - Change: set both to 1.20.0 (PR B adds the user-facing picker, a minor change of its own)
 - [ ] 3. Load and filter name suggestions in the app (~80 lines)

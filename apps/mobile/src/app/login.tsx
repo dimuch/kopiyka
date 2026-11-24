@@ -8,7 +8,7 @@ import { useAuth } from '@/auth/AuthContext';
 import { Pressable } from '@/components/Pressable';
 import { TextField } from '@/components/TextField';
 import { loginErrorText } from '@/data/loginError';
-import { fonts, type Palette } from '@/theme';
+import { fonts, type Palette, radius, size, space, text } from '@/theme';
 
 /** The demo (briefs 080, 081): the app with sample data in the browser, no account needed. */
 const DEMO_URL = 'https://demo.kopiyka.englishplus.com.ua';
@@ -46,7 +46,7 @@ export default function Login() {
       <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={styles.body}>
         <Text style={styles.title}>Kopiyka</Text>
 
-        <View style={{ gap: 14 }}>
+        <View style={{ gap: space.lg }}>
           <View style={styles.field}>
             <Text style={styles.label}>Username</Text>
             <TextField
@@ -128,44 +128,53 @@ const makeStyles = (colors: Palette) =>
     screen: { flex: 1, backgroundColor: colors.bg },
     body: {
       flex: 1,
-      padding: 24,
+      padding: space.xxl,
       justifyContent: 'center',
-      gap: 32,
+      gap: space.xxxl,
       width: '100%',
       maxWidth: 420,
       alignSelf: 'center',
     },
-    title: { fontFamily: fonts.display, fontSize: 40, color: colors.text, letterSpacing: -0.8 },
-    field: { gap: 6 },
-    label: { fontFamily: fonts.bodyMedium, fontSize: 13, color: colors.muted },
+    title: { ...text.display, color: colors.text },
+    field: { gap: space.sm },
+    label: { ...text.label, color: colors.muted },
     input: {
+      ...text.input,
+      fontFamily: fonts.bodyMedium,
       height: 52,
-      borderRadius: 14,
+      borderRadius: radius.md,
       borderWidth: 1,
       borderColor: colors.borderStrong,
       backgroundColor: colors.surface,
       color: colors.text,
-      paddingHorizontal: 16,
-      fontFamily: fonts.bodyMedium,
-      fontSize: 17,
+      paddingHorizontal: space.lg,
     },
+    // The one-time code: big, spaced digits that the scale has no role for (one caller; brief 105 picks its face with
+    // Inter).
+    // eslint-disable-next-line no-restricted-syntax
     passwordInput: { fontFamily: fonts.display, fontSize: 26, letterSpacing: 8, fontVariant: ['tabular-nums'] },
-    error: { fontFamily: fonts.bodyMedium, fontSize: 14, color: colors.over },
+    error: { ...text.label, color: colors.over },
     button: {
       height: 56,
-      borderRadius: 28,
+      borderRadius: radius.pill,
       backgroundColor: colors.accent,
       alignItems: 'center',
       justifyContent: 'center',
     },
     buttonDisabled: { opacity: 0.4 },
-    buttonText: { fontFamily: fonts.bodySemi, fontSize: 16, color: colors.onAccent },
+    buttonText: { ...text.bodyStrong, color: colors.onAccent },
     // The Sign in button and the demo link right below it, as one group.
-    actions: { gap: 8 },
+    actions: { gap: space.sm },
     // A 44pt touch target, as the conventions ask.
-    demoLink: { minHeight: 44, minWidth: 44, paddingHorizontal: 16, alignSelf: 'center', justifyContent: 'center' },
-    demoLinkText: { fontFamily: fonts.bodySemi, fontSize: 15, color: colors.accent },
+    demoLink: {
+      minHeight: size.iconButton,
+      minWidth: size.iconButton,
+      paddingHorizontal: space.lg,
+      alignSelf: 'center',
+      justifyContent: 'center',
+    },
+    demoLinkText: { ...text.bodyStrong, color: colors.accent },
     // The access request and its price, as one group: no gap, so the price sits right under the link's 44pt box.
     access: { alignItems: 'center' },
-    price: { fontFamily: fonts.bodyMedium, fontSize: 13, color: colors.muted, textAlign: 'center' },
+    price: { ...text.label, color: colors.muted, textAlign: 'center' },
   });

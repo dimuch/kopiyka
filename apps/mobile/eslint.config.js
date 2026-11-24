@@ -21,7 +21,7 @@ const noRawStyleNumber = {
 };
 
 // Files not moved onto tokens yet; brief 103d empties this list.
-const notOnTokensYet = ['src/app/login.tsx', 'src/app/members.tsx', 'src/app/no-ledger.tsx'];
+const notOnTokensYet = ['src/app/members.tsx'];
 
 module.exports = defineConfig([
   expoConfig,

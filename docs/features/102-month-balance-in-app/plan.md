@@ -299,7 +299,7 @@ created_by, deleted_at)`). Nov gets a list via `storeMonthList(db, id, '2026-11'
     - App: `monthBalance.test.ts`'s `balanceLine` table is unchanged apart from `actual: false` on each literal, and
       stays green.
   - ~145 lines
-- [ ] 7. Let members set and clear a month's actual End
+- [x] 7. Let members set and clear a month's actual End
   - Files: apps/api/src/balances/routes.ts, apps/api/test/actualEnd.int.test.ts (new)
   - Change: PUT and DELETE as in Contracts. Zod params and body come first, then `monthBalance` → 409 `no_balance`,
     then the write, then the month is read again for the reply. No lock: the only check is "has a line", and racing

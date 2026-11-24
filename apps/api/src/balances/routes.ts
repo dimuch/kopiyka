@@ -1,10 +1,10 @@
-import type { FastifyInstance } from 'fastify';
+import type { FastifyInstance, FastifyReply } from 'fastify';
 import type { RowDataPacket } from 'mysql2/promise';
 import { z } from 'zod';
 import type { AppDeps } from '../app.js';
 import { kyivToday, monthOf, monthStart } from '../dates.js';
 import type { Db } from '../db.js';
-import { centsToString, toCents } from '../money.js';
+import { centsToString, SIGNED_AMOUNT_RE, toCents } from '../money.js';
 import { MonthString } from '../monthChecks.js';
 import { incomeRows, spentRows } from '../summary/periodRows.js';
 import { carryBalance, type CarriedBalance, type KnownMonths, walkStart } from './carry.js';
@@ -20,6 +20,18 @@ export interface MonthBalanceDto {
 }
 
 const MonthParams = z.object({ month: MonthString });
+
+const ActualEndBody = z.object({
+  amount: z.string().regex(SIGNED_AMOUNT_RE, 'expected an amount, 2 decimals at most'),
+});
+
+function toDto(cents: CarriedBalance): MonthBalanceDto {
+  return {
+    openingEur: centsToString(cents.openingCents),
+    closingEur: centsToString(cents.closingCents),
+    actual: cents.actual,
+  };
+}
 
 /**
  * A 'YYYY-MM' month's Start and End for a ledger (brief 102), or null when it has none: after the current month in
@@ -75,7 +87,8 @@ async function monthBalance(db: Db, ledgerId: number, month: string, now: Date):
 
 /**
  * Each month's opening and closing balance (briefs 090 and 102): imported months keep their stored numbers, and the
- * months after them are worked out. A month without one answers `{ balance: null }`.
+ * months after them are worked out. A month without one answers `{ balance: null }`. Any member can set a month's
+ * actual End, ended months too, or clear it; a month without a line can't have one (409 `no_balance`).
  */
 export async function balanceRoutes(app: FastifyInstance, { db, now }: AppDeps): Promise<void> {
   const guards = { preHandler: [app.requireAuth, app.requireLedger] };
@@ -83,13 +96,40 @@ export async function balanceRoutes(app: FastifyInstance, { db, now }: AppDeps):
   app.get('/api/ledgers/:id/months/:month/balance', guards, async (req) => {
     const { month } = MonthParams.parse(req.params);
     const cents = await monthBalance(db, req.ledger!.ledgerId, month, now());
-    const balance: MonthBalanceDto | null = cents
-      ? {
-          openingEur: centsToString(cents.openingCents),
-          closingEur: centsToString(cents.closingCents),
-          actual: cents.actual,
-        }
-      : null;
-    return { balance };
+    return { balance: cents ? toDto(cents) : null };
+  });
+
+  /**
+   * Checks the month has a line, runs `write`, then answers the month read again. No lock: racing a category-list
+   * edit leaves at most an unused row.
+   */
+  async function changeActualEnd(ledgerId: number, month: string, reply: FastifyReply, write: () => Promise<unknown>) {
+    if (!(await monthBalance(db, ledgerId, month, now()))) return reply.code(409).send({ error: 'no_balance' });
+    await write();
+    return { balance: toDto((await monthBalance(db, ledgerId, month, now()))!) };
+  }
+
+  app.put('/api/ledgers/:id/months/:month/balance/actual-end', guards, async (req, reply) => {
+    const { month } = MonthParams.parse(req.params);
+    const { amount } = ActualEndBody.parse(req.body);
+    const ledgerId = req.ledger!.ledgerId;
+    return changeActualEnd(ledgerId, month, reply, () =>
+      db.query(
+        `INSERT INTO month_actual_ends (ledger_id, balance_month, closing_eur) VALUES (?, ?, ?)
+         ON DUPLICATE KEY UPDATE closing_eur = ?`,
+        [ledgerId, monthStart(month), amount, amount],
+      ),
+    );
+  });
+
+  app.delete('/api/ledgers/:id/months/:month/balance/actual-end', guards, async (req, reply) => {
+    const { month } = MonthParams.parse(req.params);
+    const ledgerId = req.ledger!.ledgerId;
+    return changeActualEnd(ledgerId, month, reply, () =>
+      db.query('DELETE FROM month_actual_ends WHERE ledger_id = ? AND balance_month = ?', [
+        ledgerId,
+        monthStart(month),
+      ]),
+    );
   });
 }

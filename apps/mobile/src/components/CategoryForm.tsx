@@ -17,7 +17,7 @@ import { type CategoryFields, checkFields } from '@/data/categoryForm';
 import { nameRefusedText } from '@/data/categoryName';
 import { overIncomeText } from '@/data/overIncome';
 import { monthName } from '@/format';
-import { fonts, type Palette } from '@/theme';
+import { fonts, type Palette, radius, size, space, text } from '@/theme';
 
 /**
  * A category's name and planned amount with one Save, for adding and editing in a 'YYYY-MM' month (brief 065): checks
@@ -170,39 +170,38 @@ export function CategoryForm({
 
 const makeStyles = (colors: Palette) =>
   StyleSheet.create({
-    body: { gap: 16, paddingTop: 16, paddingBottom: 40 },
-    caption: { fontFamily: fonts.body, fontSize: 14, color: colors.muted },
-    field: { gap: 6 },
-    label: { fontFamily: fonts.bodySemi, fontSize: 13, color: colors.muted },
+    body: { gap: space.lg, paddingTop: space.lg, paddingBottom: space.huge },
+    caption: { ...text.label, fontFamily: fonts.body, color: colors.muted },
+    field: { gap: space.sm },
+    label: { ...text.label, fontFamily: fonts.bodySemi, color: colors.muted },
     symbol: {
       position: 'absolute',
       left: 14,
       top: 13,
       zIndex: 1,
-      fontFamily: fonts.body,
-      fontSize: 16,
+      ...text.input,
       color: colors.muted,
     },
     input: {
-      height: 48,
-      borderRadius: 14,
+      height: size.control,
+      borderRadius: radius.md,
       borderWidth: 1,
       borderColor: colors.borderStrong,
       backgroundColor: colors.surface,
-      paddingHorizontal: 14,
+      paddingHorizontal: space.lg,
       color: colors.text,
+      ...text.input,
       fontFamily: fonts.bodyMedium,
-      fontSize: 16,
     },
-    amount: { paddingLeft: 32, fontVariant: ['tabular-nums'] },
-    error: { fontFamily: fonts.bodyMedium, fontSize: 13, color: colors.over },
+    amount: { paddingLeft: space.xxxl, fontVariant: ['tabular-nums'] },
+    error: { ...text.label, color: colors.over },
     primary: {
       minHeight: 56,
-      borderRadius: 18,
-      paddingHorizontal: 16,
+      borderRadius: radius.lg,
+      paddingHorizontal: space.lg,
       backgroundColor: colors.accent,
       alignItems: 'center',
       justifyContent: 'center',
     },
-    primaryText: { fontFamily: fonts.bodySemi, fontSize: 16, color: colors.onAccent },
+    primaryText: { ...text.bodyStrong, color: colors.onAccent },
   });

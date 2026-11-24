@@ -31,7 +31,6 @@ const notOnTokensYet = [
   'src/app/members.tsx',
   'src/app/no-ledger.tsx',
   'src/components/AppearancePicker.tsx',
-  'src/components/CategoryForm.tsx',
   'src/components/LedgerPicker.tsx',
   'src/components/NotionSyncPanel.tsx',
   'src/components/PendingInvites.tsx',

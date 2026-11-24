@@ -2,7 +2,7 @@ import { useMemo, useState } from 'react';
 import { Animated, StyleSheet, Text, type LayoutChangeEvent } from 'react-native';
 import { useColors, useThemedStyles } from '@/appearance/AppearanceContext';
 import { eur } from '@/format';
-import { fonts, type Palette } from '@/theme';
+import { fonts, type Palette, space, text } from '@/theme';
 
 /**
  * Scroll-linked hand-off from the "Spent" card to a compact total in the top bar:
@@ -84,8 +84,8 @@ export function HeaderDivider({ style }: { style: object }) {
 const makeStyles = (colors: Palette) =>
   StyleSheet.create({
     compact: { flexDirection: 'row', alignItems: 'baseline', flexShrink: 1 },
-    label: { flexShrink: 1, marginRight: 6, fontFamily: fonts.bodyMedium, fontSize: 14, color: colors.muted },
-    spent: { fontFamily: fonts.display, fontSize: 18, color: colors.text, fontVariant: ['tabular-nums'] },
-    budget: { fontFamily: fonts.bodyMedium, fontSize: 14, color: colors.muted, fontVariant: ['tabular-nums'] },
+    label: { ...text.label, flexShrink: 1, marginRight: space.sm, color: colors.muted },
+    spent: { ...text.heading, fontFamily: fonts.display, color: colors.text, fontVariant: ['tabular-nums'] },
+    budget: { ...text.label, color: colors.muted, fontVariant: ['tabular-nums'] },
     divider: { position: 'absolute', left: -20, right: -20, bottom: 0, height: 1, backgroundColor: colors.border },
   });

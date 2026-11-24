@@ -15,6 +15,7 @@ import {
 import { useColors } from '@/appearance/AppearanceContext';
 import { blockTextGestures } from '@/components/blockTextGestures';
 import { dropIndex, edgeStep, rowOffset } from '@/data/reorder';
+import { radius } from '@/theme';
 
 /** What a row spreads on the `Pressable` that picks it up. Empty while the list is disabled. */
 export interface DragHandlers {
@@ -303,5 +304,5 @@ function Row({ index, offset, dragY, heldStyle, onHeight, children }: RowProps) 
 }
 
 const styles = StyleSheet.create({
-  held: { zIndex: 1, borderRadius: 14 },
+  held: { zIndex: 1, borderRadius: radius.md },
 });

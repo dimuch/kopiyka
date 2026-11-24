@@ -3,6 +3,7 @@ import { StyleSheet } from 'react-native';
 import { useColors } from '@/appearance/AppearanceContext';
 import { Icon } from '@/components/Icon';
 import { Pressable } from '@/components/Pressable';
+import { radius, size } from '@/theme';
 
 /** The "+" header button that opens the add form; preselects `categoryId` when given. */
 export function AddExpenseButton({ categoryId }: { categoryId?: number }) {
@@ -21,5 +22,11 @@ export function AddExpenseButton({ categoryId }: { categoryId?: number }) {
 
 const styles = StyleSheet.create({
   // Same box as the header's month arrows.
-  button: { width: 44, height: 44, alignItems: 'center', justifyContent: 'center', borderRadius: 12 },
+  button: {
+    width: size.iconButton,
+    height: size.iconButton,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRadius: radius.md,
+  },
 });

@@ -3,7 +3,7 @@ import { StyleSheet, Text, View } from 'react-native';
 import { useColors, useThemedStyles } from '@/appearance/AppearanceContext';
 import { Icon, type IconName } from '@/components/Icon';
 import { Pressable } from '@/components/Pressable';
-import { fonts, type Palette } from '@/theme';
+import { fonts, type Palette, radius, space, text } from '@/theme';
 
 export interface HomeCard {
   title: string;
@@ -40,7 +40,7 @@ export function HomeCards({ cards }: { cards: readonly HomeCard[] }) {
 
 const makeStyles = (colors: Palette) =>
   StyleSheet.create({
-    grid: { flexDirection: 'row', flexWrap: 'wrap', gap: 12 },
+    grid: { flexDirection: 'row', flexWrap: 'wrap', gap: space.md },
     card: {
       // Two per row: each starts just under half the width and grows into the gap.
       flexBasis: '45%',
@@ -48,11 +48,11 @@ const makeStyles = (colors: Palette) =>
       backgroundColor: colors.surface,
       borderColor: colors.border,
       borderWidth: 1,
-      borderRadius: 22,
-      paddingVertical: 16,
-      paddingHorizontal: 18,
-      gap: 8,
+      borderRadius: radius.lg,
+      paddingVertical: space.lg,
+      paddingHorizontal: space.lg,
+      gap: space.sm,
     },
-    cardTitle: { fontFamily: fonts.bodyMedium, fontSize: 15, color: colors.text },
-    figure: { fontFamily: fonts.display, fontSize: 20, color: colors.text, fontVariant: ['tabular-nums'] },
+    cardTitle: { ...text.body, fontFamily: fonts.bodyMedium, color: colors.text },
+    figure: { ...text.title, color: colors.text, fontVariant: ['tabular-nums'] },
   });

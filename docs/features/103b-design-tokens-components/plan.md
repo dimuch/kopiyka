@@ -97,7 +97,7 @@ version numbers.
 - [x] 0. Bump version to 1.17.3
   - Files: package.json, apps/mobile/app.json
   - Change: set both to 1.17.3
-- [ ] 1. Put the tab bar, month switcher, header buttons and Home cards on tokens (~80 lines)
+- [x] 1. Put the tab bar, month switcher, header buttons and Home cards on tokens (~80 lines)
   - Files: `src/components/{TabBar,MonthSwitcher,HomeButton,AddExpenseButton,HomeCards,CollapsingSummary,ReorderList,CategoryTile}.tsx`,
     `eslint.config.js` (−8 entries)
   - Change: the snapping rules, with these specifics:

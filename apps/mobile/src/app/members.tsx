@@ -13,7 +13,17 @@ import { TextField } from '@/components/TextField';
 import { normalizeLabel } from '@/data/ledgerLabel';
 import { inviteMember, removeMember, revokeInvite, setLedgerLabel } from '@/data/members';
 import { useMembers } from '@/data/useMembers';
-import { dangerText, fonts, outlinedDangerButton, outlinedDangerText, type Palette } from '@/theme';
+import {
+  dangerText,
+  fonts,
+  outlinedDangerButton,
+  outlinedDangerText,
+  type Palette,
+  radius,
+  size,
+  space,
+  text,
+} from '@/theme';
 
 // Opened straight from a web link there's nothing to go back to, so fall back to Settings.
 function goBack() {
@@ -39,7 +49,7 @@ export default function MembersScreen() {
       </View>
       {/* One tap on Save or Invite works on iPhone with the keyboard up. */}
       <ScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
-        <View style={{ gap: 2 }}>
+        <View style={{ gap: space.xxs }}>
           <Text accessibilityRole="header" style={styles.title}>
             Members
           </Text>
@@ -186,7 +196,7 @@ function OwnerMembers({ ledgerId }: { ledgerId: number }) {
     return error ? (
       <LoadError message="Couldn’t load the members. Check your connection and try again." onRetry={reload} />
     ) : (
-      <ActivityIndicator color={colors.accent} style={{ marginTop: 24 }} />
+      <ActivityIndicator color={colors.accent} style={{ marginTop: space.xxl }} />
     );
   }
   return (
@@ -508,68 +518,80 @@ function ConfirmPanel({
 
 const makeStyles = (colors: Palette) =>
   StyleSheet.create({
-    screen: { flex: 1, backgroundColor: colors.bg, paddingHorizontal: 20, paddingTop: 20 },
-    header: { flexDirection: 'row', alignItems: 'center', paddingBottom: 6 },
-    back: { height: 44, flexDirection: 'row', alignItems: 'center', gap: 4, marginLeft: -8, paddingHorizontal: 8 },
-    backText: { fontFamily: fonts.bodyMedium, fontSize: 15, color: colors.muted },
-    content: { gap: 16, paddingTop: 8, paddingBottom: 40 },
-    title: { fontFamily: fonts.display, fontSize: 28, color: colors.text, letterSpacing: -0.3 },
-    caption: { fontFamily: fonts.body, fontSize: 13, color: colors.muted },
-    list: { backgroundColor: colors.surface, borderColor: colors.border, borderWidth: 1, borderRadius: 18 },
-    row: { paddingVertical: 10, paddingHorizontal: 16, gap: 10 },
+    screen: { flex: 1, backgroundColor: colors.bg, paddingHorizontal: space.xl, paddingTop: space.xl },
+    header: { flexDirection: 'row', alignItems: 'center', paddingBottom: space.sm },
+    back: {
+      height: size.iconButton,
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: space.xs,
+      marginLeft: -space.sm,
+      paddingHorizontal: space.sm,
+    },
+    backText: { ...text.body, fontFamily: fonts.bodyMedium, color: colors.muted },
+    content: { gap: space.lg, paddingTop: space.sm, paddingBottom: space.huge },
+    title: { ...text.display, color: colors.text },
+    caption: { ...text.label, fontFamily: fonts.body, color: colors.muted },
+    list: { backgroundColor: colors.surface, borderColor: colors.border, borderWidth: 1, borderRadius: radius.lg },
+    row: { paddingVertical: space.sm, paddingHorizontal: space.lg, gap: space.sm },
     divider: { borderTopWidth: 1, borderTopColor: colors.border },
-    line: { flexDirection: 'row', alignItems: 'center', gap: 12 },
-    who: { flex: 1, minHeight: 44, justifyContent: 'center', gap: 2 },
-    name: { fontFamily: fonts.bodyMedium, fontSize: 15, color: colors.text },
-    role: { fontFamily: fonts.body, fontSize: 13, color: colors.muted },
-    remove: { minHeight: 44, minWidth: 44, justifyContent: 'center', paddingHorizontal: 4 },
+    line: { flexDirection: 'row', alignItems: 'center', gap: space.md },
+    who: { flex: 1, minHeight: size.iconButton, justifyContent: 'center', gap: space.xxs },
+    name: { ...text.body, fontFamily: fonts.bodyMedium, color: colors.text },
+    role: { ...text.label, fontFamily: fonts.body, color: colors.muted },
+    remove: {
+      minHeight: size.iconButton,
+      minWidth: size.iconButton,
+      justifyContent: 'center',
+      paddingHorizontal: space.xs,
+    },
     removeText: dangerText(colors),
     leave: outlinedDangerButton(colors),
     leaveText: outlinedDangerText(colors),
     panel: {
-      gap: 8,
-      padding: 14,
-      borderRadius: 14,
+      gap: space.sm,
+      padding: space.lg,
+      borderRadius: radius.md,
       borderWidth: 1,
       borderColor: colors.borderStrong,
       backgroundColor: colors.surfaceRaised,
     },
-    question: { fontFamily: fonts.bodySemi, fontSize: 15, color: colors.text },
-    detail: { fontFamily: fonts.body, fontSize: 14, lineHeight: 20, color: colors.text },
-    failure: { fontFamily: fonts.bodyMedium, fontSize: 14, color: colors.over },
-    panelButtons: { flexDirection: 'row', justifyContent: 'flex-end', alignItems: 'center', gap: 8 },
-    dismiss: { minHeight: 44, justifyContent: 'center', paddingHorizontal: 12 },
-    dismissText: { fontFamily: fonts.bodyMedium, fontSize: 15, color: colors.muted },
+    question: { ...text.bodyStrong, color: colors.text },
+    detail: { ...text.label, fontFamily: fonts.body, color: colors.text },
+    failure: { ...text.label, color: colors.over },
+    panelButtons: { flexDirection: 'row', justifyContent: 'flex-end', alignItems: 'center', gap: space.sm },
+    dismiss: { minHeight: size.iconButton, justifyContent: 'center', paddingHorizontal: space.md },
+    dismissText: { ...text.body, fontFamily: fonts.bodyMedium, color: colors.muted },
     confirm: {
-      minHeight: 44,
+      minHeight: size.iconButton,
       flexDirection: 'row',
       alignItems: 'center',
-      gap: 8,
-      borderRadius: 22,
-      paddingHorizontal: 18,
+      gap: space.sm,
+      borderRadius: radius.pill,
+      paddingHorizontal: space.lg,
       backgroundColor: colors.danger,
     },
-    confirmText: { fontFamily: fonts.bodySemi, fontSize: 15, color: colors.onAccent },
-    section: { gap: 8 },
+    confirmText: { ...text.bodyStrong, color: colors.onAccent },
+    section: { gap: space.sm },
     input: {
-      height: 48,
-      borderRadius: 14,
+      ...text.input,
+      fontFamily: fonts.bodyMedium,
+      height: size.control,
+      borderRadius: radius.md,
       borderWidth: 1,
       borderColor: colors.borderStrong,
       backgroundColor: colors.surface,
       color: colors.text,
-      paddingHorizontal: 14,
-      fontFamily: fonts.bodyMedium,
-      fontSize: 16,
+      paddingHorizontal: space.lg,
     },
     primary: {
-      height: 48,
+      height: size.control,
       flexDirection: 'row',
       alignItems: 'center',
       justifyContent: 'center',
-      gap: 8,
-      borderRadius: 24,
+      gap: space.sm,
+      borderRadius: radius.pill,
       backgroundColor: colors.accent,
     },
-    primaryText: { fontFamily: fonts.bodySemi, fontSize: 15, color: colors.onAccent },
+    primaryText: { ...text.bodyStrong, color: colors.onAccent },
   });

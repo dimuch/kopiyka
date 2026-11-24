@@ -5,7 +5,7 @@ import { CategoryTile } from '@/components/CategoryTile';
 import { Icon } from '@/components/Icon';
 import { PhoneColumn } from '@/components/PhoneColumn';
 import { Pressable } from '@/components/Pressable';
-import { fonts, type Palette } from '@/theme';
+import { fonts, type Palette, radius, size, space, text } from '@/theme';
 
 interface Props {
   visible: boolean;
@@ -62,30 +62,42 @@ const makeStyles = (colors: Palette) =>
       backgroundColor: colors.surface,
       borderTopWidth: 1,
       borderColor: colors.borderStrong,
-      borderTopLeftRadius: 26,
-      borderTopRightRadius: 26,
-      paddingTop: 10,
-      paddingHorizontal: 20,
-      paddingBottom: 32,
-      gap: 14,
+      borderTopLeftRadius: radius.xl,
+      borderTopRightRadius: radius.xl,
+      paddingTop: space.sm,
+      paddingHorizontal: space.xl,
+      paddingBottom: space.xxxl,
+      gap: space.lg,
     },
-    handle: { alignSelf: 'center', width: 40, height: 4, borderRadius: 2, backgroundColor: colors.borderStrongest },
+    handle: {
+      alignSelf: 'center',
+      width: 40,
+      height: 4,
+      borderRadius: radius.pill,
+      backgroundColor: colors.borderStrongest,
+    },
     head: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
-    title: { fontFamily: fonts.display, fontSize: 18, color: colors.text },
-    close: { width: 44, height: 44, marginRight: -10, alignItems: 'center', justifyContent: 'center' },
-    hint: { fontFamily: fonts.body, fontSize: 12, color: colors.muted },
-    grid: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
+    title: { ...text.heading, fontFamily: fonts.display, color: colors.text },
+    close: {
+      width: size.iconButton,
+      height: size.iconButton,
+      marginRight: -space.sm,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    hint: { ...text.caption, color: colors.muted },
+    grid: { flexDirection: 'row', flexWrap: 'wrap', gap: space.sm },
     item: {
       width: '48.5%',
-      height: 48,
-      paddingHorizontal: 10,
+      height: size.control,
+      paddingHorizontal: space.sm,
       flexDirection: 'row',
       alignItems: 'center',
-      gap: 10,
-      borderRadius: 14,
+      gap: space.sm,
+      borderRadius: radius.md,
       borderWidth: 1,
       borderColor: colors.borderStrong,
       backgroundColor: colors.surfaceRaised,
     },
-    itemText: { flex: 1, fontFamily: fonts.bodyMedium, fontSize: 14, color: colors.text },
+    itemText: { ...text.label, flex: 1, color: colors.text },
   });

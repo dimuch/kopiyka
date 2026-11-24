@@ -6,7 +6,7 @@ import { CategorySheet } from '@/components/CategorySheet';
 import { CategoryTile } from '@/components/CategoryTile';
 import { Icon } from '@/components/Icon';
 import { Pressable } from '@/components/Pressable';
-import { fonts, type Palette } from '@/theme';
+import { type Palette, radius, size, space, text } from '@/theme';
 
 interface Props {
   /** Shown as tiles. */
@@ -71,26 +71,26 @@ export function CategoryPicker({ quick, more, selectedId, onPick, disabled = fal
 
 const makeStyles = (colors: Palette) =>
   StyleSheet.create({
-    grid: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
+    grid: { flexDirection: 'row', flexWrap: 'wrap', gap: space.sm },
     cat: {
-      height: 48,
-      borderRadius: 14,
+      height: size.control,
+      borderRadius: radius.md,
       borderWidth: 1,
       borderColor: colors.borderStrong,
       backgroundColor: colors.surface,
       width: '31.5%',
-      paddingHorizontal: 8,
+      paddingHorizontal: space.sm,
       flexDirection: 'row',
       alignItems: 'center',
-      gap: 8,
+      gap: space.sm,
     },
     catOn: { borderColor: colors.accent, backgroundColor: colors.accentTint },
-    catText: { flex: 1, fontFamily: fonts.bodyMedium, fontSize: 13, color: colors.text },
+    catText: { ...text.label, flex: 1, color: colors.text },
     more: {
       borderStyle: 'dashed',
       borderColor: colors.borderStrongest,
       backgroundColor: 'transparent',
       justifyContent: 'center',
-      gap: 6,
+      gap: space.sm,
     },
   });

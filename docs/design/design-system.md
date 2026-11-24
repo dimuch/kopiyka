@@ -87,6 +87,10 @@ and IBM Plex Sans. Letter spacing is negative and grows tighter with size.
 | `bodyStrong` | 15 / 20     | 600    | −0.2     | row names, amounts           |
 | `label`      | 13 / 18     | 500    | −0.1     | buttons, chips, field labels |
 | `caption`    | 12 / 16     | 400    | 0        | notes, "of €120"             |
+| `input`      | 16 / —      | 400    | −0.2     | typed text (min 16)          |
+
+`input` sets no line height, because fields are single-line and centred by their 48pt height. Below
+16px, iOS Safari zooms into a field on focus.
 
 The money variants `amountLg` (`display` with tabular digits) and `amount` (`bodyStrong` with
 tabular digits) are used for every figure.

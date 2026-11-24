@@ -5,7 +5,7 @@ import { useAppearance, useColors, useThemedStyles } from '@/appearance/Appearan
 import { Icon } from '@/components/Icon';
 import { Pressable } from '@/components/Pressable';
 import { numericDate, parseDate } from '@/format';
-import { fonts, type Palette } from '@/theme';
+import { fonts, type Palette, radius, size, space, text } from '@/theme';
 
 interface Props {
   value: string; // 'YYYY-MM-DD'
@@ -113,26 +113,26 @@ const makeStyles = (colors: Palette) =>
   StyleSheet.create({
     wrap: { flex: 1, minWidth: 0 },
     field: {
-      height: 48,
-      borderRadius: 14,
+      height: size.control,
+      borderRadius: radius.md,
       borderWidth: 1,
       borderColor: colors.borderStrong,
       backgroundColor: colors.surface,
       flexDirection: 'row',
       alignItems: 'center',
       justifyContent: 'space-between',
-      paddingHorizontal: 14,
+      paddingHorizontal: space.lg,
     },
-    text: { fontFamily: fonts.bodyMedium, fontSize: 16, color: colors.text },
+    text: { ...text.input, fontFamily: fonts.bodyMedium, color: colors.text },
     backdrop: { flex: 1, backgroundColor: colors.backdrop },
     sheet: {
       backgroundColor: colors.surface,
       borderTopWidth: 1,
       borderColor: colors.borderStrong,
-      borderTopLeftRadius: 26,
-      borderTopRightRadius: 26,
-      paddingTop: 10,
-      paddingHorizontal: 12,
-      paddingBottom: 32,
+      borderTopLeftRadius: radius.xl,
+      borderTopRightRadius: radius.xl,
+      paddingTop: space.sm,
+      paddingHorizontal: space.md,
+      paddingBottom: space.xxxl,
     },
   });

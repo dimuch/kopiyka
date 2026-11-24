@@ -94,6 +94,9 @@ export const text = {
   bodyStrong,
   label: { fontFamily: fonts.bodyMedium, fontSize: 13, lineHeight: 18, letterSpacing: -0.1 },
   caption: { fontFamily: fonts.body, fontSize: 12, lineHeight: 16, letterSpacing: 0 },
+  /** Typed text in a field: iOS Safari zooms into an input under 16px. Fields are single-line and centred by their
+   *  height, so no lineHeight. */
+  input: { fontFamily: fonts.body, fontSize: 16, letterSpacing: -0.2 },
   /** Money: tabular digits, so amounts line up. */
   amount: { ...bodyStrong, fontVariant: ['tabular-nums'] },
   amountLg: { ...display, fontVariant: ['tabular-nums'] },

@@ -277,3 +277,64 @@ describe('demo expenses, deleting and restoring', () => {
     ]);
   });
 });
+
+describe('demo expense names', () => {
+  /** The fixture plus food (category 2) expenses with these names and dates; ids from 200. */
+  function namesStore(rows: [name: string, expenseDate: string, extra?: { categoryId?: number; removal?: number }][]) {
+    const data = fixtureData();
+    rows.forEach(([name, expenseDate, extra], index) =>
+      data.expenses.push({
+        ...data.expenses[1]!,
+        expenseId: 200 + index,
+        name,
+        expenseDate,
+        categoryId: extra?.categoryId ?? 2,
+        removal: extra?.removal ?? null,
+      }),
+    );
+    const api = createStore(data, () => NOW);
+    return (categoryId = 2, month = '2026-11') =>
+      api<{ names: string[] }>(`/api/ledgers/1/expenses/names?categoryId=${categoryId}&month=${month}`);
+  }
+
+  it('orders by uses, then the newest date, then A–Z', async () => {
+    const names = namesStore([
+      ['Delhaize', '2026-11-01'],
+      ['Delhaize', '2026-11-02'],
+      ['Lidl', '2026-11-09'],
+      ['aldi', '2026-11-09'],
+    ]);
+    // Market (the fixture's) is on 11-10, newer than Lidl and aldi, which tie and go A–Z.
+    expect(await names()).toEqual({ names: ['Delhaize', 'Market', 'aldi', 'Lidl'] });
+  });
+
+  it('includes the month before and leaves out older months', async () => {
+    const names = namesStore([
+      ['October shop', '2026-10-20'],
+      ['September shop', '2026-09-30'],
+    ]);
+    expect(await names()).toEqual({ names: ['Market', 'October shop'] });
+  });
+
+  it("lists only the category's names", async () => {
+    const names = namesStore([['Garage', '2026-11-05', { categoryId: 1 }]]);
+    expect(await names(1)).toEqual({ names: ['Rent', 'Garage'] });
+  });
+
+  it('merges case and spaces, keeping the newest spelling', async () => {
+    const names = namesStore([
+      ['market ', '2026-11-12'],
+      ['MARKET', '2026-11-01'],
+    ]);
+    expect(await names()).toEqual({ names: ['market'] });
+  });
+
+  it('leaves out removed expenses and empty names', async () => {
+    const names = namesStore([
+      ['Gone', '2026-11-05', { removal: 1 }],
+      ['', '2026-11-06'],
+      ['  ', '2026-11-07'],
+    ]);
+    expect(await names()).toEqual({ names: ['Market'] });
+  });
+});

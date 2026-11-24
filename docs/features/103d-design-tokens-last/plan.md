@@ -3,7 +3,7 @@
 Status: approved <!-- draft → skeptic-approved → approved (by the user) -->
 Brief: ./brief.md
 Branch: chore/design-tokens-last
-Base: origin/main (89d43f7, version 1.18.1)
+Base: origin/main (02b27ed, version 1.20.0; rebased from 89d43f7 after main moved)
 
 ## Approach
 
@@ -86,7 +86,7 @@ paddingHorizontal: space.lg, ... }`
 
 ## Version
 
-Bump: patch — 1.18.1 → 1.18.2
+Bump: patch — 1.20.0 → 1.20.1
 Why: §8b `patch` ("styling, behaviour-preserving refactor"). Shipped app styles shift slightly on three screens. There's
 no new capability, and no API, schema or connector change.
 
@@ -94,9 +94,9 @@ no new capability, and no API, schema or connector change.
 
 Before slice 1, the orchestrator takes the **before** set on Base (Visual check). Slice 0 only touches the version.
 
-- [ ] 0. Bump version to 1.18.2
+- [x] 0. Bump version to 1.20.1
   - Files: package.json, apps/mobile/app.json
-  - Change: set both to 1.18.2
+  - Change: set both to 1.20.1
 - [ ] 1. Rename Members' local text names that would hide the text tokens (~36 lines)
   - Files: `apps/mobile/src/app/members.tsx`
   - Change: the renames in Contracts. No style changes.

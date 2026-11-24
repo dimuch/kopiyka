@@ -108,7 +108,7 @@ Before slice 1, the orchestrator takes the **before** set on Base (Visual check)
   - Verify: `yarn lint` with both files guarded. In the browser, views l and n (Visual check), light and dark. AC3 on
     `/login`: `[...document.querySelectorAll('input')].map((i) => getComputedStyle(i).fontSize)` gives
     `["16px", "26px"]`.
-- [ ] 3. Put Members on design tokens and lint every screen (~105 lines)
+- [x] 3. Put Members on design tokens and lint every screen (~105 lines)
   - Files: `apps/mobile/src/app/members.tsx`, `apps/mobile/eslint.config.js`
   - Change: Contracts → Members, then Contracts → Lint (AC2).
   - Verify: `yarn lint`. `rg -n notOnTokensYet apps/mobile` finds nothing. The allowlist count (Contracts). AC3 on
@@ -274,11 +274,21 @@ username, Members' label and invite fields), and the login block's centring with
 
 ## Deviations
 
-<filled by the developer during build>
+- Measured after slice 3 (web, 390×844, against the Base set; light and dark matched):
+  - Login: title 40 → 28, Sign in 16 → 15; the Username label sits 11.5pt higher and everything below 3–4pt higher.
+    Inputs `["16px", "26px"]`.
+  - No-ledger: under 1pt; the title didn't wrap differently.
+  - Members: the list starts 5.5pt lower, its two rows are 8pt shorter in total, and the Invite button ends 4pt higher.
+    With Remove tapped, the panel is 4.5pt taller and its buttons move up to 4pt. The invite failure line 14 → 13.
+    Inputs `["16px", "16px"]`. Dark checked on m1 only; m2/m3 were checked in light.
+  - Demo: Home, Budget and Add expense render with no console errors (none of the three screens is in the demo).
+- Main moved to 1.20.0 (brief 108) during review: rebased onto 02b27ed and bumped 1.20.0 → 1.20.1 instead of 1.18.2
+  (§8b). 108 touched none of the three screens; the gates were re-run on the rebased branch.
 
 ## Consolidate
 
-<filled in /kopiyka-hos Phase 3a>
+Skipped: the branch adds no function, hook, component, route or query, only style entries, renames and the lint
+config.
 
 ## Gate A (2026-11-24)
 

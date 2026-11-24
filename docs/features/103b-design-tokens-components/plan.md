@@ -344,3 +344,8 @@ The slices and the version are unchanged.
 
 Approved by the user: the plan; the 16pt `input` role with no line height; the Home card figure 20 → 22; and the
 ledger picker / pending invites checked from the code diff only (Open question 6), listed as unchecked in the PR.
+
+## Gate B (2026-11-24)
+
+Approved by the user: push and PR. iPhone check (tab bar badge shape, input text placement, the date sheet) left for
+the user.

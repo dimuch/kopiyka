@@ -3,7 +3,7 @@
 Status: approved <!-- draft → skeptic-approved → approved (by the user) -->
 Brief: ./brief.md
 Branch: chore/shared-components
-Base: origin/main (a88d277, version 1.22.0; rebased from 1caa333 after main moved)
+Base: origin/main (904351f, version 1.23.0; rebased twice after main moved, from 1caa333 and then a88d277)
 
 ## Approach
 
@@ -140,7 +140,7 @@ Alternatives considered:
 
 ## Version
 
-Bump: patch — 1.22.0 → 1.22.1
+Bump: patch — 1.23.0 → 1.23.1
 Why: §8b `patch` ("behaviour-preserving refactor that touches shipped code"). The app's shipped components change shape
 in code but draw the same. There's no new capability, and no API, schema or connector change.
 
@@ -148,9 +148,9 @@ in code but draw the same. There's no new capability, and no API, schema or conn
 
 Before slice 1, the orchestrator takes the **before** set on Base (Visual check). Slice 0 only touches the version.
 
-- [x] 0. Bump version to 1.22.1
+- [x] 0. Bump version to 1.23.1
   - Files: package.json, apps/mobile/app.json
-  - Change: set both to 1.22.1
+  - Change: set both to 1.23.1
 - [x] 1. Draw the shared components' cards with one Card component (~105 lines)
   - Files: `src/components/Card.tsx` (new), `src/components/{HomeCards,NotionSyncPanel,PendingInvites,EmptyMonth,AppearancePicker,LedgerPicker}.tsx`,
     `apps/mobile/demo-modules.txt`
@@ -287,7 +287,7 @@ look different.
   before the before set.
 - **Worktree set-up** (no `node_modules`, no `.env`): handled in the Visual check set-up, before the before set.
 - **Later-part estimates are rough.** Each later plan re-measures, and splits again if it passes 400.
-- **Main moves:** if another PR takes 1.22.1, rebase, take main's number and bump once more (§8b).
+- **Main moves:** if another PR takes 1.23.1, rebase, take main's number and bump once more (§8b).
 
 ## Open questions
 
@@ -335,7 +335,7 @@ Each part: base main after the previous one, patch bump, before/after snapshots 
 
 - **104b, `Button` filled (≈ 380):** `Button({ variant: 'primary' | 'danger', label, onPress, busy, disabled, … })`.
   - It covers CategoryForm Save, income-item Save, expense Add/Update (with its "+" icon), login Sign in,
-    delete-category's danger button, EmptyMonth, Members Save, Invite and confirm, PendingInvites Accept, and
+    delete-category's danger button, the actual End form's Save (main 63129b5), EmptyMonth, Members Save, Invite and confirm, PendingInvites Accept, and
     NotionSync.
   - Today's look stays through props, each needing 2+ callers:
     - height 56/48/44
@@ -360,7 +360,7 @@ Each part: base main after the previous one, patch bump, before/after snapshots 
     - CategorySheet's items are `surfaceRaised`, which in dark differs from `surface`. They become a Chip `raised`
       option or stay an exception, and the plan decides.
 - **104e, `ScreenHeader` (≈ 340):** three variants, no booleans.
-  - `modal`: text Back, centred title and the 52pt spacer, for the 4 form screens. Their 8pt top padding stays on the
+  - `modal`: text Back, centred title and the 52pt spacer, for the 4 form screens and the actual End form. Their 8pt top padding stays on the
     screens.
   - `month`: Home, the MonthSwitcher and an optional action, on equal sides (Budget, Income, Expenses).
   - `page`: icon Back with a label, optional actions and the optional `HeaderDivider` (the category screen, its
@@ -395,10 +395,15 @@ Each part: base main after the previous one, patch bump, before/after snapshots 
 - **Behaviour checks after slice 2:** Expenses scrolls and its summary card fades out (opacity 0) as before. On Budget, a long
   press lifts the groceries row (the held style shows) and it drops back in place; Budget then matches its before
   snapshot again.
-- **Main moved during the build** (1.22.0, a88d277, which also added a draft 104 brief). The branch was rebased onto
-  it: the brief approved at Gate A replaces main's unreviewed draft, `BACKLOG.md`'s 104 row records the split, and
-  slice 0 now bumps 1.22.0 → 1.22.1. Main's changes since 1caa333 touch the demo store and docs, none of the files this
-  branch changes.
+- **Main moved twice during the build.**
+  - First to a88d277 (1.22.0), which also added a draft 104 brief. The brief approved at Gate A replaces main's
+    unreviewed draft, and `BACKLOG.md`'s 104 row records the split. Those changes touched the demo store and docs,
+    none of this branch's files.
+  - Then to 904351f (1.23.0), the actual End form. It adds a "Start → End" line to Budget, which this branch also
+    edits (merged cleanly). Budget got a fresh baseline from main's `budget.tsx` (`snap:before:104:budget2:*`), and
+    the branch's Budget matches it in light and dark: 0 differing elements, same roles and labels.
+  - Slice 0 now bumps 1.23.0 → 1.23.1.
+  - The new `actual-end.tsx` has no card. Its 56pt Save and modal header join 104b and 104e below.
 - The demo (port 8082) showed Home, Budget, Income, Expenses (with bars) and a category, light and dark, with no console
   errors. The app's console shows only the pre-existing 404s for `notion/status` (the QA ledger isn't synced) and
   the 401 from before sign-in.

@@ -108,7 +108,7 @@ export function progressColor(state: BudgetState, colors: Palette): string {
   return state === 'over' ? colors.danger : state === 'near' ? colors.caution : colors.active;
 }
 
-/** The text of a button that deletes or removes something (expense form, Category menu, category form). */
+/** The text of a button that deletes or removes something (Category menu, category form, expense form, income item, Members). */
 export function dangerText(colors: Palette): TextStyle {
   return { ...text.body, fontFamily: fonts.bodyMedium, color: colors.danger };
 }

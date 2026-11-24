@@ -16,7 +16,7 @@ import { overIncomeText } from '@/data/overIncome';
 import { setPendingUndo } from '@/data/undo';
 import { useCategoryTotals } from '@/data/useCategoryTotals';
 import { parseIdParam, parseMonthParam } from '@/linkParams';
-import { fonts, type Palette } from '@/theme';
+import { fonts, type Palette, radius, size, space, text } from '@/theme';
 
 // Opened straight from a web link there's nothing to go back to, so fall back to Home.
 function leave() {
@@ -162,22 +162,22 @@ function Confirm({
 
 const makeStyles = (colors: Palette) =>
   StyleSheet.create({
-    screen: { flex: 1, backgroundColor: colors.bg, paddingHorizontal: 20, paddingTop: 8 },
-    header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 },
-    back: { height: 44, justifyContent: 'center', marginLeft: -8, paddingHorizontal: 8 },
-    backText: { fontFamily: fonts.bodyMedium, fontSize: 15, color: colors.muted },
-    title: { fontFamily: fonts.display, fontSize: 18, color: colors.text },
-    body: { gap: 16, paddingTop: 16, paddingBottom: 40 },
-    question: { fontFamily: fonts.display, fontSize: 24, color: colors.text },
-    warning: { fontFamily: fonts.body, fontSize: 16, lineHeight: 24, color: colors.text },
-    error: { fontFamily: fonts.bodyMedium, fontSize: 13, color: colors.over },
+    screen: { flex: 1, backgroundColor: colors.bg, paddingHorizontal: space.xl, paddingTop: space.sm },
+    header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: space.sm },
+    back: { height: size.iconButton, justifyContent: 'center', marginLeft: -space.sm, paddingHorizontal: space.sm },
+    backText: { ...text.body, fontFamily: fonts.bodyMedium, color: colors.muted },
+    title: { ...text.heading, fontFamily: fonts.display, color: colors.text },
+    body: { gap: space.lg, paddingTop: space.lg, paddingBottom: space.huge },
+    question: { ...text.title, color: colors.text },
+    warning: { ...text.body, color: colors.text },
+    error: { ...text.label, color: colors.over },
     destructive: {
       minHeight: 56,
-      borderRadius: 18,
-      paddingHorizontal: 16,
+      borderRadius: radius.lg,
+      paddingHorizontal: space.lg,
       backgroundColor: colors.danger,
       alignItems: 'center',
       justifyContent: 'center',
     },
-    destructiveText: { fontFamily: fonts.bodySemi, fontSize: 16, color: colors.onAccent, textAlign: 'center' },
+    destructiveText: { ...text.bodyStrong, color: colors.onAccent, textAlign: 'center' },
   });

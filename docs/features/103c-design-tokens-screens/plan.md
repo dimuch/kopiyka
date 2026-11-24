@@ -135,7 +135,7 @@ Before slice 1, the orchestrator takes the **before** set on Base (see Visual ch
     - The menu comment's "64 = paddingTop (20) + 44" stays true (`space.xl`, `size.iconButton`).
   - Verify: `yarn lint` with the file guarded. In the browser: views a–d (Visual check), plus collapsing on scroll.
     The compact header still appears as the card scrolls under (the card is shorter, and `onCardLayout` re-measures it).
-- [ ] 3. Put the category form, delete category and danger text on design tokens (~45 lines)
+- [x] 3. Put the category form, delete category and danger text on design tokens (~45 lines)
   - Files: `src/app/{category-form,delete-category}.tsx`, `src/theme.ts` (`dangerText`), `eslint.config.js` (−2)
   - Change: the shared header on both screens. Category form: `remove` → `size.control`. Delete category:
     - `body` → `lg`/`lg`/`huge`

@@ -94,7 +94,7 @@ capability, and no API, schema or connector change.
 Before slice 1, take the **before** set (Visual check below) on Base, with no code changed yet. Slice 0 only touches
 version numbers.
 
-- [ ] 0. Bump version to 1.17.3
+- [x] 0. Bump version to 1.17.3
   - Files: package.json, apps/mobile/app.json
   - Change: set both to 1.17.3
 - [ ] 1. Put the tab bar, month switcher, header buttons and Home cards on tokens (~80 lines)

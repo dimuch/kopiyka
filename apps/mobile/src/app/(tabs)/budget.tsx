@@ -127,7 +127,19 @@ export default function Budget() {
           ) : null}
         </View>
       </View>
-      {balance ? <Text style={styles.balance}>{balance}</Text> : null}
+      {/* Any month with a line, ended ones too, can have its actual End set by hand (brief 102). */}
+      {balance ? (
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel={balance}
+          accessibilityHint="Sets the month’s actual end"
+          onPress={() => pushOnce({ pathname: '/actual-end', params: { month } })}
+          style={styles.balanceButton}
+        >
+          <Text style={styles.balance}>{balance}</Text>
+          <Icon name="edit" color={colors.muted} size={14} />
+        </Pressable>
+      ) : null}
 
       {/* Room under the last row, so the Undo bar can't cover it. */}
       <ScrollView
@@ -298,14 +310,17 @@ const makeStyles = (colors: Palette) =>
     // Equal-width sides keep the month switcher on the header's true centre; flexBasis 0 matters on web.
     side: { flex: 1, flexBasis: 0, flexDirection: 'row' },
     sideEnd: { justifyContent: 'flex-end' },
-    balance: {
-      ...text.label,
-      fontFamily: fonts.body,
-      color: colors.muted,
-      textAlign: 'center',
-      fontVariant: ['tabular-nums'],
-      paddingBottom: space.sm,
+    balanceButton: {
+      minHeight: size.iconButton,
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'center',
+      gap: space.xs,
+      alignSelf: 'center',
+      paddingHorizontal: space.sm,
+      marginTop: -space.sm,
     },
+    balance: { ...text.label, fontFamily: fonts.body, color: colors.muted, fontVariant: ['tabular-nums'] },
     iconButton: {
       width: size.iconButton,
       height: size.iconButton,

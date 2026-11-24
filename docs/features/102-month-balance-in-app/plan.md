@@ -395,7 +395,7 @@ created_by, deleted_at)`). Nov gets a list via `storeMonthList(db, id, '2026-11'
     - Save and "Use calculated end" close back to Budget;
     - with PUT blocked in DevTools → "Couldn’t save…", the form stays, and the line is unchanged after Back.
   - ~190 lines (a screen with its five states doesn't split into green halves)
-- [ ] 14. Open the actual End form from the Budget line
+- [x] 14. Open the actual End form from the Budget line
   - Files: apps/mobile/src/app/(tabs)/budget.tsx
   - Change: the line becomes the `Pressable` from Contracts, opening the form with `pushOnce`.
   - Verify: AC7's browser and iPhone checks (below).

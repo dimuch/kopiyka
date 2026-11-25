@@ -295,8 +295,11 @@ function IncomeFigures({ incomeCents, plannedCents }: { incomeCents: number; pla
       accessibilityLabel={`Income ${income}, budgeted ${planned}, remaining ${leftText}`}
       style={styles.figures}
     >
-      {figures.map((figure) => (
-        <View key={figure.label} style={styles.figure}>
+      {figures.map((figure, index) => (
+        <View
+          key={figure.label}
+          style={[styles.figure, index === 1 && styles.figureCentre, index === 2 && styles.figureEnd]}
+        >
           <Text style={styles.small}>{figure.label}</Text>
           <Text style={[styles.figureValue, figure.over && { color: colors.danger }]}>{figure.value}</Text>
         </View>
@@ -344,8 +347,11 @@ const makeStyles = (colors: Palette) =>
       paddingHorizontal: space.lg,
     },
     divider: { borderBottomWidth: 1, borderBottomColor: colors.border },
-    figures: { flexDirection: 'row', gap: space.sm },
-    figure: { flex: 1, gap: space.xs },
+    // Like the Expenses card: Income at the left edge, Budgeted centred, Remaining at the right edge.
+    figures: { flexDirection: 'row', justifyContent: 'space-between', gap: space.sm },
+    figure: { gap: space.xs },
+    figureCentre: { alignItems: 'center' },
+    figureEnd: { alignItems: 'flex-end' },
     figureValue: { ...text.amount, color: colors.text },
     openRow: { flexDirection: 'row', alignItems: 'center' },
     // Square until brief 105, as before IconButton: a rounded corner would only round its web focus ring.

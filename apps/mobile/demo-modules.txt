@@ -55,6 +55,7 @@ src/closeToBudget.ts
 src/components/AddExpenseButton.tsx
 src/components/AmountFields.tsx
 src/components/AppShell.tsx
+src/components/Button.tsx
 src/components/Card.tsx
 src/components/CategoryForm.tsx
 src/components/CategoryInMonth.tsx

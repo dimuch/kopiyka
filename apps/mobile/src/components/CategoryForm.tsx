@@ -1,17 +1,9 @@
 import { type ReactNode, useRef, useState } from 'react';
-import {
-  AccessibilityInfo,
-  ActivityIndicator,
-  ScrollView,
-  StyleSheet,
-  Text,
-  type TextInputInstance,
-  View,
-} from 'react-native';
+import { AccessibilityInfo, ScrollView, StyleSheet, Text, type TextInputInstance, View } from 'react-native';
 import { ApiError } from '@/api/apiError';
 import type { Category } from '@/api/types';
 import { useColors, useThemedStyles } from '@/appearance/AppearanceContext';
-import { Pressable } from '@/components/Pressable';
+import { Button } from '@/components/Button';
 import { TextField } from '@/components/TextField';
 import { type CategoryFields, checkFields } from '@/data/categoryForm';
 import { nameRefusedText } from '@/data/categoryName';
@@ -150,17 +142,7 @@ export function CategoryForm({
 
       {gone ? null : (
         <>
-          <Pressable
-            accessibilityRole="button"
-            // While saving the only child is a spinner, so the name has to be given here.
-            accessibilityLabel="Save"
-            aria-busy={busy}
-            disabled={busy}
-            onPress={submit}
-            style={[styles.primary, busy && { opacity: 0.6 }]}
-          >
-            {busy ? <ActivityIndicator color={colors.onAccent} /> : <Text style={styles.primaryText}>Save</Text>}
-          </Pressable>
+          <Button variant="primary" size="large" label="Save" busy={busy} onPress={submit} />
           {children}
         </>
       )}
@@ -195,13 +177,4 @@ const makeStyles = (colors: Palette) =>
     },
     amount: { paddingLeft: space.xxxl, fontVariant: ['tabular-nums'] },
     error: { ...text.label, color: colors.over },
-    primary: {
-      minHeight: 56,
-      borderRadius: radius.lg,
-      paddingHorizontal: space.lg,
-      backgroundColor: colors.accent,
-      alignItems: 'center',
-      justifyContent: 'center',
-    },
-    primaryText: { ...text.bodyStrong, color: colors.onAccent },
   });

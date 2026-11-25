@@ -217,29 +217,29 @@ There's no new capability, and no API, schema or connector change.
 Before slice 1, the orchestrator takes the **before** set (Visual check). The line counts come from the scratch draft;
 each stage was checked on its own with `tsc` and ESLint.
 
-- [ ] 0. Bump version to 1.23.9
+- [x] 0. Bump version to 1.23.9
   - Files: package.json, apps/mobile/app.json
   - Change: set both to 1.23.9
-- [ ] 1. Add Text and draw the buttons' labels and the headers' text with it (~88 lines)
+- [x] 1. Add Text and draw the buttons' labels and the headers' text with it (~88 lines)
   - Files: `src/components/Text.tsx` (new), `src/components/Button.tsx`, `src/components/ScreenHeader.tsx`,
     `apps/mobile/demo-modules.txt`
   - Change: Text as in Contracts, whole, as the earlier parts' components shipped. Button's label map; ScreenHeader's
     title and Back label.
   - Verify: gates; `export:web` + `check-builds --accept`, with only the Text line added. Snapshots: `login`,
     `settings`, `members`, `category-form-add`, `expense-edit`, `delete-category`, `category`, `category-bad-link`.
-- [ ] 2. Draw the month switcher, summaries, errors, empty month, toast and Home cards with Text (~87 lines)
+- [x] 2. Draw the month switcher, summaries, errors, empty month, toast and Home cards with Text (~87 lines)
   - Files: `src/components/MonthSwitcher.tsx`, `CollapsingSummary.tsx`, `LoadError.tsx`, `EmptyMonth.tsx`,
     `UndoToast.tsx`, `HomeCards.tsx` (all under `src/components/`)
   - Change: their rows in the table, and the clean-up.
   - Verify: gates. Snapshots: `home`, `budget`, `budget-empty`, `budget-error`, `income`, `expenses`,
     `category-scrolled`, `category-undo`, `category-bad-link`.
-- [ ] 3. Draw Settings' pickers, the invites and the demo strip with Text (~90 lines)
+- [x] 3. Draw Settings' pickers, the invites and the demo strip with Text (~90 lines)
   - Files: `src/components/PlaceholderPage.tsx`, `AppearancePicker.tsx`, `LedgerPicker.tsx`, `PendingInvites.tsx`,
     `src/demo/DemoStrip.tsx`
   - Change: their rows in the table; DemoStrip's link moves to `Link asChild`.
   - Verify: gates. Snapshots: `settings`, `no-ledger`, `demo-home`; on `demo-home`, the Sign in row is still an `A`
     and `document.querySelector('a[href$="/login"]')` finds it.
-- [ ] 4. Draw the expense and category forms' fields, chips and lists with Text (~97 lines)
+- [x] 4. Draw the expense and category forms' fields, chips and lists with Text (~97 lines)
   - Files: `src/components/AmountFields.tsx`, `CategoryForm.tsx`, `CategoryPicker.tsx`, `CategorySheet.tsx`,
     `DateChips.tsx`, `NameCombobox.tsx`
   - Change: their rows in the table.
@@ -514,11 +514,38 @@ script, "nothing moves". The line counts come from the full draft and are measur
 
 ## Deviations
 
-<filled by the developer during build>
+- **Set-up.** No other session held the dev ports: the API (:3000), the web app (:8084) and the demo (:8082) ran from
+  this worktree, with the two `.env` files copied in (git-ignored). `claude-qa-104f` (#180, ledger 171) was seeded
+  through the API: C is category 979 with 10 expenses (E is 417, the 10 November one), D is 980, plus one income item.
+  `claude-qa-104f-n` (#181) was created with `--join` and removed through the members API.
+- **The slices were copied from the planner's scratch draft** (outside the repo). After slice 4 the branch's
+  `components/` and `demo/` match the draft's 104f part file for file.
+- **The invite and Members.** The before set's invite (made after Members' before snapshot) showed as a "Revoke"
+  row when slice 1 compared Members. It was revoked through the API and Members matched; the after set made its own
+  invite just before the no-ledger view, as planned.
+- **The test database is shared with other sessions.** Slice 2's first gate run failed in the schema reset while a
+  sibling worktree's suite was running. Nothing was committed; the gates were re-run once the other run had gone, and
+  every commit in this branch followed a passing `yarn test` (the command only commits after the tests pass).
+- **The Browser pane closed once** mid-way through slice 2's comparisons and came back without the 390×844 viewport.
+  Those results (widths 0, 1024, 711) were discarded and retaken at 390.
+- **The day changed (Kyiv midnight) during the final after set.** On `expense-new`, `expense-sheet` and
+  `expense-names` the date field reads 26/11 instead of 25/11 and the NBU rate line shows that day's rate. These are the
+  only 2 differing rows on each of those 6 snapshots, the Date field's accessibility label changes with them, and every
+  style column (box, colour, font family, size, line height, tracking, tabular digits, weight, alignment) is identical.
+  The same views matched with 0 differences in slice 4's comparisons on 25 November, before the date changed.
+- **Main moved before review** to 8beb0af (skills and docs only: two draft briefs and backlog lines; still 1.23.8).
+  Rebased cleanly; the bump stays 1.23.9.
+- **Results:** every one of the 24 views × 2 schemes matches the before set with 0 differences and identical
+  accessibility records, apart from the date rows above. Demo (Home strip, Budget, Expenses, a category page scrolled,
+  the expense form with its sheet, the category form, the income item), light and dark: no console errors; the strip's
+  Sign in is still an anchor to the sign-in page. `check-builds` passes (149 demo modules).
 
 ## Consolidate
 
-<filled in /kopiyka-hos Phase 3a>
+One new component, `Text`. Its twins were the `text`-role spreads and `fontFamily` overrides in `components/` and
+`demo/`, all now replaced; what remains there is the listed exceptions (CategoryTile's letter, DateField's value,
+TabBar's badge, the TextInput styles in AmountFields and CategoryForm). The screens' text is 104g and 104h. Reused 0,
+extracted 0, left 0.
 
 ## Revision 1
 

@@ -168,7 +168,7 @@ two patch PRs over one `major` PR (Open question 1).
     - `yarn api notion-start` (and each importer) answers Yarn's "Couldn't find a script named …".
     - Budget tab, ledger 1, October 2026: the Start → End line matches a screenshot taken on main, and November's
       Start equals October's End.
-- [ ] 3. Remove the Notion setup and import steps from the READMEs
+- [x] 3. Remove the Notion setup and import steps from the READMEs
   - Files: `README.md`, `deploy/README.md`
   - Change:
     - `README.md`: remove "### Notion sync" (lines 31-98).

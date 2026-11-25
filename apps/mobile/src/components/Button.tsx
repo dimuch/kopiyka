@@ -1,8 +1,9 @@
-import { ActivityIndicator, type StyleProp, StyleSheet, Text, type ViewStyle } from 'react-native';
+import { ActivityIndicator, type StyleProp, StyleSheet, type ViewStyle } from 'react-native';
 import { useColors, useThemedStyles } from '@/appearance/AppearanceContext';
 import { Icon, type IconName } from '@/components/Icon';
 import { Pressable } from '@/components/Pressable';
-import { fonts, type Palette, radius, size, space, text } from '@/theme';
+import { Text, type TextVariant } from '@/components/Text';
+import { type Palette, radius, size, space } from '@/theme';
 
 /**
  * Today's button sizes (briefs 104b and 104c; brief 105 makes the filled ones one 48pt pill).
@@ -19,6 +20,15 @@ export type ButtonSize = 'large' | 'medium' | 'compact';
  * dangerText, mutedText, accentText: only the label, no corner; disabled, they don't dim.
  */
 type ButtonVariant = 'primary' | 'danger' | 'outlinedDanger' | 'dangerText' | 'mutedText' | 'accentText';
+
+const labels: Record<ButtonVariant, { variant: TextVariant; color: keyof Palette }> = {
+  primary: { variant: 'bodyStrong', color: 'onAccent' },
+  danger: { variant: 'bodyStrong', color: 'onAccent' },
+  outlinedDanger: { variant: 'bodyStrong', color: 'danger' },
+  dangerText: { variant: 'bodyMedium', color: 'danger' },
+  mutedText: { variant: 'bodyMedium', color: 'muted' },
+  accentText: { variant: 'bodyStrong', color: 'accent' },
+};
 
 /** Only the filled looks have a spinner (busy) or an icon. */
 type Look =
@@ -72,7 +82,9 @@ export function Button({
       {busy && replaces ? null : (
         <>
           {icon ? <Icon name={icon} color={colors.onAccent} strokeWidth={2.4} /> : null}
-          <Text style={[styles.label, styles[`${variant}Label`]]}>{label}</Text>
+          <Text variant={labels[variant].variant} color={labels[variant].color} style={styles.label}>
+            {label}
+          </Text>
         </>
       )}
     </Pressable>
@@ -97,11 +109,5 @@ const makeStyles = (colors: Palette) => {
     off: { opacity: 0.6 },
     // flexShrink: a label too long for the row (a large text size) wraps, centred, instead of running out.
     label: { textAlign: 'center', flexShrink: 1 },
-    primaryLabel: { ...text.bodyStrong, color: colors.onAccent },
-    dangerLabel: { ...text.bodyStrong, color: colors.onAccent },
-    outlinedDangerLabel: { ...text.bodyStrong, color: colors.danger },
-    dangerTextLabel: { ...text.body, fontFamily: fonts.bodyMedium, color: colors.danger },
-    mutedTextLabel: { ...text.body, fontFamily: fonts.bodyMedium, color: colors.muted },
-    accentTextLabel: { ...text.bodyStrong, color: colors.accent },
   });
 };

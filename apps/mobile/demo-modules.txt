@@ -70,6 +70,7 @@ src/components/FocusStyles.tsx
 src/components/HomeButton.tsx
 src/components/HomeCards.tsx
 src/components/Icon.tsx
+src/components/IconButton.tsx
 src/components/LoadError.tsx
 src/components/MonthSwitcher.tsx
 src/components/NameCombobox.tsx

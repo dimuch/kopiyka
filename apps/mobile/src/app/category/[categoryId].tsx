@@ -8,11 +8,11 @@ import { AddExpenseButton } from '@/components/AddExpenseButton';
 import { Card, useCardStyle } from '@/components/Card';
 import { CategoryInMonth } from '@/components/CategoryInMonth';
 import { CategoryTile } from '@/components/CategoryTile';
-import { CompactTotal, HeaderDivider, useCollapsingSummary } from '@/components/CollapsingSummary';
-import { Icon } from '@/components/Icon';
+import { CompactTotal, useCollapsingSummary } from '@/components/CollapsingSummary';
 import { IconButton } from '@/components/IconButton';
 import { LoadError } from '@/components/LoadError';
 import { Pressable } from '@/components/Pressable';
+import { ScreenHeader } from '@/components/ScreenHeader';
 import { TabBar } from '@/components/TabBar';
 import { UndoToast } from '@/components/UndoToast';
 import { expenseCount, groupByDay, sumCents } from '@/data/monthSummary';
@@ -52,16 +52,10 @@ export default function CategoryScreen() {
 
 /** No Add button here: there's no valid category to preselect. */
 function InvalidLink() {
-  const colors = useColors();
   const styles = useThemedStyles(makeStyles);
   return (
     <SafeAreaView style={styles.screen} edges={['top']}>
-      <View style={styles.header}>
-        <Pressable accessibilityRole="button" onPress={goBack} style={styles.back}>
-          <Icon name="back" color={colors.muted} />
-          <Text style={styles.backText}>Back</Text>
-        </Pressable>
-      </View>
+      <ScreenHeader variant="page" backLabel="Back" onBack={goBack} />
       <LoadError message="That link isn’t valid." />
     </SafeAreaView>
   );
@@ -88,34 +82,35 @@ function CategoryBreakdown({ categoryId, month, ended }: { categoryId: number; m
 
   return (
     <SafeAreaView style={styles.screen} edges={['top']}>
-      <View style={styles.header}>
-        <Pressable accessibilityRole="button" onPress={goBack} style={styles.back}>
-          <Icon name="back" color={colors.muted} />
-          <Text style={styles.backText}>{monthName(month)}</Text>
-        </Pressable>
-        <View style={styles.trailing}>
-          {category && (
-            <CompactTotal
-              label={category.displayName}
-              spentCents={totalEur}
-              budgetCents={null}
-              style={collapse.compactStyle}
-            />
-          )}
-          {showAdd ? <AddExpenseButton categoryId={categoryId} /> : null}
-          {/* An ended month is read-only (brief 028), so nothing to remove there. */}
-          {category && !ended && (
-            <IconButton
-              icon="more"
-              label="Category actions"
-              tone="muted"
-              aria-expanded={menuOpen}
-              onPress={() => setMenuOpen((open) => !open)}
-            />
-          )}
-        </View>
-        <HeaderDivider style={collapse.dividerStyle} />
-      </View>
+      <ScreenHeader
+        variant="page"
+        backLabel={monthName(month)}
+        onBack={goBack}
+        dividerStyle={collapse.dividerStyle}
+        trailing={
+          <>
+            {category && (
+              <CompactTotal
+                label={category.displayName}
+                spentCents={totalEur}
+                budgetCents={null}
+                style={collapse.compactStyle}
+              />
+            )}
+            {showAdd ? <AddExpenseButton categoryId={categoryId} /> : null}
+            {/* An ended month is read-only (brief 028), so nothing to remove there. */}
+            {category && !ended && (
+              <IconButton
+                icon="more"
+                label="Category actions"
+                tone="muted"
+                aria-expanded={menuOpen}
+                onPress={() => setMenuOpen((open) => !open)}
+              />
+            )}
+          </>
+        }
+      />
 
       {!data && error ? (
         <LoadError message="Couldn’t load this category. Check your connection and try again." onRetry={reload} />
@@ -228,14 +223,6 @@ const makeStyles = (colors: Palette) =>
   StyleSheet.create({
     page: { flex: 1, backgroundColor: colors.bg },
     screen: { flex: 1, backgroundColor: colors.bg, paddingHorizontal: space.xl, paddingTop: space.xl },
-    header: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      justifyContent: 'space-between',
-      gap: space.md,
-      paddingBottom: space.sm,
-      zIndex: 1,
-    },
     content: {
       gap: space.lg,
       paddingTop: space.sm,
@@ -248,7 +235,6 @@ const makeStyles = (colors: Palette) =>
     day: { gap: space.sm },
     empty: { paddingHorizontal: space.xs },
     itemText: { gap: space.xxs, flex: 1 },
-    trailing: { flexDirection: 'row', alignItems: 'center', gap: space.xs, flexShrink: 1 },
     // Above the header's zIndex 1, so its buttons don't take taps while the menu is open.
     menuLayer: { ...StyleSheet.absoluteFill, zIndex: 2 },
     menuCard: {
@@ -264,15 +250,6 @@ const makeStyles = (colors: Palette) =>
     menuItem: { minHeight: size.iconButton, justifyContent: 'center', paddingHorizontal: space.lg },
     // A menu row, not a button (brief 104c), so it keeps its own style.
     menuDelete: { ...text.body, fontFamily: fonts.bodyMedium, color: colors.danger },
-    back: {
-      height: size.iconButton,
-      flexDirection: 'row',
-      alignItems: 'center',
-      gap: space.xs,
-      marginLeft: -space.sm,
-      paddingHorizontal: space.sm,
-    },
-    backText: { ...text.body, fontFamily: fonts.bodyMedium, color: colors.muted },
     titleRow: { flexDirection: 'row', alignItems: 'center', gap: space.lg },
     title: { ...text.display, color: colors.text },
     caption: { ...text.label, fontFamily: fonts.body, color: colors.muted, fontVariant: ['tabular-nums'] },

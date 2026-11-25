@@ -2,10 +2,11 @@ import { Modal, StyleSheet, Text, View } from 'react-native';
 import type { Category } from '@/api/types';
 import { useThemedStyles } from '@/appearance/AppearanceContext';
 import { CategoryTile } from '@/components/CategoryTile';
+import { Chip } from '@/components/Chip';
 import { IconButton } from '@/components/IconButton';
 import { PhoneColumn } from '@/components/PhoneColumn';
 import { Pressable } from '@/components/Pressable';
-import { fonts, type Palette, radius, size, space, text } from '@/theme';
+import { fonts, type Palette, radius, space, text } from '@/theme';
 
 interface Props {
   visible: boolean;
@@ -37,12 +38,12 @@ export function CategorySheet({ visible, categories, onPick, onClose }: Props) {
             <Text style={styles.hint}>Your pick takes the last spot in the quick row.</Text>
             <View style={styles.grid}>
               {categories.map((c) => (
-                <Pressable key={c.categoryId} accessibilityRole="button" onPress={() => onPick(c)} style={styles.item}>
+                <Chip key={c.categoryId} onPress={() => onPick(c)} style={styles.item}>
                   <CategoryTile techName={c.techName} label={c.displayName} size={28} />
                   <Text numberOfLines={1} style={styles.itemText}>
                     {c.displayName}
                   </Text>
-                </Pressable>
+                </Chip>
               ))}
             </View>
           </View>
@@ -80,17 +81,7 @@ const makeStyles = (colors: Palette) =>
     close: { marginRight: -space.sm, borderRadius: 0 },
     hint: { ...text.caption, color: colors.muted },
     grid: { flexDirection: 'row', flexWrap: 'wrap', gap: space.sm },
-    item: {
-      width: '48.5%',
-      height: size.control,
-      paddingHorizontal: space.sm,
-      flexDirection: 'row',
-      alignItems: 'center',
-      gap: space.sm,
-      borderRadius: radius.md,
-      borderWidth: 1,
-      borderColor: colors.borderStrong,
-      backgroundColor: colors.surfaceRaised,
-    },
+    // A step above the sheet's own surface, which a plain chip would match (a one-off, until brief 105).
+    item: { width: '48.5%', backgroundColor: colors.surfaceRaised },
     itemText: { ...text.label, flex: 1, color: colors.text },
   });

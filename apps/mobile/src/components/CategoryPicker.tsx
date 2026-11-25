@@ -2,11 +2,11 @@ import { useState } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import type { Category } from '@/api/types';
 import { useColors, useThemedStyles } from '@/appearance/AppearanceContext';
+import { Chip } from '@/components/Chip';
 import { CategorySheet } from '@/components/CategorySheet';
 import { CategoryTile } from '@/components/CategoryTile';
 import { Icon } from '@/components/Icon';
-import { Pressable } from '@/components/Pressable';
-import { type Palette, radius, size, space, text } from '@/theme';
+import { type Palette, space, text } from '@/theme';
 
 interface Props {
   /** Shown as tiles. */
@@ -29,24 +29,16 @@ export function CategoryPicker({ quick, more, selectedId, onPick, disabled = fal
       {quick.map((c) => {
         const on = c.categoryId === selectedId;
         return (
-          <Pressable
-            key={c.categoryId}
-            accessibilityRole="button"
-            aria-selected={on}
-            disabled={disabled}
-            onPress={() => onPick(c)}
-            style={[styles.cat, on && styles.catOn]}
-          >
+          <Chip key={c.categoryId} selected={on} disabled={disabled} onPress={() => onPick(c)} style={styles.cat}>
             <CategoryTile techName={c.techName} label={c.displayName} size={26} />
             <Text numberOfLines={1} style={styles.catText}>
               {c.displayName}
             </Text>
-          </Pressable>
+          </Chip>
         );
       })}
       {more.length > 0 && (
-        <Pressable
-          accessibilityRole="button"
+        <Chip
           accessibilityLabel="More categories"
           disabled={disabled}
           onPress={() => setSheetOpen(true)}
@@ -54,7 +46,7 @@ export function CategoryPicker({ quick, more, selectedId, onPick, disabled = fal
         >
           <Icon name="more" color={colors.muted} />
           <Text style={[styles.catText, { color: colors.muted, flex: 0 }]}>{more.length} more</Text>
-        </Pressable>
+        </Chip>
       )}
       <CategorySheet
         visible={sheetOpen}
@@ -72,25 +64,13 @@ export function CategoryPicker({ quick, more, selectedId, onPick, disabled = fal
 const makeStyles = (colors: Palette) =>
   StyleSheet.create({
     grid: { flexDirection: 'row', flexWrap: 'wrap', gap: space.sm },
-    cat: {
-      height: size.control,
-      borderRadius: radius.md,
-      borderWidth: 1,
-      borderColor: colors.borderStrong,
-      backgroundColor: colors.surface,
-      width: '31.5%',
-      paddingHorizontal: space.sm,
-      flexDirection: 'row',
-      alignItems: 'center',
-      gap: space.sm,
-    },
-    catOn: { borderColor: colors.accent, backgroundColor: colors.accentTint },
+    cat: { width: '31.5%' },
     catText: { ...text.label, flex: 1, color: colors.text },
+    // "N more" opens the sheet rather than picking, so it's drawn as an empty slot (a one-off, until brief 105).
     more: {
       borderStyle: 'dashed',
       borderColor: colors.borderStrongest,
       backgroundColor: 'transparent',
       justifyContent: 'center',
-      gap: space.sm,
     },
   });

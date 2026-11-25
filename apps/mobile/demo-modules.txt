@@ -62,6 +62,7 @@ src/components/CategoryInMonth.tsx
 src/components/CategoryPicker.tsx
 src/components/CategorySheet.tsx
 src/components/CategoryTile.tsx
+src/components/Chip.tsx
 src/components/CollapsingSummary.tsx
 src/components/DateChips.tsx
 src/components/DateField.tsx

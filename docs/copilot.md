@@ -46,7 +46,11 @@ brief → plan → skeptic → your approval → atomic commits → review → y
 
 ## Keeping the two copies in step
 
-`.github/skills/kopiyka-*` and `.github/agents/` are adapted copies of the `.claude/` files. Only the parts about
-tools differ (delegation, browser, web fetch, paths). When you change a rule, change both copies, or drop the
-`.claude/` side once you've moved for good. Vendored skills are byte-identical copies: after `npx skills update`,
-copy `.claude/skills/<name>/` over `.github/skills/<name>/`.
+The `SKILL.md` of each `.github/skills/kopiyka-*` skill, and `.github/agents/`, are adapted copies of the `.claude/`
+files. Only the parts about tools differ (delegation, browser, web fetch, paths). When you change a rule, change both
+copies, or drop the `.claude/` side once you've moved for good.
+
+Everything that is the same for both tools is a symlink into `.claude/skills/`, so it has one copy: the vendored skill
+folders (`.github/skills/<name>` → `.claude/skills/<name>`) and the kopiyka skills' scripts and references. After
+`npx skills update`, nothing needs copying. A new vendored skill gets its link with
+`ln -s ../../.claude/skills/<name> .github/skills/<name>`.

@@ -44,6 +44,9 @@ interface Props {
  * A text field with a list of earlier names under it (brief 108): one can be picked, or any text typed. The list
  * opens on focus, a tap, typing or ↓, and closes on blur, a pick or Escape. On web it's an ARIA combobox: arrows move
  * the highlight and Enter picks it, while focus stays in the field.
+ *
+ * The list floats over what comes after the field instead of pushing it down. zIndex only orders siblings on iOS, so
+ * the screen gives the View holding this field a zIndex above the views that follow it.
  */
 export function NameCombobox({ value, onChangeText, names, editable, style, ...field }: Props) {
   const styles = useThemedStyles(makeStyles);
@@ -181,6 +184,11 @@ export function NameCombobox({ value, onChangeText, names, editable, style, ...f
 const makeStyles = (colors: Palette) =>
   StyleSheet.create({
     list: {
+      position: 'absolute',
+      top: '100%',
+      left: 0,
+      right: 0,
+      zIndex: 1,
       marginTop: space.xs,
       borderRadius: radius.md,
       backgroundColor: colors.surface,

@@ -79,7 +79,7 @@ two patch PRs over one `major` PR (Open question 1).
 - [x] 0a. Bump version to 1.23.2
   - Files: package.json, apps/mobile/app.json
   - Change: set both to 1.23.2
-- [ ] 1. Remove the Sync to Notion panel from Home
+- [x] 1. Remove the Sync to Notion panel from Home
   - Files:
     - delete `apps/mobile/src/components/NotionSyncPanel.tsx`, `src/data/useNotionSync.ts`,
       `src/data/notionSync.ts` and `test/notionSync.test.ts`

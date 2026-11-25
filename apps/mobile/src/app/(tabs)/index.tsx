@@ -4,8 +4,6 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useThemedStyles } from '@/appearance/AppearanceContext';
 import { useSession } from '@/auth/AuthContext';
 import { type HomeCard, HomeCards } from '@/components/HomeCards';
-import { LoadError } from '@/components/LoadError';
-import { NotionSyncPanel } from '@/components/NotionSyncPanel';
 import { PendingInvites } from '@/components/PendingInvites';
 import { UndoToast } from '@/components/UndoToast';
 import { moneyCards } from '@/data/homeCards';
@@ -14,7 +12,6 @@ import { expenseCount } from '@/data/monthSummary';
 import { useUndoOffer } from '@/data/undo';
 import { useIncome } from '@/data/useIncome';
 import { useMonth } from '@/data/useMonth';
-import { useNotionSync } from '@/data/useNotionSync';
 import { kyivMonth, monthLabel } from '@/format';
 import { fonts, type Palette, space, text } from '@/theme';
 
@@ -27,14 +24,10 @@ export default function Home() {
   const count = data?.expenses.length;
   // This month's income from every member (brief 061); it loads and fails on its own, beside the month.
   const income = useIncome(ledger.ledgerId, month);
-  const notion = useNotionSync(ledger.ledgerId);
   // Shown as they load, with no loading or error block, like the figures.
   const invites = useInvites();
-  // A restore changes the month's figures and what Notion still needs to hear about.
-  const toast = useUndoOffer(() => {
-    reload();
-    notion.reload();
-  });
+  // A restore changes the month's figures.
+  const toast = useUndoOffer(reload);
 
   const cards: HomeCard[] = [
     ...moneyCards({ data, error }, income),
@@ -65,17 +58,6 @@ export default function Home() {
         onDecline={invites.decline}
       />
       <HomeCards cards={cards} />
-      {/* Hidden while loading and for a ledger Notion doesn't sync. */}
-      {notion.state.status === 'ready' ? (
-        <NotionSyncPanel
-          status={notion.state.notion}
-          syncing={notion.syncing}
-          outcome={notion.outcome}
-          onSync={notion.sync}
-        />
-      ) : notion.state.status === 'failed' ? (
-        <LoadError message="Couldn’t check Notion sync." onRetry={notion.reload} />
-      ) : null}
       {toast.offer ? <UndoToast offer={toast.offer} onUndo={toast.restore} /> : null}
     </SafeAreaView>
   );

@@ -55,9 +55,6 @@ describe('bannedInDemo', () => {
     'src/data/invites.tsx',
     'src/data/tabItems.ts',
     'src/tabs.ts',
-    'src/components/NotionSyncPanel.tsx',
-    'src/data/notionSync.ts',
-    'src/data/useNotionSync.ts',
     'src/data/members.ts',
     'src/data/useMembers.ts',
     'src/components/LedgerPicker.tsx',
@@ -70,8 +67,6 @@ describe('bannedInDemo', () => {
   it.each([
     ['/api/auth/login', 'fetch("/api/auth/login")'],
     ['Statistics', 'title:"Statistics"'],
-    ['notion, in any case', 'useNotionSync'],
-    ['notion, in any case', 'NOTION'],
   ])('refuses the text %s', (name, text) => {
     expect(bannedInDemo(demo([], `root:"src/demo-app";${text}`))).toEqual([`banned text: ${name}`]);
   });

@@ -12,12 +12,12 @@ describe('demo store', () => {
     const logged = vi.spyOn(console, 'error').mockImplementation(() => {});
     const api = fixtureStore();
 
-    const error = await api('/api/ledgers/1/notion/status').catch((err: unknown) => err);
+    const error = await api('/api/ledgers/1/nope').catch((err: unknown) => err);
 
     expect(error).toBeInstanceOf(Error);
     expect(error).not.toBeInstanceOf(ApiError);
-    expect((error as Error).message).toBe('The demo store has no route for GET /api/ledgers/1/notion/status');
-    expect(logged).toHaveBeenCalledWith('The demo store has no route for GET /api/ledgers/1/notion/status');
+    expect((error as Error).message).toBe('The demo store has no route for GET /api/ledgers/1/nope');
+    expect(logged).toHaveBeenCalledWith('The demo store has no route for GET /api/ledgers/1/nope');
   });
 });
 

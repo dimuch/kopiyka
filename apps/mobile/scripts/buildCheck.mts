@@ -53,9 +53,6 @@ export const BANNED_IN_DEMO = [
   'src/data/invites.tsx',
   'src/data/tabItems.ts',
   'src/tabs.ts',
-  'src/components/NotionSyncPanel.tsx',
-  'src/data/notionSync.ts',
-  'src/data/useNotionSync.ts',
   'src/data/members.ts',
   'src/data/useMembers.ts',
   'src/components/LedgerPicker.tsx',
@@ -63,11 +60,10 @@ export const BANNED_IN_DEMO = [
   'expo-secure-store',
 ];
 
-/** Text the demo's bundle must not hold: the sign-in route, Statistics, and Notion in any case. */
+/** Text the demo's bundle must not hold: the sign-in route and Statistics. */
 const BANNED_TEXT: readonly [string, RegExp][] = [
   ['/api/auth/login', /\/api\/auth\/login/],
   ['Statistics', /Statistics/],
-  ['notion, in any case', /notion/i],
 ];
 
 /** Expo bakes the app config into the bundle; only the demo's names its route folder. */

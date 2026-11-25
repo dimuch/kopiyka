@@ -1,10 +1,11 @@
 import { Link } from 'expo-router';
 import { useState } from 'react';
-import { ActivityIndicator, KeyboardAvoidingView, Platform, StyleSheet, Text, View } from 'react-native';
+import { KeyboardAvoidingView, Platform, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { ApiError } from '@/api/apiError';
 import { useColors, useThemedStyles } from '@/appearance/AppearanceContext';
 import { useAuth } from '@/auth/AuthContext';
+import { Button } from '@/components/Button';
 import { Pressable } from '@/components/Pressable';
 import { TextField } from '@/components/TextField';
 import { loginErrorText } from '@/data/loginError';
@@ -87,18 +88,15 @@ export default function Login() {
         </View>
 
         <View style={styles.actions}>
-          <Pressable
-            accessibilityRole="button"
-            // Named here because while busy its only child is a spinner.
-            accessibilityLabel="Sign in"
-            aria-busy={busy}
-            // disabled, not aria-disabled: react-native-web's Pressable sets aria-disabled from disabled only.
+          <Button
+            variant="primary"
+            size="large"
+            label="Sign in"
+            busy={busy}
             disabled={!ready}
             onPress={submit}
-            style={[styles.button, !ready && styles.buttonDisabled]}
-          >
-            {busy ? <ActivityIndicator color={colors.onAccent} /> : <Text style={styles.buttonText}>Sign in</Text>}
-          </Pressable>
+            style={[styles.signIn, !ready && styles.signInOff]}
+          />
           <Link href={DEMO_URL} asChild>
             <Pressable accessibilityRole="link" accessibilityLabel="Try it now" style={styles.demoLink}>
               <Text style={styles.demoLinkText}>Try it now</Text>
@@ -154,15 +152,9 @@ const makeStyles = (colors: Palette) =>
     // eslint-disable-next-line no-restricted-syntax
     passwordInput: { fontFamily: fonts.display, fontSize: 26, letterSpacing: 8, fontVariant: ['tabular-nums'] },
     error: { ...text.label, color: colors.over },
-    button: {
-      height: 56,
-      borderRadius: radius.pill,
-      backgroundColor: colors.accent,
-      alignItems: 'center',
-      justifyContent: 'center',
-    },
-    buttonDisabled: { opacity: 0.4 },
-    buttonText: { ...text.bodyStrong, color: colors.onAccent },
+    // One-offs until brief 105: the only large pill, and dimmer than other buttons while it can't be pressed.
+    signIn: { borderRadius: radius.pill },
+    signInOff: { opacity: 0.4 },
     // The Sign in button and the demo link right below it, as one group.
     actions: { gap: space.sm },
     // A 44pt touch target, as the conventions ask.

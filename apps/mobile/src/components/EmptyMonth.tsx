@@ -1,8 +1,8 @@
-import { ActivityIndicator, StyleSheet, Text } from 'react-native';
-import { useColors, useThemedStyles } from '@/appearance/AppearanceContext';
+import { StyleSheet, Text } from 'react-native';
+import { useThemedStyles } from '@/appearance/AppearanceContext';
+import { Button } from '@/components/Button';
 import { Card } from '@/components/Card';
 import { LoadError } from '@/components/LoadError';
-import { Pressable } from '@/components/Pressable';
 import { fonts, type Palette, radius, size, space, text } from '@/theme';
 
 /** A month with nothing in it yet ("No budget for November yet"), an optional action and its outcome. */
@@ -16,27 +16,19 @@ export function EmptyMonth({
   /** A refusal or failure from the action, announced to screen readers (via LoadError). */
   note?: string | null;
 }) {
-  const colors = useColors();
   const styles = useThemedStyles(makeStyles);
   return (
     <Card padding="none" style={styles.card}>
       <Text style={styles.text}>{text}</Text>
       {action && (
-        <Pressable
-          accessibilityRole="button"
-          // While busy the only child is a spinner, so the name has to be given here.
-          accessibilityLabel={action.label}
-          aria-busy={action.busy}
-          disabled={action.busy}
+        <Button
+          variant="primary"
+          size="large"
+          label={action.label}
+          busy={action.busy}
           onPress={action.onPress}
-          style={[styles.button, action.busy && { opacity: 0.6 }]}
-        >
-          {action.busy ? (
-            <ActivityIndicator color={colors.onAccent} />
-          ) : (
-            <Text style={styles.buttonText}>{action.label}</Text>
-          )}
-        </Pressable>
+          style={styles.button}
+        />
       )}
       {note ? <LoadError message={note} /> : null}
     </Card>
@@ -53,14 +45,6 @@ const makeStyles = (colors: Palette) =>
       alignItems: 'center',
     },
     text: { ...text.body, fontFamily: fonts.bodyMedium, color: colors.text, textAlign: 'center' },
-    button: {
-      minHeight: size.control,
-      alignSelf: 'stretch',
-      borderRadius: radius.md,
-      backgroundColor: colors.accent,
-      alignItems: 'center',
-      justifyContent: 'center',
-      paddingHorizontal: space.lg,
-    },
-    buttonText: { ...text.bodyStrong, color: colors.onAccent, textAlign: 'center' },
+    // Full width in a centred card. One-off until brief 105: 48pt with radius.md, and the large size's spinner.
+    button: { alignSelf: 'stretch', minHeight: size.control, borderRadius: radius.md },
   });

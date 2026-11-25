@@ -1,8 +1,8 @@
 import { Modal, StyleSheet, Text, View } from 'react-native';
 import type { Category } from '@/api/types';
-import { useColors, useThemedStyles } from '@/appearance/AppearanceContext';
+import { useThemedStyles } from '@/appearance/AppearanceContext';
 import { CategoryTile } from '@/components/CategoryTile';
-import { Icon } from '@/components/Icon';
+import { IconButton } from '@/components/IconButton';
 import { PhoneColumn } from '@/components/PhoneColumn';
 import { Pressable } from '@/components/Pressable';
 import { fonts, type Palette, radius, size, space, text } from '@/theme';
@@ -16,7 +16,6 @@ interface Props {
 
 /** "All categories" bottom sheet from the Add expense design. */
 export function CategorySheet({ visible, categories, onPick, onClose }: Props) {
-  const colors = useColors();
   const styles = useThemedStyles(makeStyles);
   return (
     <Modal visible={visible} transparent animationType="slide" onRequestClose={onClose}>
@@ -33,9 +32,7 @@ export function CategorySheet({ visible, categories, onPick, onClose }: Props) {
             <View style={styles.handle} />
             <View style={styles.head}>
               <Text style={styles.title}>All categories</Text>
-              <Pressable accessibilityRole="button" accessibilityLabel="Close" onPress={onClose} style={styles.close}>
-                <Icon name="close" color={colors.muted} />
-              </Pressable>
+              <IconButton icon="close" label="Close" tone="muted" onPress={onClose} style={styles.close} />
             </View>
             <Text style={styles.hint}>Your pick takes the last spot in the quick row.</Text>
             <View style={styles.grid}>
@@ -78,13 +75,9 @@ const makeStyles = (colors: Palette) =>
     },
     head: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
     title: { ...text.heading, fontFamily: fonts.display, color: colors.text },
-    close: {
-      width: size.iconButton,
-      height: size.iconButton,
-      marginRight: -space.sm,
-      alignItems: 'center',
-      justifyContent: 'center',
-    },
+    // Square until brief 105, as before IconButton: a rounded corner would only round its web focus ring.
+    // eslint-disable-next-line no-restricted-syntax
+    close: { marginRight: -space.sm, borderRadius: 0 },
     hint: { ...text.caption, color: colors.muted },
     grid: { flexDirection: 'row', flexWrap: 'wrap', gap: space.sm },
     item: {

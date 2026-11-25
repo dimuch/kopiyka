@@ -8,6 +8,7 @@ import { EmptyMonth } from '@/components/EmptyMonth';
 import { HomeButton } from '@/components/HomeButton';
 import { LoadError } from '@/components/LoadError';
 import { Icon } from '@/components/Icon';
+import { IconButton } from '@/components/IconButton';
 import { Pressable } from '@/components/Pressable';
 import {
   canStepForward,
@@ -199,14 +200,7 @@ function PeriodSwitcher({
   const styles = useThemedStyles(makeStyles);
   return (
     <View style={styles.switcher} onLayout={(event) => onLayout(event.nativeEvent.layout)}>
-      <Pressable
-        accessibilityRole="button"
-        accessibilityLabel="Previous month"
-        onPress={() => onStep(-1)}
-        style={styles.iconButton}
-      >
-        <Icon name="back" color={colors.muted} />
-      </Pressable>
+      <IconButton icon="back" label="Previous month" tone="muted" onPress={() => onStep(-1)} />
       <Pressable
         accessibilityRole="button"
         accessibilityLabel={`Period, ${periodLabel(period)}`}
@@ -220,15 +214,7 @@ function PeriodSwitcher({
         </Text>
         <Icon name="down" size={18} color={colors.muted} />
       </Pressable>
-      <Pressable
-        accessibilityRole="button"
-        accessibilityLabel="Next month"
-        disabled={!forwardEnabled}
-        onPress={() => onStep(1)}
-        style={styles.iconButton}
-      >
-        <Icon name="forward" color={forwardEnabled ? colors.muted : colors.fainter} />
-      </Pressable>
+      <IconButton icon="forward" label="Next month" tone="muted" disabled={!forwardEnabled} onPress={() => onStep(1)} />
     </View>
   );
 }
@@ -298,13 +284,6 @@ const makeStyles = (colors: Palette) =>
       justifyContent: 'center',
       gap: space.xs,
       paddingBottom: space.sm,
-    },
-    iconButton: {
-      width: size.iconButton,
-      height: size.iconButton,
-      alignItems: 'center',
-      justifyContent: 'center',
-      borderRadius: radius.md,
     },
     periodButton: {
       minHeight: size.iconButton,

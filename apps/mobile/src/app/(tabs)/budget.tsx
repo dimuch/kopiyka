@@ -10,6 +10,7 @@ import { Card, useCardStyle } from '@/components/Card';
 import { EmptyMonth } from '@/components/EmptyMonth';
 import { HomeButton } from '@/components/HomeButton';
 import { Icon } from '@/components/Icon';
+import { IconButton } from '@/components/IconButton';
 import { LoadError } from '@/components/LoadError';
 import { MonthSwitcher } from '@/components/MonthSwitcher';
 import { Pressable } from '@/components/Pressable';
@@ -29,7 +30,7 @@ import { useMonthCategories } from '@/data/useMonthCategories';
 import { eur, kyivMonth, monthName, shiftMonth, toCents } from '@/format';
 import { parseMonthParam } from '@/linkParams';
 import { usePushOnce } from '@/pushOnce';
-import { fonts, type Palette, radius, size, space, text } from '@/theme';
+import { fonts, type Palette, size, space, text } from '@/theme';
 
 /**
  * A month's categories (brief 035). The month lives in the route (`/budget?month=2026-11`), so other tabs can open
@@ -118,14 +119,12 @@ export default function Budget() {
         <View style={[styles.side, styles.sideEnd]}>
           {/* Like the Expenses tab's "+"; an ended month can't change, and nothing shows before the month loads. */}
           {data && !ended ? (
-            <Pressable
-              accessibilityRole="button"
-              accessibilityLabel={`Add a category to ${monthName(month)}`}
+            <IconButton
+              icon="plus"
+              label={`Add a category to ${monthName(month)}`}
+              tone="accent"
               onPress={() => pushOnce({ pathname: '/category-form', params: { month } })}
-              style={styles.iconButton}
-            >
-              <Icon name="plus" color={colors.accent} />
-            </Pressable>
+            />
           ) : null}
         </View>
       </View>
@@ -252,16 +251,16 @@ export default function Budget() {
                         >
                           {content}
                         </Pressable>
-                        <Pressable
-                          accessibilityRole="button"
-                          accessibilityLabel={`Edit ${category.displayName} in ${monthName(month)}`}
+                        <IconButton
+                          icon="edit"
+                          label={`Edit ${category.displayName} in ${monthName(month)}`}
+                          tone="muted"
+                          iconSize={18}
                           onPress={() =>
                             pushOnce({ pathname: '/category-form', params: { categoryId: category.categoryId, month } })
                           }
                           style={styles.edit}
-                        >
-                          <Icon name="edit" color={colors.muted} size={18} />
-                        </Pressable>
+                        />
                       </View>
                     );
                   }}
@@ -324,13 +323,6 @@ const makeStyles = (colors: Palette) =>
       marginTop: -space.sm,
     },
     balance: { ...text.label, fontFamily: fonts.body, color: colors.muted, fontVariant: ['tabular-nums'] },
-    iconButton: {
-      width: size.iconButton,
-      height: size.iconButton,
-      alignItems: 'center',
-      justifyContent: 'center',
-      borderRadius: radius.md,
-    },
     content: { gap: space.lg, paddingTop: space.xs, paddingBottom: space.xxl },
     // UndoToast's bottom 32 + height 56 + a 16pt gap: toast clearance, not a step on the scale.
     // eslint-disable-next-line no-restricted-syntax
@@ -356,13 +348,9 @@ const makeStyles = (colors: Palette) =>
     figure: { flex: 1, gap: space.xs },
     figureValue: { ...text.amount, color: colors.text },
     openRow: { flexDirection: 'row', alignItems: 'center' },
-    edit: {
-      width: size.iconButton,
-      height: size.iconButton,
-      alignItems: 'center',
-      justifyContent: 'center',
-      marginRight: space.sm,
-    },
+    // Square until brief 105, as before IconButton: a rounded corner would only round its web focus ring.
+    // eslint-disable-next-line no-restricted-syntax
+    edit: { marginRight: space.sm, borderRadius: 0 },
     rowName: { ...text.body, flex: 1, fontFamily: fonts.bodyMedium, color: colors.text },
     rowAmount: { ...text.amount, color: colors.text },
   });

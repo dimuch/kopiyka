@@ -76,7 +76,7 @@ two patch PRs over one `major` PR (Open question 1).
 
 ### PR A: the app (branch `chore/remove-notion`)
 
-- [ ] 0a. Bump version to 1.23.2
+- [x] 0a. Bump version to 1.23.2
   - Files: package.json, apps/mobile/app.json
   - Change: set both to 1.23.2
 - [ ] 1. Remove the Sync to Notion panel from Home

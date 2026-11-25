@@ -1,9 +1,10 @@
-import { StyleSheet, Text } from 'react-native';
+import { StyleSheet } from 'react-native';
 import type { Ledger } from '@/api/types';
 import { useThemedStyles } from '@/appearance/AppearanceContext';
 import { Card } from '@/components/Card';
 import { Pressable } from '@/components/Pressable';
-import { fonts, type Palette, radius, size, space, text } from '@/theme';
+import { Text } from '@/components/Text';
+import { type Palette, radius, size, space } from '@/theme';
 
 /** "Yours" for the user's own ledger, else whose it is: until a label is set, every ledger shows as "Home". */
 function whose(ledger: Ledger): string {
@@ -37,10 +38,20 @@ export function LedgerPicker({
             onPress={() => !checked && onSelect(ledger.ledgerId)}
             style={[styles.option, checked && styles.optionOn]}
           >
-            <Text numberOfLines={1} style={[styles.name, checked && styles.textOn]}>
+            <Text
+              numberOfLines={1}
+              variant={checked ? 'bodyStrong' : 'bodyMedium'}
+              color={checked ? 'active' : 'text'}
+              style={styles.name}
+            >
               {ledger.label ?? ledger.name}
             </Text>
-            <Text numberOfLines={1} style={[styles.whose, checked && styles.textOn]}>
+            <Text
+              numberOfLines={1}
+              variant={checked ? 'labelSemi' : 'labelRegular'}
+              color={checked ? 'active' : 'muted'}
+              style={styles.whose}
+            >
               {whose(ledger)}
             </Text>
           </Pressable>
@@ -63,8 +74,7 @@ const makeStyles = (colors: Palette) =>
       gap: space.md,
     },
     optionOn: { backgroundColor: colors.activeTint, borderWidth: 1, borderColor: colors.activeLine },
-    name: { flexShrink: 1, ...text.body, fontFamily: fonts.bodyMedium, color: colors.text },
+    name: { flexShrink: 1 },
     // Kept whole beside a long label, but never more than half the row, so a long owner name can't push it out.
-    whose: { flexShrink: 0, maxWidth: '50%', ...text.label, fontFamily: fonts.body, color: colors.muted },
-    textOn: { fontFamily: fonts.bodySemi, color: colors.active },
+    whose: { flexShrink: 0, maxWidth: '50%' },
   });

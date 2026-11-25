@@ -8,9 +8,8 @@ import { useColors, useThemedStyles } from '@/appearance/AppearanceContext';
 import { useSession } from '@/auth/AuthContext';
 import { Button } from '@/components/Button';
 import { Card } from '@/components/Card';
-import { Icon } from '@/components/Icon';
 import { LoadError } from '@/components/LoadError';
-import { Pressable } from '@/components/Pressable';
+import { ScreenHeader } from '@/components/ScreenHeader';
 import { TextField } from '@/components/TextField';
 import { normalizeLabel } from '@/data/ledgerLabel';
 import { inviteMember, removeMember, revokeInvite, setLedgerLabel } from '@/data/members';
@@ -28,17 +27,11 @@ function goBack() {
  * invite people; a member sees only Leave.
  */
 export default function MembersScreen() {
-  const colors = useColors();
   const styles = useThemedStyles(makeStyles);
   const { ledger } = useSession();
   return (
     <SafeAreaView style={styles.screen} edges={['top']}>
-      <View style={styles.header}>
-        <Pressable accessibilityRole="button" onPress={goBack} style={styles.back}>
-          <Icon name="back" color={colors.muted} />
-          <Text style={styles.backText}>Back</Text>
-        </Pressable>
-      </View>
+      <ScreenHeader variant="page" backLabel="Back" onBack={goBack} />
       {/* One tap on Save or Invite works on iPhone with the keyboard up. */}
       <ScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
         <View style={{ gap: space.xxs }}>
@@ -506,16 +499,6 @@ function ConfirmPanel({
 const makeStyles = (colors: Palette) =>
   StyleSheet.create({
     screen: { flex: 1, backgroundColor: colors.bg, paddingHorizontal: space.xl, paddingTop: space.xl },
-    header: { flexDirection: 'row', alignItems: 'center', paddingBottom: space.sm },
-    back: {
-      height: size.iconButton,
-      flexDirection: 'row',
-      alignItems: 'center',
-      gap: space.xs,
-      marginLeft: -space.sm,
-      paddingHorizontal: space.sm,
-    },
-    backText: { ...text.body, fontFamily: fonts.bodyMedium, color: colors.muted },
     content: { gap: space.lg, paddingTop: space.sm, paddingBottom: space.huge },
     title: { ...text.display, color: colors.text },
     caption: { ...text.label, fontFamily: fonts.body, color: colors.muted },

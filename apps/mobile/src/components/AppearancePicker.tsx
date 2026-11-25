@@ -1,9 +1,10 @@
-import { StyleSheet, Text } from 'react-native';
+import { StyleSheet } from 'react-native';
 import { useThemedStyles } from '@/appearance/AppearanceContext';
 import type { ThemePreference } from '@/appearance/preference';
 import { Card } from '@/components/Card';
 import { Pressable } from '@/components/Pressable';
-import { fonts, type Palette, radius, size, space, text } from '@/theme';
+import { Text } from '@/components/Text';
+import { type Palette, radius, size, space } from '@/theme';
 
 const OPTIONS: { value: ThemePreference; label: string }[] = [
   { value: 'light', label: 'Light' },
@@ -33,7 +34,9 @@ export function AppearancePicker({
             onPress={() => onChange(o.value)}
             style={[styles.option, checked && styles.optionOn]}
           >
-            <Text style={[styles.label, checked && styles.labelOn]}>{o.label}</Text>
+            <Text variant="bodyMedium" color={checked ? 'text' : 'muted'}>
+              {o.label}
+            </Text>
           </Pressable>
         );
       })}
@@ -52,6 +55,4 @@ const makeStyles = (colors: Palette) =>
       justifyContent: 'center',
     },
     optionOn: { backgroundColor: colors.accentTint, borderWidth: 1, borderColor: colors.accent },
-    label: { ...text.body, fontFamily: fonts.bodyMedium, color: colors.muted },
-    labelOn: { color: colors.text },
   });

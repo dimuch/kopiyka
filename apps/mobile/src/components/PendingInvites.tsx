@@ -1,9 +1,10 @@
-import { type StyleProp, StyleSheet, Text, View, type ViewStyle } from 'react-native';
+import { type StyleProp, StyleSheet, View, type ViewStyle } from 'react-native';
 import type { Invite } from '@/api/types';
 import { useThemedStyles } from '@/appearance/AppearanceContext';
 import { Button } from '@/components/Button';
 import { Card } from '@/components/Card';
-import { fonts, type Palette, space, text } from '@/theme';
+import { Text } from '@/components/Text';
+import { type Palette, space } from '@/theme';
 
 /**
  * The signed-in user's invites, each with Decline and Accept (Home, Settings, no-ledger); nothing while there are none
@@ -29,12 +30,14 @@ export function PendingInvites({
   const busy = busyId !== null;
   return (
     <View style={[styles.section, style]}>
-      <Text style={styles.caption}>Invites</Text>
+      <Text variant="caption" color="muted">
+        Invites
+      </Text>
       {invites.map((invite) => {
         const from = `${invite.owner} to ${invite.ledgerName}`;
         return (
           <Card key={invite.inviteId} padding="padded" style={styles.card}>
-            <Text style={styles.text}>{`${invite.owner} invited you to ${invite.ledgerName}`}</Text>
+            <Text variant="bodyMedium">{`${invite.owner} invited you to ${invite.ledgerName}`}</Text>
             <View style={styles.buttons}>
               <Button
                 variant="mutedText"
@@ -59,7 +62,7 @@ export function PendingInvites({
         );
       })}
       {failure ? (
-        <Text accessibilityRole="alert" style={styles.failure}>
+        <Text accessibilityRole="alert" variant="label" color="over">
           {failure}
         </Text>
       ) : null}
@@ -70,10 +73,7 @@ export function PendingInvites({
 const makeStyles = (colors: Palette) =>
   StyleSheet.create({
     section: { gap: space.sm },
-    caption: { ...text.caption, color: colors.muted },
     card: { gap: space.sm },
-    text: { ...text.body, fontFamily: fonts.bodyMedium, color: colors.text },
     buttons: { flexDirection: 'row', justifyContent: 'flex-end', alignItems: 'center', gap: space.sm },
     decline: { paddingHorizontal: space.md },
-    failure: { ...text.label, color: colors.over },
   });

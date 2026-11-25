@@ -1,7 +1,8 @@
 import { Link } from 'expo-router';
-import { StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 import { useThemedStyles } from '@/appearance/AppearanceContext';
-import { fonts, type Palette, size, space, text } from '@/theme';
+import { Text } from '@/components/Text';
+import { type Palette, size, space } from '@/theme';
 
 /** The real app's sign-in page, for a visitor who wants their own budget. */
 const SIGN_IN_URL = 'https://kopiyka.englishplus.com.ua/login';
@@ -11,9 +12,13 @@ export function DemoStrip() {
   const styles = useThemedStyles(makeStyles);
   return (
     <View style={styles.strip}>
-      <Text style={styles.text}>Demo: a reload clears your changes.</Text>
-      <Link href={SIGN_IN_URL} style={styles.link}>
-        Sign in
+      <Text variant="labelRegular" style={styles.text}>
+        Demo: a reload clears your changes.
+      </Text>
+      <Link href={SIGN_IN_URL} asChild>
+        <Text variant="labelSemi" color="accent" style={styles.link}>
+          Sign in
+        </Text>
       </Link>
     </View>
   );
@@ -31,14 +36,7 @@ const makeStyles = (colors: Palette) =>
       borderBottomWidth: StyleSheet.hairlineWidth,
       borderBottomColor: colors.border,
     },
-    text: { ...text.label, flexShrink: 1, fontFamily: fonts.body, color: colors.text },
+    text: { flexShrink: 1 },
     // A 44pt touch target, as the conventions ask.
-    link: {
-      ...text.label,
-      minHeight: size.iconButton,
-      paddingHorizontal: space.xl,
-      lineHeight: size.iconButton,
-      fontFamily: fonts.bodySemi,
-      color: colors.accent,
-    },
+    link: { minHeight: size.iconButton, paddingHorizontal: space.xl, lineHeight: size.iconButton },
   });

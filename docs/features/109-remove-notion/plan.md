@@ -115,7 +115,7 @@ two patch PRs over one `major` PR (Open question 1).
 - [x] 0b. Bump version to 1.23.3
   - Files: package.json, apps/mobile/app.json
   - Change: set both to 1.23.3 (or main's number + 1)
-- [ ] 2. Remove the Notion sync, importers and settings from the API
+- [x] 2. Remove the Notion sync, importers and settings from the API
   - Files:
     - delete all of `apps/api/src/notion/` (10 files, 1,746 lines)
     - delete `scripts/notion-start.ts`, `import-history.ts`, `import-income.ts`, `import-balances.ts` and

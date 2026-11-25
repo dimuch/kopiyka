@@ -1,7 +1,8 @@
-import { StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 import type { Currency } from '@/api/types';
 import { useColors, useThemedStyles } from '@/appearance/AppearanceContext';
 import { Icon } from '@/components/Icon';
+import { Text } from '@/components/Text';
 import { TextField } from '@/components/TextField';
 import { fonts, type Palette, radius, size, space, text } from '@/theme';
 
@@ -58,9 +59,13 @@ export function AmountField({
   const styles = useThemedStyles(makeStyles);
   return (
     <View style={styles.column}>
-      <Text style={styles.label}>Amount in {currency}</Text>
+      <Text variant="labelSemi" color="muted">
+        Amount in {currency}
+      </Text>
       <View>
-        <Text style={styles.symbol}>{currency === 'UAH' ? '₴' : '€'}</Text>
+        <Text variant="input" color="muted" style={styles.symbol}>
+          {currency === 'UAH' ? '₴' : '€'}
+        </Text>
         <TextField
           accessibilityLabel={`Amount in ${currency}`}
           value={value}
@@ -82,15 +87,7 @@ const makeStyles = (colors: Palette) =>
     row: { flexDirection: 'row', alignItems: 'flex-end', gap: space.sm },
     column: { flex: 1, gap: space.sm },
     swap: { height: size.control, width: 20, alignItems: 'center', justifyContent: 'center' },
-    label: { ...text.label, fontFamily: fonts.bodySemi, color: colors.muted },
-    symbol: {
-      position: 'absolute',
-      left: 14,
-      top: 13,
-      zIndex: 1,
-      ...text.input,
-      color: colors.muted,
-    },
+    symbol: { position: 'absolute', left: 14, top: 13, zIndex: 1 },
     input: {
       height: size.control,
       borderRadius: radius.md,

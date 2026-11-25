@@ -1,9 +1,10 @@
-import { StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 import { useThemedStyles } from '@/appearance/AppearanceContext';
 import { Chip } from '@/components/Chip';
 import { DateField } from '@/components/DateField';
+import { Text } from '@/components/Text';
 import { addDays } from '@/format';
-import { type Palette, space, text } from '@/theme';
+import { type Palette, space } from '@/theme';
 
 interface Props {
   /** 'YYYY-MM-DD' */
@@ -29,7 +30,7 @@ export function DateChips({ value, today, min, onChange, disabled = false }: Pro
       <DateField value={value} onChange={onChange} min={min} max={today} label="Date" disabled={disabled} />
       {chips.map((d) => (
         <Chip key={d.label} selected={value === d.value} onPress={() => onChange(d.value)} style={styles.chip}>
-          <Text style={styles.chipText}>{d.label}</Text>
+          <Text variant="label">{d.label}</Text>
         </Chip>
       ))}
     </View>
@@ -41,5 +42,4 @@ const makeStyles = (colors: Palette) =>
     row: { flexDirection: 'row', gap: space.sm },
     // Wider padding than a category chip, around a word.
     chip: { paddingHorizontal: space.lg },
-    chipText: { ...text.label, color: colors.text },
   });

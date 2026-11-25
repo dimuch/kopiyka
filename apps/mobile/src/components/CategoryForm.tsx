@@ -1,9 +1,10 @@
 import { type ReactNode, useRef, useState } from 'react';
-import { AccessibilityInfo, ScrollView, StyleSheet, Text, type TextInputInstance, View } from 'react-native';
+import { AccessibilityInfo, ScrollView, StyleSheet, type TextInputInstance, View } from 'react-native';
 import { ApiError } from '@/api/apiError';
 import type { Category } from '@/api/types';
 import { useColors, useThemedStyles } from '@/appearance/AppearanceContext';
 import { Button } from '@/components/Button';
+import { Text } from '@/components/Text';
 import { TextField } from '@/components/TextField';
 import { type CategoryFields, checkFields } from '@/data/categoryForm';
 import { nameRefusedText } from '@/data/categoryName';
@@ -87,10 +88,12 @@ export function CategoryForm({
       // The number keyboard has no Return key, so Save has to stay reachable above it.
       automaticallyAdjustKeyboardInsets
     >
-      <Text style={styles.caption}>{`Only for ${monthName(month)}. Other months don’t change.`}</Text>
+      <Text variant="labelRegular" color="muted">{`Only for ${monthName(month)}. Other months don’t change.`}</Text>
 
       <View style={styles.field}>
-        <Text style={styles.label}>Name</Text>
+        <Text variant="labelSemi" color="muted">
+          Name
+        </Text>
         <TextField
           accessibilityLabel="Category name"
           value={nameText}
@@ -111,9 +114,13 @@ export function CategoryForm({
       </View>
 
       <View style={styles.field}>
-        <Text style={styles.label}>Planned amount</Text>
+        <Text variant="labelSemi" color="muted">
+          Planned amount
+        </Text>
         <View>
-          <Text style={styles.symbol}>€</Text>
+          <Text variant="input" color="muted" style={styles.symbol}>
+            €
+          </Text>
           <TextField
             ref={amountInput}
             accessibilityLabel="Planned amount in EUR"
@@ -135,7 +142,7 @@ export function CategoryForm({
       </View>
 
       {error ? (
-        <Text accessibilityRole="alert" style={styles.error}>
+        <Text accessibilityRole="alert" variant="label" color="over">
           {error}
         </Text>
       ) : null}
@@ -153,17 +160,8 @@ export function CategoryForm({
 const makeStyles = (colors: Palette) =>
   StyleSheet.create({
     body: { gap: space.lg, paddingTop: space.lg, paddingBottom: space.huge },
-    caption: { ...text.label, fontFamily: fonts.body, color: colors.muted },
     field: { gap: space.sm },
-    label: { ...text.label, fontFamily: fonts.bodySemi, color: colors.muted },
-    symbol: {
-      position: 'absolute',
-      left: 14,
-      top: 13,
-      zIndex: 1,
-      ...text.input,
-      color: colors.muted,
-    },
+    symbol: { position: 'absolute', left: 14, top: 13, zIndex: 1 },
     input: {
       height: size.control,
       borderRadius: radius.md,
@@ -176,5 +174,4 @@ const makeStyles = (colors: Palette) =>
       fontFamily: fonts.bodyMedium,
     },
     amount: { paddingLeft: space.xxxl, fontVariant: ['tabular-nums'] },
-    error: { ...text.label, color: colors.over },
   });

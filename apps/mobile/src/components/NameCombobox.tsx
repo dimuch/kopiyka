@@ -4,7 +4,6 @@ import {
   Platform,
   ScrollView,
   StyleSheet,
-  Text,
   View,
   type ScrollViewInstance,
   type StyleProp,
@@ -13,9 +12,10 @@ import {
 } from 'react-native';
 import { useThemedStyles } from '@/appearance/AppearanceContext';
 import { Pressable } from '@/components/Pressable';
+import { Text } from '@/components/Text';
 import { TextField } from '@/components/TextField';
 import { matchingNames } from '@/data/nameSuggestions';
-import { type Palette, radius, size, space, text } from '@/theme';
+import { type Palette, radius, size, space } from '@/theme';
 
 /** Rows shown before the list scrolls; each row is the 44pt touch minimum high. */
 const VISIBLE_ROWS = 5;
@@ -170,7 +170,7 @@ export function NameCombobox({ value, onChangeText, names, editable, style, ...f
               onPress={() => pick(name)}
               style={[styles.option, index === activeIndex && styles.active]}
             >
-              <Text style={styles.optionText} numberOfLines={1}>
+              <Text variant="body" numberOfLines={1}>
                 {name}
               </Text>
             </Pressable>
@@ -197,5 +197,4 @@ const makeStyles = (colors: Palette) =>
     },
     option: { height: ROW_HEIGHT, justifyContent: 'center', paddingHorizontal: space.md },
     active: { backgroundColor: colors.accentTint },
-    optionText: { ...text.body, color: colors.text },
   });

@@ -7,6 +7,7 @@ import type { IncomeItem } from '@/api/types';
 import { useColors, useThemedStyles } from '@/appearance/AppearanceContext';
 import { useSession } from '@/auth/AuthContext';
 import { AmountField } from '@/components/AmountFields';
+import { Button } from '@/components/Button';
 import { LoadError } from '@/components/LoadError';
 import { Pressable } from '@/components/Pressable';
 import { TextField } from '@/components/TextField';
@@ -238,19 +239,7 @@ function IncomeForm({
         </Text>
       ) : null}
 
-      {gone ? null : (
-        <Pressable
-          accessibilityRole="button"
-          // While saving the only child is a spinner, so the name has to be given here.
-          accessibilityLabel="Save"
-          aria-busy={busy}
-          disabled={busy}
-          onPress={save}
-          style={[styles.primary, busy && { opacity: 0.6 }]}
-        >
-          {busy ? <ActivityIndicator color={colors.onAccent} /> : <Text style={styles.primaryText}>Save</Text>}
-        </Pressable>
-      )}
+      {gone ? null : <Button variant="primary" size="large" label="Save" busy={busy} onPress={save} />}
 
       {remove && !gone ? (
         <Pressable accessibilityRole="button" disabled={busy} onPress={deleteItem} style={styles.delete}>
@@ -283,15 +272,6 @@ const makeStyles = (colors: Palette) =>
       ...text.input,
     },
     error: { ...text.label, color: colors.over },
-    primary: {
-      minHeight: 56,
-      borderRadius: radius.lg,
-      paddingHorizontal: space.lg,
-      backgroundColor: colors.accent,
-      alignItems: 'center',
-      justifyContent: 'center',
-    },
-    primaryText: { ...text.bodyStrong, color: colors.onAccent },
     delete: { height: size.control, alignItems: 'center', justifyContent: 'center' },
     deleteText: dangerText(colors),
   });

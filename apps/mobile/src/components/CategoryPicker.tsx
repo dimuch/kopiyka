@@ -1,12 +1,13 @@
 import { useState } from 'react';
-import { StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 import type { Category } from '@/api/types';
 import { useColors, useThemedStyles } from '@/appearance/AppearanceContext';
 import { Chip } from '@/components/Chip';
 import { CategorySheet } from '@/components/CategorySheet';
 import { CategoryTile } from '@/components/CategoryTile';
 import { Icon } from '@/components/Icon';
-import { type Palette, space, text } from '@/theme';
+import { Text } from '@/components/Text';
+import { type Palette, space } from '@/theme';
 
 interface Props {
   /** Shown as tiles. */
@@ -31,7 +32,7 @@ export function CategoryPicker({ quick, more, selectedId, onPick, disabled = fal
         return (
           <Chip key={c.categoryId} selected={on} disabled={disabled} onPress={() => onPick(c)} style={styles.cat}>
             <CategoryTile techName={c.techName} label={c.displayName} size={26} />
-            <Text numberOfLines={1} style={styles.catText}>
+            <Text numberOfLines={1} variant="label" style={styles.catText}>
               {c.displayName}
             </Text>
           </Chip>
@@ -45,7 +46,9 @@ export function CategoryPicker({ quick, more, selectedId, onPick, disabled = fal
           style={[styles.cat, styles.more]}
         >
           <Icon name="more" color={colors.muted} />
-          <Text style={[styles.catText, { color: colors.muted, flex: 0 }]}>{more.length} more</Text>
+          <Text variant="label" color="muted" style={{ flex: 0 }}>
+            {more.length} more
+          </Text>
         </Chip>
       )}
       <CategorySheet
@@ -65,7 +68,7 @@ const makeStyles = (colors: Palette) =>
   StyleSheet.create({
     grid: { flexDirection: 'row', flexWrap: 'wrap', gap: space.sm },
     cat: { width: '31.5%' },
-    catText: { ...text.label, flex: 1, color: colors.text },
+    catText: { flex: 1 },
     // "N more" opens the sheet rather than picking, so it's drawn as an empty slot (a one-off, until brief 105).
     more: {
       borderStyle: 'dashed',

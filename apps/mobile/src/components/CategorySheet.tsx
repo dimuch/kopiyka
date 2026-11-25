@@ -1,4 +1,4 @@
-import { Modal, StyleSheet, Text, View } from 'react-native';
+import { Modal, StyleSheet, View } from 'react-native';
 import type { Category } from '@/api/types';
 import { useThemedStyles } from '@/appearance/AppearanceContext';
 import { CategoryTile } from '@/components/CategoryTile';
@@ -6,7 +6,8 @@ import { Chip } from '@/components/Chip';
 import { IconButton } from '@/components/IconButton';
 import { PhoneColumn } from '@/components/PhoneColumn';
 import { Pressable } from '@/components/Pressable';
-import { fonts, type Palette, radius, space, text } from '@/theme';
+import { Text } from '@/components/Text';
+import { type Palette, radius, space } from '@/theme';
 
 interface Props {
   visible: boolean;
@@ -32,15 +33,17 @@ export function CategorySheet({ visible, categories, onPick, onClose }: Props) {
           <View accessibilityViewIsModal style={styles.sheet}>
             <View style={styles.handle} />
             <View style={styles.head}>
-              <Text style={styles.title}>All categories</Text>
+              <Text variant="headingDisplay">All categories</Text>
               <IconButton icon="close" label="Close" tone="muted" onPress={onClose} style={styles.close} />
             </View>
-            <Text style={styles.hint}>Your pick takes the last spot in the quick row.</Text>
+            <Text variant="caption" color="muted">
+              Your pick takes the last spot in the quick row.
+            </Text>
             <View style={styles.grid}>
               {categories.map((c) => (
                 <Chip key={c.categoryId} onPress={() => onPick(c)} style={styles.item}>
                   <CategoryTile techName={c.techName} label={c.displayName} size={28} />
-                  <Text numberOfLines={1} style={styles.itemText}>
+                  <Text numberOfLines={1} variant="label" style={styles.itemText}>
                     {c.displayName}
                   </Text>
                 </Chip>
@@ -75,13 +78,11 @@ const makeStyles = (colors: Palette) =>
       backgroundColor: colors.borderStrongest,
     },
     head: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
-    title: { ...text.heading, fontFamily: fonts.display, color: colors.text },
     // Square until brief 105, as before IconButton: a rounded corner would only round its web focus ring.
     // eslint-disable-next-line no-restricted-syntax
     close: { marginRight: -space.sm, borderRadius: 0 },
-    hint: { ...text.caption, color: colors.muted },
     grid: { flexDirection: 'row', flexWrap: 'wrap', gap: space.sm },
     // A step above the sheet's own surface, which a plain chip would match (a one-off, until brief 105).
     item: { width: '48.5%', backgroundColor: colors.surfaceRaised },
-    itemText: { ...text.label, flex: 1, color: colors.text },
+    itemText: { flex: 1 },
   });

@@ -10,6 +10,7 @@ import { CategoryInMonth } from '@/components/CategoryInMonth';
 import { CategoryTile } from '@/components/CategoryTile';
 import { CompactTotal, HeaderDivider, useCollapsingSummary } from '@/components/CollapsingSummary';
 import { Icon } from '@/components/Icon';
+import { IconButton } from '@/components/IconButton';
 import { LoadError } from '@/components/LoadError';
 import { Pressable } from '@/components/Pressable';
 import { TabBar } from '@/components/TabBar';
@@ -104,15 +105,13 @@ function CategoryBreakdown({ categoryId, month, ended }: { categoryId: number; m
           {showAdd ? <AddExpenseButton categoryId={categoryId} /> : null}
           {/* An ended month is read-only (brief 028), so nothing to remove there. */}
           {category && !ended && (
-            <Pressable
-              accessibilityRole="button"
-              accessibilityLabel="Category actions"
+            <IconButton
+              icon="more"
+              label="Category actions"
+              tone="muted"
               aria-expanded={menuOpen}
               onPress={() => setMenuOpen((open) => !open)}
-              style={styles.more}
-            >
-              <Icon name="more" color={colors.muted} />
-            </Pressable>
+            />
           )}
         </View>
         <HeaderDivider style={collapse.dividerStyle} />
@@ -250,13 +249,6 @@ const makeStyles = (colors: Palette) =>
     empty: { paddingHorizontal: space.xs },
     itemText: { gap: space.xxs, flex: 1 },
     trailing: { flexDirection: 'row', alignItems: 'center', gap: space.xs, flexShrink: 1 },
-    more: {
-      width: size.iconButton,
-      height: size.iconButton,
-      alignItems: 'center',
-      justifyContent: 'center',
-      borderRadius: radius.md,
-    },
     // Above the header's zIndex 1, so its buttons don't take taps while the menu is open.
     menuLayer: { ...StyleSheet.absoluteFill, zIndex: 2 },
     menuCard: {

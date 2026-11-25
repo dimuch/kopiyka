@@ -9,7 +9,7 @@ import { useSession } from '@/auth/AuthContext';
 import { Card } from '@/components/Card';
 import { EmptyMonth } from '@/components/EmptyMonth';
 import { HomeButton } from '@/components/HomeButton';
-import { Icon } from '@/components/Icon';
+import { IconButton } from '@/components/IconButton';
 import { LoadError } from '@/components/LoadError';
 import { MonthSwitcher } from '@/components/MonthSwitcher';
 import { Pressable } from '@/components/Pressable';
@@ -21,7 +21,7 @@ import { useIncome } from '@/data/useIncome';
 import { eur, kyivMonth, monthName, shiftMonth, toCents } from '@/format';
 import { parseMonthParam } from '@/linkParams';
 import { usePushOnce } from '@/pushOnce';
-import { fonts, type Palette, radius, size, space, text } from '@/theme';
+import { fonts, type Palette, space, text } from '@/theme';
 
 /**
  * A month's income items from every member, and their total (brief 059). The month lives in the route
@@ -99,14 +99,12 @@ export default function Income() {
         <View style={[styles.side, styles.sideEnd]}>
           {/* Like Budget's "+"; an ended month can't change, and nothing shows before the month loads. */}
           {items && !ended ? (
-            <Pressable
-              accessibilityRole="button"
-              accessibilityLabel={`Add income to ${monthName(month)}`}
+            <IconButton
+              icon="plus"
+              label={`Add income to ${monthName(month)}`}
+              tone="accent"
               onPress={() => pushOnce({ pathname: '/income-item', params: { month } })}
-              style={styles.iconButton}
-            >
-              <Icon name="plus" color={colors.accent} />
-            </Pressable>
+            />
           ) : null}
         </View>
       </View>
@@ -200,13 +198,6 @@ const makeStyles = (colors: Palette) =>
     // Equal-width sides keep the month switcher on the header's true centre; flexBasis 0 matters on web.
     side: { flex: 1, flexBasis: 0, flexDirection: 'row' },
     sideEnd: { justifyContent: 'flex-end' },
-    iconButton: {
-      width: size.iconButton,
-      height: size.iconButton,
-      alignItems: 'center',
-      justifyContent: 'center',
-      borderRadius: radius.md,
-    },
     content: { gap: space.lg, paddingTop: space.xs, paddingBottom: space.xxl },
     loading: { marginTop: space.xxl },
     sectionHead: {

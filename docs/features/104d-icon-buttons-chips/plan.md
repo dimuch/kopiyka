@@ -174,7 +174,7 @@ gap: space.sm }`
   - The other icon hosts are out of scope or aren't icon buttons:
     - the category page's and Members' Back (icon and label, 104e)
     - Budget's Start → End line and Statistics' period button
-    - Settings' Members row and HomeCards
+    - Settings' avatar and HomeCards
     - AmountFields' swap (a plain `View`) and DateField's calendar (inside the field)
     - the expense form's "Added" check (a `summary`)
     - TabBar (106)
@@ -212,23 +212,23 @@ states. There's no new capability, and no API, schema or connector change.
 Before slice 1, the orchestrator rebases the branch onto origin/main and takes the **before** set (Visual check). The
 line counts come from the scratch draft.
 
-- [ ] 0. Bump version to 1.23.6
+- [x] 0. Bump version to 1.23.6
   - Files: package.json, apps/mobile/app.json
   - Change: set both to 1.23.6
-- [ ] 1. Draw Home, Add expense and the month arrows with one IconButton (~149 lines)
+- [x] 1. Draw Home, Add expense and the month arrows with one IconButton (~149 lines)
   - Files: `src/components/IconButton.tsx` (new), `src/components/HomeButton.tsx`,
     `src/components/AddExpenseButton.tsx`, `src/components/MonthSwitcher.tsx`, `apps/mobile/demo-modules.txt`
   - Change: IconButton as in Contracts, with all of its props, as Button and Card shipped whole. Sites 1–4.
   - Verify: gates; `export:web` + `check-builds --accept`, with only the IconButton line added. Snapshots: `budget`,
     `income`, `expenses` (Home, arrows, the row "+") and `category` (the header "+").
-- [ ] 2. Draw the tabs' "+", Statistics' arrows, Budget's pencils, ⋯ and the sheet's Close with IconButton (~133
+- [x] 2. Draw the tabs' "+", Statistics' arrows, Budget's pencils, ⋯ and the sheet's Close with IconButton (~133
       lines)
   - Files: `src/app/(tabs)/budget.tsx`, `src/app/(tabs)/income.tsx`, `src/app/(tabs)/statistics.tsx`,
     `src/app/category/[categoryId].tsx`, `src/components/CategorySheet.tsx` (Close only)
   - Change: sites 5–11, the two square-corner overrides, and the clean-up in Contracts.
   - Verify: gates. `rg -n "width: size\.iconButton" apps/mobile/src` finds only `IconButton.tsx`. Snapshots:
     `budget`, `income`, `statistics`, `category`, `category-menu`, `expense-sheet`.
-- [ ] 3. Draw the date and category chips with one Chip (~129 lines)
+- [x] 3. Draw the date and category chips with one Chip (~129 lines)
   - Files: `src/components/Chip.tsx` (new), `src/components/DateChips.tsx`, `src/components/CategoryPicker.tsx`,
     `src/components/CategorySheet.tsx` (items), `apps/mobile/demo-modules.txt`
   - Change: Chip as in Contracts; sites A–D with their overrides; `chipOn` and `catOn` go.
@@ -427,11 +427,28 @@ selected look moves to it), in both themes.
 
 ## Deviations
 
-<filled by the developer during build>
+- **Base moved before the build.** The branch was fast-forwarded to `origin/main` 1c60698 (1.23.5) before the first
+  commit, so slice 0 bumps 1.23.5 → 1.23.6, as the plan already said.
+- **Set-up.** No other session held the dev ports: the API (:3000) and web app (:8084) ran from this worktree, with the
+  two `.env` files copied in (git-ignored). `claude-qa-104d` (#178, ledger 169) was seeded through the API: C is
+  category 949, a second expense in 950 dated 2026-11-03, and one income item.
+- **Slice 2 applied CategorySheet's Close only.** The scratch draft's `CategorySheet.tsx` already held slice 3's
+  `Chip`, so slice 2 took just the IconButton part by hand and slice 3 copied the rest.
+- **The category sheet's slide stalls while the Browser pane is hidden** (the page gets no animation frames). One
+  `expense-sheet` comparison caught the sheet still at y 844. Taking a screenshot after opening the sheet lets the
+  slide finish; every `expense-sheet` result below was taken that way.
+- **Results:** every slice compared all 9 views in both themes: 0 differences and identical accessibility records in
+  all 18 pairs, after each of slices 1, 2 and 3. The running bundle was checked to contain `IconButton.tsx` and
+  `Chip.tsx`. Tapping a category chip and Yesterday moves `aria-selected` to them. Demo (Budget, Income, Expenses, a
+  category with its ⋯ menu, the expense form with its sheet), light and dark: no console errors. `check-builds`
+  passes (147 demo modules).
 
 ## Consolidate
 
-<filled in /kopiyka-hos Phase 3a>
+Two new components, `IconButton` and `Chip`. Their twins were the 11 hand-written icon buttons and the 3 chip styles,
+all now replaced: only `IconButton.tsx` sets the 44×44 box, and only `Chip.tsx` sets the chip's selected colours.
+Reused 0, extracted 0, left 0. The other `accentTint` fills (AppearancePicker's segment, NameCombobox's row, the
+"Added" note, Settings' avatar, DemoStrip) aren't chips, as Contracts lists.
 
 ## Revision 1
 

@@ -3,6 +3,7 @@ import { AccessibilityInfo, ScrollView, StyleSheet, Text, View } from 'react-nat
 import { useAppearance, useColors, useThemedStyles } from '@/appearance/AppearanceContext';
 import { useSession } from '@/auth/AuthContext';
 import { AppearancePicker } from '@/components/AppearancePicker';
+import { Button } from '@/components/Button';
 import { Card, useCardStyle } from '@/components/Card';
 import { Icon } from '@/components/Icon';
 import { LedgerPicker } from '@/components/LedgerPicker';
@@ -11,7 +12,7 @@ import { PlaceholderPage } from '@/components/PlaceholderPage';
 import { Pressable } from '@/components/Pressable';
 import { useInvites } from '@/data/invites';
 import { usePushOnce } from '@/pushOnce';
-import { fonts, outlinedDangerButton, outlinedDangerText, type Palette, radius, size, space, text } from '@/theme';
+import { fonts, type Palette, radius, size, space, text } from '@/theme';
 
 export default function Settings() {
   const colors = useColors();
@@ -93,9 +94,7 @@ export default function Settings() {
         </View>
         {/* Pins Sign out to the bottom when there's room, and keeps a gap above it when the page scrolls. */}
         <View style={styles.spacer} />
-        <Pressable accessibilityRole="button" onPress={logout} style={styles.signOut}>
-          <Text style={styles.signOutText}>Sign out</Text>
-        </Pressable>
+        <Button variant="outlinedDanger" size="medium" label="Sign out" onPress={logout} style={styles.signOut} />
       </ScrollView>
     </PlaceholderPage>
   );
@@ -139,6 +138,5 @@ const makeStyles = (colors: Palette) =>
     // The same 8pt between sections as PlaceholderPage's own gap.
     content: { flexGrow: 1, gap: space.sm },
     spacer: { flexGrow: 1, minHeight: space.xxl },
-    signOut: { ...outlinedDangerButton(colors), marginBottom: space.xl },
-    signOutText: outlinedDangerText(colors),
+    signOut: { marginBottom: space.xl },
   });

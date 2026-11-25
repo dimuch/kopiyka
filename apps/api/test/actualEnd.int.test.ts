@@ -6,7 +6,6 @@ import { hashToken } from '../src/auth/sessions.js';
 import type { Config } from '../src/config.js';
 import { createDb, type Db } from '../src/db.js';
 import { addMember } from '../src/ledgers/members.js';
-import { importBalances } from '../src/notion/balancesImport.js';
 import {
   authHeader,
   badMonthReply,
@@ -39,8 +38,14 @@ describe.skipIf(!(await testDbReachable()))('PUT and DELETE …/months/:month/ba
     app.inject({ method: 'GET', url: `/api/ledgers/${owner.ledgerId}/months/${month}/balance`, headers: auth });
   const reply = (res: { statusCode: number; json: () => unknown }) => [res.statusCode, res.json()];
 
-  /** October as Notion's import stores it: started at €0, ended at −€35. */
-  const october = { month: '2026-10', openingCents: 0n, closingCents: -3500n, openingFill: null, closingFill: null };
+  /** October's stored balances, as brief 085's import left them: started at €0, ended at −€35 by default. */
+  async function storeOctober(closing = '-35.00') {
+    await db.query(
+      `INSERT INTO month_balances (ledger_id, balance_month, opening_eur, closing_eur) VALUES (?, '2026-10-01', ?, ?)
+       ON DUPLICATE KEY UPDATE opening_eur = ?, closing_eur = ?`,
+      [owner.ledgerId, '0.00', closing, '0.00', closing],
+    );
+  }
 
   beforeAll(async () => {
     await resetSchema();
@@ -57,7 +62,7 @@ describe.skipIf(!(await testDbReachable()))('PUT and DELETE …/months/:month/ba
     await clearData(db);
     owner = await makeUser(db, config, 'dimuch');
     auth = await authHeader(app, owner, clock);
-    await importBalances(db, owner.ledgerId, [october]);
+    await storeOctober();
     await storeMonthList(db, owner.ledgerId, '2026-11', []);
   });
 
@@ -102,9 +107,9 @@ describe.skipIf(!(await testDbReachable()))('PUT and DELETE …/months/:month/ba
     expect((await get('2026-11')).json().balance.openingEur).toBe('50.00');
   });
 
-  it('keeps an actual End when the balances are imported again', async () => {
+  it("keeps an actual End when October's stored balances are written again", async () => {
     await put('2026-10', { amount: '50.00' });
-    await importBalances(db, owner.ledgerId, [october]);
+    await storeOctober('-40.00');
 
     expect((await get('2026-10')).json().balance).toEqual({ openingEur: '0.00', closingEur: '50.00', actual: true });
   });

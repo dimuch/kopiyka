@@ -1,8 +1,5 @@
 import { z } from 'zod';
 import { parseKey } from './auth/secretBox.js';
-import type { NotionApiConfig } from './notion/client.js';
-
-const UUID = /^[0-9a-f]{8}-?([0-9a-f]{4}-?){3}[0-9a-f]{12}$/i;
 
 const Env = z.object({
   NODE_ENV: z.enum(['development', 'test', 'production']).default('development'),
@@ -16,32 +13,10 @@ const Env = z.object({
   COOKIE_SECURE: z.stringbool().optional(),
   // Comma-separated browser origins allowed to call the API, e.g. the Expo web dev server.
   CORS_ORIGINS: z.string().default(''),
-  // Notion sync (brief 020): the ledger and year whose expenses go to the Budget tables; both or neither.
-  NOTION_LEDGER_ID: z.coerce.number().int().positive().optional(),
-  NOTION_YEAR: z.coerce.number().int().min(2000).max(2100).optional(),
-  // Notion API (brief 021): an internal integration's secret and the Groceries data source (the UUID in its
-  // collection:// URL); both or neither.
-  NOTION_TOKEN: z.string().min(1).optional(),
-  NOTION_GROCERIES_DATA_SOURCE_ID: z.string().regex(UUID, 'expected the UUID of a collection:// URL').optional(),
-  // Category totals (brief 022): the Expenses and Netto data sources; both or neither, and they need the pair above.
-  NOTION_EXPENSES_DATA_SOURCE_ID: z.string().regex(UUID, 'expected the UUID of a collection:// URL').optional(),
-  NOTION_NETTO_DATA_SOURCE_ID: z.string().regex(UUID, 'expected the UUID of a collection:// URL').optional(),
-  // Month balances (brief 085): the Opening and Actual Closing data sources; both or neither, and they need the first
-  // pair. Only `yarn api import-balances --save` reads them.
-  NOTION_OPENING_DATA_SOURCE_ID: z.string().regex(UUID, 'expected the UUID of a collection:// URL').optional(),
-  NOTION_CLOSING_DATA_SOURCE_ID: z.string().regex(UUID, 'expected the UUID of a collection:// URL').optional(),
-  // Income (brief 088): the Income data source; needs the first pair. Only `yarn api import-income --save` reads it.
-  NOTION_INCOME_DATA_SOURCE_ID: z.string().regex(UUID, 'expected the UUID of a collection:// URL').optional(),
   // MCP connector (brief 063): off unless true; its tokens end this long after they're issued.
   MCP_ENABLED: z.stringbool().default(false),
   API_TOKEN_TTL_MINUTES: z.coerce.number().int().positive().default(60),
 });
-
-/** Which ledger and year sync to the Notion Budget tables (brief 020). */
-export interface NotionScope {
-  ledgerId: number;
-  year: number;
-}
 
 export interface Config {
   env: 'development' | 'test' | 'production';
@@ -53,42 +28,12 @@ export interface Config {
   sessionTtlMinutes: number;
   cookieSecure: boolean;
   corsOrigins: string[];
-  /** Null when Notion sync isn't set up. */
-  notion: NotionScope | null;
-  /** Null when there's no Notion integration to sync through. */
-  notionApi: NotionApiConfig | null;
   /** Set only when the MCP connector is on (brief 063). */
   apiTokens?: { ttlMinutes: number };
 }
 
 export function loadConfig(source: NodeJS.ProcessEnv = process.env): Config {
   const env = Env.parse(source);
-  if ((env.NOTION_LEDGER_ID === undefined) !== (env.NOTION_YEAR === undefined)) {
-    throw new Error('set NOTION_LEDGER_ID and NOTION_YEAR together');
-  }
-  if ((env.NOTION_TOKEN === undefined) !== (env.NOTION_GROCERIES_DATA_SOURCE_ID === undefined)) {
-    throw new Error('set NOTION_TOKEN and NOTION_GROCERIES_DATA_SOURCE_ID together');
-  }
-  const totals = env.NOTION_EXPENSES_DATA_SOURCE_ID !== undefined || env.NOTION_NETTO_DATA_SOURCE_ID !== undefined;
-  if (totals && (env.NOTION_EXPENSES_DATA_SOURCE_ID === undefined || env.NOTION_NETTO_DATA_SOURCE_ID === undefined)) {
-    throw new Error('set NOTION_EXPENSES_DATA_SOURCE_ID and NOTION_NETTO_DATA_SOURCE_ID together');
-  }
-  if (totals && env.NOTION_TOKEN === undefined) {
-    throw new Error('set NOTION_EXPENSES_DATA_SOURCE_ID and NOTION_NETTO_DATA_SOURCE_ID together with NOTION_TOKEN');
-  }
-  const balances = env.NOTION_OPENING_DATA_SOURCE_ID !== undefined || env.NOTION_CLOSING_DATA_SOURCE_ID !== undefined;
-  if (
-    balances &&
-    (env.NOTION_OPENING_DATA_SOURCE_ID === undefined || env.NOTION_CLOSING_DATA_SOURCE_ID === undefined)
-  ) {
-    throw new Error('set NOTION_OPENING_DATA_SOURCE_ID and NOTION_CLOSING_DATA_SOURCE_ID together');
-  }
-  if (balances && env.NOTION_TOKEN === undefined) {
-    throw new Error('set NOTION_OPENING_DATA_SOURCE_ID and NOTION_CLOSING_DATA_SOURCE_ID together with NOTION_TOKEN');
-  }
-  if (env.NOTION_INCOME_DATA_SOURCE_ID !== undefined && env.NOTION_TOKEN === undefined) {
-    throw new Error('set NOTION_INCOME_DATA_SOURCE_ID together with NOTION_TOKEN');
-  }
   return {
     env: env.NODE_ENV,
     host: env.HOST,
@@ -101,32 +46,6 @@ export function loadConfig(source: NodeJS.ProcessEnv = process.env): Config {
     corsOrigins: env.CORS_ORIGINS.split(',')
       .map((o) => o.trim())
       .filter(Boolean),
-    notion:
-      env.NOTION_LEDGER_ID !== undefined && env.NOTION_YEAR !== undefined
-        ? { ledgerId: env.NOTION_LEDGER_ID, year: env.NOTION_YEAR }
-        : null,
-    notionApi:
-      env.NOTION_TOKEN !== undefined && env.NOTION_GROCERIES_DATA_SOURCE_ID !== undefined
-        ? {
-            token: env.NOTION_TOKEN,
-            groceriesDataSourceId: env.NOTION_GROCERIES_DATA_SOURCE_ID,
-            totals:
-              env.NOTION_EXPENSES_DATA_SOURCE_ID !== undefined && env.NOTION_NETTO_DATA_SOURCE_ID !== undefined
-                ? {
-                    expensesDataSourceId: env.NOTION_EXPENSES_DATA_SOURCE_ID,
-                    nettoDataSourceId: env.NOTION_NETTO_DATA_SOURCE_ID,
-                  }
-                : null,
-            balances:
-              env.NOTION_OPENING_DATA_SOURCE_ID !== undefined && env.NOTION_CLOSING_DATA_SOURCE_ID !== undefined
-                ? {
-                    openingDataSourceId: env.NOTION_OPENING_DATA_SOURCE_ID,
-                    closingDataSourceId: env.NOTION_CLOSING_DATA_SOURCE_ID,
-                  }
-                : null,
-            incomeDataSourceId: env.NOTION_INCOME_DATA_SOURCE_ID ?? null,
-          }
-        : null,
     ...(env.MCP_ENABLED ? { apiTokens: { ttlMinutes: env.API_TOKEN_TTL_MINUTES } } : {}),
   };
 }

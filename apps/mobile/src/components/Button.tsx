@@ -8,7 +8,7 @@ import { fonts, type Palette, radius, size, space, text } from '@/theme';
  * Today's button sizes (briefs 104b and 104c; brief 105 makes the filled ones one 48pt pill).
  * - large: 56pt, radius.lg. While busy the spinner takes the label's place.
  * - medium: 48pt pill. While busy a spinner shows before the label.
- * - compact: 44pt pill, as wide as its label. Spinner as medium.
+ * - compact: 44pt pill. Spinner as medium.
  * The text looks drop the corner, and callers set their own side padding where it differs.
  */
 export type ButtonSize = 'large' | 'medium' | 'compact';
@@ -31,6 +31,7 @@ type Look =
     }
   | { variant: Exclude<ButtonVariant, 'primary' | 'danger'>; busy?: never; icon?: never };
 
+/** A button in one of the looks above (`ButtonVariant`) and sizes (`ButtonSize`); see `ButtonVariant` for how each dims. */
 export function Button({
   variant,
   size: buttonSize,
@@ -48,7 +49,7 @@ export function Button({
   disabled?: boolean;
   /** The name, when it says more than the label. */
   accessibilityLabel?: string;
-  /** The caller's layout, and the one-offs listed in briefs 104b's and 104c's plans. */
+  /** The caller's layout, and the one-offs listed in the 104b and 104c plans. */
   style?: StyleProp<ViewStyle>;
 }) {
   const colors = useColors();

@@ -81,6 +81,7 @@ src/components/ProgressBar.tsx
 src/components/ReorderList.tsx
 src/components/ScreenHeader.tsx
 src/components/TabBar.tsx
+src/components/Text.tsx
 src/components/TextField.tsx
 src/components/UndoToast.tsx
 src/components/blockTextGestures.ts

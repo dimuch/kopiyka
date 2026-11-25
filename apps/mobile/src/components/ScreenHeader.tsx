@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react';
-import { StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 import { useColors, useThemedStyles } from '@/appearance/AppearanceContext';
 import { Button } from '@/components/Button';
 import { HeaderDivider } from '@/components/CollapsingSummary';
@@ -7,7 +7,8 @@ import { HomeButton } from '@/components/HomeButton';
 import { Icon } from '@/components/Icon';
 import { MonthSwitcher } from '@/components/MonthSwitcher';
 import { Pressable } from '@/components/Pressable';
-import { fonts, type Palette, size, space, text } from '@/theme';
+import { Text } from '@/components/Text';
+import { type Palette, size, space } from '@/theme';
 
 /** On a screen whose list scrolls under the header: the hairline's opacity from `useCollapsingSummary`. */
 type Collapsing = { dividerStyle?: object };
@@ -54,7 +55,7 @@ export function ScreenHeader(props: Props) {
           onPress={props.onBack}
           style={styles.modalBack}
         />
-        <Text accessibilityRole="header" style={styles.title}>
+        <Text accessibilityRole="header" variant="headingDisplay">
           {props.title}
         </Text>
         <View style={styles.spacer} />
@@ -79,7 +80,9 @@ export function ScreenHeader(props: Props) {
     <View style={[styles.page, lifted]}>
       <Pressable accessibilityRole="button" onPress={props.onBack} style={styles.pageBack}>
         <Icon name="back" color={colors.muted} />
-        <Text style={styles.backText}>{props.backLabel}</Text>
+        <Text variant="bodyMedium" color="muted">
+          {props.backLabel}
+        </Text>
       </Pressable>
       {props.trailing !== undefined ? <View style={styles.trailing}>{props.trailing}</View> : null}
       {divider}
@@ -91,7 +94,6 @@ const makeStyles = (colors: Palette) =>
   StyleSheet.create({
     modal: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: space.sm },
     modalBack: { marginLeft: -space.sm, paddingHorizontal: space.sm },
-    title: { ...text.heading, fontFamily: fonts.display, color: colors.text },
     // About Back's width, so the title sits near the row's centre.
     spacer: { width: 52 },
     month: { flexDirection: 'row', alignItems: 'center', paddingBottom: space.sm },
@@ -113,7 +115,6 @@ const makeStyles = (colors: Palette) =>
       marginLeft: -space.sm,
       paddingHorizontal: space.sm,
     },
-    backText: { ...text.body, fontFamily: fonts.bodyMedium, color: colors.muted },
     trailing: { flexDirection: 'row', alignItems: 'center', gap: space.xs, flexShrink: 1 },
     // Over the list that scrolls under the header.
     lifted: { zIndex: 1 },

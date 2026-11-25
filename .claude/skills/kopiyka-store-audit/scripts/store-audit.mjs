@@ -208,13 +208,6 @@ placeholders.length
   ? report('WARN', 'A1', `placeholder text: ${placeholders.join(', ')}`)
   : report('PASS', 'A1', 'no placeholder text found');
 
-if (grep(apiFiles, /notion/i).length)
-  report(
-    'MANUAL',
-    'A6/G9',
-    'Notion sync shares expense data with a third party — disclose in policy, App Privacy, Data safety',
-  );
-
 // --- console-only items ----------------------------------------------------------
 for (const [id, msg] of [
   ['A2/G12', 'reviewer demo account + TOTP instructions in App Review notes / Play "App access"'],

@@ -19,7 +19,7 @@ Official sources:
 | A3  | 4.2 / 3.2 Audience        | If the app is only for one household, a public listing risks rejection as not for the general public. Options: TestFlight, Unlisted distribution, or make sign-up/ledgers usable by anyone. Flag as a decision for the user.                                                         |
 | A4  | 5.1.1(i) Privacy policy   | A privacy policy URL is required in App Store Connect **and** must be reachable inside the app (e.g. settings/login screen). Grep `apps/mobile/src` for a link.                                                                                                                      |
 | A5  | 5.1.1(v) Account deletion | Required if the app supports account creation. Kopiyka: accounts are admin-created → confirm still true (`apps/api/src/admin.ts`, no register route). If sign-up is ever added, in-app deletion becomes a FAIL.                                                                      |
-| A6  | 5.1.2 Data use            | Notion sync sends expense data to a third party → disclose in privacy policy and App Privacy labels.                                                                                                                                                                                 |
+| A6  | 5.1.2 Data use            | Any third party that receives user data → disclose in privacy policy and App Privacy labels. None today (brief 109 removed the Notion sync).                                                                                                                                         |
 | A7  | Privacy manifest ⏱        | Apps using required-reason APIs must declare them. AsyncStorage → `NSUserDefaults` (reason `CA92.1`); file timestamp/disk space/boot time APIs are often pulled in by RN/Expo. Expect `expo.ios.privacyManifests` in `app.json`; missing → WARN (Apple emails ITMS-91053 on upload). |
 | A8  | Export compliance         | HTTPS-only apps are exempt; set `expo.ios.config.usesNonExemptEncryption: false` so each build isn't blocked on the question.                                                                                                                                                        |
 | A9  | ATS / networking          | No plain `http://` endpoints in release builds (localhost fallback must not ship).                                                                                                                                                                                                   |
@@ -34,10 +34,10 @@ Official sources:
 
 - App Privacy questionnaire: derive from the API — username, financial
   info (expenses, amounts, categories), device/IP in login-attempt
-  rows (`apps/api/src/auth`), any data shared with Notion. Linked to the
+  rows (`apps/api/src/auth`). Linked to the
   user; not used for tracking (unless that changes).
 - Age rating questionnaire; category Finance.
 - Screenshots for required iPhone display sizes; no iPad if
   `supportsTablet: false`.
-- Review notes: demo credentials + TOTP instructions, what Notion sync is.
+- Review notes: demo credentials + TOTP instructions.
 - Support URL, privacy policy URL, copyright, contact info.

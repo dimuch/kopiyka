@@ -50,7 +50,7 @@ vendored library skills (`.github/skills/`) → general packs (`~/.copilot/skill
   `return` for a value that should never be missing) is not a fix; a guard
   for a value that really can be absent is fine — say why in the comment.
 - **Re-runnable by default.** Anything that writes in bulk or outside a
-  request — migrations, imports (`notion/historyImport.ts`), sync jobs,
+  request — migrations, imports, sync jobs,
   `deploy/*.sh` — ends in the same state when run twice or
   re-run after a crash halfway through (upserts, `IF NOT EXISTS`, a
   transaction, or a check before each write).

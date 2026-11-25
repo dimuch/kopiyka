@@ -182,7 +182,7 @@ two patch PRs over one `major` PR (Open question 1).
   - Size: about 250 deleted, 10 added.
   - Verify: `rg -n -i notion README.md deploy/README.md` finds only the one history sentence. `yarn format:check`
     passes.
-- [ ] 4. Stop pointing the skills at Notion code and update the backlog
+- [x] 4. Stop pointing the skills at Notion code and update the backlog
   - Files: in both `.claude/skills/` and `.github/skills/` (`docs/copilot.md`: change both copies):
     `kopiyka-conventions/SKILL.md`, `kopiyka-refactoring/SKILL.md`, `kopiyka-hos-refactoring/SKILL.md`,
     `kopiyka-store-audit/scripts/store-audit.mjs`, `kopiyka-store-audit/references/{apple,google}.md`. Also

@@ -7,6 +7,7 @@ import type { MonthBalance } from '@/api/types';
 import { useColors, useThemedStyles } from '@/appearance/AppearanceContext';
 import { useSession } from '@/auth/AuthContext';
 import { closeToBudget } from '@/closeToBudget';
+import { Button } from '@/components/Button';
 import { LoadError } from '@/components/LoadError';
 import { Pressable } from '@/components/Pressable';
 import { TextField } from '@/components/TextField';
@@ -170,19 +171,7 @@ function ActualEndForm({ month, balance, busy, setBusy }: { month: string; balan
         </Text>
       ) : null}
 
-      {gone ? null : (
-        <Pressable
-          accessibilityRole="button"
-          // While saving the only child is a spinner, so the name has to be given here.
-          accessibilityLabel="Save"
-          aria-busy={busy}
-          disabled={busy}
-          onPress={save}
-          style={[styles.primary, busy && { opacity: 0.6 }]}
-        >
-          {busy ? <ActivityIndicator color={colors.onAccent} /> : <Text style={styles.primaryText}>Save</Text>}
-        </Pressable>
-      )}
+      {gone ? null : <Button variant="primary" size="large" label="Save" busy={busy} onPress={save} />}
 
       {balance.actual && !gone ? (
         <Pressable accessibilityRole="button" disabled={busy} onPress={clearToCalculated} style={styles.secondary}>
@@ -215,15 +204,6 @@ const makeStyles = (colors: Palette) =>
       ...text.input,
     },
     error: { ...text.label, color: colors.over },
-    primary: {
-      minHeight: 56,
-      borderRadius: radius.lg,
-      paddingHorizontal: space.lg,
-      backgroundColor: colors.accent,
-      alignItems: 'center',
-      justifyContent: 'center',
-    },
-    primaryText: { ...text.bodyStrong, color: colors.onAccent },
     secondary: { height: size.control, alignItems: 'center', justifyContent: 'center' },
     secondaryText: { ...text.bodyStrong, color: colors.accent },
   });

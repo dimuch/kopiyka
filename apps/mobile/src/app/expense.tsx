@@ -16,6 +16,7 @@ import type { Category, Currency } from '@/api/types';
 import { useColors, useThemedStyles } from '@/appearance/AppearanceContext';
 import { useSession } from '@/auth/AuthContext';
 import { AmountFields } from '@/components/AmountFields';
+import { Button } from '@/components/Button';
 import { CategoryPicker } from '@/components/CategoryPicker';
 import { DateChips } from '@/components/DateChips';
 import { Icon } from '@/components/Icon';
@@ -354,24 +355,15 @@ function ExpenseForm({ draft, ledgerId }: { draft: ExpenseDraftData; ledgerId: n
 
         {locked ? null : (
           <>
-            <Pressable
-              accessibilityRole="button"
-              // While saving the only child is a spinner, so the name has to be given here.
-              accessibilityLabel={expense ? 'Update' : 'Add'}
-              aria-busy={busy}
-              disabled={busy || list.status !== 'ready'}
+            <Button
+              variant="primary"
+              size="large"
+              label={expense ? 'Update' : 'Add'}
+              icon={expense ? undefined : 'plus'}
+              busy={busy}
+              disabled={list.status !== 'ready'}
               onPress={save}
-              style={[styles.primary, (busy || list.status !== 'ready') && { opacity: 0.6 }]}
-            >
-              {busy ? (
-                <ActivityIndicator color={colors.onAccent} />
-              ) : (
-                <>
-                  {!expense && <Icon name="plus" color={colors.onAccent} strokeWidth={2.4} />}
-                  <Text style={styles.primaryText}>{expense ? 'Update' : 'Add'}</Text>
-                </>
-              )}
-            </Pressable>
+            />
 
             {expense && (
               <Pressable accessibilityRole="button" disabled={busy} onPress={remove} style={styles.delete}>
@@ -415,16 +407,6 @@ const makeStyles = (colors: Palette) => {
     small: { ...text.caption, color: colors.muted, fontVariant: ['tabular-nums'] },
     locked: { ...text.body, fontFamily: fonts.bodyMedium, color: colors.text },
     error: { ...text.label, color: colors.over },
-    primary: {
-      height: 56,
-      borderRadius: radius.lg,
-      backgroundColor: colors.accent,
-      flexDirection: 'row',
-      alignItems: 'center',
-      justifyContent: 'center',
-      gap: space.sm,
-    },
-    primaryText: { ...text.bodyStrong, color: colors.onAccent },
     delete: { height: size.control, alignItems: 'center', justifyContent: 'center' },
     deleteText: dangerText(colors),
     added: {

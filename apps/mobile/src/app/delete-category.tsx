@@ -1,11 +1,12 @@
 import { router, Stack, useLocalSearchParams } from 'expo-router';
 import { useRef, useState } from 'react';
-import { AccessibilityInfo, ActivityIndicator, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { AccessibilityInfo, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { ApiError } from '@/api/apiError';
 import type { CategoryWithTotals } from '@/api/types';
-import { useColors, useThemedStyles } from '@/appearance/AppearanceContext';
+import { useThemedStyles } from '@/appearance/AppearanceContext';
 import { useSession } from '@/auth/AuthContext';
+import { Button } from '@/components/Button';
 import { CategoryInMonth } from '@/components/CategoryInMonth';
 import { Pressable } from '@/components/Pressable';
 import { removeFromMonth, restoreToMonth } from '@/data/categories';
@@ -16,7 +17,7 @@ import { overIncomeText } from '@/data/overIncome';
 import { setPendingUndo } from '@/data/undo';
 import { useCategoryTotals } from '@/data/useCategoryTotals';
 import { parseIdParam, parseMonthParam } from '@/linkParams';
-import { fonts, type Palette, radius, size, space, text } from '@/theme';
+import { fonts, type Palette, size, space, text } from '@/theme';
 
 // Opened straight from a web link there's nothing to go back to, so fall back to Home.
 function leave() {
@@ -81,7 +82,6 @@ function Confirm({
   busy,
   setBusy,
 }: { category: CategoryWithTotals; month: string; ledgerId: number; toBudget: boolean } & Removing) {
-  const colors = useColors();
   const styles = useThemedStyles(makeStyles);
   const warning = removeWarning(category, month);
   const [error, setError] = useState<string | null>(null);
@@ -139,23 +139,7 @@ function Confirm({
         </Text>
       ) : null}
 
-      {gone ? null : (
-        <Pressable
-          accessibilityRole="button"
-          // While removing the only child is a spinner, so the name has to be given here.
-          accessibilityLabel={warning.action}
-          aria-busy={busy}
-          disabled={busy}
-          onPress={remove}
-          style={[styles.destructive, busy && { opacity: 0.6 }]}
-        >
-          {busy ? (
-            <ActivityIndicator color={colors.onAccent} />
-          ) : (
-            <Text style={styles.destructiveText}>{warning.action}</Text>
-          )}
-        </Pressable>
-      )}
+      {gone ? null : <Button variant="danger" size="large" label={warning.action} busy={busy} onPress={remove} />}
     </ScrollView>
   );
 }
@@ -171,13 +155,4 @@ const makeStyles = (colors: Palette) =>
     question: { ...text.title, color: colors.text },
     warning: { ...text.body, color: colors.text },
     error: { ...text.label, color: colors.over },
-    destructive: {
-      minHeight: 56,
-      borderRadius: radius.lg,
-      paddingHorizontal: space.lg,
-      backgroundColor: colors.danger,
-      alignItems: 'center',
-      justifyContent: 'center',
-    },
-    destructiveText: { ...text.bodyStrong, color: colors.onAccent, textAlign: 'center' },
   });

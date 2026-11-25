@@ -48,6 +48,7 @@ export function Button({
       // While busy a large button's only child is a spinner, so its name has to be given here.
       accessibilityLabel={accessibilityLabel ?? (replaces ? label : undefined)}
       aria-busy={busy}
+      // disabled, not aria-disabled: react-native-web's Pressable sets aria-disabled from disabled only.
       disabled={off}
       onPress={onPress}
       style={[styles.button, styles[variant], styles[buttonSize], off && styles.off, style]}

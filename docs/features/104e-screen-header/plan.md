@@ -3,7 +3,7 @@
 Status: approved <!-- draft → skeptic-approved → approved (by the user) -->
 Brief: ./brief.md
 Branch: chore/screen-header
-Base: origin/main (60b18a6, version 1.23.6)
+Base: origin/main (60b18a6, version 1.23.6); rebased onto acfb89e (1.23.7) before review
 
 ## Approach
 
@@ -221,7 +221,7 @@ paddingBottom: space.sm }`
 
 ## Version
 
-Bump: patch, 1.23.6 → 1.23.7
+Bump: patch, 1.23.7 → 1.23.8 (planned as 1.23.6 → 1.23.7; main took 1.23.7 first, see Deviations)
 Why: §8b `patch`. It's a refactor of shipped app code that keeps behaviour: the same rows, Backs, labels and states.
 The modal titles' header role (Open question 2) is an accessibility fix, which is also `patch`. There's no new
 capability, and no API, schema or connector change.
@@ -231,14 +231,14 @@ capability, and no API, schema or connector change.
 Before slice 1, the orchestrator takes the **before** set (Visual check). The line counts come from the scratch draft:
 each stage was checked on its own with `tsc` and ESLint.
 
-- [ ] 0. Bump version to 1.23.7
+- [x] 0. Bump version to 1.23.8
   - Files: package.json, apps/mobile/app.json
-  - Change: set both to 1.23.7
-- [ ] 1. Add ScreenHeader and draw Members' header with it (~141 lines)
+  - Change: set both to 1.23.8
+- [x] 1. Add ScreenHeader and draw Members' header with it (~141 lines)
   - Files: `src/components/ScreenHeader.tsx` (new), `src/app/members.tsx`
   - Change: ScreenHeader as in Contracts, whole, as Button and IconButton shipped. Members (P3) moves to `page`.
   - Verify: gates. Snapshots: `members`.
-- [ ] 2. Draw the five form headers with ScreenHeader (~89 lines)
+- [x] 2. Draw the five form headers with ScreenHeader (~89 lines)
   - Files: `src/app/category-form.tsx`, `src/app/actual-end.tsx`, `src/app/income-item.tsx`,
     `src/app/delete-category.tsx`, `src/app/expense.tsx`, `apps/mobile/demo-modules.txt`
   - Change: M1–M5 and their clean-up.
@@ -248,14 +248,14 @@ each stage was checked on its own with `tsc` and ESLint.
     - `rg -n "width: 52" apps/mobile/src` finds only `ScreenHeader.tsx`
     - Snapshots: `category-form-add`, `income-item-add`, `income-item-busy`, `expense-new`, `delete-category` and
       `actual-end`
-- [ ] 3. Draw Budget's, Income's and Expenses' headers with ScreenHeader (~92 lines)
+- [x] 3. Draw Budget's, Income's and Expenses' headers with ScreenHeader (~92 lines)
   - Files: `src/app/(tabs)/budget.tsx`, `src/app/(tabs)/income.tsx`, `src/app/(tabs)/expenses.tsx`
   - Change: T1–T3 and their clean-up.
   - Verify:
     - gates
     - `rg -n "flexBasis: 0" apps/mobile/src` finds only `ScreenHeader.tsx`
     - Snapshots: `budget`, `budget-ended`, `income`, `expenses` and `expenses-scrolled`
-- [ ] 4. Draw the category page's headers with ScreenHeader (~87 lines)
+- [x] 4. Draw the category page's headers with ScreenHeader (~87 lines)
   - Files: `src/app/category/[categoryId].tsx`
   - Change: P1 and P2 and their clean-up.
   - Verify:
@@ -501,7 +501,40 @@ The screenshots go in the PR, not the repo.
 
 ## Deviations
 
+- **Set-up.** No other session held the dev ports: the API (:3000) and web app (:8084) ran from this worktree, with the
+  two `.env` files copied in (git-ignored). `claude-qa-104e` (#179, ledger 170) was seeded through the API: C is
+  category 964 with 10 expenses on 1–10 November, D is 965, plus one income item.
+- **The slices were copied from the planner's scratch draft** (outside the repo), one state per slice. After slice 4
+  the branch matched the draft file for file.
+- **Slice 4 was committed on a red test run.** About 370 API integration tests failed with "Table 'ledger_members'
+  already exists" in the schema reset. Another session (a sibling worktree) was running its suite against the same
+  test database at the same time. The orchestrator's command didn't stop at the failed `yarn test`, so the commit
+  went in. Format, lint, typecheck and `check-builds` were green, and this branch changes no API code. Once the other
+  runs had been idle for 30 s, the full suite passed on the slice-4 commit (532 API, 327 connector, 466 app).
+- **The QA ledger's category order changed mid-check.** A click in the Browser pane during the after set swapped
+  "personal" and "parking" (`PUT …/categories/order`). Budget, Expenses and the expense form then showed 6 tile rows
+  in the category list, none in a header. The order was put back through the same endpoint, and those views were
+  retaken; they match.
+- **Main moved twice before review.**
+  - First to 777e669, a backlog-only commit marking 104d merged.
+  - Then, during the first review, to acfb89e: its own bump to 1.23.7 and "Spread the Budget card's figures like the
+    Expenses card", which changes `budget.tsx` below the header. This branch's bump became 1.23.8.
+  - Budget got a fresh baseline from main's `budget.tsx` (`budget2`, `budget-ended2`): main's change moves 9 rows in
+    the figures card. The branch's Budget then matches that baseline with 0 differences in both schemes.
+- **Results:** all 15 views × 2 schemes match the before set, apart from the expected:
+  - `category-bad-link`: one `zIndex` row, 1 → auto, nothing visible;
+  - the 6 form views: `a11yAdded` is exactly one `heading` entry, `a11yRemoved` empty.
+
+  `income-item-busy` shows Back with `aria-disabled="true"` at opacity 1. The `*-scrolled` views show the divider at
+  opacity 1. The month arrows, Budget's "+", a form's Back and the category page's Back navigate as before. Demo
+  (Budget, Income, Expenses, a category page, the expense, category and income forms, actual End), light and dark:
+  no console errors, and the form titles are headings. `check-builds` passes (148 demo modules).
+
 ## Consolidate
+
+One new component, `ScreenHeader`. Its twins were the 11 hand-built header rows, all now replaced: outside
+`ScreenHeader.tsx` no screen keeps the 52pt spacer, the equal-width `side` styles or its own header Back. Reused 0,
+extracted 0, left 1: Statistics' header (Home beside a left-aligned title), an exception agreed at Gate A.
 
 ## Revision 1
 

@@ -21,7 +21,7 @@ import { useMonth } from '@/data/useMonth';
 import { dayLabel, eur, kyivMonth, monthLabel, monthName, toCents, uah } from '@/format';
 import { parseIdParam, parseMonthParam } from '@/linkParams';
 import { usePushOnce } from '@/pushOnce';
-import { dangerText, fonts, type Palette, radius, size, space, text } from '@/theme';
+import { fonts, type Palette, radius, size, space, text } from '@/theme';
 
 // Opened straight from a web link there's nothing to go back to, so fall back to Expenses (current month).
 function goBack() {
@@ -270,7 +270,8 @@ const makeStyles = (colors: Palette) =>
       paddingVertical: space.xs,
     },
     menuItem: { minHeight: size.iconButton, justifyContent: 'center', paddingHorizontal: space.lg },
-    menuDelete: dangerText(colors),
+    // A menu row, not a button (brief 104c), so it keeps its own style.
+    menuDelete: { ...text.body, fontFamily: fonts.bodyMedium, color: colors.danger },
     back: {
       height: size.iconButton,
       flexDirection: 'row',

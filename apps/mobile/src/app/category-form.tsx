@@ -1,6 +1,6 @@
 import { Stack, useLocalSearchParams } from 'expo-router';
 import { useState } from 'react';
-import { StyleSheet, Text, View } from 'react-native';
+import { StyleSheet } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useThemedStyles } from '@/appearance/AppearanceContext';
 import { useSession } from '@/auth/AuthContext';
@@ -9,14 +9,14 @@ import { Button } from '@/components/Button';
 import { CategoryForm } from '@/components/CategoryForm';
 import { CategoryInMonth } from '@/components/CategoryInMonth';
 import { LoadError } from '@/components/LoadError';
-import { Pressable } from '@/components/Pressable';
+import { ScreenHeader } from '@/components/ScreenHeader';
 import { addToMonth, editInMonth } from '@/data/categories';
 import { changedFields } from '@/data/categoryForm';
 import { useCategoryTotals } from '@/data/useCategoryTotals';
 import { kyivMonth, monthName } from '@/format';
 import { parseIdParam, parseMonthParam } from '@/linkParams';
 import { usePushOnce } from '@/pushOnce';
-import { fonts, type Palette, size, space, text } from '@/theme';
+import { type Palette, space } from '@/theme';
 
 /**
  * Adds a category to a month, `/category-form?month=2026-11`, or edits one there, `&categoryId=4`, with its name and
@@ -40,13 +40,12 @@ export default function CategoryFormScreen() {
     <SafeAreaView style={styles.screen} edges={['top', 'bottom']}>
       {/* The iOS modal can’t be swiped away while a save is in flight either. */}
       <Stack.Screen options={{ gestureEnabled: !busy }} />
-      <View style={styles.header}>
-        <Pressable accessibilityRole="button" disabled={busy} onPress={() => closeToBudget(month)} style={styles.back}>
-          <Text style={styles.backText}>Back</Text>
-        </Pressable>
-        <Text style={styles.title}>{editing ? 'Edit category' : 'Add a category'}</Text>
-        <View style={{ width: 52 }} />
-      </View>
+      <ScreenHeader
+        variant="modal"
+        title={editing ? 'Edit category' : 'Add a category'}
+        onBack={() => closeToBudget(month)}
+        disabled={busy}
+      />
 
       {editing ? (
         <EditCategory
@@ -134,8 +133,4 @@ function EditCategory({
 const makeStyles = (colors: Palette) =>
   StyleSheet.create({
     screen: { flex: 1, backgroundColor: colors.bg, paddingHorizontal: space.xl, paddingTop: space.sm },
-    header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: space.sm },
-    back: { height: size.iconButton, justifyContent: 'center', marginLeft: -space.sm, paddingHorizontal: space.sm },
-    backText: { ...text.body, fontFamily: fonts.bodyMedium, color: colors.muted },
-    title: { ...text.heading, fontFamily: fonts.display, color: colors.text },
   });

@@ -22,7 +22,7 @@ import { DateChips } from '@/components/DateChips';
 import { Icon } from '@/components/Icon';
 import { LoadError } from '@/components/LoadError';
 import { NameCombobox } from '@/components/NameCombobox';
-import { Pressable } from '@/components/Pressable';
+import { ScreenHeader } from '@/components/ScreenHeader';
 import { TabBar } from '@/components/TabBar';
 import { expenseLocked, firstOpenDate } from '@/data/expenseLock';
 import { lockedText, restoreRefusedText } from '@/data/monthEnded';
@@ -76,13 +76,7 @@ export default function ExpenseScreen() {
     <View style={styles.page}>
       {/* The tab bar pads the bottom inset. */}
       <SafeAreaView style={styles.screen} edges={['top']}>
-        <View style={styles.header}>
-          <Pressable accessibilityRole="button" onPress={leave} style={styles.back}>
-            <Text style={styles.backText}>Back</Text>
-          </Pressable>
-          <Text style={styles.title}>{editing ? 'Edit expense' : 'New expense'}</Text>
-          <View style={{ width: 52 }} />
-        </View>
+        <ScreenHeader variant="modal" title={editing ? 'Edit expense' : 'New expense'} onBack={leave} />
 
         {editing && expenseId === null ? (
           <LoadFailed message="That link isn’t valid." />
@@ -392,10 +386,6 @@ const makeStyles = (colors: Palette) => {
   return StyleSheet.create({
     page: { flex: 1, backgroundColor: colors.bg },
     screen: { flex: 1, backgroundColor: colors.bg, paddingHorizontal: space.xl, paddingTop: space.sm },
-    header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: space.sm },
-    back: { height: size.iconButton, justifyContent: 'center', marginLeft: -space.sm, paddingHorizontal: space.sm },
-    backText: { ...text.body, fontFamily: fonts.bodyMedium, color: colors.muted },
-    title: { ...text.heading, fontFamily: fonts.display, color: colors.text },
     // Below a failed load: full width as before, with the word at the left like the header's Back.
     failedBack: { justifyContent: 'flex-start', marginLeft: -space.sm, paddingHorizontal: space.sm },
     form: { gap: space.xxl, paddingBottom: space.huge },

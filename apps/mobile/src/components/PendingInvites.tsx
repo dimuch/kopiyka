@@ -1,9 +1,10 @@
-import { ActivityIndicator, type StyleProp, StyleSheet, Text, View, type ViewStyle } from 'react-native';
+import { type StyleProp, StyleSheet, Text, View, type ViewStyle } from 'react-native';
 import type { Invite } from '@/api/types';
-import { useColors, useThemedStyles } from '@/appearance/AppearanceContext';
+import { useThemedStyles } from '@/appearance/AppearanceContext';
+import { Button } from '@/components/Button';
 import { Card } from '@/components/Card';
 import { Pressable } from '@/components/Pressable';
-import { fonts, type Palette, radius, size, space, text } from '@/theme';
+import { fonts, type Palette, size, space, text } from '@/theme';
 
 /**
  * The signed-in user's invites, each with Decline and Accept (Home, Settings, no-ledger); nothing while there are none
@@ -24,7 +25,6 @@ export function PendingInvites({
   onDecline: (invite: Invite) => void;
   style?: StyleProp<ViewStyle>;
 }) {
-  const colors = useColors();
   const styles = useThemedStyles(makeStyles);
   if (!invites.length && !failure) return null;
   const busy = busyId !== null;
@@ -46,17 +46,15 @@ export function PendingInvites({
               >
                 <Text style={styles.declineText}>Decline</Text>
               </Pressable>
-              <Pressable
-                accessibilityRole="button"
+              <Button
+                variant="primary"
+                size="compact"
+                label="Accept"
                 accessibilityLabel={`Accept invite from ${from}`}
-                aria-busy={busyId === invite.inviteId}
+                busy={busyId === invite.inviteId}
                 disabled={busy}
                 onPress={() => onAccept(invite)}
-                style={[styles.accept, busy && { opacity: 0.6 }]}
-              >
-                {busyId === invite.inviteId && <ActivityIndicator size="small" color={colors.onAccent} />}
-                <Text style={styles.acceptText}>Accept</Text>
-              </Pressable>
+              />
             </View>
           </Card>
         );
@@ -79,15 +77,5 @@ const makeStyles = (colors: Palette) =>
     buttons: { flexDirection: 'row', justifyContent: 'flex-end', alignItems: 'center', gap: space.sm },
     decline: { minHeight: size.iconButton, justifyContent: 'center', paddingHorizontal: space.md },
     declineText: { ...text.body, fontFamily: fonts.bodyMedium, color: colors.muted },
-    accept: {
-      minHeight: size.iconButton,
-      flexDirection: 'row',
-      alignItems: 'center',
-      gap: space.sm,
-      borderRadius: radius.pill,
-      paddingHorizontal: space.lg,
-      backgroundColor: colors.accent,
-    },
-    acceptText: { ...text.bodyStrong, color: colors.onAccent },
     failure: { ...text.label, color: colors.over },
   });

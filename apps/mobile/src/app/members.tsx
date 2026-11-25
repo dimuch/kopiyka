@@ -6,6 +6,7 @@ import { ApiError } from '@/api/apiError';
 import type { Ledger, Member, PendingInvite } from '@/api/types';
 import { useColors, useThemedStyles } from '@/appearance/AppearanceContext';
 import { useSession } from '@/auth/AuthContext';
+import { Button } from '@/components/Button';
 import { Card } from '@/components/Card';
 import { Icon } from '@/components/Icon';
 import { LoadError } from '@/components/LoadError';
@@ -132,16 +133,15 @@ function LabelForm({ ledger }: { ledger: Ledger }) {
           {failure}
         </Text>
       ) : null}
-      <Pressable
-        accessibilityRole="button"
-        aria-busy={busy}
-        disabled={busy || unchanged}
+      <Button
+        variant="primary"
+        size="medium"
+        label="Save"
+        busy={busy}
+        disabled={unchanged}
         onPress={save}
-        style={[styles.primary, (busy || unchanged) && { opacity: 0.5 }]}
-      >
-        {busy && <ActivityIndicator size="small" color={colors.onAccent} />}
-        <Text style={styles.primaryText}>Save</Text>
-      </Pressable>
+        style={(busy || unchanged) && styles.dimmed}
+      />
     </View>
   );
 }
@@ -326,7 +326,6 @@ function PendingList({
 }
 
 function InviteForm({ ledgerId, onInvited }: { ledgerId: number; onInvited: () => void }) {
-  const colors = useColors();
   const styles = useThemedStyles(makeStyles);
   const [username, setUsername] = useState('');
   const [busy, setBusy] = useState(false);
@@ -381,16 +380,15 @@ function InviteForm({ ledgerId, onInvited }: { ledgerId: number; onInvited: () =
           {failure}
         </Text>
       ) : null}
-      <Pressable
-        accessibilityRole="button"
-        aria-busy={busy}
-        disabled={busy || !name}
+      <Button
+        variant="primary"
+        size="medium"
+        label="Invite"
+        busy={busy}
+        disabled={!name}
         onPress={invite}
-        style={[styles.primary, (busy || !name) && { opacity: 0.5 }]}
-      >
-        {busy && <ActivityIndicator size="small" color={colors.onAccent} />}
-        <Text style={styles.primaryText}>Invite</Text>
-      </Pressable>
+        style={(busy || !name) && styles.dimmed}
+      />
     </View>
   );
 }
@@ -484,7 +482,6 @@ function ConfirmPanel({
   onConfirm: () => void;
   onDismiss: () => void;
 }) {
-  const colors = useColors();
   const styles = useThemedStyles(makeStyles);
   return (
     <View style={styles.panel}>
@@ -500,17 +497,14 @@ function ConfirmPanel({
           <Text style={styles.dismissText}>{gone ? 'Close' : 'Back'}</Text>
         </Pressable>
         {!gone && (
-          <Pressable
-            accessibilityRole="button"
+          <Button
+            variant="danger"
+            size="compact"
+            label={action}
             accessibilityLabel={action}
-            aria-busy={busy}
-            disabled={busy}
+            busy={busy}
             onPress={onConfirm}
-            style={[styles.confirm, busy && { opacity: 0.6 }]}
-          >
-            {busy && <ActivityIndicator size="small" color={colors.onAccent} />}
-            <Text style={styles.confirmText}>{action}</Text>
-          </Pressable>
+          />
         )}
       </View>
     </View>
@@ -562,16 +556,6 @@ const makeStyles = (colors: Palette) =>
     panelButtons: { flexDirection: 'row', justifyContent: 'flex-end', alignItems: 'center', gap: space.sm },
     dismiss: { minHeight: size.iconButton, justifyContent: 'center', paddingHorizontal: space.md },
     dismissText: { ...text.body, fontFamily: fonts.bodyMedium, color: colors.muted },
-    confirm: {
-      minHeight: size.iconButton,
-      flexDirection: 'row',
-      alignItems: 'center',
-      gap: space.sm,
-      borderRadius: radius.pill,
-      paddingHorizontal: space.lg,
-      backgroundColor: colors.danger,
-    },
-    confirmText: { ...text.bodyStrong, color: colors.onAccent },
     section: { gap: space.sm },
     input: {
       ...text.input,
@@ -584,14 +568,6 @@ const makeStyles = (colors: Palette) =>
       color: colors.text,
       paddingHorizontal: space.lg,
     },
-    primary: {
-      height: size.control,
-      flexDirection: 'row',
-      alignItems: 'center',
-      justifyContent: 'center',
-      gap: space.sm,
-      borderRadius: radius.pill,
-      backgroundColor: colors.accent,
-    },
-    primaryText: { ...text.bodyStrong, color: colors.onAccent },
+    // One-off until brief 105: Save and Invite dim less than other buttons.
+    dimmed: { opacity: 0.5 },
   });

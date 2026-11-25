@@ -159,10 +159,10 @@ with no new capability and no API, schema or connector change.
 Before slice 1, the orchestrator takes the **before** set on Base (Visual check). Line counts come from the scratch
 draft.
 
-- [ ] 0. Bump version to 1.23.4
+- [x] 0. Bump version to 1.23.4
   - Files: package.json, apps/mobile/app.json
   - Change: set both to 1.23.4
-- [ ] 1. Draw Sign out, Retry and Check for invites with Button (~118 lines)
+- [x] 1. Draw Sign out, Retry and Check for invites with Button (~118 lines)
   - Files: `src/components/Button.tsx`, `src/app/(tabs)/settings.tsx`, `src/app/no-ledger.tsx`,
     `src/components/LoadError.tsx`
   - Change: the four looks, the props union and the style order (Contracts); sites 1, 2, 12 and 13. Rewrite
@@ -172,17 +172,17 @@ draft.
     `settings`, `expense-load-error` (Retry only, since Back moves in slice 2; compare its Retry rows). To show the
     filled buttons don't change, also `category-form-edit`, `income-item-edit`, `expense-edit` and `actual-end-set`
     (`large`), and `members-owner` (`medium` Save and Invite).
-- [ ] 2. Draw the forms' delete, Use calculated end and LoadFailed's Back with Button (~51 lines)
+- [x] 2. Draw the forms' delete, Use calculated end and LoadFailed's Back with Button (~51 lines)
   - Files: `src/app/category-form.tsx`, `src/app/income-item.tsx`, `src/app/expense.tsx`, `src/app/actual-end.tsx`
   - Change: sites 4, 5, 6, 11 and 14. Drop the `remove`, `delete` (×2) and `secondary` styles.
   - Verify: gates. Snapshots: `category-form-edit`, `income-item-edit`, `expense-edit`, `expense-delete-busy`,
     `actual-end-set`, `expense-load-error` (the one expected difference, What moves).
-- [ ] 3. Draw the Members and invite text buttons with Button (~78 lines)
+- [x] 3. Draw the Members and invite text buttons with Button (~78 lines)
   - Files: `src/app/members.tsx`, `src/components/PendingInvites.tsx`
   - Change: sites 3 and 7–10.
   - Verify: gates. Snapshots: `members-owner`, `members-confirm`, `members-confirm-busy`, `members-member`,
     `no-ledger`, `no-ledger-decline-busy`.
-- [ ] 4. Remove the danger button helpers from theme.ts (~32 lines)
+- [x] 4. Remove the danger button helpers from theme.ts (~32 lines)
   - Files: `src/theme.ts`, `src/app/category/[categoryId].tsx`
   - Change: the menu row gets its own style (Contracts); delete the three helpers and the `ViewStyle` import.
   - Verify: gates. `rg -n "dangerText|outlinedDanger" apps/mobile/src/theme.ts` finds nothing, and
@@ -376,11 +376,27 @@ errors. `yarn mobile check-builds` (no `--accept`) passes on the last commit.
 
 ## Deviations
 
-<filled by the developer during build>
+- **Set-up.** No other session held the dev ports, so the API (:3000) and web app (:8084) ran from this worktree,
+  with the two `.env` files copied in (git-ignored). The seed data went in through the API as the owner: expense 394
+  (category 935), income item 162 and an actual End of €250. `claude-qa-104c-n` was removed from ledger 168 through
+  the members API, not the Members screen.
+- **Login view** was taken in the before set straight after the owner signed out, ahead of the member's views,
+  rather than last. Same page and state.
+- **Slice 1 compared** `no-ledger` too (its Check for invites and Sign out moved there): 0 differences.
+- **One comparison batch was redone:** the pane cleared the 390×844 viewport between turns, so slice 2's first light
+  batch measured at 1024 wide. It was discarded and retaken at 390.
+- **No scratch draft from planning reached the build,** so the slices were written from Contracts.
+- **Results:** every view in both themes matches its before snapshot with identical accessibility records, except
+  the expected `expense-load-error` row (Back's text element, 342 → 33 wide, same position). In all, 28 pairs (14
+  views × light and dark). Busy states held: Delete expense and the confirm panel's Back are disabled and not
+  dimmed, Decline dims to 0.6. Demo (category form, income item, expense, actual End, the ⋯ menu row), light and
+  dark: no console errors; the menu row keeps danger, medium, 15/20. `check-builds` passes (145 demo modules).
 
 ## Consolidate
 
-<filled in /kopiyka-hos Phase 3a>
+No new function, hook or component: this extends `Button` (#160), whose twins were the 14 hand-written buttons, all
+now replaced, and the three `theme.ts` helpers, now deleted. Reused 0, extracted 0, left 1: the ⋯ menu row writes
+out `dangerText`'s look itself because it is a menu row, not a button (Contracts).
 
 ## Revision 1
 

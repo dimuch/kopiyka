@@ -8,11 +8,10 @@ import { useColors, useThemedStyles } from '@/appearance/AppearanceContext';
 import { useSession } from '@/auth/AuthContext';
 import { Card } from '@/components/Card';
 import { EmptyMonth } from '@/components/EmptyMonth';
-import { HomeButton } from '@/components/HomeButton';
 import { IconButton } from '@/components/IconButton';
 import { LoadError } from '@/components/LoadError';
-import { MonthSwitcher } from '@/components/MonthSwitcher';
 import { Pressable } from '@/components/Pressable';
+import { ScreenHeader } from '@/components/ScreenHeader';
 import { copyPreviousIncome } from '@/data/income';
 import { copyRefusedText } from '@/data/monthCopy';
 import { incomeCents } from '@/data/monthSummary';
@@ -87,27 +86,23 @@ export default function Income() {
 
   return (
     <SafeAreaView style={styles.screen} edges={['top']}>
-      <View style={styles.header}>
-        <View style={styles.side}>
-          <HomeButton />
-        </View>
-        <MonthSwitcher
-          title={tabTitle('income')}
-          month={month}
-          onChange={(next) => router.setParams({ month: next })}
-        />
-        <View style={[styles.side, styles.sideEnd]}>
-          {/* Like Budget's "+"; an ended month can't change, and nothing shows before the month loads. */}
-          {items && !ended ? (
+      <ScreenHeader
+        variant="month"
+        title={tabTitle('income')}
+        month={month}
+        onMonthChange={(next) => router.setParams({ month: next })}
+        trailing={
+          // Like Budget's "+"; an ended month can't change, and nothing shows before the month loads.
+          items && !ended ? (
             <IconButton
               icon="plus"
               label={`Add income to ${monthName(month)}`}
               tone="accent"
               onPress={() => pushOnce({ pathname: '/income-item', params: { month } })}
             />
-          ) : null}
-        </View>
-      </View>
+          ) : null
+        }
+      />
 
       <ScrollView contentContainerStyle={styles.content}>
         {!items ? (
@@ -194,10 +189,6 @@ export default function Income() {
 const makeStyles = (colors: Palette) =>
   StyleSheet.create({
     screen: { flex: 1, backgroundColor: colors.bg, paddingHorizontal: space.xl, paddingTop: space.xl },
-    header: { flexDirection: 'row', alignItems: 'center', paddingBottom: space.sm },
-    // Equal-width sides keep the month switcher on the header's true centre; flexBasis 0 matters on web.
-    side: { flex: 1, flexBasis: 0, flexDirection: 'row' },
-    sideEnd: { justifyContent: 'flex-end' },
     content: { gap: space.lg, paddingTop: space.xs, paddingBottom: space.xxl },
     loading: { marginTop: space.xxl },
     sectionHead: {

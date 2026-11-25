@@ -301,6 +301,9 @@ two patch PRs over one `major` PR (Open question 1).
 
 ## Deviations
 
+- PR B: branched on 2026-11-25 about 14 minutes after PR A's deploy (12:41 UTC), not a day later. The base already holds
+  PR A, so no code changes; the day's wait moves to the deploy: PR B is merged and deployed only from 2026-11-26 12:41 UTC.
+
 ## Consolidate
 
 ## Revision 1

@@ -122,7 +122,7 @@ no drive-by renames elsewhere.
 Find them mechanically (read-only, exit 1 when any are found):
 
 ```bash
-.github/skills/kopiyka-refactoring/scripts/find-short-names.sh apps/api/src/categories   # a target
+.github/skills/kopiyka-refactoring/scripts/find-short-names.sh apps/api/src/categories  # a target
 .github/skills/kopiyka-refactoring/scripts/find-short-names.sh --diff origin/main    # lines this branch adds
 ```
 

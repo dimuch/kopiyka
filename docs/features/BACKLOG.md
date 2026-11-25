@@ -3,11 +3,11 @@
 A snapshot so work can pick up in any tool (Claude Code or Copilot) without the chat history.
 Update it when a brief ships, is planned or is dropped.
 
-Snapshot: 2026-11-25, `main` at v1.23.5 (`1c60698`, after PR #161, 104 part 3, and the name-suggestions fix).
+Snapshot: 2026-11-25, `main` at v1.23.6 (`60b18a6`, after PR #163, 104 part 4), deployed.
 
 ## In progress
 
-### 104 · Shared components (parts 1–3 of 6 merged)
+### 104 · Shared components (parts 1–4 of 6 merged)
 
 Brief and plan: `docs/features/104-shared-components/`. At Gate A the brief was split into six sequential briefs,
 each branched from `main` after the previous one merges, each a patch bump. The plan's "Later parts" outlines
@@ -18,8 +18,8 @@ each branched from `main` after the previous one merges, each a patch bump. The 
 | 104  | `Card` (all 17 cards) and `ProgressBar`; nothing moves                            | merged (#156), v1.23.1 |
 | 104b | `Button`, filled (accent, danger): 11 buttons, incl. the actual End form's Save   | merged (#160), v1.23.3 |
 | 104c | `Button`, outlined and text; `outlinedDanger*` and `dangerText` leave `theme.ts`  | merged (#161), v1.23.4 |
-| 104d | `IconButton` and `Chip`                                                           | **in review**          |
-| 104e | `ScreenHeader` (`modal`, `month`, `page`), incl. the actual End form's header     | not started            |
+| 104d | `IconButton` and `Chip`                                                           | merged (#163), v1.23.6 |
+| 104e | `ScreenHeader` (`modal`, `month`, `page`), incl. the actual End form's header     | **in progress**        |
 | 104f | `Text` at every remaining site; name the recurring role + face combinations in it | not started            |
 
 - **Gate A decisions (2026-11-24):**

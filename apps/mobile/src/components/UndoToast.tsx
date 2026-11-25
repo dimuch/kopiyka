@@ -1,8 +1,9 @@
-import { StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 import { useThemedStyles } from '@/appearance/AppearanceContext';
 import { Pressable } from '@/components/Pressable';
+import { Text } from '@/components/Text';
 import type { UndoOffer } from '@/data/undo';
-import { fonts, type Palette, radius, space, text } from '@/theme';
+import { type Palette, radius, space } from '@/theme';
 
 /**
  * The bar over the bottom of a screen after a delete: what went and Undo, Retry after a failed Undo, or only the
@@ -12,7 +13,11 @@ export function UndoToast({ offer, onUndo }: { offer: UndoOffer; onUndo: () => v
   const styles = useThemedStyles(makeStyles);
   return (
     <View accessibilityLiveRegion="polite" style={styles.toast}>
-      <Text numberOfLines={2} style={[styles.toastText, offer.status === 'refused' && styles.refusedText]}>
+      <Text
+        numberOfLines={2}
+        variant="bodyMedium"
+        style={[styles.toastText, offer.status === 'refused' && styles.refusedText]}
+      >
         {offer.status === 'refused' ? offer.text : offer.status === 'failed' ? 'Couldn’t undo' : offer.undo.message}
       </Text>
       {offer.status === 'refused' ? null : (
@@ -22,7 +27,9 @@ export function UndoToast({ offer, onUndo }: { offer: UndoOffer; onUndo: () => v
           onPress={onUndo}
           style={[styles.undo, offer.status === 'restoring' && { opacity: 0.6 }]}
         >
-          <Text style={styles.undoText}>{offer.status === 'failed' ? 'Retry' : 'Undo'}</Text>
+          <Text variant="bodyStrong" color="accent">
+            {offer.status === 'failed' ? 'Retry' : 'Undo'}
+          </Text>
         </Pressable>
       )}
     </View>
@@ -46,9 +53,8 @@ const makeStyles = (colors: Palette) =>
       paddingLeft: space.lg,
       gap: space.md,
     },
-    toastText: { ...text.body, flex: 1, fontFamily: fonts.bodyMedium, color: colors.text },
+    toastText: { flex: 1 },
     // No button to its right, so it keeps the bar's padding on both sides.
     refusedText: { paddingRight: space.lg, paddingVertical: space.sm },
     undo: { height: 56, paddingHorizontal: space.lg, justifyContent: 'center' },
-    undoText: { ...text.bodyStrong, color: colors.accent },
   });

@@ -1,8 +1,9 @@
-import { StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 import { useThemedStyles } from '@/appearance/AppearanceContext';
 import { IconButton } from '@/components/IconButton';
+import { Text } from '@/components/Text';
 import { monthCaption, monthName, shiftMonth } from '@/format';
-import { type Palette, space, text } from '@/theme';
+import { type Palette, space } from '@/theme';
 
 /**
  * Previous / "INCOME ’26 · October" / Next, for a screen that shows one 'YYYY-MM' month at a time. `title` is the
@@ -22,8 +23,10 @@ export function MonthSwitcher({
     <View style={styles.monthSwitch}>
       <IconButton icon="back" label="Previous month" tone="muted" onPress={() => onChange(shiftMonth(month, -1))} />
       <View style={styles.monthLabel}>
-        <Text style={styles.eyebrow}>{monthCaption(title, month)}</Text>
-        <Text style={styles.month}>{monthName(month)}</Text>
+        <Text variant="caption" color="muted" style={styles.eyebrow}>
+          {monthCaption(title, month)}
+        </Text>
+        <Text variant="title">{monthName(month)}</Text>
       </View>
       <IconButton icon="forward" label="Next month" tone="muted" onPress={() => onChange(shiftMonth(month, 1))} />
     </View>
@@ -37,6 +40,5 @@ const makeStyles = (colors: Palette) =>
     // All capitals (`monthCaption` upper-cases the title) need positive tracking, and the scale has no overline role
     // (brief 105 decides).
     // eslint-disable-next-line no-restricted-syntax
-    eyebrow: { ...text.caption, color: colors.muted, letterSpacing: 0.5 },
-    month: { ...text.title, color: colors.text },
+    eyebrow: { letterSpacing: 0.5 },
   });

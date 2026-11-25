@@ -1,10 +1,11 @@
 import { type Href, router } from 'expo-router';
-import { StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 import { useColors, useThemedStyles } from '@/appearance/AppearanceContext';
 import { useCardStyle } from '@/components/Card';
 import { Icon, type IconName } from '@/components/Icon';
 import { Pressable } from '@/components/Pressable';
-import { fonts, type Palette, space, text } from '@/theme';
+import { Text } from '@/components/Text';
+import { type Palette, space } from '@/theme';
 
 export interface HomeCard {
   title: string;
@@ -30,8 +31,8 @@ export function HomeCards({ cards }: { cards: readonly HomeCard[] }) {
           style={[cardStyle, styles.card]}
         >
           <Icon name={card.icon} color={colors.accent} size={24} />
-          <Text style={styles.cardTitle}>{card.title}</Text>
-          <Text numberOfLines={1} style={[styles.figure, card.figure === null && { color: colors.muted }]}>
+          <Text variant="bodyMedium">{card.title}</Text>
+          <Text numberOfLines={1} variant="title" color={card.figure === null ? 'muted' : 'text'} tabular>
             {card.figure ?? '—'}
           </Text>
         </Pressable>
@@ -49,6 +50,4 @@ const makeStyles = (colors: Palette) =>
       flexGrow: 1,
       gap: space.sm,
     },
-    cardTitle: { ...text.body, fontFamily: fonts.bodyMedium, color: colors.text },
-    figure: { ...text.title, color: colors.text, fontVariant: ['tabular-nums'] },
   });

@@ -34,19 +34,14 @@ each branched from `main` after the previous one merges, each a patch bump. The 
   - filled buttons at 56, 48 or 44pt, radius 20, pill or 14, and disabled opacity 0.6, 0.5 or 0.4
   - the form screens' 8pt top padding and 52pt header spacer
   - chips at 48pt
-  - NotionSync's 13pt button text
   - the Undo button's 56pt height
-
-## Next: 109 · Remove the Notion sync and import code
-
-Brief: `docs/features/109-remove-notion/brief.md` (2026-11-24). Run `/kopiyka-hos` on it. It removes the sync,
-`notion-start` and the three importers, the `NOTION_*` settings and the Home Sync panel. It keeps all imported data,
-and it leaves the four `notion_*` tables unused for a later brief to drop. Minor version: installed builds get a 404
-from the old status route and already hide the panel on any error. It can run alongside 104b–104f; expect conflicts
-only on Home (the Sync panel).
 
 ## Recently finished
 
+- **109 · Remove the Notion sync and import code**: two patch PRs, app first, so open web tabs never called a removed
+  route (the brief's "plain 404" would have shown "Couldn't check Notion sync."). #158 (Home panel, v1.23.2,
+  deployed 2026-11-25), then the API, scripts, settings and docs (v1.23.3). Imported data and the four `notion_*`
+  tables stay. After it ships, revoke the Notion integration token and delete the laptop's `NOTION_*` keys.
 - **102 · Month balance in the app**: all 4 PRs are merged (#144, #152, #153 v1.22.0, #155 v1.23.0). Its AC7 iPhone
   check (Expo Go: the Budget tab's Start → End line and the actual End form) was left for the user with PR 4.
 - **108 · Expense name suggestions**: #148 (with #150) merged, v1.20.0.
@@ -94,7 +89,7 @@ B is dropped: brief 109 removes the Notion import code it would have shared.
 - **Statistics' category list follows the member's order** as a tie-break, if wanted (092 follow-up).
 - **Chips that are silent on web**: `aria-selected` isn't valid on `role="button"`, so the category and date chips
   may not say "selected" on web. Pick `aria-pressed` or a radio group as in `AppearancePicker` (095 follow-up).
-- **API-wide single-letter names**: about 29 lines outside `apps/api/src/notion/`, plus `addMember(q, …)` in
+- **API-wide single-letter names**: about 29 lines across `apps/api/src`, plus `addMember(q, …)` in
   `ledgers/members.ts` (100 follow-up). A rename slice.
 - **`categories/routes.ts` passed 200 lines**: a `service.ts` split (092 follow-up).
 
@@ -102,13 +97,11 @@ B is dropped: brief 109 removes the Notion import code it would have shared.
 
 - `find-short-names.sh` misses a typed single-letter parameter on a line of its own, such as `  q: Db |`. Could also
   match `^\s+[a-z]: ` (100).
-- Importer CLI oddities: plural messages ("Saved 1 rows"), `--ledger` accepting `0x10` and `1e0`, `--save` keeping an
-  existing file's mode, a raw ZodError when `DATABASE_URL` or `TOTP_ENC_KEY` is missing (098).
 - "Remaining" means income − budgeted on Budget and budgeted − spent on Expenses. The brief accepted it; worth a
   second look when 104/105 restyle both strips (107).
 - Conventions §5 could say "states via `aria-*` props (react-native-web ignores `accessibilityState`)" (095).
 - Laptop data: July and August both hold `0.00 → -377.00`, and August's opening isn't July's closing. It came from
-  brief 085's import; check it in Notion (090).
+  brief 085's import. The importer is gone (109), so fix it by hand with an actual End on the Budget tab (090).
 - Reads across several queries without a transaction (balances, Statistics) could mix snapshots under a concurrent
   write. Harmless today; matters if balances are ever exported (102).
 

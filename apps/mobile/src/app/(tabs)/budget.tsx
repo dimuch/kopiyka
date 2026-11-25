@@ -8,13 +8,12 @@ import { useSession } from '@/auth/AuthContext';
 import { CategoryTile } from '@/components/CategoryTile';
 import { Card, useCardStyle } from '@/components/Card';
 import { EmptyMonth } from '@/components/EmptyMonth';
-import { HomeButton } from '@/components/HomeButton';
 import { Icon } from '@/components/Icon';
 import { IconButton } from '@/components/IconButton';
 import { LoadError } from '@/components/LoadError';
-import { MonthSwitcher } from '@/components/MonthSwitcher';
 import { Pressable } from '@/components/Pressable';
 import { ReorderList } from '@/components/ReorderList';
+import { ScreenHeader } from '@/components/ScreenHeader';
 import { UndoToast } from '@/components/UndoToast';
 import { copyPreviousMonth } from '@/data/categories';
 import { copyRefusedText } from '@/data/monthCopy';
@@ -111,23 +110,23 @@ export default function Budget() {
 
   return (
     <SafeAreaView style={styles.screen} edges={['top']}>
-      <View style={styles.header}>
-        <View style={styles.side}>
-          <HomeButton />
-        </View>
-        <MonthSwitcher title={tabTitle('budget')} month={month} onChange={(m) => router.setParams({ month: m })} />
-        <View style={[styles.side, styles.sideEnd]}>
-          {/* Like the Expenses tab's "+"; an ended month can't change, and nothing shows before the month loads. */}
-          {data && !ended ? (
+      <ScreenHeader
+        variant="month"
+        title={tabTitle('budget')}
+        month={month}
+        onMonthChange={(m) => router.setParams({ month: m })}
+        trailing={
+          // Like the Expenses tab's "+"; an ended month can't change, and nothing shows before the month loads.
+          data && !ended ? (
             <IconButton
               icon="plus"
               label={`Add a category to ${monthName(month)}`}
               tone="accent"
               onPress={() => pushOnce({ pathname: '/category-form', params: { month } })}
             />
-          ) : null}
-        </View>
-      </View>
+          ) : null
+        }
+      />
       {/* Any month with a line, ended ones too, can have its actual End set by hand (brief 102). */}
       {balance ? (
         <Pressable
@@ -311,10 +310,6 @@ function IncomeFigures({ incomeCents, plannedCents }: { incomeCents: number; pla
 const makeStyles = (colors: Palette) =>
   StyleSheet.create({
     screen: { flex: 1, backgroundColor: colors.bg, paddingHorizontal: space.xl, paddingTop: space.xl },
-    header: { flexDirection: 'row', alignItems: 'center', paddingBottom: space.sm },
-    // Equal-width sides keep the month switcher on the header's true centre; flexBasis 0 matters on web.
-    side: { flex: 1, flexBasis: 0, flexDirection: 'row' },
-    sideEnd: { justifyContent: 'flex-end' },
     balanceButton: {
       minHeight: size.iconButton,
       flexDirection: 'row',

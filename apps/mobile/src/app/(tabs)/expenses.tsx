@@ -6,15 +6,14 @@ import { useColors, useThemedStyles } from '@/appearance/AppearanceContext';
 import { useSession } from '@/auth/AuthContext';
 import { AddExpenseButton } from '@/components/AddExpenseButton';
 import { CategoryTile } from '@/components/CategoryTile';
-import { HeaderDivider, useCollapsingSummary } from '@/components/CollapsingSummary';
+import { useCollapsingSummary } from '@/components/CollapsingSummary';
 import { useCardStyle } from '@/components/Card';
 import { EmptyMonth } from '@/components/EmptyMonth';
-import { HomeButton } from '@/components/HomeButton';
 import { LoadError } from '@/components/LoadError';
-import { MonthSwitcher } from '@/components/MonthSwitcher';
 import { Pressable } from '@/components/Pressable';
 import { ProgressBar } from '@/components/ProgressBar';
 import { ReorderList } from '@/components/ReorderList';
+import { ScreenHeader } from '@/components/ScreenHeader';
 import { budgetProgress } from '@/data/budgetProgress';
 import { spendingFigures, spentByCategory } from '@/data/monthSummary';
 import { tabTitle } from '@/data/tabItems';
@@ -55,15 +54,14 @@ export default function Expenses() {
 
   return (
     <SafeAreaView style={styles.screen} edges={['top']}>
-      <View style={styles.header}>
-        <View style={styles.side}>
-          <HomeButton />
-        </View>
-        <MonthSwitcher title={tabTitle('expenses')} month={month} onChange={setMonth} />
-        {/* Adding starts from a category's row now (brief 107); the empty side keeps the month centred. */}
-        <View style={styles.side} />
-        <HeaderDivider style={collapse.dividerStyle} />
-      </View>
+      {/* Adding starts from a category's row now (brief 107), so there's no action on the right. */}
+      <ScreenHeader
+        variant="month"
+        title={tabTitle('expenses')}
+        month={month}
+        onMonthChange={setMonth}
+        dividerStyle={collapse.dividerStyle}
+      />
 
       <Animated.ScrollView
         {...collapse.scrollProps}
@@ -193,16 +191,8 @@ export default function Expenses() {
 const makeStyles = (colors: Palette) =>
   StyleSheet.create({
     screen: { flex: 1, backgroundColor: colors.bg, paddingHorizontal: space.xl, paddingTop: space.xl },
-    header: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      paddingBottom: space.sm,
-      zIndex: 1,
-    },
     content: { gap: space.lg, paddingTop: space.xs, paddingBottom: space.xxl },
     loading: { marginTop: space.xxl },
-    // Equal-width sides keep the month switcher on the header's true centre; flexBasis 0 matters on web.
-    side: { flex: 1, flexBasis: 0, flexDirection: 'row' },
     card: { gap: space.sm },
     // Spread across the card's full width: Spent at the left edge, Remaining centred, Budgeted at the right edge.
     figures: { flexDirection: 'row', justifyContent: 'space-between', gap: space.sm },

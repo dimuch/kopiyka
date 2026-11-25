@@ -3,7 +3,7 @@
 Status: approved <!-- draft → skeptic-approved → approved (by the user) -->
 Brief: ./brief.md
 Branch: chore/filled-buttons
-Base: origin/main (129fb8f, version 1.23.1)
+Base: origin/main (129fb8f, version 1.23.1); rebased onto 3e6c4e7 (1.23.2) before review
 
 ## Approach
 
@@ -132,7 +132,7 @@ Alternatives considered:
 
 ## Version
 
-Bump: patch — 1.23.1 → 1.23.2
+Bump: patch — 1.23.2 → 1.23.3 (planned as 1.23.1 → 1.23.2; main took 1.23.2 first, see Deviations)
 Why: §8b `patch`. This is a behaviour-preserving refactor of shipped app code: the same buttons, states and labels.
 There's no new capability, and no API, schema or connector change.
 
@@ -141,26 +141,26 @@ There's no new capability, and no API, schema or connector change.
 Before slice 1, the orchestrator takes the **before** set on Base (Visual check). Slice 0 only changes the version.
 Each line count below comes from the scratch draft.
 
-- [ ] 0. Bump version to 1.23.2
+- [x] 0. Bump version to 1.23.3
   - Files: package.json, apps/mobile/app.json
-  - Change: set both to 1.23.2
-- [ ] 1. Draw the category and income forms' Save with one Button component (~135 lines)
+  - Change: set both to 1.23.3
+- [x] 1. Draw the category and income forms' Save with one Button component (~135 lines)
   - Files: `src/components/Button.tsx` (new), `src/components/CategoryForm.tsx`, `src/app/income-item.tsx`,
     `apps/mobile/demo-modules.txt`
   - Change: Button as in Contracts (all three sizes, as Card shipped all its paddings in part 1). Sites 1 and 2.
   - Verify: gates; `export:web` + `check-builds --accept`, with only the Button line added. Snapshots: `category-form`,
     `income-item`.
-- [ ] 2. Draw the actual End, delete category and expense buttons with Button (~95 lines)
+- [x] 2. Draw the actual End, delete category and expense buttons with Button (~95 lines)
   - Files: `src/app/actual-end.tsx`, `src/app/delete-category.tsx`, `src/app/expense.tsx`
   - Change: sites 3–5.
   - Verify: gates. Snapshots: `actual-end`, `actual-end-busy`, `delete-category`, `expense-new`, `expense-edit` (the
     last two show the expected padding row, What moves).
-- [ ] 3. Draw Sign in and the empty month's button with Button (~72 lines)
+- [x] 3. Draw Sign in and the empty month's button with Button (~72 lines)
   - Files: `src/app/login.tsx`, `src/components/EmptyMonth.tsx`
   - Change: sites 6 and 7, with their one-off overrides and a comment each ("one-off until brief 105: …"). EmptyMonth's comment
     says that resetting `large`'s `minHeight` 56 to `size.control` is a deliberate override.
   - Verify: gates. Snapshots: `budget-empty`, `login` (idle is disabled: 0.4 and `aria-disabled`).
-- [ ] 4. Draw the Members and invite buttons with Button (~106 lines)
+- [x] 4. Draw the Members and invite buttons with Button (~106 lines)
   - Files: `src/app/members.tsx`, `src/components/PendingInvites.tsx`
   - Change: sites 8–11; Members' `primary`, `primaryText`, `confirm` and `confirmText` become one `dimmed` style.
   - Verify: gates. AC2's `rg` (Contracts). Snapshots: `members`, `members-busy`, and `members-confirm` and
@@ -344,11 +344,24 @@ dimmed), and Sign in, disabled and then enabled.
 
 ## Deviations
 
-<filled by the developer during build>
+- Ports: brief 109's session held :3000 and :8081, so the before and after sets ran this branch's web app on :8084 and
+  the demo on :8082. The API came from 109's checkout at first; when that server stopped mid-build, this worktree's
+  own API took over :3000. Neither branch changes the API, so the snapshots compare the app only.
+- Losing the API signed the QA user out, so one batch of slice 2 after-snapshots showed the login page. It was
+  thrown away and the views were taken again after signing in; the results below are from the repeat.
+- Results: all 26 pairs (13 views, light and dark) match their before snapshot, apart from the 6 padding rows in
+  What moves, with identical accessibility records. Busy views showed the spinner and `aria-busy` before comparing.
+  Enabled Sign in has opacity 1. Demo: `check-builds` passes (145 modules), no console errors in either theme.
+
+- Before review, main moved to 3e6c4e7: brief 109's first commits (its own bump to 1.23.2 and NotionSyncPanel's removal
+  from Home). Rebased cleanly; this branch's bump became 1.23.3. None of the 13 snapshot views shows Home, so the
+  before set still stands. AC2's exception for NotionSyncPanel is moot now: the file is gone.
 
 ## Consolidate
 
-<filled in /kopiyka-hos Phase 3a>
+One new component, `Button`. Its twins were the 11 hand-written filled buttons, all now replaced. Left: 0.
+NotionSyncPanel's Sync button was left for brief 109, which has since deleted it on main; the tab bar badges aren't
+buttons. Reused 0, extracted 0.
 
 ## Gate A (2026-11-25)
 

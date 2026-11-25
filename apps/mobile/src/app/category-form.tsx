@@ -5,6 +5,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useThemedStyles } from '@/appearance/AppearanceContext';
 import { useSession } from '@/auth/AuthContext';
 import { closeToBudget } from '@/closeToBudget';
+import { Button } from '@/components/Button';
 import { CategoryForm } from '@/components/CategoryForm';
 import { CategoryInMonth } from '@/components/CategoryInMonth';
 import { LoadError } from '@/components/LoadError';
@@ -15,7 +16,7 @@ import { useCategoryTotals } from '@/data/useCategoryTotals';
 import { kyivMonth, monthName } from '@/format';
 import { parseIdParam, parseMonthParam } from '@/linkParams';
 import { usePushOnce } from '@/pushOnce';
-import { dangerText, fonts, type Palette, size, space, text } from '@/theme';
+import { fonts, type Palette, size, space, text } from '@/theme';
 
 /**
  * Adds a category to a month, `/category-form?month=2026-11`, or edits one there, `&categoryId=4`, with its name and
@@ -89,7 +90,6 @@ function EditCategory({
   busy: boolean;
   setBusy: (busy: boolean) => void;
 }) {
-  const styles = useThemedStyles(makeStyles);
   // Nothing is fetched for a bad link.
   const totals = useCategoryTotals(ledgerId, categoryId, linkedMonth);
   const [thisMonth] = useState(() => kyivMonth(new Date()));
@@ -112,8 +112,10 @@ function EditCategory({
         >
           {/* An ended month can't change (brief 028); a deep link there gets no Remove. */}
           {month < thisMonth ? null : (
-            <Pressable
-              accessibilityRole="button"
+            <Button
+              variant="dangerText"
+              size="medium"
+              label={`Remove from ${monthName(month)}`}
               disabled={busy}
               onPress={() =>
                 pushOnce({
@@ -121,10 +123,7 @@ function EditCategory({
                   params: { categoryId: category.categoryId, month, from: 'budget' },
                 })
               }
-              style={styles.remove}
-            >
-              <Text style={styles.removeText}>{`Remove from ${monthName(month)}`}</Text>
-            </Pressable>
+            />
           )}
         </CategoryForm>
       )}
@@ -139,6 +138,4 @@ const makeStyles = (colors: Palette) =>
     back: { height: size.iconButton, justifyContent: 'center', marginLeft: -space.sm, paddingHorizontal: space.sm },
     backText: { ...text.body, fontFamily: fonts.bodyMedium, color: colors.muted },
     title: { ...text.heading, fontFamily: fonts.display, color: colors.text },
-    remove: { height: size.control, alignItems: 'center', justifyContent: 'center' },
-    removeText: dangerText(colors),
   });

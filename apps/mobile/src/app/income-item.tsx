@@ -18,7 +18,7 @@ import { overIncomeText } from '@/data/overIncome';
 import { useIncome } from '@/data/useIncome';
 import { monthName, normalizeAmount } from '@/format';
 import { parseIdParam, parseMonthParam } from '@/linkParams';
-import { dangerText, fonts, type Palette, radius, size, space, text } from '@/theme';
+import { fonts, type Palette, radius, size, space, text } from '@/theme';
 
 /**
  * Closes the modal. Opened straight from a web link there's nothing to go back to, so it falls back to the Income
@@ -242,9 +242,7 @@ function IncomeForm({
       {gone ? null : <Button variant="primary" size="large" label="Save" busy={busy} onPress={save} />}
 
       {remove && !gone ? (
-        <Pressable accessibilityRole="button" disabled={busy} onPress={deleteItem} style={styles.delete}>
-          <Text style={styles.deleteText}>Delete item</Text>
-        </Pressable>
+        <Button variant="dangerText" size="medium" label="Delete item" disabled={busy} onPress={deleteItem} />
       ) : null}
     </ScrollView>
   );
@@ -272,6 +270,4 @@ const makeStyles = (colors: Palette) =>
       ...text.input,
     },
     error: { ...text.label, color: colors.over },
-    delete: { height: size.control, alignItems: 'center', justifyContent: 'center' },
-    deleteText: dangerText(colors),
   });

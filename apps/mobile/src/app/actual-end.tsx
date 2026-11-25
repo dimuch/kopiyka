@@ -174,9 +174,13 @@ function ActualEndForm({ month, balance, busy, setBusy }: { month: string; balan
       {gone ? null : <Button variant="primary" size="large" label="Save" busy={busy} onPress={save} />}
 
       {balance.actual && !gone ? (
-        <Pressable accessibilityRole="button" disabled={busy} onPress={clearToCalculated} style={styles.secondary}>
-          <Text style={styles.secondaryText}>Use calculated end</Text>
-        </Pressable>
+        <Button
+          variant="accentText"
+          size="medium"
+          label="Use calculated end"
+          disabled={busy}
+          onPress={clearToCalculated}
+        />
       ) : null}
     </ScrollView>
   );
@@ -204,6 +208,4 @@ const makeStyles = (colors: Palette) =>
       ...text.input,
     },
     error: { ...text.label, color: colors.over },
-    secondary: { height: size.control, alignItems: 'center', justifyContent: 'center' },
-    secondaryText: { ...text.bodyStrong, color: colors.accent },
   });

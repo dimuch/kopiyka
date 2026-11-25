@@ -35,7 +35,7 @@ import { useMonthCategories } from '@/data/useMonthCategories';
 import { type Rate, useRate } from '@/data/useRate';
 import { eur, kyivToday, monthName, normalizeAmount, otherAmountText, shortDate, toCents } from '@/format';
 import { parseIdParam } from '@/linkParams';
-import { dangerText, fonts, type Palette, radius, size, space, text } from '@/theme';
+import { fonts, type Palette, radius, size, space, text } from '@/theme';
 
 function errorText(err: unknown, doing: 'load' | 'save'): string {
   if (err instanceof ApiError) {
@@ -118,9 +118,7 @@ function LoadFailed({ message, onRetry }: { message: string; onRetry?: () => voi
   return (
     <View>
       <LoadError message={message} onRetry={onRetry} />
-      <Pressable accessibilityRole="button" onPress={leave} style={styles.back}>
-        <Text style={styles.backText}>Back</Text>
-      </Pressable>
+      <Button variant="mutedText" size="compact" label="Back" onPress={leave} style={styles.failedBack} />
     </View>
   );
 }
@@ -366,9 +364,7 @@ function ExpenseForm({ draft, ledgerId }: { draft: ExpenseDraftData; ledgerId: n
             />
 
             {expense && (
-              <Pressable accessibilityRole="button" disabled={busy} onPress={remove} style={styles.delete}>
-                <Text style={styles.deleteText}>Delete expense</Text>
-              </Pressable>
+              <Button variant="dangerText" size="medium" label="Delete expense" disabled={busy} onPress={remove} />
             )}
           </>
         )}
@@ -400,6 +396,8 @@ const makeStyles = (colors: Palette) => {
     back: { height: size.iconButton, justifyContent: 'center', marginLeft: -space.sm, paddingHorizontal: space.sm },
     backText: { ...text.body, fontFamily: fonts.bodyMedium, color: colors.muted },
     title: { ...text.heading, fontFamily: fonts.display, color: colors.text },
+    // Below a failed load: full width as before, with the word at the left like the header's Back.
+    failedBack: { justifyContent: 'flex-start', marginLeft: -space.sm, paddingHorizontal: space.sm },
     form: { gap: space.xxl, paddingBottom: space.huge },
     group: { gap: space.sm },
     label: { ...text.label, fontFamily: fonts.bodySemi, color: colors.muted },
@@ -407,8 +405,6 @@ const makeStyles = (colors: Palette) => {
     small: { ...text.caption, color: colors.muted, fontVariant: ['tabular-nums'] },
     locked: { ...text.body, fontFamily: fonts.bodyMedium, color: colors.text },
     error: { ...text.label, color: colors.over },
-    delete: { height: size.control, alignItems: 'center', justifyContent: 'center' },
-    deleteText: dangerText(colors),
     added: {
       flexDirection: 'row',
       alignItems: 'center',

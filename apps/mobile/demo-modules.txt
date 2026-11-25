@@ -79,6 +79,7 @@ src/components/PhoneColumn.tsx
 src/components/Pressable.tsx
 src/components/ProgressBar.tsx
 src/components/ReorderList.tsx
+src/components/ScreenHeader.tsx
 src/components/TabBar.tsx
 src/components/TextField.tsx
 src/components/UndoToast.tsx

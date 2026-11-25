@@ -1,6 +1,6 @@
 import { router, Stack, useLocalSearchParams } from 'expo-router';
 import { useRef, useState } from 'react';
-import { AccessibilityInfo, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { AccessibilityInfo, ScrollView, StyleSheet, Text } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { ApiError } from '@/api/apiError';
 import type { CategoryWithTotals } from '@/api/types';
@@ -8,7 +8,7 @@ import { useThemedStyles } from '@/appearance/AppearanceContext';
 import { useSession } from '@/auth/AuthContext';
 import { Button } from '@/components/Button';
 import { CategoryInMonth } from '@/components/CategoryInMonth';
-import { Pressable } from '@/components/Pressable';
+import { ScreenHeader } from '@/components/ScreenHeader';
 import { removeFromMonth, restoreToMonth } from '@/data/categories';
 import { notInMonthText } from '@/data/categoryName';
 import { removedMessage, removeWarning } from '@/data/categoryRemove';
@@ -17,7 +17,7 @@ import { overIncomeText } from '@/data/overIncome';
 import { setPendingUndo } from '@/data/undo';
 import { useCategoryTotals } from '@/data/useCategoryTotals';
 import { parseIdParam, parseMonthParam } from '@/linkParams';
-import { fonts, type Palette, size, space, text } from '@/theme';
+import { type Palette, space, text } from '@/theme';
 
 // Opened straight from a web link there's nothing to go back to, so fall back to Home.
 function leave() {
@@ -44,13 +44,7 @@ export default function DeleteCategoryScreen() {
     <SafeAreaView style={styles.screen} edges={['top', 'bottom']}>
       {/* The iOS modal can’t be swiped away while a removal is in flight either. */}
       <Stack.Screen options={{ gestureEnabled: !busy }} />
-      <View style={styles.header}>
-        <Pressable accessibilityRole="button" disabled={busy} onPress={leave} style={styles.back}>
-          <Text style={styles.backText}>Back</Text>
-        </Pressable>
-        <Text style={styles.title}>Remove category</Text>
-        <View style={{ width: 52 }} />
-      </View>
+      <ScreenHeader variant="modal" title="Remove category" onBack={leave} disabled={busy} />
 
       <CategoryInMonth totals={totals}>
         {(category, month) => (
@@ -147,10 +141,6 @@ function Confirm({
 const makeStyles = (colors: Palette) =>
   StyleSheet.create({
     screen: { flex: 1, backgroundColor: colors.bg, paddingHorizontal: space.xl, paddingTop: space.sm },
-    header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: space.sm },
-    back: { height: size.iconButton, justifyContent: 'center', marginLeft: -space.sm, paddingHorizontal: space.sm },
-    backText: { ...text.body, fontFamily: fonts.bodyMedium, color: colors.muted },
-    title: { ...text.heading, fontFamily: fonts.display, color: colors.text },
     body: { gap: space.lg, paddingTop: space.lg, paddingBottom: space.huge },
     question: { ...text.title, color: colors.text },
     warning: { ...text.body, color: colors.text },

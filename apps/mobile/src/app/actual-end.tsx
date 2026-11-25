@@ -9,7 +9,7 @@ import { useSession } from '@/auth/AuthContext';
 import { closeToBudget } from '@/closeToBudget';
 import { Button } from '@/components/Button';
 import { LoadError } from '@/components/LoadError';
-import { Pressable } from '@/components/Pressable';
+import { ScreenHeader } from '@/components/ScreenHeader';
 import { TextField } from '@/components/TextField';
 import { clearActualEnd, setActualEnd } from '@/data/actualEnd';
 import { useMonthBalance } from '@/data/useMonthBalance';
@@ -34,13 +34,7 @@ export default function ActualEndScreen() {
     <SafeAreaView style={styles.screen} edges={['top', 'bottom']}>
       {/* The iOS modal can’t be swiped away while a save is in flight either. */}
       <Stack.Screen options={{ gestureEnabled: !busy }} />
-      <View style={styles.header}>
-        <Pressable accessibilityRole="button" disabled={busy} onPress={() => closeToBudget(month)} style={styles.back}>
-          <Text style={styles.backText}>Back</Text>
-        </Pressable>
-        <Text style={styles.title}>Actual end</Text>
-        <View style={{ width: 52 }} />
-      </View>
+      <ScreenHeader variant="modal" title="Actual end" onBack={() => closeToBudget(month)} disabled={busy} />
 
       {month ? (
         <BalanceLoader month={month} busy={busy} setBusy={setBusy} />
@@ -189,10 +183,6 @@ function ActualEndForm({ month, balance, busy, setBusy }: { month: string; balan
 const makeStyles = (colors: Palette) =>
   StyleSheet.create({
     screen: { flex: 1, backgroundColor: colors.bg, paddingHorizontal: space.xl, paddingTop: space.sm },
-    header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: space.sm },
-    back: { height: size.iconButton, justifyContent: 'center', marginLeft: -space.sm, paddingHorizontal: space.sm },
-    backText: { ...text.body, fontFamily: fonts.bodyMedium, color: colors.muted },
-    title: { ...text.heading, fontFamily: fonts.display, color: colors.text },
     body: { gap: space.lg, paddingTop: space.lg, paddingBottom: space.huge },
     caption: { ...text.label, fontFamily: fonts.body, color: colors.muted },
     group: { gap: space.sm },

@@ -19,7 +19,7 @@ each branched from `main` after the previous one merges, each a patch bump. The 
 | 104b | `Button`, filled (accent, danger): 11 buttons, incl. the actual End form's Save   | merged (#160), v1.23.3 |
 | 104c | `Button`, outlined and text; `outlinedDanger*` and `dangerText` leave `theme.ts`  | merged (#161), v1.23.4 |
 | 104d | `IconButton` and `Chip`                                                           | merged (#163), v1.23.6 |
-| 104e | `ScreenHeader` (`modal`, `month`, `page`), incl. the actual End form's header     | **in progress**        |
+| 104e | `ScreenHeader` (`modal`, `month`, `page`), incl. the actual End form's header     | **in review**          |
 | 104f | `Text` at every remaining site; name the recurring role + face combinations in it | not started            |
 
 - **Gate A decisions (2026-11-24):**
@@ -95,6 +95,8 @@ B is dropped: brief 109 removes the Notion import code it would have shared.
 
 ### Small follow-ups (no brief needed until one is picked)
 
+- The expense form's Back stays enabled while a save is in flight; pressing it during an edit's save may go back
+  twice when the save ends (read in the code, not reproduced). Pass `disabled` up as the other forms do (104e).
 - `find-short-names.sh` misses a typed single-letter parameter on a line of its own, such as `  q: Db |`. Could also
   match `^\s+[a-z]: ` (100).
 - "Remaining" means income − budgeted on Budget and budgeted − spent on Expenses. The brief accepted it; worth a

@@ -1,9 +1,9 @@
 import { StyleSheet, Text, View } from 'react-native';
 import { useThemedStyles } from '@/appearance/AppearanceContext';
+import { Chip } from '@/components/Chip';
 import { DateField } from '@/components/DateField';
-import { Pressable } from '@/components/Pressable';
 import { addDays } from '@/format';
-import { type Palette, radius, size, space, text } from '@/theme';
+import { type Palette, space, text } from '@/theme';
 
 interface Props {
   /** 'YYYY-MM-DD' */
@@ -28,15 +28,9 @@ export function DateChips({ value, today, min, onChange, disabled = false }: Pro
     <View style={styles.row}>
       <DateField value={value} onChange={onChange} min={min} max={today} label="Date" disabled={disabled} />
       {chips.map((d) => (
-        <Pressable
-          key={d.label}
-          accessibilityRole="button"
-          aria-selected={value === d.value}
-          onPress={() => onChange(d.value)}
-          style={[styles.chip, value === d.value && styles.chipOn]}
-        >
+        <Chip key={d.label} selected={value === d.value} onPress={() => onChange(d.value)} style={styles.chip}>
           <Text style={styles.chipText}>{d.label}</Text>
-        </Pressable>
+        </Chip>
       ))}
     </View>
   );
@@ -45,15 +39,7 @@ export function DateChips({ value, today, min, onChange, disabled = false }: Pro
 const makeStyles = (colors: Palette) =>
   StyleSheet.create({
     row: { flexDirection: 'row', gap: space.sm },
-    chip: {
-      height: size.control,
-      borderRadius: radius.md,
-      borderWidth: 1,
-      borderColor: colors.borderStrong,
-      backgroundColor: colors.surface,
-      paddingHorizontal: space.lg,
-      justifyContent: 'center',
-    },
-    chipOn: { borderColor: colors.accent, backgroundColor: colors.accentTint },
+    // Wider padding than a category chip, around a word.
+    chip: { paddingHorizontal: space.lg },
     chipText: { ...text.label, color: colors.text },
   });

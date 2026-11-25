@@ -3,8 +3,7 @@ import type { Invite } from '@/api/types';
 import { useThemedStyles } from '@/appearance/AppearanceContext';
 import { Button } from '@/components/Button';
 import { Card } from '@/components/Card';
-import { Pressable } from '@/components/Pressable';
-import { fonts, type Palette, size, space, text } from '@/theme';
+import { fonts, type Palette, space, text } from '@/theme';
 
 /**
  * The signed-in user's invites, each with Decline and Accept (Home, Settings, no-ledger); nothing while there are none
@@ -37,15 +36,15 @@ export function PendingInvites({
           <Card key={invite.inviteId} padding="padded" style={styles.card}>
             <Text style={styles.text}>{`${invite.owner} invited you to ${invite.ledgerName}`}</Text>
             <View style={styles.buttons}>
-              <Pressable
-                accessibilityRole="button"
+              <Button
+                variant="mutedText"
+                size="compact"
+                label="Decline"
                 accessibilityLabel={`Decline invite from ${from}`}
                 disabled={busy}
                 onPress={() => onDecline(invite)}
                 style={[styles.decline, busy && { opacity: 0.6 }]}
-              >
-                <Text style={styles.declineText}>Decline</Text>
-              </Pressable>
+              />
               <Button
                 variant="primary"
                 size="compact"
@@ -75,7 +74,6 @@ const makeStyles = (colors: Palette) =>
     card: { gap: space.sm },
     text: { ...text.body, fontFamily: fonts.bodyMedium, color: colors.text },
     buttons: { flexDirection: 'row', justifyContent: 'flex-end', alignItems: 'center', gap: space.sm },
-    decline: { minHeight: size.iconButton, justifyContent: 'center', paddingHorizontal: space.md },
-    declineText: { ...text.body, fontFamily: fonts.bodyMedium, color: colors.muted },
+    decline: { paddingHorizontal: space.md },
     failure: { ...text.label, color: colors.over },
   });

@@ -15,17 +15,7 @@ import { TextField } from '@/components/TextField';
 import { normalizeLabel } from '@/data/ledgerLabel';
 import { inviteMember, removeMember, revokeInvite, setLedgerLabel } from '@/data/members';
 import { useMembers } from '@/data/useMembers';
-import {
-  dangerText,
-  fonts,
-  outlinedDangerButton,
-  outlinedDangerText,
-  type Palette,
-  radius,
-  size,
-  space,
-  text,
-} from '@/theme';
+import { fonts, type Palette, radius, size, space, text } from '@/theme';
 
 // Opened straight from a web link there's nothing to go back to, so fall back to Settings.
 function goBack() {
@@ -213,15 +203,15 @@ function OwnerMembers({ ledgerId }: { ledgerId: number }) {
                 <MemberName member={member} isYou={isYou} />
                 {/* The owner can't remove themselves: the owner is the viewer. */}
                 {!isYou && (
-                  <Pressable
-                    accessibilityRole="button"
+                  <Button
+                    variant="dangerText"
+                    size="compact"
+                    label="Remove"
                     accessibilityLabel={`Remove ${member.username}`}
                     disabled={busy}
                     onPress={() => showPanel(member)}
                     style={styles.remove}
-                  >
-                    <Text style={styles.removeText}>Remove</Text>
-                  </Pressable>
+                  />
                 )}
               </View>
               {confirming?.userId === member.userId && (
@@ -302,15 +292,15 @@ function PendingList({
                     {invite.username}
                   </Text>
                 </View>
-                <Pressable
-                  accessibilityRole="button"
+                <Button
+                  variant="dangerText"
+                  size="compact"
+                  label="Revoke"
                   accessibilityLabel={`Revoke invite to ${invite.username}`}
                   disabled={busy}
                   onPress={() => revoke(invite)}
                   style={styles.remove}
-                >
-                  <Text style={styles.removeText}>Revoke</Text>
-                </Pressable>
+                />
               </View>
             </View>
           ))}
@@ -409,7 +399,6 @@ function MemberName({ member, isYou }: { member: Member; isYou: boolean }) {
 
 /** A member's view: the list is the owner's, so only Leave. */
 function MemberLeave({ ledger }: { ledger: Ledger }) {
-  const styles = useThemedStyles(makeStyles);
   const { user } = useSession();
   const [confirming, setConfirming] = useState(false);
   const [busy, setBusy] = useState(false);
@@ -456,9 +445,7 @@ function MemberLeave({ ledger }: { ledger: Ledger }) {
       onDismiss={() => showPanel(false)}
     />
   ) : (
-    <Pressable accessibilityRole="button" onPress={() => showPanel(true)} style={styles.leave}>
-      <Text style={styles.leaveText}>Leave ledger</Text>
-    </Pressable>
+    <Button variant="outlinedDanger" size="medium" label="Leave ledger" onPress={() => showPanel(true)} />
   );
 }
 
@@ -493,9 +480,14 @@ function ConfirmPanel({
         </Text>
       ) : null}
       <View style={styles.panelButtons}>
-        <Pressable accessibilityRole="button" disabled={busy} onPress={onDismiss} style={styles.dismiss}>
-          <Text style={styles.dismissText}>{gone ? 'Close' : 'Back'}</Text>
-        </Pressable>
+        <Button
+          variant="mutedText"
+          size="compact"
+          label={gone ? 'Close' : 'Back'}
+          disabled={busy}
+          onPress={onDismiss}
+          style={styles.dismiss}
+        />
         {!gone && (
           <Button
             variant="danger"
@@ -533,15 +525,7 @@ const makeStyles = (colors: Palette) =>
     who: { flex: 1, minHeight: size.iconButton, justifyContent: 'center', gap: space.xxs },
     name: { ...text.body, fontFamily: fonts.bodyMedium, color: colors.text },
     role: { ...text.label, fontFamily: fonts.body, color: colors.muted },
-    remove: {
-      minHeight: size.iconButton,
-      minWidth: size.iconButton,
-      justifyContent: 'center',
-      paddingHorizontal: space.xs,
-    },
-    removeText: dangerText(colors),
-    leave: outlinedDangerButton(colors),
-    leaveText: outlinedDangerText(colors),
+    remove: { minWidth: size.iconButton, paddingHorizontal: space.xs },
     panel: {
       gap: space.sm,
       padding: space.lg,
@@ -554,8 +538,7 @@ const makeStyles = (colors: Palette) =>
     detail: { ...text.label, fontFamily: fonts.body, color: colors.text },
     failure: { ...text.label, color: colors.over },
     panelButtons: { flexDirection: 'row', justifyContent: 'flex-end', alignItems: 'center', gap: space.sm },
-    dismiss: { minHeight: size.iconButton, justifyContent: 'center', paddingHorizontal: space.md },
-    dismissText: { ...text.body, fontFamily: fonts.bodyMedium, color: colors.muted },
+    dismiss: { paddingHorizontal: space.md },
     section: { gap: space.sm },
     input: {
       ...text.input,

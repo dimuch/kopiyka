@@ -62,6 +62,18 @@ The 105 and 106 briefs are **drafts** written from the design doc and the follow
 correct each before running `/kopiyka-hos` on it. 107 (budget polish, #146) already brought forward one 105 item:
 the same caution yellow in both themes.
 
+## Planned: repo tooling
+
+Drafted on 2026-11-25, after PR #167 turned Copilot's identical copies of the skills into symlinks. Run 110 before
+111, because 111 edits `kopiyka-hos`, which 110 makes single-source. Neither changes the app or API.
+
+| Brief | Draft                                              | What                                                                             |
+| ----- | -------------------------------------------------- | -------------------------------------------------------------------------------- |
+| 110   | `docs/features/110-one-source-for-skills/brief.md` | Generate Copilot's `kopiyka-*` skills and agents from `.claude`, with a CI check |
+| 111   | `docs/features/111-plan-outcomes/brief.md`         | Replace shipped plans with short outcomes, as an after-merge flow step           |
+
+Item 3 of the same review, finishing the design system with 104f and 105, is already planned above.
+
 ## Not briefed yet
 
 ### Refactor roadmap (project scan, 2026-11-21)
@@ -77,8 +89,13 @@ Order: A → C → G → B → D, E, F. Run each through `/kopiyka-hos-refactori
 | D   | App: data hooks                                         | not briefed              |
 | E   | App: button actions                                     | not briefed              |
 | F   | App: UI pieces                                          | not briefed              |
+| H   | Split the two largest screens                           | not briefed              |
 
 B is dropped: brief 109 removes the Notion import code it would have shared.
+
+H (added 2026-11-25): `members.tsx` (539 lines) and `expense.tsx` (412) are the largest screens. Run
+`/kopiyka-hos-refactoring` on each, one PR per screen, after 104f merges, because 104f edits both. Check its scan
+against D–F first, since the data hooks or button actions may be what makes them long.
 
 ### Named in earlier briefs and plans as "its own brief"
 

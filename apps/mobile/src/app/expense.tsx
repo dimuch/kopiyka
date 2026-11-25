@@ -319,7 +319,7 @@ function ExpenseForm({ draft, ledgerId }: { draft: ExpenseDraftData; ledgerId: n
           )}
         </View>
 
-        <View style={styles.group}>
+        <View style={[styles.group, styles.nameGroup]}>
           <Text style={styles.label}>What was it?</Text>
           <NameCombobox
             accessibilityLabel="What was it?"
@@ -400,6 +400,8 @@ const makeStyles = (colors: Palette) => {
     failedBack: { justifyContent: 'flex-start', marginLeft: -space.sm, paddingHorizontal: space.sm },
     form: { gap: space.xxl, paddingBottom: space.huge },
     group: { gap: space.sm },
+    // The name suggestions float over the amount fields below; 2 clears the ₴/€ symbols' zIndex 1 there on web.
+    nameGroup: { zIndex: 2 },
     label: { ...text.label, fontFamily: fonts.bodySemi, color: colors.muted },
     input: { ...field, ...text.input, paddingHorizontal: space.lg, color: colors.text },
     small: { ...text.caption, color: colors.muted, fontVariant: ['tabular-nums'] },

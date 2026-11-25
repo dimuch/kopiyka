@@ -112,7 +112,7 @@ two patch PRs over one `major` PR (Open question 1).
 
 ### PR B: the API, scripts and docs (branch `chore/remove-notion-api`, after PR A is live)
 
-- [ ] 0b. Bump version to 1.23.3
+- [x] 0b. Bump version to 1.23.3
   - Files: package.json, apps/mobile/app.json
   - Change: set both to 1.23.3 (or main's number + 1)
 - [ ] 2. Remove the Notion sync, importers and settings from the API

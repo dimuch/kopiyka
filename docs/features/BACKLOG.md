@@ -13,14 +13,14 @@ Brief and plan: `docs/features/104-shared-components/`. At Gate A the brief was 
 each branched from `main` after the previous one merges, each a patch bump. The plan's "Later parts" outlines
 104b–104f with their call sites. Write each brief from it (in the format of `brief.md`), then run `/kopiyka-hos` on it.
 
-| Part | What                                                                              | State                       |
-| ---- | --------------------------------------------------------------------------------- | --------------------------- |
-| 104  | `Card` (all 17 cards) and `ProgressBar`; nothing moves                            | merged (#156), v1.23.1      |
-| 104b | `Button`, filled (accent, danger): 12 buttons, incl. the actual End form's Save   | **next**; brief not written |
-| 104c | `Button`, outlined and text; `outlinedDanger*` and `dangerText` leave `theme.ts`  | not started                 |
-| 104d | `IconButton` and `Chip`                                                           | not started                 |
-| 104e | `ScreenHeader` (`modal`, `month`, `page`), incl. the actual End form's header     | not started                 |
-| 104f | `Text` at every remaining site; name the recurring role + face combinations in it | not started                 |
+| Part | What                                                                              | State                        |
+| ---- | --------------------------------------------------------------------------------- | ---------------------------- |
+| 104  | `Card` (all 17 cards) and `ProgressBar`; nothing moves                            | merged (#156), v1.23.1       |
+| 104b | `Button`, filled (accent, danger): 11 buttons, incl. the actual End form's Save   | **in review**; brief written |
+| 104c | `Button`, outlined and text; `outlinedDanger*` and `dangerText` leave `theme.ts`  | not started                  |
+| 104d | `IconButton` and `Chip`                                                           | not started                  |
+| 104e | `ScreenHeader` (`modal`, `month`, `page`), incl. the actual End form's header     | not started                  |
+| 104f | `Text` at every remaining site; name the recurring role + face combinations in it | not started                  |
 
 - **Gate A decisions (2026-11-24):**
   - six parts, Card and ProgressBar first
@@ -117,7 +117,7 @@ B is dropped: brief 109 removes the Notion import code it would have shared.
   travel with the repo. Copy them to `~/.copilot/skills/` on the new laptop if you want them (conventions §8a).
 - Claude's memory for this project (`~/.claude/projects/…/memory`) stays on the old laptop. This file and the plans in
   `docs/features/` are the record to work from.
-- Local QA data doesn't travel either: the dev database, its QA user `claude-qa-103b` and that user's TOTP secret exist
+- Local QA data doesn't travel either: the dev database, its QA users and their TOTP secrets exist
   only on the old laptop.
   - On a new laptop, create a fresh user per brief with `yarn api create-user`, using `--username claude-qa-<NNN>`
     and `--email claude-qa-<NNN>@example.test`. Keep its secret out of the repo, and delete the user when the brief

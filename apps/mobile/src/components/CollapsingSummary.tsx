@@ -1,8 +1,9 @@
 import { useMemo, useState } from 'react';
-import { Animated, StyleSheet, Text, type LayoutChangeEvent } from 'react-native';
-import { useColors, useThemedStyles } from '@/appearance/AppearanceContext';
+import { Animated, StyleSheet, type LayoutChangeEvent } from 'react-native';
+import { useThemedStyles } from '@/appearance/AppearanceContext';
+import { Text } from '@/components/Text';
 import { eur } from '@/format';
-import { fonts, type Palette, space, text } from '@/theme';
+import { type Palette, space } from '@/theme';
 
 /**
  * Scroll-linked hand-off from the "Spent" card to a compact total in the top bar:
@@ -54,7 +55,6 @@ export function CompactTotal({
   label?: string;
   style: object;
 }) {
-  const colors = useColors();
   const styles = useThemedStyles(makeStyles);
   const over = budgetCents != null && spentCents > budgetCents;
   const amounts = budgetCents != null ? `${eur(spentCents)} of ${eur(budgetCents)} spent` : `${eur(spentCents)} spent`;
@@ -65,12 +65,18 @@ export function CompactTotal({
       style={[styles.compact, style]}
     >
       {label ? (
-        <Text numberOfLines={1} style={styles.label}>
+        <Text numberOfLines={1} variant="label" color="muted" style={styles.label}>
           {label}
         </Text>
       ) : null}
-      <Text style={[styles.spent, over && { color: colors.over }]}>{eur(spentCents)}</Text>
-      {budgetCents != null && <Text style={styles.budget}> / {eur(budgetCents)}</Text>}
+      <Text variant="headingDisplay" color={over ? 'over' : 'text'} tabular>
+        {eur(spentCents)}
+      </Text>
+      {budgetCents != null && (
+        <Text variant="label" color="muted" tabular>
+          {` / ${eur(budgetCents)}`}
+        </Text>
+      )}
     </Animated.View>
   );
 }
@@ -84,8 +90,6 @@ export function HeaderDivider({ style }: { style: object }) {
 const makeStyles = (colors: Palette) =>
   StyleSheet.create({
     compact: { flexDirection: 'row', alignItems: 'baseline', flexShrink: 1 },
-    label: { ...text.label, flexShrink: 1, marginRight: space.sm, color: colors.muted },
-    spent: { ...text.heading, fontFamily: fonts.display, color: colors.text, fontVariant: ['tabular-nums'] },
-    budget: { ...text.label, color: colors.muted, fontVariant: ['tabular-nums'] },
+    label: { flexShrink: 1, marginRight: space.sm },
     divider: { position: 'absolute', left: -20, right: -20, bottom: 0, height: 1, backgroundColor: colors.border },
   });

@@ -2,17 +2,35 @@ import { ActivityIndicator, type StyleProp, StyleSheet, Text, type ViewStyle } f
 import { useColors, useThemedStyles } from '@/appearance/AppearanceContext';
 import { Icon, type IconName } from '@/components/Icon';
 import { Pressable } from '@/components/Pressable';
-import { type Palette, radius, size, space, text } from '@/theme';
+import { fonts, type Palette, radius, size, space, text } from '@/theme';
 
 /**
- * Today's filled-button sizes, each with its corner and spinner (brief 104b; brief 105 makes them one 48pt pill).
+ * Today's button sizes (briefs 104b and 104c; brief 105 makes the filled ones one 48pt pill).
  * - large: 56pt, radius.lg. While busy the spinner takes the label's place.
  * - medium: 48pt pill. While busy a spinner shows before the label.
- * - compact: 44pt pill, as wide as its label, beside a 44pt text button. Spinner as medium.
+ * - compact: 44pt pill, as wide as its label. Spinner as medium.
+ * The text looks drop the corner, and callers set their own side padding where it differs.
  */
 export type ButtonSize = 'large' | 'medium' | 'compact';
 
-/** An accent (`primary`) or `danger` button with an `onAccent` label. It dims while busy or disabled. */
+/**
+ * primary, danger: filled, with an onAccent label; they dim while busy or disabled.
+ * outlinedDanger: surface with a 1pt borderStrong edge and a danger label.
+ * dangerText, mutedText, accentText: only the label, no corner; disabled, they don't dim.
+ */
+type ButtonVariant = 'primary' | 'danger' | 'outlinedDanger' | 'dangerText' | 'mutedText' | 'accentText';
+
+/** Only the filled looks have a spinner (busy) or an icon. */
+type Look =
+  | {
+      variant: 'primary' | 'danger';
+      /** Shows the spinner, sets aria-busy and disables the button. */
+      busy: boolean;
+      /** Before the label, hidden while busy: the expense form's "+". */
+      icon?: IconName;
+    }
+  | { variant: Exclude<ButtonVariant, 'primary' | 'danger'>; busy?: never; icon?: never };
+
 export function Button({
   variant,
   size: buttonSize,
@@ -23,25 +41,21 @@ export function Button({
   icon,
   accessibilityLabel,
   style,
-}: {
-  variant: 'primary' | 'danger';
+}: Look & {
   size: ButtonSize;
   label: string;
   onPress: () => void;
-  /** Shows the spinner, sets aria-busy and disables the button. */
-  busy: boolean;
   disabled?: boolean;
-  /** Before the label, hidden while busy: the expense form's "+". */
-  icon?: IconName;
   /** The name, when it says more than the label. */
   accessibilityLabel?: string;
-  /** The caller's layout, and the one-offs listed in brief 104b's plan. */
+  /** The caller's layout, and the one-offs listed in briefs 104b's and 104c's plans. */
   style?: StyleProp<ViewStyle>;
 }) {
   const colors = useColors();
   const styles = useThemedStyles(makeStyles);
   const replaces = buttonSize === 'large';
-  const off = busy || disabled;
+  const filled = variant === 'primary' || variant === 'danger';
+  const off = Boolean(busy) || disabled;
   return (
     <Pressable
       accessibilityRole="button"
@@ -51,28 +65,42 @@ export function Button({
       // disabled, not aria-disabled: react-native-web's Pressable sets aria-disabled from disabled only.
       disabled={off}
       onPress={onPress}
-      style={[styles.button, styles[variant], styles[buttonSize], off && styles.off, style]}
+      style={[styles.button, styles[buttonSize], styles[variant], filled && off && styles.off, style]}
     >
       {busy ? <ActivityIndicator color={colors.onAccent} /> : null}
       {busy && replaces ? null : (
         <>
           {icon ? <Icon name={icon} color={colors.onAccent} strokeWidth={2.4} /> : null}
-          <Text style={styles.label}>{label}</Text>
+          <Text style={[styles.label, styles[`${variant}Label`]]}>{label}</Text>
         </>
       )}
     </Pressable>
   );
 }
 
-const makeStyles = (colors: Palette) =>
-  StyleSheet.create({
+const makeStyles = (colors: Palette) => {
+  // The text looks have no corner: today's text buttons have none, so their web focus ring stays square.
+  // eslint-disable-next-line no-restricted-syntax
+  const bare = { borderRadius: 0 };
+  return StyleSheet.create({
     button: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: space.sm },
-    primary: { backgroundColor: colors.accent },
-    danger: { backgroundColor: colors.danger },
     large: { minHeight: 56, borderRadius: radius.lg, paddingHorizontal: space.lg },
     medium: { minHeight: size.control, borderRadius: radius.pill },
     compact: { minHeight: size.iconButton, borderRadius: radius.pill, paddingHorizontal: space.lg },
+    primary: { backgroundColor: colors.accent },
+    danger: { backgroundColor: colors.danger },
+    outlinedDanger: { borderWidth: 1, borderColor: colors.borderStrong, backgroundColor: colors.surface },
+    dangerText: bare,
+    mutedText: bare,
+    accentText: bare,
     off: { opacity: 0.6 },
     // flexShrink: a label too long for the row (a large text size) wraps, centred, instead of running out.
-    label: { ...text.bodyStrong, color: colors.onAccent, textAlign: 'center', flexShrink: 1 },
+    label: { textAlign: 'center', flexShrink: 1 },
+    primaryLabel: { ...text.bodyStrong, color: colors.onAccent },
+    dangerLabel: { ...text.bodyStrong, color: colors.onAccent },
+    outlinedDangerLabel: { ...text.bodyStrong, color: colors.danger },
+    dangerTextLabel: { ...text.body, fontFamily: fonts.bodyMedium, color: colors.danger },
+    mutedTextLabel: { ...text.body, fontFamily: fonts.bodyMedium, color: colors.muted },
+    accentTextLabel: { ...text.bodyStrong, color: colors.accent },
   });
+};

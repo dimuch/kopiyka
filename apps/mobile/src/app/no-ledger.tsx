@@ -3,11 +3,11 @@ import { ActivityIndicator, ScrollView, StyleSheet, Text, View } from 'react-nat
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useColors, useThemedStyles } from '@/appearance/AppearanceContext';
 import { useAuth } from '@/auth/AuthContext';
+import { Button } from '@/components/Button';
 import { LoadError } from '@/components/LoadError';
 import { PendingInvites } from '@/components/PendingInvites';
-import { Pressable } from '@/components/Pressable';
 import { useInvites } from '@/data/invites';
-import { outlinedDangerButton, outlinedDangerText, type Palette, size, space, text } from '@/theme';
+import { type Palette, space, text } from '@/theme';
 
 /** Shown to a signed-in user who is in no ledger: they can accept an invite or sign out. */
 export default function NoLedger() {
@@ -36,12 +36,8 @@ export default function NoLedger() {
         ) : (
           <PendingInvites invites={invites} busyId={busyId} failure={failure} onAccept={accept} onDecline={decline} />
         )}
-        <Pressable accessibilityRole="button" onPress={reload} style={styles.check}>
-          <Text style={styles.checkText}>Check for invites</Text>
-        </Pressable>
-        <Pressable accessibilityRole="button" onPress={logout} style={styles.signOut}>
-          <Text style={styles.signOutText}>Sign out</Text>
-        </Pressable>
+        <Button variant="accentText" size="compact" label="Check for invites" onPress={reload} style={styles.check} />
+        <Button variant="outlinedDanger" size="medium" label="Sign out" onPress={logout} />
       </ScrollView>
     </SafeAreaView>
   );
@@ -61,14 +57,5 @@ const makeStyles = (colors: Palette) =>
     },
     title: { ...text.display, color: colors.text },
     text: { ...text.body, color: colors.muted },
-    check: {
-      minHeight: size.iconButton,
-      justifyContent: 'center',
-      alignSelf: 'flex-start',
-      marginLeft: -space.sm,
-      paddingHorizontal: space.sm,
-    },
-    checkText: { ...text.bodyStrong, color: colors.accent },
-    signOut: outlinedDangerButton(colors),
-    signOutText: outlinedDangerText(colors),
+    check: { alignSelf: 'flex-start', marginLeft: -space.sm, paddingHorizontal: space.sm },
   });

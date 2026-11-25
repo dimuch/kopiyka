@@ -37,8 +37,6 @@ export function testConfig(totpKey = randomBytes(32)): Config {
     sessionTtlMinutes: 30,
     cookieSecure: false,
     corsOrigins: [],
-    notion: null,
-    notionApi: null,
   };
 }
 
@@ -58,10 +56,6 @@ export async function resetSchema(migrationsDir?: string): Promise<void> {
 
 const DATA_TABLES = [
   'category_orders',
-  'notion_counted_expenses',
-  'notion_total_adds',
-  'notion_syncs',
-  'notion_grocery_rows',
   'exchange_rates',
   'income_items',
   'month_actual_ends',

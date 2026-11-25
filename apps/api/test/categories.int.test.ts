@@ -4,8 +4,6 @@ import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest';
 import { buildApp } from '../src/app.js';
 import { createDb, type Db } from '../src/db.js';
 import { addMember } from '../src/ledgers/members.js';
-import { loadGroceries, planGroceries } from '../src/notion/groceries.js';
-import { loadUncounted } from '../src/notion/totals.js';
 import {
   authHeader,
   badMonthReply,
@@ -181,7 +179,7 @@ describe.skipIf(!(await testDbReachable()))('categories API (MySQL)', () => {
     auth = await authHeader(app, owner, clock);
   });
 
-  it('lists the 15 seeded categories in Notion order', async () => {
+  it('lists the 15 seeded categories in their default order', async () => {
     const res = await get(owner.ledgerId);
     expect(res.statusCode).toBe(200);
     const { categories, quickCategoryIds } = res.json();
@@ -760,50 +758,6 @@ describe.skipIf(!(await testDbReachable()))('categories API (MySQL)', () => {
     });
   });
 
-  describe('Notion after a removal', () => {
-    // Only the loaders and the planner run, on the test DB: no Notion API is reachable from here.
-    const scope = () => ({ ledgerId: owner.ledgerId, year: 2026 });
-    const changes = async () =>
-      planGroceries(await loadGroceries(db, scope())).map((ch) => [ch.kind, ch.expense.expenseId]);
-    const uncounted = async () => (await loadUncounted(db, scope())).map((e) => e.expenseId);
-
-    it('follows a removal from one month and its restore', async () => {
-      const g9 = await addSpend('groceries', '2026-09-15', '12.50');
-      const g10 = await addSpend('groceries', '2026-10-01', '20.00');
-      for (const [id, date, amount, page] of [
-        [g9, '2026-09-15', '12.50', 'a'],
-        [g10, '2026-10-01', '20.00', 'b'],
-      ] as const) {
-        await db.query(
-          `INSERT INTO notion_grocery_rows (expense_id, notion_page_id, sent_name, sent_amount_eur, sent_date)
-           VALUES (?, ?, 'spend', ?, ?)`,
-          [id, page.padEnd(32, '0'), amount, date],
-        );
-      }
-      const c9 = await addSpend('car', '2026-09-20', '40.00');
-      const c10 = await addSpend('car', '2026-10-02', '60.00');
-      expect(await changes()).toEqual([]);
-      expect(await uncounted()).toEqual([c9, c10]);
-
-      for (const techName of ['groceries', 'car']) {
-        expect((await removeFrom(await idOf(techName))).statusCode).toBe(204);
-      }
-      expect(await changes()).toEqual([['trash', g10]]);
-      expect(await uncounted()).toEqual([c9]);
-
-      for (const techName of ['groceries', 'car']) {
-        expect((await restoreTo(await idOf(techName))).statusCode).toBe(204);
-      }
-      const groceries = await loadGroceries(db, scope());
-      expect(groceries.map((g) => [g.expenseId, g.wanted])).toEqual([
-        [g9, true],
-        [g10, true],
-      ]);
-      expect(await changes()).toEqual([]);
-      expect(await uncounted()).toEqual([c9, c10]);
-    });
-  });
-
   describe('planned amounts', () => {
     const plannedOf = async (month: string) =>
       Object.fromEntries(
@@ -909,12 +863,6 @@ describe.skipIf(!(await testDbReachable()))('categories API (MySQL)', () => {
         [eatingOut],
       );
       expect(category).toEqual({ tech_name: 'eating_out', display_name: 'eating out' });
-
-      // Notion matches on tech_name, so a rename changes nothing it sends.
-      expect((await rename(await idOf('car'), auth, owner.ledgerId, '2026-10', 'auto')).statusCode).toBe(204);
-      expect((await loadUncounted(db, { ledgerId: owner.ledgerId, year: 2026 })).map((e) => e.techName)).toEqual([
-        'car',
-      ]);
 
       // Its own name in another case is fine.
       expect((await rename(await idOf('rent'), auth, owner.ledgerId, '2026-10', 'Rent')).statusCode).toBe(204);

@@ -22,7 +22,7 @@ Unchanged, for every input:
 - Money and dates: integer cents, half-up rounding in `convert`, Kyiv
   `YYYY-MM-DD` strings (conventions §3). Re-ordering arithmetic on `bigint` is
   allowed only if it is provably equal (write the reasoning in the commit body).
-- Side effects and their order: DB writes, Notion calls, NBU fetches,
+- Side effects and their order: DB writes, NBU fetches,
   `req.log` lines that someone may grep, `throw` vs `return` on error paths.
 - App: what renders in loading / error / empty / data states, navigation
   targets, accessibility labels, iOS and web paths.
@@ -60,7 +60,7 @@ refactor: stop and route it through `/kopiyka-hos` with its own brief.
 | --------------------------------------------- | --------------------------------------------------- | ------------------------------------------------------------------------------- |
 | Cryptic names (`r`, `e`, `a`, `f`, `p`, `k`)  | `.map((r) =>` over SQL rows, `for (const e of ...)` | rename per §4                                                                   |
 | Long handler (> ~40 lines, several concerns)  | `<domain>/routes.ts`                                | extract a named function in the same file; `service.ts` only per conventions §2 |
-| Deep nesting (> 3 levels)                     | handlers, sync loops in `notion/`                   | guard clauses and early `return`                                                |
+| Deep nesting (> 3 levels)                     | handlers, loops in route handlers                   | guard clauses and early `return`                                                |
 | Nested ternaries, clever `reduce` with spread | sorting, grouping                                   | `if` chain or a named helper; `for...of` building a `Map`                       |
 | Magic values                                  | status strings, limits, `100n`, `+ 50n`             | named `const` next to its use, with a _why_ comment for units/rounding          |
 | Same logic three times **inside one domain**  | row → DTO mapping, scope checks                     | extract one function (rule of three, conventions §1)                            |
@@ -114,15 +114,15 @@ no drive-by renames elsewhere.
   allows the `{ err }` shorthand for pino's `err` serializer in `req.log`; `_`-prefixed unused args (ESLint
   `argsIgnorePattern`); generic type parameters (`api<T>()`); SQL table aliases that are the table's initials
   (`e` expenses, `c` categories, `cm` category_months) when the query stays
-  short — rename an alias only when it's ambiguous (`a` for `notion_total_adds`
-  next to `c`).
+  short — rename an alias only when it's ambiguous (`ca` for `categories` next to
+  `cm`).
 - **Not too long either**: 1–3 words. If a name needs four, the function
   probably does two things.
 
 Find them mechanically (read-only, exit 1 when any are found):
 
 ```bash
-.github/skills/kopiyka-refactoring/scripts/find-short-names.sh apps/api/src/notion   # a target
+.github/skills/kopiyka-refactoring/scripts/find-short-names.sh apps/api/src/categories  # a target
 .github/skills/kopiyka-refactoring/scripts/find-short-names.sh --diff origin/main    # lines this branch adds
 ```
 
@@ -149,7 +149,7 @@ eye. Vague names (`data`, `item`, `tmp`) and missing units still need a human.
 ## 6. Refactoring plan rules (on top of `kopiyka-plan`)
 
 - The brief's acceptance criteria are structural and checkable
-  ("`notion/totals.ts`: `find-short-names.sh` clean", "`expense.tsx` render
+  ("`categories/monthLists.ts`: `find-short-names.sh` clean", "`expense.tsx` render
   ≤ 150 lines"), plus the standing AC **behaviour unchanged: existing tests
   pass unmodified**. With those ACs, a slice titled as a refactor is in scope.
 - Order: characterization tests → mechanical renames/moves (own commit,

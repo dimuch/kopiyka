@@ -112,10 +112,10 @@ two patch PRs over one `major` PR (Open question 1).
 
 ### PR B: the API, scripts and docs (branch `chore/remove-notion-api`, after PR A is live)
 
-- [ ] 0b. Bump version to 1.23.3
+- [x] 0b. Bump version to 1.23.3
   - Files: package.json, apps/mobile/app.json
   - Change: set both to 1.23.3 (or main's number + 1)
-- [ ] 2. Remove the Notion sync, importers and settings from the API
+- [x] 2. Remove the Notion sync, importers and settings from the API
   - Files:
     - delete all of `apps/api/src/notion/` (10 files, 1,746 lines)
     - delete `scripts/notion-start.ts`, `import-history.ts`, `import-income.ts`, `import-balances.ts` and
@@ -168,7 +168,7 @@ two patch PRs over one `major` PR (Open question 1).
     - `yarn api notion-start` (and each importer) answers Yarn's "Couldn't find a script named …".
     - Budget tab, ledger 1, October 2026: the Start → End line matches a screenshot taken on main, and November's
       Start equals October's End.
-- [ ] 3. Remove the Notion setup and import steps from the READMEs
+- [x] 3. Remove the Notion setup and import steps from the READMEs
   - Files: `README.md`, `deploy/README.md`
   - Change:
     - `README.md`: remove "### Notion sync" (lines 31-98).
@@ -182,7 +182,7 @@ two patch PRs over one `major` PR (Open question 1).
   - Size: about 250 deleted, 10 added.
   - Verify: `rg -n -i notion README.md deploy/README.md` finds only the one history sentence. `yarn format:check`
     passes.
-- [ ] 4. Stop pointing the skills at Notion code and update the backlog
+- [x] 4. Stop pointing the skills at Notion code and update the backlog
   - Files: in both `.claude/skills/` and `.github/skills/` (`docs/copilot.md`: change both copies):
     `kopiyka-conventions/SKILL.md`, `kopiyka-refactoring/SKILL.md`, `kopiyka-hos-refactoring/SKILL.md`,
     `kopiyka-store-audit/scripts/store-audit.mjs`, `kopiyka-store-audit/references/{apple,google}.md`. Also
@@ -300,6 +300,9 @@ two patch PRs over one `major` PR (Open question 1).
 - 104b–104f briefs: leave out `NotionSyncPanel` (104 plan, "Later parts").
 
 ## Deviations
+
+- PR B: branched on 2026-11-25 about 14 minutes after PR A's deploy (12:41 UTC), not a day later. The base already holds
+  PR A, so no code changes; the day's wait moves to the deploy: PR B is merged and deployed only from 2026-11-26 12:41 UTC.
 
 ## Consolidate
 

@@ -40,7 +40,7 @@ running that custom agent from `.github/agents/` as a subagent.
 
 ## Phase 0 — Scan and brief
 
-1. **Bound the target.** A path, a domain (`notion`, `expenses`) or a screen.
+1. **Bound the target.** A path, a domain (`income`, `expenses`) or a screen.
    "The whole repo" → ask the user to pick one area; a refactor PR stays
    reviewable (≤ ~400 changed lines, a pure rename slice may be larger).
 2. **Scan read-only** for the smells in `kopiyka-refactoring` §3:
@@ -127,7 +127,7 @@ Follow `kopiyka-develop` for every slice, with these refactor rules:
   but out of scope. Rename slices come before structural ones on the same
   code, so moved lines already carry good names.
 - **Commit subjects** say what got clearer, since users see no change:
-  "Name rows and expenses in Notion totals loops", "Split expense screen
+  "Name rows and categories in the month list loops", "Split expense screen
   submit into price and save steps".
 - **Found a bug** while refactoring → don't fix it; pin today's behaviour
   in a characterization test if it's in the target, add it to the plan's

@@ -15,8 +15,6 @@ import type { Db } from './db.js';
 import { errForLog } from './errForLog.js';
 import { ledgerAccess } from './ledgers/access.js';
 import { ledgerRoutes } from './ledgers/routes.js';
-import type { ExpensesTable, GroceriesTable } from './notion/client.js';
-import { notionRoutes } from './notion/routes.js';
 import type { RateFetcher } from './rates/nbu.js';
 import { rateRoutes } from './rates/routes.js';
 import { summaryRoutes } from './summary/routes.js';
@@ -28,10 +26,6 @@ export interface AppDeps {
   now: () => Date;
   /** NBU EUR rate lookup; tests pass a stub. */
   fetchRate: RateFetcher;
-  /** The Notion Groceries table; absent when Notion isn't configured, tests pass a fake. */
-  notionGroceries?: GroceriesTable;
-  /** The Notion Expenses table, for category totals; absent when it isn't configured, tests pass a fake. */
-  notionExpenses?: ExpensesTable;
   /** Tests read the logs. */
   logStream?: Writable;
 }
@@ -98,7 +92,6 @@ export async function buildApp(deps: AppDeps): Promise<FastifyInstance> {
   await summaryRoutes(app, deps);
   await rateRoutes(app, deps);
   await expenseRoutes(app, deps);
-  await notionRoutes(app, deps);
   await apiTokenRoutes(app, deps);
 
   return app;

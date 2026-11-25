@@ -1,4 +1,4 @@
-import type { TextStyle, ViewStyle } from 'react-native';
+import type { TextStyle } from 'react-native';
 import type { Scheme } from '@/appearance/preference';
 import type { BudgetState } from '@/data/budgetProgress';
 
@@ -106,31 +106,6 @@ export const text = {
 /** A category's progress bar colour: green under plan, yellow from 90% up to plan, red over it (brief 091). */
 export function progressColor(state: BudgetState, colors: Palette): string {
   return state === 'over' ? colors.danger : state === 'near' ? colors.caution : colors.active;
-}
-
-/** The text of a button that deletes or removes something (Category menu, category form, expense form, income item, Members). */
-export function dangerText(colors: Palette): TextStyle {
-  return { ...text.body, fontFamily: fonts.bodyMedium, color: colors.danger };
-}
-
-/**
- * A destructive button that isn't the screen's main action (Sign out, Leave ledger): shaped like the login button,
- * outlined. Its text is `outlinedDangerText`.
- */
-export function outlinedDangerButton(colors: Palette): ViewStyle {
-  return {
-    height: size.control,
-    borderRadius: radius.pill,
-    borderWidth: 1,
-    borderColor: colors.borderStrong,
-    backgroundColor: colors.surface,
-    alignItems: 'center',
-    justifyContent: 'center',
-  };
-}
-
-export function outlinedDangerText(colors: Palette): TextStyle {
-  return { ...text.bodyStrong, color: colors.danger };
 }
 
 // Tile hues per category, as on the canvas; anything new gets a stable hue from its name.

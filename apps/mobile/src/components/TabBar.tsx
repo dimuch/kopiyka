@@ -81,7 +81,7 @@ function makeStyles(colors: Palette) {
       paddingHorizontal: space.xs,
       overflow: 'hidden',
       textAlign: 'center',
-      // The face Badge.js takes from the theme's regular font, so this badge matches the library bar's.
+      // Inter at the regular weight Badge.js uses; `(tabs)/_layout.tsx` sets the same on the library bar's badge.
       fontFamily: fonts.regular,
       // Badge.js sizes its text from the badge: layout maths, no role.
       // eslint-disable-next-line no-restricted-syntax

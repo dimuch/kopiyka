@@ -170,7 +170,7 @@ change. The demo store is untouched.
     `expect(shadow).toEqual({ light: { card: '0 2px 8px rgba(17,16,20,0.06)', float: '0 4px 24px rgba(17,16,20,0.12)' }, dark: { card: undefined, float: undefined } })`.
   - Verify: Visual check B on `home`, `settings`, `budget` (light and dark) after this slice: every card has no
     border and the shadow (light) or none (dark).
-- [ ] 4. Give each category its own card on Budget and Expenses, and keep the drag landing under the finger (≈ 45 lines)
+- [x] 4. Give each category its own card on Budget and Expenses, and keep the drag landing under the finger (≈ 45 lines)
   - Files: `apps/mobile/src/components/ReorderList.tsx`, `apps/mobile/src/app/(tabs)/budget.tsx`,
     `apps/mobile/src/app/(tabs)/expenses.tsx`
   - Change:

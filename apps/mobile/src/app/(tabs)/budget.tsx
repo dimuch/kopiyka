@@ -39,7 +39,7 @@ import { type Palette, size, space } from '@/theme';
 export default function Budget() {
   const colors = useColors();
   const styles = useThemedStyles(makeStyles);
-  const listCard = useCardStyle('list');
+  const rowCard = useCardStyle('none');
   const pushOnce = usePushOnce();
   const { ledger } = useSession();
   const params = useLocalSearchParams<{ month?: string | string[] }>();
@@ -212,9 +212,7 @@ export default function Budget() {
                   disabled={order.saving}
                   onDragChange={setDragging}
                   scrollRef={scrollRef}
-                  style={listCard}
-                  renderRow={(category, index, drag) => {
-                    const last = index === data.categories.length - 1;
+                  renderRow={(category, drag) => {
                     const planned = eur(toCents(category.plannedEur));
                     const content = (
                       <>
@@ -229,19 +227,14 @@ export default function Budget() {
                     // order (not month data) can still change. Screen readers and the keyboard meet what they did.
                     if (ended) {
                       return (
-                        <Pressable
-                          {...drag}
-                          accessible={false}
-                          focusable={false}
-                          style={[styles.row, !last && styles.divider]}
-                        >
+                        <Pressable {...drag} accessible={false} focusable={false} style={[rowCard, styles.row]}>
                           {content}
                         </Pressable>
                       );
                     }
                     // Two sibling buttons, not one inside the other: VoiceOver couldn't reach a nested one, and web would nest role="button".
                     return (
-                      <View style={[styles.openRow, !last && styles.divider]}>
+                      <View style={[rowCard, styles.openRow]}>
                         <Pressable
                           {...drag}
                           accessibilityRole="button"
@@ -346,9 +339,8 @@ const makeStyles = (colors: Palette) =>
       alignItems: 'center',
       gap: space.md,
       paddingVertical: space.md,
-      paddingHorizontal: space.lg,
+      paddingHorizontal: space.md,
     },
-    divider: { borderBottomWidth: 1, borderBottomColor: colors.border },
     // Like the Expenses card: Income at the left edge, Budgeted centred, Remaining at the right edge.
     figures: { flexDirection: 'row', justifyContent: 'space-between', gap: space.sm },
     figure: { gap: space.xs },

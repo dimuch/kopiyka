@@ -8,9 +8,9 @@ export function planGap({ plannedEur, spentEur }: SummaryCategory): { text: stri
   const spent = toCents(spentEur);
   const planned = toCents(plannedEur);
   // "Over" as the Budget tab's progress bar has it, so both screens agree.
-  const { state, overCents } = budgetProgress(spent, planned);
+  const { state, overCents, leftCents } = budgetProgress(spent, planned);
   if (state === 'over') return { text: `${eur(overCents)} over`, over: true };
-  return { text: spent === planned ? 'On plan' : `${eur(planned - spent)} under`, over: false };
+  return { text: spent === planned ? 'On plan' : `${eur(leftCents)} under`, over: false };
 }
 
 /** Nothing planned, spent or earned: no categories (so no plans or spending) and no income. */

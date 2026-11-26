@@ -155,7 +155,7 @@ const makeStyles = (colors: Palette) =>
       color: colors.text,
       paddingHorizontal: space.lg,
     },
-    // The one-time code: big, spaced digits that the scale has no role for (one caller), in the display face.
+    // The one-time code: big, spaced digits that the scale has no role for (one caller), in the display role's face (800).
     // eslint-disable-next-line no-restricted-syntax
     passwordInput: { fontFamily: fonts.extraBold, fontSize: 26, letterSpacing: 8, fontVariant: ['tabular-nums'] },
     // One-offs until brief 105d: the only large pill, and dimmer than other buttons while it can't be pressed.

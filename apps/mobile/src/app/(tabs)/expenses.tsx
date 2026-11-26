@@ -15,13 +15,20 @@ import { ProgressBar } from '@/components/ProgressBar';
 import { ReorderList } from '@/components/ReorderList';
 import { ScreenHeader } from '@/components/ScreenHeader';
 import { Text } from '@/components/Text';
-import { budgetProgress } from '@/data/budgetProgress';
+import { type BudgetProgress, budgetProgress } from '@/data/budgetProgress';
 import { spendingFigures, spentByCategory } from '@/data/monthSummary';
 import { tabTitle } from '@/data/tabItems';
 import { useCategoryOrder } from '@/data/useCategoryOrder';
 import { useMonth } from '@/data/useMonth';
 import { eur, kyivMonth, monthName, toCents } from '@/format';
 import { type Palette, space } from '@/theme';
+
+/** The words under a row's bar: over plan, or near it (brief 105); nothing under plan. */
+function barNote({ state, overCents, leftCents }: BudgetProgress) {
+  if (state === 'over') return { words: `${eur(overCents)} over`, color: 'danger' } as const;
+  if (state === 'near') return { words: `${eur(leftCents)} left`, color: 'cautionText' } as const;
+  return null;
+}
 
 export default function Expenses() {
   const colors = useColors();
@@ -45,7 +52,8 @@ export default function Expenses() {
     return ordered.map((category) => {
       const spentCents = spent.get(category.categoryId) ?? 0;
       const planned = toCents(category.plannedEur);
-      return { ...category, spent: spentCents, planned, progress: budgetProgress(spentCents, planned) };
+      const progress = budgetProgress(spentCents, planned);
+      return { ...category, spent: spentCents, planned, progress, note: barNote(progress) };
     });
   }, [data, ordered]);
   // Null until the month has loaded: €0 would read as "spent nothing".
@@ -147,7 +155,7 @@ export default function Expenses() {
                         accessibilityRole="button"
                         accessibilityLabel={
                           `${row.displayName}, ${eur(row.spent)} of ${eur(row.planned)} spent` +
-                          (row.progress.overCents > 0 ? `, ${eur(row.progress.overCents)} over` : '')
+                          (row.note ? `, ${row.note.words}` : '')
                         }
                         onPress={() =>
                           router.push({
@@ -172,11 +180,12 @@ export default function Expenses() {
                             </Text>
                           </View>
                           <ProgressBar fill={row.progress.fill} state={row.progress.state} />
-                          {/* Red like the bar, so the words say it's over too (brief 107); 5.3:1 on light `surface`,
-                              7.6:1 on dark. */}
-                          {row.progress.overCents > 0 && (
-                            <Text variant="captionMedium" color="danger" tabular>
-                              {eur(row.progress.overCents)} over
+                          {/* The bar's colour in words, so colour is never the only signal (briefs 107 and 105): red
+                              "€9 over" is 5.3:1 on light `surface` and 7.8:1 on dark; "€5 left" in `cautionText` is
+                              5.3:1 and 11.2:1, where light's yellow bar is only 1.3:1. */}
+                          {row.note && (
+                            <Text variant="captionMedium" color={row.note.color} tabular>
+                              {row.note.words}
                             </Text>
                           )}
                         </View>

@@ -164,7 +164,7 @@ kept (slice 5's test), and no API, data or connector changes.
     stick out past it.
   - Verify: web 390×844, Expenses with the seeded rows (Visual check): an empty track for a €0 row, a violet bar with
     a dot for U, yellow for N, a full red bar with the dot at the right end for O; light and dark.
-- [ ] 4. Show "€X left" under a near-plan category's bar (≈ 50 lines)
+- [x] 4. Show "€X left" under a near-plan category's bar (≈ 50 lines)
   - Files: `apps/mobile/src/data/budgetProgress.ts`, `apps/mobile/test/budgetProgress.test.ts`,
     `apps/mobile/src/app/(tabs)/expenses.tsx`, `apps/mobile/src/components/Text.tsx`
   - Change: `leftCents` as Contracts; the row's label and accessibility label switch on `progress.state` (`over` /
@@ -403,7 +403,9 @@ Each: base `main` after the previous part, a patch bump, before/after screenshot
 
 ## Deviations
 
-<filled by the developer during build>
+- Slice 4: the row's words come from a small `barNote(progress)` in `expenses.tsx`, computed once per row with the
+  rows, instead of switching on `state` twice in the JSX (the label and the accessibility label). Same contract,
+  same words.
 
 ## Consolidate
 

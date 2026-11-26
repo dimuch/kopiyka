@@ -64,8 +64,16 @@ export function DateField({ value, onChange, min, max, label, disabled = false }
             const picked = event.target.value;
             if (picked && picked >= min) onChange(picked);
           },
-          // Under the field, so the browser anchors its calendar there.
-          style: { position: 'absolute', inset: 0, opacity: 0, pointerEvents: 'none', colorScheme: scheme },
+          // Under the field, so the browser anchors its calendar there. At 16px, as a field's text: iOS Safari zooms
+          // into a focused input set smaller.
+          style: {
+            position: 'absolute',
+            inset: 0,
+            opacity: 0,
+            pointerEvents: 'none',
+            colorScheme: scheme,
+            fontSize: text.input.fontSize,
+          },
         })}
       <Pressable
         accessibilityRole="button"

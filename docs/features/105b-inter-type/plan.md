@@ -162,7 +162,7 @@ input's font size. Nothing new to do, nothing that works today stops working, an
     `apps/mobile/src/components/Text.tsx`
   - Change: as the Inventory table (2 sites to `title`, 8 to `heading`), and the `headingDisplay` pair goes.
   - Verify: typecheck. `rg -n headingDisplay apps/mobile/src` finds nothing.
-- [ ] 5. Size DateField's hidden web date input like a field, so iOS Safari doesn't zoom (≈ 3 lines)
+- [x] 5. Size DateField's hidden web date input like a field, so iOS Safari doesn't zoom (≈ 3 lines)
   - Files: `apps/mobile/src/components/DateField.tsx`
   - Change: `fontSize: text.input.fontSize` in the hidden input's style. The comment above it says why (under 16px,
     iOS Safari zooms into a focused input; 103c's hand-off).

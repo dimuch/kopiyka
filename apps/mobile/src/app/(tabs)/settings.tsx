@@ -48,7 +48,7 @@ export default function Settings() {
   return (
     <PlaceholderPage title="Settings">
       {/* Scrolls once invites and the Ledger picker no longer fit above the tab bar. */}
-      <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
+      <ScrollView style={styles.scroll} contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
         <Card padding="padded" style={styles.account}>
           <View style={styles.avatar}>
             <Text variant="heading" color="accentText">
@@ -139,7 +139,9 @@ const makeStyles = (colors: Palette) =>
       paddingHorizontal: space.md,
     },
     // The same 8pt between sections as PlaceholderPage's own gap.
-    content: { flexGrow: 1, gap: space.sm },
+    // Out to the screen's edges (PlaceholderPage's gutter), with the gutter inside, so the scroll view doesn't clip the cards' side shadows.
+    scroll: { marginHorizontal: -space.xl },
+    content: { flexGrow: 1, gap: space.sm, paddingHorizontal: space.xl },
     spacer: { flexGrow: 1, minHeight: space.xxl },
     signOut: { marginBottom: space.xl },
   });

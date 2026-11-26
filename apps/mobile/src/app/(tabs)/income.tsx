@@ -106,7 +106,7 @@ export default function Income() {
         }
       />
 
-      <ScrollView contentContainerStyle={styles.content}>
+      <ScrollView style={styles.scroll} contentContainerStyle={styles.content}>
         {!items ? (
           error ? (
             <LoadError
@@ -196,7 +196,9 @@ export default function Income() {
 const makeStyles = (colors: Palette) =>
   StyleSheet.create({
     screen: { flex: 1, backgroundColor: colors.bg, paddingHorizontal: space.xl, paddingTop: space.xl },
-    content: { gap: space.lg, paddingTop: space.xs, paddingBottom: space.xxl },
+    // Out to the screen's edges, with the gutter inside, so the scroll view doesn't clip the cards' side shadows.
+    scroll: { marginHorizontal: -space.xl },
+    content: { gap: space.lg, paddingTop: space.xs, paddingBottom: space.xxl, paddingHorizontal: space.xl },
     loading: { marginTop: space.xxl },
     sectionHead: {
       flexDirection: 'row',

@@ -156,7 +156,7 @@ kept (slice 5's test), and no API, data or connector changes.
   - Verify: typecheck (no key left behind); `rg -n "surfaceRaised|borderStrongest|fainter|accentLine|activeLine|colors\.over|\"over\"|'over' :" apps/mobile/src`
     finds nothing; `rg -n 'placeholderTextColor=\{colors\.(faint|fainter)\}' apps/mobile/src` finds nothing;
     `theme.test.ts` still green.
-- [ ] 3. Draw progress bars as a thin track with a dot at the end of the fill (≈ 20 lines)
+- [x] 3. Draw progress bars as a thin track with a dot at the end of the fill (≈ 20 lines)
   - Files: `apps/mobile/src/components/ProgressBar.tsx`
   - Change: as Contracts. The 4 and 8 are `height`/`width`/`minWidth` (no lint key; the comment names the doc), the
     track loses `overflow: 'hidden'` so the dot can overhang it by 2pt into the row's 8pt gap. The dot sits inside the

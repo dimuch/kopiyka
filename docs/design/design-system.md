@@ -77,8 +77,8 @@ lighter than `bg`.
 
 ## Type
 
-Inter (`@expo-google-fonts/inter`, weights 400, 500, 600 and 800) replaces Bricolage Grotesque
-and IBM Plex Sans. Letter spacing is negative and grows tighter with size.
+Inter (`@expo-google-fonts/inter`, weights 400, 500, 600 and 800) replaced Bricolage Grotesque
+and IBM Plex Sans (brief 105b). Letter spacing is negative and grows tighter with size.
 
 | Role         | Size / line | Weight | Tracking | Use                          |
 | ------------ | ----------- | ------ | -------- | ---------------------------- |
@@ -119,16 +119,16 @@ Dark mode uses no shadows.
 
 ## Components
 
-| Component        | Shape                                                                                                              |
-| ---------------- | ------------------------------------------------------------------------------------------------------------------ |
-| `Text`           | `variant` prop from the type roles; colour defaults to `text`                                                      |
-| `Card`           | `surface`, `radius.lg`, `shadow.card`, padding `md`; no border                                                     |
-| `Button`         | pill, height 48; variants `primary` (accent), `secondary` (`fill` and `text`), `danger` (`fill` and `danger` text) |
-| `IconButton`     | 44×44 round; `plain` or `raised` (white and `shadow.card`)                                                         |
-| `Chip`           | pill, height 32; `fill` background, or `accentTint` with `accentText` when selected                                |
-| `ScreenHeader`   | back or home button, `title`, one trailing action                                                                  |
-| `ProgressBar`    | 4pt track, rounded, with an 8pt dot at the end of the fill                                                         |
-| `TabBar` (later) | floating pill, `shadow.float`, plus a separate round "+" button                                                    |
+| Component        | Shape                                                                                                                                                      |
+| ---------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `Text`           | `variant` prop from the type roles, plus four pairs: `bodyMedium` 500, `labelRegular` 400, `labelSemi` 600, `captionMedium` 500; colour defaults to `text` |
+| `Card`           | `surface`, `radius.lg`, `shadow.card`, padding `md`; no border                                                                                             |
+| `Button`         | pill, height 48; variants `primary` (accent), `secondary` (`fill` and `text`), `danger` (`fill` and `danger` text)                                         |
+| `IconButton`     | 44×44 round; `plain` or `raised` (white and `shadow.card`)                                                                                                 |
+| `Chip`           | pill, height 32; `fill` background, or `accentTint` with `accentText` when selected                                                                        |
+| `ScreenHeader`   | back or home button, `title`, one trailing action                                                                                                          |
+| `ProgressBar`    | 4pt track, rounded, with an 8pt dot at the end of the fill                                                                                                 |
+| `TabBar` (later) | floating pill, `shadow.float`, plus a separate round "+" button                                                                                            |
 
 ## Roll-out (one brief each, in order)
 

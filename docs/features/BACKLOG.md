@@ -3,14 +3,20 @@
 A snapshot so work can pick up in any tool (Claude Code or Copilot) without the chat history.
 Update it when a brief ships, is planned or is dropped.
 
-Snapshot: 2026-11-26, `main` at v1.23.11 (`97b72a5`, after PR #171: brief 104 is complete).
+Snapshot: 2026-11-26, `main` at v1.23.12 (`1e6f6f5`, after PR #173: brief 105 part 1 is done).
 
 ## In progress
 
-Brief 105 part 1 (the fresh look: palettes, violet bars, the caution label, light by default) on `feat/fresh-look`,
-v1.23.12. At Gate A the brief was split into 105, 105b, 105c and 105d: see the design-system roll-out below.
+Brief 105b (the fresh look, part 2: Inter and the type mapping) on `feat/inter-type`, v1.23.13. Then 105c and 105d,
+then 106: see the design-system roll-out below.
 
 ## Recently finished
+
+### 105 · The fresh look, part 1 (done: #173, v1.23.12)
+
+Brief and plan: `docs/features/105-fresh-look/`. The palettes, violet bars, the "€X left" caution label, and light by
+default. At Gate A the brief was split into 105, 105b, 105c and 105d, each its own brief, PR and patch bump; the later
+parts' outlines are in its plan under "Later parts".
 
 ### 104 · Shared components (done: 104–104h, #156–#171, v1.23.11)
 
@@ -66,8 +72,8 @@ rest, in order:
 | Brief | Draft                                             | What                                                                                 |
 | ----- | ------------------------------------------------- | ------------------------------------------------------------------------------------ |
 | 104   | `docs/features/104-shared-components/brief.md`    | Shared components, split into 104–104h: done, see Recently finished                  |
-| 105   | `docs/features/105-fresh-look/brief.md`           | Part 1: the palettes, violet bars, the caution label, light by default (in progress) |
-| 105b  | outline in `docs/features/105-fresh-look/plan.md` | Inter and the type mapping, the weight fixes, DateField's hidden input               |
+| 105   | `docs/features/105-fresh-look/brief.md`           | Part 1: the palettes, violet bars, the caution label, light by default (done, #173)  |
+| 105b  | `docs/features/105b-inter-type/brief.md`          | Inter and the type mapping, the weight fixes, DateField's hidden input (in progress) |
 | 105c  | outline in `docs/features/105-fresh-look/plan.md` | Borderless cards with shadows, one card per row                                      |
 | 105d  | outline in `docs/features/105-fresh-look/plan.md` | One look each for buttons, chips, the header, the toast and inputs                   |
 | 106   | `docs/features/106-floating-tab-bar/brief.md`     | Floating pill tab bar with a round "+" (add expense) button                          |

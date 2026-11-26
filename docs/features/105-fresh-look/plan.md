@@ -397,8 +397,9 @@ Each: base `main` after the previous part, a patch bump, before/after screenshot
 
 ## Follow-ups
 
-- `planGap` computes `planned − spent` inline for "€30 under"; it could read `budgetProgress`'s new `leftCents`
-  (Consolidate may take it, or a refactor brief).
+- ~~`planGap` computes `planned − spent` inline for "€30 under"~~: done in Consolidate.
+- For 105d: Button's `accentText` look draws `color: 'accent'`, while the palette now has an `accentText` token
+  (`#4C2FC9`). Rename the look when 105d redraws Button (review nit).
 - 104e's: the expense form's Back stays enabled during a save (a small fix brief).
 
 ## Deviations
@@ -407,6 +408,19 @@ Each: base `main` after the previous part, a patch bump, before/after screenshot
   switching on `state` twice in the JSX (the label and the accessibility label). Same contract, same words. The review
   moved it from `expenses.tsx` to `data/budgetProgress.ts` (conventions §2), with a table test in
   `budgetProgress.test.ts`: under, near, at plan ("€0 left") and over.
+
+- Visual check: the before set was taken from a detached copy of Base (d230a95) on :8084, the after set from this
+  branch, both on 26 November (Kyiv), with three QA users (`claude-qa-105`, `-m`, `-n`). The before set is snapshots
+  only; screenshots were taken of the after set (both themes, every view) and are the visual evidence, since the
+  colours are meant to change. Results, 27 views × 2 themes: `width` 390 everywhere; `shapeDiffs` 0 and the
+  accessibility record unchanged on every view except the two expected ones:
+  - `expenses` and `expenses-scrolled`: 333 rows move (the bars are 1pt thinner and N's row grows by its label). The
+    element count drops from 387 to 379: twelve empty 0-width bars on €0 rows are gone (a bare track now), and three
+    dots and the "€5 left" label are added. `a11yAdded`/`a11yRemoved` is exactly N's label with and without
+    ", €5 left".
+  - `expense-added`: 5 rows. The note is 2pt shorter, and its check icon sits 1pt up and left (the edge is gone).
+- The demo build in both themes (Home, Budget, Income, Expenses, the expense form) had no console errors, and
+  `yarn mobile export:web` plus `yarn mobile check-builds` pass.
 
 ## Consolidate
 

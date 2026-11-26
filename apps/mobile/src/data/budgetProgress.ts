@@ -11,6 +11,8 @@ export interface BudgetProgress {
   state: BudgetState;
   /** EUR cents spent beyond planned; 0 within it. */
   overCents: number;
+  /** EUR cents of planned not yet spent; 0 at or over it. */
+  leftCents: number;
 }
 
 /** How much of a category's month plan is used, from integer EUR cents (brief 034). */
@@ -25,5 +27,6 @@ export function budgetProgress(spentCents: number, plannedCents: number): Budget
           ? 'near'
           : 'under',
     overCents: Math.max(0, spentCents - plannedCents),
+    leftCents: Math.max(0, plannedCents - spentCents),
   };
 }

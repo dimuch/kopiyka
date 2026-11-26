@@ -132,7 +132,7 @@ kept (slice 5's test), and no API, data or connector changes.
 
 ## Slices
 
-- [ ] 0. Bump version to 1.23.12
+- [x] 0. Bump version to 1.23.12
   - Files: package.json, apps/mobile/app.json
   - Change: set both to 1.23.12
 - [ ] 1. Draw the app in the design system's light and dark palettes, with violet bars (≈ 115 lines)

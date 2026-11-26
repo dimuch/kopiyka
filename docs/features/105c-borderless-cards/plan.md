@@ -443,8 +443,29 @@ category page, the expense form with its sheet, and an income item: no errors. T
 
 ## Deviations
 
-<filled by the developer during build>
+- Slice 3: Card picks its shadow from a module-level `StyleSheet` per scheme (`shadows.light`/`shadows.dark`, each
+  read from `shadow[scheme].card`) rather than an inline object per render. Same contract.
+- Slices 3 and 4: their browser checks (B on three views, the drag) ran with the full Visual check after slice 5, not
+  between slices.
+- Risk 1 happened: every scroll screen's ScrollView sat exactly on the cards' box, so the 8pt side shadow was cut.
+  The fallback was applied as its own commit: on the 7 scroll screens the ScrollView takes `marginHorizontal:
+-space.xl` and its content `paddingHorizontal: space.xl`. A re-check (10 views × 2 themes) showed only the
+  ScrollView and its content box changing (x 0, width 390); nothing inside moved, the accessibility record was the
+  same, and the shadow now fades past the card's side at 3×.
+- Visual check: before (Base dc1e234) and after sets on 27 November (Kyiv), 28 views × 2 themes, in a same-origin
+  390×844 iframe, compared in Node. A: content, text and accessibility equal on all 56 pairs; element counts drop only
+  by the removed wrappers. B: every radius-20 surface element is borderless with the doc's shadow in light and none in
+  dark, except UndoToast (105d's). C: no old `border` colour left; `hairline` on the tab bar, HeaderDivider and the demo
+  strip. D: row cards exactly 8pt apart, rows +7 each. E: every move over 2pt matches What moves.
+- Drag: Budget, S = 72; S + 4 lands second, S − 4 stays, and back to first. Expenses: the held row follows the
+  pointer, but the synthetic drop doesn't land on Base either, so the iPhone drag at Gate B is its evidence.
+- Focus (Risk 4): a focused Home card shows the 2px accent outline and FocusStyles' band, which replaces the card
+  shadow while focused.
+- Remaining (the brief's look-again): the two figure cards look as before apart from their edge; Budget's Remaining
+  (income − budgeted) still sits at the right and Expenses' (budgeted − spent) in the centre. The restyle doesn't make
+  the two easier to confuse, so no follow-up brief.
+- Demo, light and dark: no console errors. `export:web` and `check-builds` (no `--accept`) pass.
 
 ## Consolidate
 
-<filled in /kopiyka-hos Phase 3a>
+CONSOLIDATE: skipped. The branch adds no function, hook, component, route or query (tokens, styles and tests).

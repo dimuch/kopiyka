@@ -2,15 +2,15 @@ import { describe, expect, it } from 'vitest';
 import { parsePreference, resolveScheme } from '@/appearance/preference';
 
 describe('parsePreference', () => {
-  // Anything that is not a stored 'light' or 'auto' (a fresh install, a typo) falls back to Dark.
+  // A stored choice is kept; anything else (a fresh install, a typo) falls back to Light (brief 105).
   it.each([
-    [null, 'dark'],
+    [null, 'light'],
     ['light', 'light'],
-    ['auto', 'auto'],
     ['dark', 'dark'],
-    ['Light', 'dark'],
-    ['', 'dark'],
-    ['x', 'dark'],
+    ['auto', 'auto'],
+    ['Dark', 'light'],
+    ['', 'light'],
+    ['x', 'light'],
   ])('reads %j as %s', (raw, expected) => {
     expect(parsePreference(raw)).toBe(expected);
   });

@@ -25,7 +25,7 @@
       "output": "single"
     },
     "scheme": "kopiyka",
-    "backgroundColor": "#0E1013",
+    "backgroundColor": "#F7F7F8",
     "plugins": [
       [
         "expo-router",

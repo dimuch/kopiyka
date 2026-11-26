@@ -425,8 +425,28 @@ the expense form with its sheet, and an income item: no errors. Run `yarn mobile
 
 ## Deviations
 
-<filled by the developer during build>
+- Build: none. The subpath imports resolved; `dist` and `dist-demo` hold only the four Inter faces.
+- Visual check: all three sets were taken on 27 November (Kyiv), since 26 November had under an hour left. Pages
+  were loaded in a same-origin 390×844 iframe (the same for all sets), each snapshot was saved outside the repo, and
+  the plan's `__cmpSrc` and `__fontSrc` logic ran over them in Node. `-n`'s invite was declined through
+  `DELETE /api/invites/:id` rather than the button. 27 views × 2 themes × 3 sets, all at width 390.
+  - Before → mid: rows and accessibility equal on all 54; every diff is a planned move (labels, inputs, eyebrows,
+    day label, titles 3pt up and 6pt taller in an unmoved row, headings, the 4 `tabular` flags, the hidden input at
+    16px), plus same-row siblings shifting ≤ 2.5pt.
+  - Mid → after: structure, `styleDiffs` and `notInter` empty, accessibility equal on all 54; 504 texts only got
+    wider. Down: delete-category's warning wraps to 3 lines, so Remove sits 20pt lower. Sideways (wider text before
+    them): right-aligned figures 2.5–8pt, Today/Yesterday 3–5.5pt, Budget's Start → End button 6pt, the invite's
+    Decline/Accept 3.5–6pt. The € and ₴ prefixes and the date value are 1.5pt shorter.
+  - Face tuples: only the expected ones, weight 400 on every row (no snapped view shows `labelSemi`). Loaded
+    fonts: the four Inter faces after; the old faces before.
+  - One new truncation: the expense form's "education" chip reads "educati…" (61pt of text in a 58.5pt box; Plex
+    took 58.3pt). The quick chips are a fixed 31.5% wide with `numberOfLines={1}`, so long names already truncate;
+    this is the "truncate a little sooner" case of What moves. Accepted here; 105d's chips can revisit the chip's
+    padding.
+  - Demo, light and dark: no console errors; Inter loads.
+  - The face-to-file mapping in AppShell is checked by eye in the after screenshots (500 and 600 text differ); the
+    tests read the registered names only.
 
 ## Consolidate
 
-<filled in /kopiyka-hos Phase 3a: CONSOLIDATE line, each reuse/extract, each LEAVE + reason>
+CONSOLIDATE: skipped. The branch adds no function, hook, component, route or query (one test block only).

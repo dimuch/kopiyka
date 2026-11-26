@@ -1,6 +1,6 @@
 import { router } from 'expo-router';
 import { useRef, useState } from 'react';
-import { AccessibilityInfo, ActivityIndicator, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { AccessibilityInfo, ActivityIndicator, ScrollView, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { ApiError } from '@/api/apiError';
 import type { Ledger, Member, PendingInvite } from '@/api/types';
@@ -10,6 +10,7 @@ import { Button } from '@/components/Button';
 import { Card } from '@/components/Card';
 import { LoadError } from '@/components/LoadError';
 import { ScreenHeader } from '@/components/ScreenHeader';
+import { Text } from '@/components/Text';
 import { TextField } from '@/components/TextField';
 import { normalizeLabel } from '@/data/ledgerLabel';
 import { inviteMember, removeMember, revokeInvite, setLedgerLabel } from '@/data/members';
@@ -35,11 +36,13 @@ export default function MembersScreen() {
       {/* One tap on Save or Invite works on iPhone with the keyboard up. */}
       <ScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
         <View style={{ gap: space.xxs }}>
-          <Text accessibilityRole="header" style={styles.title}>
+          <Text accessibilityRole="header" variant="display">
             Members
           </Text>
           {/* The user's own label, else the owner tells "Home"s apart, as in the Settings picker. */}
-          <Text style={styles.caption}>{ledger.label ?? `${ledger.owner}’s ${ledger.name}`}</Text>
+          <Text variant="labelRegular" color="muted">
+            {ledger.label ?? `${ledger.owner}’s ${ledger.name}`}
+          </Text>
         </View>
         {/* Keyed by ledger, so the field resets if the ledger-gone handler swaps it. */}
         <LabelForm key={ledger.ledgerId} ledger={ledger} />
@@ -98,7 +101,9 @@ function LabelForm({ ledger }: { ledger: Ledger }) {
 
   return (
     <View style={styles.section}>
-      <Text style={styles.caption}>Your label</Text>
+      <Text variant="labelRegular" color="muted">
+        Your label
+      </Text>
       <TextField
         accessibilityLabel="Your label"
         value={draft}
@@ -110,9 +115,11 @@ function LabelForm({ ledger }: { ledger: Ledger }) {
         editable={!busy}
         style={styles.input}
       />
-      <Text style={styles.caption}>Only you see it. Leave it empty for the usual name.</Text>
+      <Text variant="labelRegular" color="muted">
+        Only you see it. Leave it empty for the usual name.
+      </Text>
       {failure ? (
-        <Text accessibilityRole="alert" style={styles.failure}>
+        <Text accessibilityRole="alert" variant="label" color="over">
           {failure}
         </Text>
       ) : null}
@@ -274,14 +281,16 @@ function PendingList({
   if (!invites.length && !failure) return null;
   return (
     <View style={styles.section}>
-      <Text style={styles.caption}>Invited</Text>
+      <Text variant="labelRegular" color="muted">
+        Invited
+      </Text>
       {invites.length ? (
         <Card padding="none">
           {invites.map((invite, index) => (
             <View key={invite.inviteId} style={[styles.row, index > 0 && styles.divider]}>
               <View style={styles.line}>
                 <View style={styles.who}>
-                  <Text numberOfLines={1} style={styles.name}>
+                  <Text numberOfLines={1} variant="bodyMedium">
                     {invite.username}
                   </Text>
                 </View>
@@ -300,7 +309,7 @@ function PendingList({
         </Card>
       ) : null}
       {failure ? (
-        <Text accessibilityRole="alert" style={styles.failure}>
+        <Text accessibilityRole="alert" variant="label" color="over">
           {failure}
         </Text>
       ) : null}
@@ -344,7 +353,9 @@ function InviteForm({ ledgerId, onInvited }: { ledgerId: number; onInvited: () =
 
   return (
     <View style={styles.section}>
-      <Text style={styles.caption}>Invite by username</Text>
+      <Text variant="labelRegular" color="muted">
+        Invite by username
+      </Text>
       <TextField
         accessibilityLabel="Username to invite"
         value={username}
@@ -357,9 +368,11 @@ function InviteForm({ ledgerId, onInvited }: { ledgerId: number; onInvited: () =
         editable={!busy}
         style={styles.input}
       />
-      <Text style={styles.caption}>They’ll see it in the app for an hour.</Text>
+      <Text variant="labelRegular" color="muted">
+        They’ll see it in the app for an hour.
+      </Text>
       {failure ? (
-        <Text accessibilityRole="alert" style={styles.failure}>
+        <Text accessibilityRole="alert" variant="label" color="over">
           {failure}
         </Text>
       ) : null}
@@ -382,10 +395,12 @@ function MemberName({ member, isYou }: { member: Member; isYou: boolean }) {
   return (
     // Only the text is one element, so the Remove button beside it stays reachable with VoiceOver on iOS.
     <View accessible accessibilityLabel={`${member.username}, ${role}${isYou ? ', you' : ''}`} style={styles.who}>
-      <Text numberOfLines={1} style={styles.name}>
+      <Text numberOfLines={1} variant="bodyMedium">
         {member.username}
       </Text>
-      <Text style={styles.role}>{isYou ? `${role} · you` : role}</Text>
+      <Text variant="labelRegular" color="muted">
+        {isYou ? `${role} · you` : role}
+      </Text>
     </View>
   );
 }
@@ -465,10 +480,10 @@ function ConfirmPanel({
   const styles = useThemedStyles(makeStyles);
   return (
     <View style={styles.panel}>
-      <Text style={styles.question}>{question}</Text>
-      {detail ? <Text style={styles.detail}>{detail}</Text> : null}
+      <Text variant="bodyStrong">{question}</Text>
+      {detail ? <Text variant="labelRegular">{detail}</Text> : null}
       {failure ? (
-        <Text accessibilityRole="alert" style={styles.failure}>
+        <Text accessibilityRole="alert" variant="label" color="over">
           {failure}
         </Text>
       ) : null}
@@ -500,14 +515,10 @@ const makeStyles = (colors: Palette) =>
   StyleSheet.create({
     screen: { flex: 1, backgroundColor: colors.bg, paddingHorizontal: space.xl, paddingTop: space.xl },
     content: { gap: space.lg, paddingTop: space.sm, paddingBottom: space.huge },
-    title: { ...text.display, color: colors.text },
-    caption: { ...text.label, fontFamily: fonts.body, color: colors.muted },
     row: { paddingVertical: space.sm, paddingHorizontal: space.lg, gap: space.sm },
     divider: { borderTopWidth: 1, borderTopColor: colors.border },
     line: { flexDirection: 'row', alignItems: 'center', gap: space.md },
     who: { flex: 1, minHeight: size.iconButton, justifyContent: 'center', gap: space.xxs },
-    name: { ...text.body, fontFamily: fonts.bodyMedium, color: colors.text },
-    role: { ...text.label, fontFamily: fonts.body, color: colors.muted },
     remove: { minWidth: size.iconButton, paddingHorizontal: space.xs },
     panel: {
       gap: space.sm,
@@ -517,9 +528,6 @@ const makeStyles = (colors: Palette) =>
       borderColor: colors.borderStrong,
       backgroundColor: colors.surfaceRaised,
     },
-    question: { ...text.bodyStrong, color: colors.text },
-    detail: { ...text.label, fontFamily: fonts.body, color: colors.text },
-    failure: { ...text.label, color: colors.over },
     panelButtons: { flexDirection: 'row', justifyContent: 'flex-end', alignItems: 'center', gap: space.sm },
     dismiss: { paddingHorizontal: space.md },
     section: { gap: space.sm },

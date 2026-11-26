@@ -1,12 +1,13 @@
 import { Link } from 'expo-router';
 import { useState } from 'react';
-import { KeyboardAvoidingView, Platform, StyleSheet, Text, View } from 'react-native';
+import { KeyboardAvoidingView, Platform, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { ApiError } from '@/api/apiError';
 import { useColors, useThemedStyles } from '@/appearance/AppearanceContext';
 import { useAuth } from '@/auth/AuthContext';
 import { Button } from '@/components/Button';
 import { Pressable } from '@/components/Pressable';
+import { Text } from '@/components/Text';
 import { TextField } from '@/components/TextField';
 import { loginErrorText } from '@/data/loginError';
 import { fonts, type Palette, radius, size, space, text } from '@/theme';
@@ -45,11 +46,13 @@ export default function Login() {
   return (
     <SafeAreaView style={styles.screen}>
       <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={styles.body}>
-        <Text style={styles.title}>Kopiyka</Text>
+        <Text variant="display">Kopiyka</Text>
 
         <View style={{ gap: space.lg }}>
           <View style={styles.field}>
-            <Text style={styles.label}>Username</Text>
+            <Text variant="label" color="muted">
+              Username
+            </Text>
             <TextField
               accessibilityLabel="Username"
               value={username}
@@ -64,7 +67,9 @@ export default function Login() {
             />
           </View>
           <View style={styles.field}>
-            <Text style={styles.label}>Password</Text>
+            <Text variant="label" color="muted">
+              Password
+            </Text>
             <TextField
               accessibilityLabel="Password"
               value={password}
@@ -81,7 +86,7 @@ export default function Login() {
             />
           </View>
           {error ? (
-            <Text accessibilityRole="alert" style={styles.error}>
+            <Text accessibilityRole="alert" variant="label" color="over">
               {error}
             </Text>
           ) : null}
@@ -99,7 +104,9 @@ export default function Login() {
           />
           <Link href={DEMO_URL} asChild>
             <Pressable accessibilityRole="link" accessibilityLabel="Try it now" style={styles.demoLink}>
-              <Text style={styles.demoLinkText}>Try it now</Text>
+              <Text variant="bodyStrong" color="accent">
+                Try it now
+              </Text>
             </Pressable>
           </Link>
         </View>
@@ -110,10 +117,14 @@ export default function Login() {
           <View style={styles.access}>
             <Link href={ACCESS_REQUEST_URL} asChild>
               <Pressable accessibilityRole="link" accessibilityLabel="Request access" style={styles.demoLink}>
-                <Text style={styles.demoLinkText}>Request access</Text>
+                <Text variant="bodyStrong" color="accent">
+                  Request access
+                </Text>
               </Pressable>
             </Link>
-            <Text style={styles.price}>Full access: €5 a month</Text>
+            <Text variant="label" color="muted" style={styles.price}>
+              Full access: €5 a month
+            </Text>
           </View>
         ) : null}
       </KeyboardAvoidingView>
@@ -133,9 +144,7 @@ const makeStyles = (colors: Palette) =>
       maxWidth: 420,
       alignSelf: 'center',
     },
-    title: { ...text.display, color: colors.text },
     field: { gap: space.sm },
-    label: { ...text.label, color: colors.muted },
     input: {
       ...text.input,
       fontFamily: fonts.bodyMedium,
@@ -151,7 +160,6 @@ const makeStyles = (colors: Palette) =>
     // Inter).
     // eslint-disable-next-line no-restricted-syntax
     passwordInput: { fontFamily: fonts.display, fontSize: 26, letterSpacing: 8, fontVariant: ['tabular-nums'] },
-    error: { ...text.label, color: colors.over },
     // One-offs until brief 105: the only large pill, and dimmer than other buttons while it can't be pressed.
     signIn: { borderRadius: radius.pill },
     signInOff: { opacity: 0.4 },
@@ -165,8 +173,7 @@ const makeStyles = (colors: Palette) =>
       alignSelf: 'center',
       justifyContent: 'center',
     },
-    demoLinkText: { ...text.bodyStrong, color: colors.accent },
     // The access request and its price, as one group: no gap, so the price sits right under the link's 44pt box.
     access: { alignItems: 'center' },
-    price: { ...text.label, color: colors.muted, textAlign: 'center' },
+    price: { textAlign: 'center' },
   });

@@ -1,6 +1,6 @@
 import { router, useLocalSearchParams } from 'expo-router';
 import { useRef, useState } from 'react';
-import { ActivityIndicator, ScrollView, type ScrollViewInstance, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, ScrollView, type ScrollViewInstance, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { ApiError } from '@/api/apiError';
 import { useColors, useThemedStyles } from '@/appearance/AppearanceContext';
@@ -14,6 +14,7 @@ import { LoadError } from '@/components/LoadError';
 import { Pressable } from '@/components/Pressable';
 import { ReorderList } from '@/components/ReorderList';
 import { ScreenHeader } from '@/components/ScreenHeader';
+import { Text } from '@/components/Text';
 import { UndoToast } from '@/components/UndoToast';
 import { copyPreviousMonth } from '@/data/categories';
 import { copyRefusedText } from '@/data/monthCopy';
@@ -29,7 +30,7 @@ import { useMonthCategories } from '@/data/useMonthCategories';
 import { eur, kyivMonth, monthName, shiftMonth, toCents } from '@/format';
 import { parseMonthParam } from '@/linkParams';
 import { usePushOnce } from '@/pushOnce';
-import { fonts, type Palette, size, space, text } from '@/theme';
+import { type Palette, size, space } from '@/theme';
 
 /**
  * A month's categories (brief 035). The month lives in the route (`/budget?month=2026-11`), so other tabs can open
@@ -136,7 +137,9 @@ export default function Budget() {
           onPress={() => pushOnce({ pathname: '/actual-end', params: { month } })}
           style={styles.balanceButton}
         >
-          <Text style={styles.balance}>{balance}</Text>
+          <Text variant="labelRegular" color="muted" tabular>
+            {balance}
+          </Text>
           <Icon name="edit" color={colors.muted} size={14} />
         </Pressable>
       ) : null}
@@ -196,8 +199,10 @@ export default function Budget() {
                   />
                 ) : null}
                 <View style={styles.sectionHead}>
-                  <Text style={styles.sectionTitle}>Categories</Text>
-                  <Text style={styles.small}>{eur(plannedCents(data.categories))} planned</Text>
+                  <Text variant="headingDisplay">Categories</Text>
+                  <Text variant="caption" color="muted" tabular>
+                    {eur(plannedCents(data.categories))} planned
+                  </Text>
                 </View>
                 {order.failed && <LoadError message="Couldn’t save the order. Check your connection and try again." />}
                 <ReorderList
@@ -214,8 +219,10 @@ export default function Budget() {
                     const content = (
                       <>
                         <CategoryTile techName={category.techName} label={category.displayName} />
-                        <Text style={styles.rowName}>{category.displayName}</Text>
-                        <Text style={styles.rowAmount}>{planned}</Text>
+                        <Text variant="bodyMedium" style={styles.rowName}>
+                          {category.displayName}
+                        </Text>
+                        <Text variant="amount">{planned}</Text>
                       </>
                     );
                     // An ended month can't change, so its rows aren't buttons; they only take a long-press, so the
@@ -276,7 +283,6 @@ export default function Budget() {
 
 /** The month's income, budgeted total and what remains; below zero reads in the danger colour. */
 function IncomeFigures({ incomeCents, plannedCents }: { incomeCents: number; plannedCents: number }) {
-  const colors = useColors();
   const styles = useThemedStyles(makeStyles);
   const left = incomeCents - plannedCents;
   const income = eur(incomeCents);
@@ -299,8 +305,12 @@ function IncomeFigures({ incomeCents, plannedCents }: { incomeCents: number; pla
           key={figure.label}
           style={[styles.figure, index === 1 && styles.figureCentre, index === 2 && styles.figureEnd]}
         >
-          <Text style={styles.small}>{figure.label}</Text>
-          <Text style={[styles.figureValue, figure.over && { color: colors.danger }]}>{figure.value}</Text>
+          <Text variant="caption" color="muted" tabular>
+            {figure.label}
+          </Text>
+          <Text variant="amount" color={figure.over ? 'danger' : 'text'}>
+            {figure.value}
+          </Text>
         </View>
       ))}
     </Card>
@@ -320,7 +330,6 @@ const makeStyles = (colors: Palette) =>
       paddingHorizontal: space.sm,
       marginTop: -space.sm,
     },
-    balance: { ...text.label, fontFamily: fonts.body, color: colors.muted, fontVariant: ['tabular-nums'] },
     content: { gap: space.lg, paddingTop: space.xs, paddingBottom: space.xxl },
     // UndoToast's bottom 32 + height 56 + a 16pt gap: toast clearance, not a step on the scale.
     // eslint-disable-next-line no-restricted-syntax
@@ -332,8 +341,6 @@ const makeStyles = (colors: Palette) =>
       alignItems: 'baseline',
       paddingHorizontal: space.xs,
     },
-    sectionTitle: { ...text.heading, fontFamily: fonts.display, color: colors.text },
-    small: { ...text.caption, color: colors.muted, fontVariant: ['tabular-nums'] },
     row: {
       flexDirection: 'row',
       alignItems: 'center',
@@ -347,11 +354,9 @@ const makeStyles = (colors: Palette) =>
     figure: { gap: space.xs },
     figureCentre: { alignItems: 'center' },
     figureEnd: { alignItems: 'flex-end' },
-    figureValue: { ...text.amount, color: colors.text },
     openRow: { flexDirection: 'row', alignItems: 'center' },
     // Square until brief 105, as before IconButton: a rounded corner would only round its web focus ring.
     // eslint-disable-next-line no-restricted-syntax
     edit: { marginRight: space.sm, borderRadius: 0 },
-    rowName: { ...text.body, flex: 1, fontFamily: fonts.bodyMedium, color: colors.text },
-    rowAmount: { ...text.amount, color: colors.text },
+    rowName: { flex: 1 },
   });

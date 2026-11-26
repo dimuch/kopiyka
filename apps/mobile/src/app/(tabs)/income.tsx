@@ -1,6 +1,6 @@
 import { router, useLocalSearchParams } from 'expo-router';
 import { useRef, useState } from 'react';
-import { ActivityIndicator, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, ScrollView, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { ApiError } from '@/api/apiError';
 import type { IncomeItem } from '@/api/types';
@@ -12,6 +12,7 @@ import { IconButton } from '@/components/IconButton';
 import { LoadError } from '@/components/LoadError';
 import { Pressable } from '@/components/Pressable';
 import { ScreenHeader } from '@/components/ScreenHeader';
+import { Text } from '@/components/Text';
 import { copyPreviousIncome } from '@/data/income';
 import { copyRefusedText } from '@/data/monthCopy';
 import { incomeCents } from '@/data/monthSummary';
@@ -20,7 +21,7 @@ import { useIncome } from '@/data/useIncome';
 import { eur, kyivMonth, monthName, shiftMonth, toCents } from '@/format';
 import { parseMonthParam } from '@/linkParams';
 import { usePushOnce } from '@/pushOnce';
-import { fonts, type Palette, space, text } from '@/theme';
+import { type Palette, space } from '@/theme';
 
 /**
  * A month's income items from every member, and their total (brief 059). The month lives in the route
@@ -136,9 +137,12 @@ export default function Income() {
             ) : (
               <>
                 <View style={styles.sectionHead}>
-                  <Text style={styles.sectionTitle}>Income</Text>
+                  <Text variant="headingDisplay">Income</Text>
                   <View accessible accessibilityLabel={`Total ${totalText}`}>
-                    <Text style={styles.total}>{totalText}</Text>
+                    {/* The month's total, as big and bold as the heading beside it (brief 107). */}
+                    <Text variant="headingDisplay" tabular>
+                      {totalText}
+                    </Text>
                   </View>
                 </View>
                 <Card padding="list">
@@ -149,10 +153,12 @@ export default function Income() {
                     const content = (
                       <>
                         <View style={styles.rowText}>
-                          <Text style={styles.rowName}>{item.title}</Text>
-                          <Text style={styles.small}>Added by {item.addedBy}</Text>
+                          <Text variant="bodyMedium">{item.title}</Text>
+                          <Text variant="caption" color="muted" tabular>
+                            Added by {item.addedBy}
+                          </Text>
                         </View>
-                        <Text style={styles.rowAmount}>{amount}</Text>
+                        <Text variant="amount">{amount}</Text>
                       </>
                     );
                     // An ended month can't change, so its rows aren't buttons; either way, one stop for screen
@@ -197,10 +203,6 @@ const makeStyles = (colors: Palette) =>
       alignItems: 'baseline',
       paddingHorizontal: space.xs,
     },
-    sectionTitle: { ...text.heading, fontFamily: fonts.display, color: colors.text },
-    // The month's total, as big and bold as the heading beside it (brief 107).
-    total: { ...text.heading, fontFamily: fonts.display, color: colors.text, fontVariant: ['tabular-nums'] },
-    small: { ...text.caption, color: colors.muted, fontVariant: ['tabular-nums'] },
     row: {
       flexDirection: 'row',
       alignItems: 'center',
@@ -210,6 +212,4 @@ const makeStyles = (colors: Palette) =>
     },
     divider: { borderBottomWidth: 1, borderBottomColor: colors.border },
     rowText: { flex: 1, gap: space.xxs },
-    rowName: { ...text.body, fontFamily: fonts.bodyMedium, color: colors.text },
-    rowAmount: { ...text.amount, color: colors.text },
   });

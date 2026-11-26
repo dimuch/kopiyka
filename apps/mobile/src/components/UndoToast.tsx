@@ -45,7 +45,7 @@ const makeStyles = (colors: Palette) =>
       bottom: 32,
       minHeight: 56,
       borderRadius: radius.lg,
-      backgroundColor: colors.surfaceRaised,
+      backgroundColor: colors.surface,
       borderWidth: 1,
       borderColor: colors.borderStrong,
       flexDirection: 'row',

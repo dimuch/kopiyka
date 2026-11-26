@@ -80,7 +80,7 @@ export default function Settings() {
             </Text>
             <LedgerPicker ledgers={ledgers} selectedId={ledger.ledgerId} onSelect={switchTo} disabled={switching} />
             {switchFailed && (
-              <Text accessibilityRole="alert" variant="label" color="over">
+              <Text accessibilityRole="alert" variant="label" color="danger">
                 {SWITCH_FAILED}
               </Text>
             )}

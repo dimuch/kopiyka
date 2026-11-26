@@ -82,11 +82,11 @@ export default function Login() {
               onSubmitEditing={submit}
               style={[styles.input, styles.passwordInput]}
               placeholder="••••••"
-              placeholderTextColor={colors.fainter}
+              placeholderTextColor={colors.muted}
             />
           </View>
           {error ? (
-            <Text accessibilityRole="alert" variant="label" color="over">
+            <Text accessibilityRole="alert" variant="label" color="danger">
               {error}
             </Text>
           ) : null}

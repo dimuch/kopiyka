@@ -123,7 +123,7 @@ export default function Statistics() {
                           >
                             <View style={styles.rowText}>
                               <Text variant="bodyMedium">{category.name}</Text>
-                              <Text variant="caption" color={gap.over ? 'over' : 'muted'} tabular>
+                              <Text variant="caption" color={gap.over ? 'danger' : 'muted'} tabular>
                                 {gap.text}
                               </Text>
                             </View>
@@ -316,7 +316,7 @@ const makeStyles = (colors: Palette) =>
       borderRadius: radius.md,
       borderWidth: 1,
       borderColor: colors.borderStrong,
-      backgroundColor: colors.surfaceRaised,
+      backgroundColor: colors.surface,
       paddingVertical: space.xs,
     },
     menuItem: {

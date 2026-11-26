@@ -289,7 +289,7 @@ function ExpenseForm({ draft, ledgerId }: { draft: ExpenseDraftData; ledgerId: n
             Category
           </Text>
           {noBudget ? (
-            <Text accessibilityRole="alert" variant="label" color="over">
+            <Text accessibilityRole="alert" variant="label" color="danger">
               {noBudget}
             </Text>
           ) : picker ? (
@@ -302,7 +302,7 @@ function ExpenseForm({ draft, ledgerId }: { draft: ExpenseDraftData; ledgerId: n
                 disabled={locked}
               />
               {notInMonth ? (
-                <Text accessibilityRole="alert" variant="label" color="over">
+                <Text accessibilityRole="alert" variant="label" color="danger">
                   {notInMonth}
                 </Text>
               ) : null}
@@ -328,7 +328,7 @@ function ExpenseForm({ draft, ledgerId }: { draft: ExpenseDraftData; ledgerId: n
             onChangeText={(typed) => edit(setName, typed)}
             editable={!locked}
             placeholder="e.g. Delhaize"
-            placeholderTextColor={colors.faint}
+            placeholderTextColor={colors.muted}
             maxLength={200}
             style={styles.input}
           />
@@ -348,7 +348,7 @@ function ExpenseForm({ draft, ledgerId }: { draft: ExpenseDraftData; ledgerId: n
         </View>
 
         {error ? (
-          <Text accessibilityRole="alert" variant="label" color="over">
+          <Text accessibilityRole="alert" variant="label" color="danger">
             {error}
           </Text>
         ) : null}
@@ -410,8 +410,6 @@ const makeStyles = (colors: Palette) => {
       padding: space.lg,
       borderRadius: radius.md,
       backgroundColor: colors.accentTint,
-      borderWidth: 1,
-      borderColor: colors.accentLine,
     },
     addedText: { flex: 1 },
   });

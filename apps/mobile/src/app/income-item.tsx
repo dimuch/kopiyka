@@ -213,7 +213,7 @@ function IncomeForm({
       </Text>
 
       <View style={styles.group}>
-        <Text variant="labelSemi" color="muted">
+        <Text variant="label" color="muted">
           Title
         </Text>
         <TextField

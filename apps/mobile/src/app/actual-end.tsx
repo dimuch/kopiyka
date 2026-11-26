@@ -139,7 +139,7 @@ function ActualEndForm({ month, balance, busy, setBusy }: { month: string; balan
       </Text>
 
       <View style={styles.group}>
-        <Text variant="labelSemi" color="muted">
+        <Text variant="label" color="muted">
           Actual end in EUR
         </Text>
         <TextField

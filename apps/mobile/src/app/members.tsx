@@ -15,7 +15,7 @@ import { TextField } from '@/components/TextField';
 import { normalizeLabel } from '@/data/ledgerLabel';
 import { inviteMember, removeMember, revokeInvite, setLedgerLabel } from '@/data/members';
 import { useMembers } from '@/data/useMembers';
-import { fonts, type Palette, radius, size, space, text } from '@/theme';
+import { type Palette, radius, size, space, text } from '@/theme';
 
 // Opened straight from a web link there's nothing to go back to, so fall back to Settings.
 function goBack() {
@@ -101,7 +101,7 @@ function LabelForm({ ledger }: { ledger: Ledger }) {
 
   return (
     <View style={styles.section}>
-      <Text variant="labelRegular" color="muted">
+      <Text variant="label" color="muted">
         Your label
       </Text>
       <TextField
@@ -353,7 +353,7 @@ function InviteForm({ ledgerId, onInvited }: { ledgerId: number; onInvited: () =
 
   return (
     <View style={styles.section}>
-      <Text variant="labelRegular" color="muted">
+      <Text variant="label" color="muted">
         Invite by username
       </Text>
       <TextField
@@ -533,7 +533,6 @@ const makeStyles = (colors: Palette) =>
     section: { gap: space.sm },
     input: {
       ...text.input,
-      fontFamily: fonts.bodyMedium,
       height: size.control,
       borderRadius: radius.md,
       borderWidth: 1,

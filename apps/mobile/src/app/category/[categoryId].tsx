@@ -1,6 +1,6 @@
 import { router, useLocalSearchParams } from 'expo-router';
 import { useMemo, useState } from 'react';
-import { ActivityIndicator, Animated, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, Animated, StyleSheet, View } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useColors, useThemedStyles } from '@/appearance/AppearanceContext';
 import { useSession } from '@/auth/AuthContext';
@@ -14,6 +14,7 @@ import { LoadError } from '@/components/LoadError';
 import { Pressable } from '@/components/Pressable';
 import { ScreenHeader } from '@/components/ScreenHeader';
 import { TabBar } from '@/components/TabBar';
+import { Text } from '@/components/Text';
 import { UndoToast } from '@/components/UndoToast';
 import { expenseCount, groupByDay, sumCents } from '@/data/monthSummary';
 import { useUndoOffer } from '@/data/undo';
@@ -22,7 +23,7 @@ import { useMonth } from '@/data/useMonth';
 import { dayLabel, eur, kyivMonth, monthLabel, monthName, toCents, uah } from '@/format';
 import { parseIdParam, parseMonthParam } from '@/linkParams';
 import { usePushOnce } from '@/pushOnce';
-import { fonts, type Palette, radius, size, space, text } from '@/theme';
+import { type Palette, radius, size, space } from '@/theme';
 
 // Opened straight from a web link there's nothing to go back to, so fall back to Expenses (current month).
 function goBack() {
@@ -124,28 +125,38 @@ function CategoryBreakdown({ categoryId, month, ended }: { categoryId: number; m
           <View style={styles.titleRow}>
             <CategoryTile techName={category.techName} label={category.displayName} size={52} />
             <View>
-              <Text style={styles.title}>{category.displayName}</Text>
-              <Text style={styles.caption}>
+              <Text variant="display">{category.displayName}</Text>
+              <Text variant="labelRegular" color="muted" tabular>
                 {expenseCount(count)} · {monthLabel(month)}
               </Text>
             </View>
           </View>
 
           <Animated.View onLayout={collapse.onCardLayout} style={[cardStyle, styles.card, collapse.cardStyle]}>
-            <Text style={styles.caption}>Spent</Text>
-            <Text style={styles.total}>{eur(totalEur)}</Text>
-            <Text style={styles.caption}>≈ {uah(totalUah)} at entry-day rates</Text>
+            <Text variant="labelRegular" color="muted" tabular>
+              Spent
+            </Text>
+            <Text variant="amountLg">{eur(totalEur)}</Text>
+            <Text variant="labelRegular" color="muted" tabular>
+              ≈ {uah(totalUah)} at entry-day rates
+            </Text>
           </Animated.View>
 
           <View style={styles.days}>
             {days.length === 0 && (
-              <Text style={[styles.caption, styles.empty]}>No expenses in {monthName(month)}.</Text>
+              <Text variant="labelRegular" color="muted" tabular style={styles.empty}>
+                No expenses in {monthName(month)}.
+              </Text>
             )}
             {days.map((d) => (
               <View key={d.date} style={styles.day}>
                 <View style={styles.dayHead}>
-                  <Text style={styles.dayLabel}>{dayLabel(d.date)}</Text>
-                  <Text style={styles.caption}>{eur(d.totalCents)}</Text>
+                  <Text variant="labelSemi" color="muted" style={styles.dayLabel}>
+                    {dayLabel(d.date)}
+                  </Text>
+                  <Text variant="labelRegular" color="muted" tabular>
+                    {eur(d.totalCents)}
+                  </Text>
                 </View>
                 <Card padding="none">
                   {d.items.map((e, i) => (
@@ -157,10 +168,12 @@ function CategoryBreakdown({ categoryId, month, ended }: { categoryId: number; m
                       style={[styles.item, i < d.items.length - 1 && styles.divider]}
                     >
                       <View style={styles.itemText}>
-                        <Text style={styles.itemName}>{e.name || category.displayName}</Text>
-                        <Text style={styles.small}>{uah(toCents(e.amountUah))}</Text>
+                        <Text variant="bodyMedium">{e.name || category.displayName}</Text>
+                        <Text variant="caption" color="muted" tabular>
+                          {uah(toCents(e.amountUah))}
+                        </Text>
                       </View>
-                      <Text style={styles.itemAmount}>{eur(toCents(e.amountEur))}</Text>
+                      <Text variant="amount">{eur(toCents(e.amountEur))}</Text>
                     </Pressable>
                   ))}
                 </Card>
@@ -200,7 +213,10 @@ function CategoryMenu({ label, onRemove, onClose }: { label: string; onRemove: (
       {/* 64 = the screen's paddingTop (20) + the header's 44 pt row: just under the ⋯ button. */}
       <View style={[styles.menuCard, { top: insets.top + 64 }]}>
         <Pressable accessibilityRole="button" onPress={onRemove} style={styles.menuItem}>
-          <Text style={styles.menuDelete}>{label}</Text>
+          {/* A menu row, not a button (brief 104c), so its label is text in the danger colour. */}
+          <Text variant="bodyMedium" color="danger">
+            {label}
+          </Text>
         </Pressable>
       </View>
     </View>
@@ -248,14 +264,8 @@ const makeStyles = (colors: Palette) =>
       paddingVertical: space.xs,
     },
     menuItem: { minHeight: size.iconButton, justifyContent: 'center', paddingHorizontal: space.lg },
-    // A menu row, not a button (brief 104c), so it keeps its own style.
-    menuDelete: { ...text.body, fontFamily: fonts.bodyMedium, color: colors.danger },
     titleRow: { flexDirection: 'row', alignItems: 'center', gap: space.lg },
-    title: { ...text.display, color: colors.text },
-    caption: { ...text.label, fontFamily: fonts.body, color: colors.muted, fontVariant: ['tabular-nums'] },
-    small: { ...text.caption, color: colors.muted, fontVariant: ['tabular-nums'] },
     card: { gap: space.xxs },
-    total: { ...text.amountLg, color: colors.text },
     dayHead: {
       flexDirection: 'row',
       justifyContent: 'space-between',
@@ -265,7 +275,7 @@ const makeStyles = (colors: Palette) =>
     // All capitals (`dayLabel` upper-cases the date) need positive tracking, and the scale has no overline role
     // (brief 105 decides).
     // eslint-disable-next-line no-restricted-syntax
-    dayLabel: { ...text.label, fontFamily: fonts.bodySemi, color: colors.muted, letterSpacing: 0.5 },
+    dayLabel: { letterSpacing: 0.5 },
     item: {
       flexDirection: 'row',
       alignItems: 'center',
@@ -275,6 +285,4 @@ const makeStyles = (colors: Palette) =>
       paddingHorizontal: space.lg,
     },
     divider: { borderBottomWidth: 1, borderBottomColor: colors.border },
-    itemName: { ...text.body, fontFamily: fonts.bodyMedium, color: colors.text },
-    itemAmount: { ...text.amount, color: colors.text },
   });

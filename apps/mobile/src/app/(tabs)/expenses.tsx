@@ -1,6 +1,6 @@
 import { router } from 'expo-router';
 import { useMemo, useRef, useState } from 'react';
-import { ActivityIndicator, Animated, type ScrollViewInstance, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, Animated, type ScrollViewInstance, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useColors, useThemedStyles } from '@/appearance/AppearanceContext';
 import { useSession } from '@/auth/AuthContext';
@@ -14,13 +14,14 @@ import { Pressable } from '@/components/Pressable';
 import { ProgressBar } from '@/components/ProgressBar';
 import { ReorderList } from '@/components/ReorderList';
 import { ScreenHeader } from '@/components/ScreenHeader';
+import { Text } from '@/components/Text';
 import { budgetProgress } from '@/data/budgetProgress';
 import { spendingFigures, spentByCategory } from '@/data/monthSummary';
 import { tabTitle } from '@/data/tabItems';
 import { useCategoryOrder } from '@/data/useCategoryOrder';
 import { useMonth } from '@/data/useMonth';
 import { eur, kyivMonth, monthName, toCents } from '@/format';
-import { fonts, type Palette, space, text } from '@/theme';
+import { type Palette, space } from '@/theme';
 
 export default function Expenses() {
   const colors = useColors();
@@ -84,15 +85,11 @@ export default function Expenses() {
                 key={figure.label}
                 style={[styles.figure, index === 1 && styles.figureCentre, index === 2 && styles.figureEnd]}
               >
-                <Text style={styles.small}>{figure.label}</Text>
+                <Text variant="caption" color="muted">
+                  {figure.label}
+                </Text>
                 {/* "—" in the value's own size until the month loads, so the card keeps its height. */}
-                <Text
-                  style={[
-                    styles.figureValue,
-                    !figures && { color: colors.muted },
-                    figure.over && { color: colors.danger },
-                  ]}
-                >
+                <Text variant="amount" color={figure.over ? 'danger' : figures ? 'text' : 'muted'}>
                   {figure.value ?? '—'}
                 </Text>
               </View>
@@ -101,8 +98,10 @@ export default function Expenses() {
         </Animated.View>
 
         <View style={styles.sectionHead}>
-          <Text style={styles.sectionTitle}>Categories</Text>
-          <Text style={styles.small}>spent of planned</Text>
+          <Text variant="headingDisplay">Categories</Text>
+          <Text variant="caption" color="muted">
+            spent of planned
+          </Text>
         </View>
 
         {!rows ? (
@@ -161,17 +160,24 @@ export default function Expenses() {
                         <CategoryTile techName={row.techName} label={row.displayName} />
                         <View style={styles.rowBody}>
                           <View style={styles.rowTop}>
-                            <Text style={styles.rowName} numberOfLines={1}>
+                            <Text variant="bodyMedium" numberOfLines={1} style={styles.rowName}>
                               {row.displayName}
                             </Text>
-                            <Text style={styles.rowAmount}>
+                            <Text variant="amount" style={styles.rowAmount}>
                               {eur(row.spent)}
-                              <Text style={styles.rowPlanned}> of {eur(row.planned)}</Text>
+                              <Text variant="body" color="muted">
+                                {' '}
+                                of {eur(row.planned)}
+                              </Text>
                             </Text>
                           </View>
                           <ProgressBar fill={row.progress.fill} state={row.progress.state} />
+                          {/* Red like the bar, so the words say it's over too (brief 107); 5.3:1 on light `surface`,
+                              7.6:1 on dark. */}
                           {row.progress.overCents > 0 && (
-                            <Text style={styles.overText}>{eur(row.progress.overCents)} over</Text>
+                            <Text variant="captionMedium" color="danger" tabular>
+                              {eur(row.progress.overCents)} over
+                            </Text>
                           )}
                         </View>
                       </Pressable>
@@ -199,15 +205,12 @@ const makeStyles = (colors: Palette) =>
     figure: { gap: space.xs },
     figureCentre: { alignItems: 'center' },
     figureEnd: { alignItems: 'flex-end' },
-    figureValue: { ...text.amount, color: colors.text },
     sectionHead: {
       flexDirection: 'row',
       justifyContent: 'space-between',
       alignItems: 'baseline',
       paddingHorizontal: space.xs,
     },
-    sectionTitle: { ...text.heading, fontFamily: fonts.display, color: colors.text },
-    small: { ...text.caption, color: colors.muted },
     row: {
       flexDirection: 'row',
       alignItems: 'center',
@@ -221,10 +224,7 @@ const makeStyles = (colors: Palette) =>
     withAdd: { paddingRight: space.sm },
     rowBody: { flex: 1, gap: space.sm },
     rowTop: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'baseline', gap: space.sm },
-    rowName: { ...text.body, flexShrink: 1, fontFamily: fonts.bodyMedium, color: colors.text },
+    rowName: { flexShrink: 1 },
     // The name gives way to the amount, which stays on one line.
-    rowAmount: { ...text.amount, flexShrink: 0, color: colors.text },
-    rowPlanned: { fontFamily: fonts.body, color: colors.muted },
-    // Red like the bar, so the words say it's over too (brief 107); 5.3:1 on light `surface`, 7.6:1 on dark.
-    overText: { ...text.caption, fontFamily: fonts.bodyMedium, color: colors.danger, fontVariant: ['tabular-nums'] },
+    rowAmount: { flexShrink: 0 },
   });

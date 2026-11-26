@@ -11,6 +11,8 @@ const variants = StyleSheet.create({
   labelRegular: { ...text.label, fontFamily: fonts.body },
   labelSemi: { ...text.label, fontFamily: fonts.bodySemi },
   headingDisplay: { ...text.heading, fontFamily: fonts.display },
+  // The Expenses rows' "€9 over": its one caller, here because it's a face.
+  captionMedium: { ...text.caption, fontFamily: fonts.bodyMedium },
 });
 
 const styles = StyleSheet.create({ tabular: { fontVariant: ['tabular-nums'] } });

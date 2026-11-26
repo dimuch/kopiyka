@@ -34,7 +34,7 @@ export default function MembersScreen() {
     <SafeAreaView style={styles.screen} edges={['top']}>
       <ScreenHeader variant="page" backLabel="Back" onBack={goBack} />
       {/* One tap on Save or Invite works on iPhone with the keyboard up. */}
-      <ScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
+      <ScrollView style={styles.scroll} contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
         <View style={{ gap: space.xxs }}>
           <Text accessibilityRole="header" variant="display">
             Members
@@ -512,7 +512,9 @@ function ConfirmPanel({
 const makeStyles = (colors: Palette) =>
   StyleSheet.create({
     screen: { flex: 1, backgroundColor: colors.bg, paddingHorizontal: space.xl, paddingTop: space.xl },
-    content: { gap: space.lg, paddingTop: space.sm, paddingBottom: space.huge },
+    // Out to the screen's edges, with the gutter inside, so the scroll view doesn't clip the cards' side shadows.
+    scroll: { marginHorizontal: -space.xl },
+    content: { gap: space.lg, paddingTop: space.sm, paddingBottom: space.huge, paddingHorizontal: space.xl },
     row: { paddingVertical: space.sm, paddingHorizontal: space.md, gap: space.sm },
     list: { gap: space.sm },
     line: { flexDirection: 'row', alignItems: 'center', gap: space.md },

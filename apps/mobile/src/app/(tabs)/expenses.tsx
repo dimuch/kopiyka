@@ -68,6 +68,7 @@ export default function Expenses() {
       <Animated.ScrollView
         {...collapse.scrollProps}
         ref={scrollRef}
+        style={styles.scroll}
         scrollEnabled={!dragging}
         contentContainerStyle={styles.content}
       >
@@ -198,7 +199,9 @@ export default function Expenses() {
 const makeStyles = (colors: Palette) =>
   StyleSheet.create({
     screen: { flex: 1, backgroundColor: colors.bg, paddingHorizontal: space.xl, paddingTop: space.xl },
-    content: { gap: space.lg, paddingTop: space.xs, paddingBottom: space.xxl },
+    // Out to the screen's edges, with the gutter inside, so the scroll view doesn't clip the cards' side shadows.
+    scroll: { marginHorizontal: -space.xl },
+    content: { gap: space.lg, paddingTop: space.xs, paddingBottom: space.xxl, paddingHorizontal: space.xl },
     loading: { marginTop: space.xxl },
     card: { gap: space.sm },
     // Spread across the card's full width: Spent at the left edge, Remaining centred, Budgeted at the right edge.

@@ -121,7 +121,7 @@ function CategoryBreakdown({ categoryId, month, ended }: { categoryId: number; m
       ) : !category ? (
         <NotInMonth categoryId={categoryId} month={month} />
       ) : (
-        <Animated.ScrollView {...collapse.scrollProps} contentContainerStyle={styles.content}>
+        <Animated.ScrollView {...collapse.scrollProps} style={styles.scroll} contentContainerStyle={styles.content}>
           {error && <LoadError message="Couldn’t refresh. Check your connection and try again." onRetry={reload} />}
           <View style={styles.titleRow}>
             <CategoryTile techName={category.techName} label={category.displayName} size={52} />
@@ -238,9 +238,12 @@ const makeStyles = (colors: Palette) =>
   StyleSheet.create({
     page: { flex: 1, backgroundColor: colors.bg },
     screen: { flex: 1, backgroundColor: colors.bg, paddingHorizontal: space.xl, paddingTop: space.xl },
+    // Out to the screen's edges, with the gutter inside, so the scroll view doesn't clip the cards' side shadows.
+    scroll: { marginHorizontal: -space.xl },
     content: {
       gap: space.lg,
       paddingTop: space.sm,
+      paddingHorizontal: space.xl,
       // UndoToast's bottom 32 + height 56 + a 16pt gap: toast clearance, not a step on the scale.
       // eslint-disable-next-line no-restricted-syntax
       paddingBottom: 104,

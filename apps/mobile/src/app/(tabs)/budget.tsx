@@ -147,6 +147,7 @@ export default function Budget() {
       {/* Room under the last row, so the Undo bar can't cover it. */}
       <ScrollView
         ref={scrollRef}
+        style={styles.scroll}
         scrollEnabled={!dragging}
         contentContainerStyle={[styles.content, toast.offer && styles.toastRoom]}
       >
@@ -323,7 +324,9 @@ const makeStyles = (colors: Palette) =>
       paddingHorizontal: space.sm,
       marginTop: -space.sm,
     },
-    content: { gap: space.lg, paddingTop: space.xs, paddingBottom: space.xxl },
+    // Out to the screen's edges, with the gutter inside, so the scroll view doesn't clip the cards' side shadows.
+    scroll: { marginHorizontal: -space.xl },
+    content: { gap: space.lg, paddingTop: space.xs, paddingBottom: space.xxl, paddingHorizontal: space.xl },
     // UndoToast's bottom 32 + height 56 + a 16pt gap: toast clearance, not a step on the scale.
     // eslint-disable-next-line no-restricted-syntax
     toastRoom: { paddingBottom: 104 },

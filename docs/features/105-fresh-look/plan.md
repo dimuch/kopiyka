@@ -403,9 +403,10 @@ Each: base `main` after the previous part, a patch bump, before/after screenshot
 
 ## Deviations
 
-- Slice 4: the row's words come from a small `barNote(progress)` in `expenses.tsx`, computed once per row with the
-  rows, instead of switching on `state` twice in the JSX (the label and the accessibility label). Same contract,
-  same words.
+- Slice 4: the row's words come from a small `barNote(progress)`, computed once per row with the rows, instead of
+  switching on `state` twice in the JSX (the label and the accessibility label). Same contract, same words. The review
+  moved it from `expenses.tsx` to `data/budgetProgress.ts` (conventions §2), with a table test in
+  `budgetProgress.test.ts`: under, near, at plan ("€0 left") and over.
 
 ## Consolidate
 

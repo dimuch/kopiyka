@@ -1,3 +1,5 @@
+import { eur } from '@/format';
+
 /** Where a category's spending stands against its plan. */
 export type BudgetState = 'under' | 'near' | 'over';
 
@@ -29,4 +31,12 @@ export function budgetProgress(spentCents: number, plannedCents: number): Budget
     overCents: Math.max(0, spentCents - plannedCents),
     leftCents: Math.max(0, plannedCents - spentCents),
   };
+}
+
+/** The words under a category's bar, in a palette colour: over plan, or near it, so the bar's colour is never the
+ *  only signal (briefs 107 and 105). Nothing under plan. */
+export function barNote({ state, overCents, leftCents }: BudgetProgress) {
+  if (state === 'over') return { words: `${eur(overCents)} over`, color: 'danger' } as const;
+  if (state === 'near') return { words: `${eur(leftCents)} left`, color: 'cautionText' } as const;
+  return null;
 }

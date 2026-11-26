@@ -4,7 +4,7 @@ import { useColors, useThemedStyles } from '@/appearance/AppearanceContext';
 import { Icon } from '@/components/Icon';
 import { Text } from '@/components/Text';
 import { TextField } from '@/components/TextField';
-import { fonts, type Palette, radius, size, space, text } from '@/theme';
+import { type Palette, radius, size, space, text } from '@/theme';
 
 interface Props {
   /** The side the user typed; it shows `amountText`, the other side shows `otherText`. */
@@ -59,7 +59,7 @@ export function AmountField({
   const styles = useThemedStyles(makeStyles);
   return (
     <View style={styles.column}>
-      <Text variant="labelSemi" color="muted">
+      <Text variant="label" color="muted">
         Amount in {currency}
       </Text>
       <View>
@@ -98,7 +98,6 @@ const makeStyles = (colors: Palette) =>
       paddingRight: space.lg,
       color: colors.text,
       ...text.input,
-      fontFamily: fonts.bodyMedium,
       fontVariant: ['tabular-nums'],
     },
   });

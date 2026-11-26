@@ -278,14 +278,14 @@ function ExpenseForm({ draft, ledgerId }: { draft: ExpenseDraftData; ledgerId: n
         {expense && locked ? <Text variant="bodyMedium">{lockedText(expense.expenseDate.slice(0, 7))}</Text> : null}
 
         <View style={styles.group}>
-          <Text variant="labelSemi" color="muted">
+          <Text variant="label" color="muted">
             Date
           </Text>
           <DateChips value={date} today={today} min={firstOpenDate(today)} onChange={pickDate} disabled={locked} />
         </View>
 
         <View style={styles.group}>
-          <Text variant="labelSemi" color="muted">
+          <Text variant="label" color="muted">
             Category
           </Text>
           {noBudget ? (
@@ -318,7 +318,7 @@ function ExpenseForm({ draft, ledgerId }: { draft: ExpenseDraftData; ledgerId: n
         </View>
 
         <View style={[styles.group, styles.nameGroup]}>
-          <Text variant="labelSemi" color="muted">
+          <Text variant="label" color="muted">
             What was it?
           </Text>
           <NameCombobox

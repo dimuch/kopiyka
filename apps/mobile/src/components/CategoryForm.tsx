@@ -10,7 +10,7 @@ import { type CategoryFields, checkFields } from '@/data/categoryForm';
 import { nameRefusedText } from '@/data/categoryName';
 import { overIncomeText } from '@/data/overIncome';
 import { monthName } from '@/format';
-import { fonts, type Palette, radius, size, space, text } from '@/theme';
+import { type Palette, radius, size, space, text } from '@/theme';
 
 /**
  * A category's name and planned amount with one Save, for adding and editing in a 'YYYY-MM' month (brief 065): checks
@@ -91,7 +91,7 @@ export function CategoryForm({
       <Text variant="labelRegular" color="muted">{`Only for ${monthName(month)}. Other months don’t change.`}</Text>
 
       <View style={styles.field}>
-        <Text variant="labelSemi" color="muted">
+        <Text variant="label" color="muted">
           Name
         </Text>
         <TextField
@@ -114,7 +114,7 @@ export function CategoryForm({
       </View>
 
       <View style={styles.field}>
-        <Text variant="labelSemi" color="muted">
+        <Text variant="label" color="muted">
           Planned amount
         </Text>
         <View>
@@ -171,7 +171,6 @@ const makeStyles = (colors: Palette) =>
       paddingHorizontal: space.lg,
       color: colors.text,
       ...text.input,
-      fontFamily: fonts.bodyMedium,
     },
     amount: { paddingLeft: space.xxxl, fontVariant: ['tabular-nums'] },
   });

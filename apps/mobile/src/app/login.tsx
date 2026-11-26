@@ -147,7 +147,6 @@ const makeStyles = (colors: Palette) =>
     field: { gap: space.sm },
     input: {
       ...text.input,
-      fontFamily: fonts.bodyMedium,
       height: 52,
       borderRadius: radius.md,
       borderWidth: 1,

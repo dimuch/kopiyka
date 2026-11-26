@@ -138,7 +138,7 @@ input's font size. Nothing new to do, nothing that works today stops working, an
 - [x] 0. Bump version to 1.23.13
   - Files: package.json, apps/mobile/app.json
   - Change: set both to 1.23.13
-- [ ] 1. Type every input at the input weight and every field label in label (≈ 34 lines)
+- [x] 1. Type every input at the input weight and every field label in label (≈ 34 lines)
   - Files: `apps/mobile/src/components/AmountFields.tsx`, `CategoryForm.tsx`, `DateField.tsx`;
     `apps/mobile/src/app/members.tsx`, `login.tsx`, `expense.tsx`, `income-item.tsx`, `actual-end.tsx`
   - Change: delete the 5 `fontFamily: fonts.bodyMedium` lines, and drop `fonts` from the four imports that no longer

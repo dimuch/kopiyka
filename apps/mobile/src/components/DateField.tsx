@@ -5,7 +5,7 @@ import { useAppearance, useColors, useThemedStyles } from '@/appearance/Appearan
 import { Icon } from '@/components/Icon';
 import { Pressable } from '@/components/Pressable';
 import { numericDate, parseDate } from '@/format';
-import { fonts, type Palette, radius, size, space, text } from '@/theme';
+import { type Palette, radius, size, space, text } from '@/theme';
 
 interface Props {
   value: string; // 'YYYY-MM-DD'
@@ -123,7 +123,7 @@ const makeStyles = (colors: Palette) =>
       justifyContent: 'space-between',
       paddingHorizontal: space.lg,
     },
-    text: { ...text.input, fontFamily: fonts.bodyMedium, color: colors.text },
+    text: { ...text.input, color: colors.text },
     backdrop: { flex: 1, backgroundColor: colors.backdrop },
     sheet: {
       backgroundColor: colors.surface,

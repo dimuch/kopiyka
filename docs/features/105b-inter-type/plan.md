@@ -151,7 +151,7 @@ input's font size. Nothing new to do, nothing that works today stops working, an
   - Change: the eyebrow loses `style={styles.eyebrow}`, and the style goes with its comment and `eslint-disable`. The
     day label becomes `<Text variant="caption" color="muted">`, and the `dayLabel` style goes in the same way (the `dayLabel(d.date)` function stays).
   - Verify: `rg -n "letterSpacing" apps/mobile/src --glob '!**/src/theme.ts'` finds only login's `passwordInput`.
-- [ ] 3. Stop setting tabular digits on captions with no digits (≈ 8 lines)
+- [x] 3. Stop setting tabular digits on captions with no digits (≈ 8 lines)
   - Files: `apps/mobile/src/app/(tabs)/budget.tsx`, `apps/mobile/src/app/(tabs)/income.tsx`,
     `apps/mobile/src/app/category/[categoryId].tsx`
   - Change: drop `tabular` from the 4 sites in the Inventory.

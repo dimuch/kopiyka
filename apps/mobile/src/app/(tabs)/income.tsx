@@ -154,7 +154,7 @@ export default function Income() {
                       <>
                         <View style={styles.rowText}>
                           <Text variant="bodyMedium">{item.title}</Text>
-                          <Text variant="caption" color="muted" tabular>
+                          <Text variant="caption" color="muted">
                             Added by {item.addedBy}
                           </Text>
                         </View>

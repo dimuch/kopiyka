@@ -173,7 +173,7 @@ kept (slice 5's test), and no API, data or connector changes.
   - Tests: `budgetProgress.test.ts` → every existing row gains its `left` column: 12000, 7000, 6000, 1201, 1200 (exactly
     90%), 0 (at plan), 0, 0, 101, 100, 0, 0. Verify: Expenses, N reads "€5 left" in `cautionText`; its `aria-label` is
     "…, €95 of €100 spent, €5 left"; U shows nothing; O still "€9 over".
-- [ ] 5. Start new installs in the light theme (≈ 22 lines)
+- [x] 5. Start new installs in the light theme (≈ 22 lines)
   - Files: `apps/mobile/src/appearance/preference.ts`, `apps/mobile/test/preference.test.ts`,
     `apps/mobile/src/appearance/AppearanceContext.tsx`, `apps/mobile/app.json`
   - Change: as Contracts; JSDoc on `DEFAULT_PREFERENCE` says why (the look was designed in light).

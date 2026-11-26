@@ -52,7 +52,7 @@ export function AppearanceProvider({ children }: { children: ReactNode }) {
   const scheme = resolveScheme(preference, system);
   const value = useMemo(() => ({ preference, scheme, setPreference }), [preference, scheme, setPreference]);
 
-  if (!loaded) return <View style={{ flex: 1, backgroundColor: darkColors.bg }} />;
+  if (!loaded) return <View style={{ flex: 1, backgroundColor: lightColors.bg }} />;
   return <AppearanceContext.Provider value={value}>{children}</AppearanceContext.Provider>;
 }
 

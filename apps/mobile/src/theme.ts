@@ -70,6 +70,12 @@ export const fonts = {
   extraBold: 'Inter_800ExtraBold',
 };
 
+/** The design system's Elevation, as `boxShadow` strings; dark has none, since its `surface` is lighter than `bg`. */
+export const shadow: Record<Scheme, { card: string | undefined; float: string | undefined }> = {
+  light: { card: '0 2px 8px rgba(17,16,20,0.06)', float: '0 4px 24px rgba(17,16,20,0.12)' },
+  dark: { card: undefined, float: undefined },
+};
+
 /** Spacing on the 4pt grid (docs/design/design-system.md). */
 export const space = { xxs: 2, xs: 4, sm: 8, md: 12, lg: 16, xl: 20, xxl: 24, xxxl: 32, huge: 40 } as const;
 /** Corner radii; `pill` rounds any box fully (a radius is clamped to half the side). */

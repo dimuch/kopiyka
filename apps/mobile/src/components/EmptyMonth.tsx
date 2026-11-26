@@ -41,7 +41,7 @@ export function EmptyMonth({
 const makeStyles = (colors: Palette) =>
   StyleSheet.create({
     card: {
-      // 20 above and below, more than a padded card's 16.
+      // 20 above and below, more than a padded card's 12.
       paddingVertical: space.xl,
       paddingHorizontal: space.lg,
       gap: space.lg,

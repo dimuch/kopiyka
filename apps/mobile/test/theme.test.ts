@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { darkColors, fonts, lightColors, progressColor, text } from '@/theme';
+import { darkColors, fonts, lightColors, progressColor, shadow, text } from '@/theme';
 
 // WCAG 2 contrast ratio of two '#RRGGBB' colours.
 function contrast(foreground: string, background: string): number {
@@ -129,5 +129,14 @@ describe('hairline', () => {
   ])("draws the hairline in %s's text colour at 6%%", (_scheme, colors) => {
     const [red, green, blue] = [1, 3, 5].map((offset) => parseInt(colors.text.slice(offset, offset + 2), 16));
     expect(colors.hairline).toBe(`rgba(${red},${green},${blue},0.06)`);
+  });
+});
+
+describe('shadow', () => {
+  it("takes the design system's shadows in light, and none in dark", () => {
+    expect(shadow).toEqual({
+      light: { card: '0 2px 8px rgba(17,16,20,0.06)', float: '0 4px 24px rgba(17,16,20,0.12)' },
+      dark: { card: undefined, float: undefined },
+    });
   });
 });

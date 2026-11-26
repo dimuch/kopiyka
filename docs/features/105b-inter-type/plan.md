@@ -156,7 +156,7 @@ input's font size. Nothing new to do, nothing that works today stops working, an
     `apps/mobile/src/app/category/[categoryId].tsx`
   - Change: drop `tabular` from the 4 sites in the Inventory.
   - Verify: `rg -n -A2 "\btabular\b" apps/mobile/src` shows only texts with figures.
-- [ ] 4. Give form and sheet titles the title role, and section heads heading (≈ 21 lines)
+- [x] 4. Give form and sheet titles the title role, and section heads heading (≈ 21 lines)
   - Files: `ScreenHeader.tsx`, `CategorySheet.tsx`, `CollapsingSummary.tsx` (in `apps/mobile/src/components/`);
     `budget.tsx`, `expenses.tsx`, `income.tsx`, `statistics.tsx`, `settings.tsx` (in `apps/mobile/src/app/(tabs)/`);
     `apps/mobile/src/components/Text.tsx`

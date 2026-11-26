@@ -10,7 +10,6 @@ const variants = StyleSheet.create({
   bodyMedium: { ...text.body, fontFamily: fonts.bodyMedium },
   labelRegular: { ...text.label, fontFamily: fonts.body },
   labelSemi: { ...text.label, fontFamily: fonts.bodySemi },
-  headingDisplay: { ...text.heading, fontFamily: fonts.display },
   // The Expenses rows' "€9 over" and "€5 left", here because it's a face.
   captionMedium: { ...text.caption, fontFamily: fonts.bodyMedium },
 });

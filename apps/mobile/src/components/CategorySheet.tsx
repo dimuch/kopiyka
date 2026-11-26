@@ -33,7 +33,7 @@ export function CategorySheet({ visible, categories, onPick, onClose }: Props) {
           <View accessibilityViewIsModal style={styles.sheet}>
             <View style={styles.handle} />
             <View style={styles.head}>
-              <Text variant="headingDisplay">All categories</Text>
+              <Text variant="title">All categories</Text>
               <IconButton icon="close" label="Close" tone="muted" onPress={onClose} style={styles.close} />
             </View>
             <Text variant="caption" color="muted">

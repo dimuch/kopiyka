@@ -105,7 +105,7 @@ export default function Statistics() {
                 </Card>
                 {summary.categories.length > 0 && (
                   <>
-                    <Text variant="headingDisplay" style={styles.sectionTitle}>
+                    <Text variant="heading" style={styles.sectionTitle}>
                       By category
                     </Text>
                     <Card padding="list">
@@ -141,7 +141,7 @@ export default function Statistics() {
                 )}
                 {summary.months.length > 1 && (
                   <>
-                    <Text variant="headingDisplay" style={styles.sectionTitle}>
+                    <Text variant="heading" style={styles.sectionTitle}>
                       By month
                     </Text>
                     <Card padding="list">

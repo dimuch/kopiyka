@@ -55,7 +55,7 @@ export function ScreenHeader(props: Props) {
           onPress={props.onBack}
           style={styles.modalBack}
         />
-        <Text accessibilityRole="header" variant="headingDisplay">
+        <Text accessibilityRole="header" variant="title">
           {props.title}
         </Text>
         <View style={styles.spacer} />

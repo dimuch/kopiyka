@@ -99,7 +99,7 @@ export default function Expenses() {
         </Animated.View>
 
         <View style={styles.sectionHead}>
-          <Text variant="headingDisplay">Categories</Text>
+          <Text variant="heading">Categories</Text>
           <Text variant="caption" color="muted">
             spent of planned
           </Text>

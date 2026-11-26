@@ -156,7 +156,7 @@ change. The demo store is untouched.
     palettes parses `colors.text`'s `#RRGGBB` and expects `colors.hairline` to be `rgba(r,g,b,0.06)`. Light then
     equals the doc's value.
   - Verify: `rg -n "colors\.border\b" apps/mobile/src` lists only Card and the 6 divider styles.
-- [ ] 3. Draw cards without a border, with the card shadow in light (≈ 32 lines)
+- [x] 3. Draw cards without a border, with the card shadow in light (≈ 32 lines)
   - Files: `apps/mobile/src/theme.ts`, `apps/mobile/src/components/Card.tsx`, `EmptyMonth.tsx`,
     `apps/mobile/src/app/(tabs)/settings.tsx`, `apps/mobile/test/theme.test.ts`
   - Change:

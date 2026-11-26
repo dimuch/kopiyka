@@ -136,8 +136,7 @@ const makeStyles = (colors: Palette) =>
       alignItems: 'center',
       justifyContent: 'space-between',
       paddingVertical: space.sm,
-      paddingLeft: space.lg,
-      paddingRight: space.md,
+      paddingHorizontal: space.md,
     },
     // The same 8pt between sections as PlaceholderPage's own gap.
     content: { flexGrow: 1, gap: space.sm },

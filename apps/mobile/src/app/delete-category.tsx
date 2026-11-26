@@ -129,7 +129,7 @@ function Confirm({
       <Text variant="body">{warning.body}</Text>
 
       {error ? (
-        <Text accessibilityRole="alert" variant="label" color="over">
+        <Text accessibilityRole="alert" variant="label" color="danger">
           {error}
         </Text>
       ) : null}

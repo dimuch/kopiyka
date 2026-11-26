@@ -260,7 +260,7 @@ const makeStyles = (colors: Palette) =>
       borderRadius: radius.md,
       borderWidth: 1,
       borderColor: colors.borderStrong,
-      backgroundColor: colors.surfaceRaised,
+      backgroundColor: colors.surface,
       paddingVertical: space.xs,
     },
     menuItem: { minHeight: size.iconButton, justifyContent: 'center', paddingHorizontal: space.lg },

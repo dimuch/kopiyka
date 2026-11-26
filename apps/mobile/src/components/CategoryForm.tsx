@@ -108,7 +108,7 @@ export function CategoryForm({
           autoCapitalize="none"
           editable={!busy && !gone}
           placeholder="Name"
-          placeholderTextColor={colors.faint}
+          placeholderTextColor={colors.muted}
           style={styles.input}
         />
       </View>
@@ -135,14 +135,14 @@ export function CategoryForm({
             selectTextOnFocus
             editable={!busy && !gone}
             placeholder="0.00"
-            placeholderTextColor={colors.faint}
+            placeholderTextColor={colors.muted}
             style={[styles.input, styles.amount]}
           />
         </View>
       </View>
 
       {error ? (
-        <Text accessibilityRole="alert" variant="label" color="over">
+        <Text accessibilityRole="alert" variant="label" color="danger">
           {error}
         </Text>
       ) : null}

@@ -145,7 +145,7 @@ kept (slice 5's test), and no API, data or connector changes.
     distinct); bars visible on `track` with the light `caution` skip (comment: the "€X left" label); same yellow in both
     themes; new `contrast` table test, one `it.each` per theme over the 17 passing pairs above, with the pair's name in
     the failure message. The old `active` test is one row of it.
-- [ ] 2. Replace the colours the design system doesn't have (≈ 90 lines)
+- [x] 2. Replace the colours the design system doesn't have (≈ 90 lines)
   - Files: `theme.ts` (six keys out of both palettes), 14 `alert` sites in `PendingInvites`, `members` (4),
     `CategoryForm`, `delete-category`, `expense` (3), `login`, `income-item`, `actual-end`, `settings`;
     `CollapsingSummary`, `statistics` (over → danger, surfaceRaised → surface); the 8 placeholders (the 7 `faint` ones and login's `fainter`); `IconButton`

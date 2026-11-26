@@ -75,14 +75,14 @@ const makeStyles = (colors: Palette) =>
       width: 40,
       height: 4,
       borderRadius: radius.pill,
-      backgroundColor: colors.borderStrongest,
+      backgroundColor: colors.faint,
     },
     head: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
     // Square until brief 105, as before IconButton: a rounded corner would only round its web focus ring.
     // eslint-disable-next-line no-restricted-syntax
     close: { marginRight: -space.sm, borderRadius: 0 },
     grid: { flexDirection: 'row', flexWrap: 'wrap', gap: space.sm },
-    // A step above the sheet's own surface, which a plain chip would match (a one-off, until brief 105).
-    item: { width: '48.5%', backgroundColor: colors.surfaceRaised },
+    // The design system's chip grey, a step off the sheet's own surface, which a plain chip would match.
+    item: { width: '48.5%', backgroundColor: colors.fill },
     itemText: { flex: 1 },
   });

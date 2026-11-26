@@ -73,7 +73,7 @@ const makeStyles = (colors: Palette) =>
       justifyContent: 'space-between',
       gap: space.md,
     },
-    optionOn: { backgroundColor: colors.activeTint, borderWidth: 1, borderColor: colors.activeLine },
+    optionOn: { backgroundColor: colors.activeTint },
     name: { flexShrink: 1 },
     // Kept whole beside a long label, but never more than half the row, so a long owner name can't push it out.
     whose: { flexShrink: 0, maxWidth: '50%' },

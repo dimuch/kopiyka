@@ -62,7 +62,7 @@ export function PendingInvites({
         );
       })}
       {failure ? (
-        <Text accessibilityRole="alert" variant="label" color="over">
+        <Text accessibilityRole="alert" variant="label" color="danger">
           {failure}
         </Text>
       ) : null}

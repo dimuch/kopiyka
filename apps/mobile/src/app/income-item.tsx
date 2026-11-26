@@ -224,7 +224,7 @@ function IncomeForm({
           editable={!locked}
           autoFocus
           placeholder="e.g. Salary"
-          placeholderTextColor={colors.faint}
+          placeholderTextColor={colors.muted}
           style={styles.input}
         />
       </View>
@@ -238,7 +238,7 @@ function IncomeForm({
       />
 
       {error ? (
-        <Text accessibilityRole="alert" variant="label" color="over">
+        <Text accessibilityRole="alert" variant="label" color="danger">
           {error}
         </Text>
       ) : null}

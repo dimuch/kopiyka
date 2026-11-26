@@ -69,10 +69,10 @@ const makeStyles = (colors: Palette) =>
     grid: { flexDirection: 'row', flexWrap: 'wrap', gap: space.sm },
     cat: { width: '31.5%' },
     catText: { flex: 1 },
-    // "N more" opens the sheet rather than picking, so it's drawn as an empty slot (a one-off, until brief 105).
+    // "N more" opens the sheet rather than picking, so it's drawn as an empty slot (a one-off, until brief 105d).
     more: {
       borderStyle: 'dashed',
-      borderColor: colors.borderStrongest,
+      borderColor: colors.faint,
       backgroundColor: 'transparent',
       justifyContent: 'center',
     },

@@ -2,8 +2,8 @@ import type { TextStyle } from 'react-native';
 import type { Scheme } from '@/appearance/preference';
 import type { BudgetState } from '@/data/budgetProgress';
 
-// Colours from docs/design/design-system.md (direction A, brief 105). The tokens after `backdrop` aren't in the
-// doc: briefs 105c and 105d remove their last callers, then the tokens.
+// Colours from docs/design/design-system.md (direction A, brief 105). `border` and `borderStrong` aren't in the doc:
+// briefs 105c and 105d remove their last callers, then the tokens.
 export const darkColors = {
   bg: '#0E0D12',
   surface: '#18171D',
@@ -31,12 +31,6 @@ export const darkColors = {
   backdrop: 'rgba(5,6,8,0.62)',
   border: '#23272E',
   borderStrong: '#2A2F37',
-  over: '#FFA65C',
-  surfaceRaised: '#22262D',
-  borderStrongest: '#3A404A',
-  fainter: '#4A505A',
-  accentLine: '#2B4470',
-  activeLine: '#24543A',
 };
 
 export type Palette = typeof darkColors;
@@ -63,12 +57,6 @@ export const lightColors: Palette = {
   backdrop: 'rgba(17,16,20,0.35)',
   border: '#E3E6EB',
   borderStrong: '#D5DAE1',
-  over: '#B25E09',
-  surfaceRaised: '#FFFFFF',
-  borderStrongest: '#B9C0CA',
-  fainter: '#B4BAC3',
-  accentLine: '#A9C6F5',
-  activeLine: '#9DD5AE',
 };
 
 export const fonts = {

@@ -4,7 +4,7 @@ import { Icon, type IconName } from '@/components/Icon';
 import { Pressable } from '@/components/Pressable';
 import { radius, size } from '@/theme';
 
-/** A 44×44 button with only an icon in it. Disabled, the icon turns `fainter`; the button doesn't dim. */
+/** A 44×44 button with only an icon in it. Disabled, the icon turns `faint`; the button doesn't dim. */
 export function IconButton({
   icon,
   label,
@@ -40,7 +40,7 @@ export function IconButton({
       onPress={onPress}
       style={[styles.button, style]}
     >
-      <Icon name={icon} size={iconSize} color={disabled ? colors.fainter : colors[tone]} />
+      <Icon name={icon} size={iconSize} color={disabled ? colors.faint : colors[tone]} />
     </Pressable>
   );
 }

@@ -109,7 +109,7 @@ function LabelForm({ ledger }: { ledger: Ledger }) {
         value={draft}
         onChangeText={setDraft}
         placeholder={ledger.name}
-        placeholderTextColor={colors.faint}
+        placeholderTextColor={colors.muted}
         returnKeyType="done"
         onSubmitEditing={() => !unchanged && save()}
         editable={!busy}
@@ -119,7 +119,7 @@ function LabelForm({ ledger }: { ledger: Ledger }) {
         Only you see it. Leave it empty for the usual name.
       </Text>
       {failure ? (
-        <Text accessibilityRole="alert" variant="label" color="over">
+        <Text accessibilityRole="alert" variant="label" color="danger">
           {failure}
         </Text>
       ) : null}
@@ -309,7 +309,7 @@ function PendingList({
         </Card>
       ) : null}
       {failure ? (
-        <Text accessibilityRole="alert" variant="label" color="over">
+        <Text accessibilityRole="alert" variant="label" color="danger">
           {failure}
         </Text>
       ) : null}
@@ -372,7 +372,7 @@ function InviteForm({ ledgerId, onInvited }: { ledgerId: number; onInvited: () =
         They’ll see it in the app for an hour.
       </Text>
       {failure ? (
-        <Text accessibilityRole="alert" variant="label" color="over">
+        <Text accessibilityRole="alert" variant="label" color="danger">
           {failure}
         </Text>
       ) : null}
@@ -483,7 +483,7 @@ function ConfirmPanel({
       <Text variant="bodyStrong">{question}</Text>
       {detail ? <Text variant="labelRegular">{detail}</Text> : null}
       {failure ? (
-        <Text accessibilityRole="alert" variant="label" color="over">
+        <Text accessibilityRole="alert" variant="label" color="danger">
           {failure}
         </Text>
       ) : null}
@@ -526,7 +526,7 @@ const makeStyles = (colors: Palette) =>
       borderRadius: radius.md,
       borderWidth: 1,
       borderColor: colors.borderStrong,
-      backgroundColor: colors.surfaceRaised,
+      backgroundColor: colors.surface,
     },
     panelButtons: { flexDirection: 'row', justifyContent: 'flex-end', alignItems: 'center', gap: space.sm },
     dismiss: { paddingHorizontal: space.md },

@@ -146,7 +146,7 @@ input's font size. Nothing new to do, nothing that works today stops working, an
     `labelRegular` to `label`.
   - Verify: `rg -n "fonts\.bodyMedium" apps/mobile/src` finds only `theme.ts` and `Text.tsx`.
     `rg -n -A1 'variant="labelSemi"' apps/mobile/src` finds only DemoStrip, LedgerPicker and the day label.
-- [ ] 2. Set MonthSwitcher's eyebrow and the category page's day labels in caption (≈ 12 lines)
+- [x] 2. Set MonthSwitcher's eyebrow and the category page's day labels in caption (≈ 12 lines)
   - Files: `apps/mobile/src/components/MonthSwitcher.tsx`, `apps/mobile/src/app/category/[categoryId].tsx`
   - Change: the eyebrow loses `style={styles.eyebrow}`, and the style goes with its comment and `eslint-disable`. The
     day label becomes `<Text variant="caption" color="muted">`, and the `dayLabel` style goes in the same way (the `dayLabel(d.date)` function stays).

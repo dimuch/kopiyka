@@ -151,7 +151,7 @@ function CategoryBreakdown({ categoryId, month, ended }: { categoryId: number; m
             {days.map((d) => (
               <View key={d.date} style={styles.day}>
                 <View style={styles.dayHead}>
-                  <Text variant="labelSemi" color="muted" style={styles.dayLabel}>
+                  <Text variant="caption" color="muted">
                     {dayLabel(d.date)}
                   </Text>
                   <Text variant="labelRegular" color="muted" tabular>
@@ -272,10 +272,6 @@ const makeStyles = (colors: Palette) =>
       alignItems: 'baseline',
       paddingHorizontal: space.xs,
     },
-    // All capitals (`dayLabel` upper-cases the date) need positive tracking, and the scale has no overline role
-    // (brief 105b decides).
-    // eslint-disable-next-line no-restricted-syntax
-    dayLabel: { letterSpacing: 0.5 },
     item: {
       flexDirection: 'row',
       alignItems: 'center',

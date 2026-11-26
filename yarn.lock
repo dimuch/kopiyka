@@ -1145,17 +1145,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@expo-google-fonts/bricolage-grotesque@npm:~0.4.1":
-  version: 0.4.1
-  resolution: "@expo-google-fonts/bricolage-grotesque@npm:0.4.1"
-  checksum: 10c0/186eaf7b4a7cc8dae0fe52ead291ae98f37620bc5361a2f62f222fe2cd2cae67eec9bf9d9f272112fbf992bcb3dbfa99b2c2332e7a8fb6e5dfbd883ec627b557
-  languageName: node
-  linkType: hard
-
-"@expo-google-fonts/ibm-plex-sans@npm:~0.4.1":
-  version: 0.4.1
-  resolution: "@expo-google-fonts/ibm-plex-sans@npm:0.4.1"
-  checksum: 10c0/c9657bbb8ab7f9765f5704ea3403addf1030da6de3498a51203077d515026b63d7c12d1cb6c3821eeb7dcade56a7a37e765de39fa0fbc7c7a86d1f261f606469
+"@expo-google-fonts/inter@npm:^0.4.2":
+  version: 0.4.2
+  resolution: "@expo-google-fonts/inter@npm:0.4.2"
+  checksum: 10c0/a88e6d1321584055d2fa265861795d55ec04b64d9726ecb60fd11a970252d23a1fd8c1febab7b587eb8ec699071d35c38c591625e44a2826c1e0e18bb1aa1946
   languageName: node
   linkType: hard
 
@@ -1976,8 +1969,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@kopiyka/mobile@workspace:apps/mobile"
   dependencies:
-    "@expo-google-fonts/bricolage-grotesque": "npm:~0.4.1"
-    "@expo-google-fonts/ibm-plex-sans": "npm:~0.4.1"
+    "@expo-google-fonts/inter": "npm:^0.4.2"
     "@react-native-async-storage/async-storage": "npm:2.2.0"
     "@react-native-community/datetimepicker": "npm:9.2.1"
     "@types/react": "npm:~19.3.0"

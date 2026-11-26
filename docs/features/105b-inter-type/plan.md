@@ -168,7 +168,7 @@ input's font size. Nothing new to do, nothing that works today stops working, an
     iOS Safari zooms into a focused input; 103c's hand-off).
   - Verify: Visual check, `expense-new`: the hidden `INPUT` row's font size is `16px`, and its box is unchanged. Gate
     B, iOS Safari: focusing the date field doesn't zoom.
-- [ ] 6. Draw the app in Inter (≈ 125 lines, excluding `yarn.lock`)
+- [x] 6. Draw the app in Inter (≈ 125 lines, excluding `yarn.lock`)
   - Files: `apps/mobile/package.json`, `yarn.lock`, `apps/mobile/demo-modules.txt`, `apps/mobile/src/theme.ts`,
     `apps/mobile/src/components/AppShell.tsx`, `Text.tsx`, `CategoryTile.tsx`, `TabBar.tsx`,
     `apps/mobile/src/app/login.tsx`, `apps/mobile/src/app/(tabs)/_layout.tsx`, `apps/mobile/test/theme.test.ts`

@@ -155,10 +155,9 @@ const makeStyles = (colors: Palette) =>
       color: colors.text,
       paddingHorizontal: space.lg,
     },
-    // The one-time code: big, spaced digits that the scale has no role for (one caller; brief 105b picks its face with
-    // Inter).
+    // The one-time code: big, spaced digits that the scale has no role for (one caller), in the display face.
     // eslint-disable-next-line no-restricted-syntax
-    passwordInput: { fontFamily: fonts.display, fontSize: 26, letterSpacing: 8, fontVariant: ['tabular-nums'] },
+    passwordInput: { fontFamily: fonts.extraBold, fontSize: 26, letterSpacing: 8, fontVariant: ['tabular-nums'] },
     // One-offs until brief 105d: the only large pill, and dimmer than other buttons while it can't be pressed.
     signIn: { borderRadius: radius.pill },
     signInOff: { opacity: 0.4 },

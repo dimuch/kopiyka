@@ -3,15 +3,15 @@ import { Text as NativeText, StyleSheet, type TextProps } from 'react-native';
 import { useColors } from '@/appearance/AppearanceContext';
 import { fonts, type Palette, text } from '@/theme';
 
-// The type roles (`input` draws the € and ₴ inside an amount field), plus the role-and-face pairs the screens use,
-// named role + face. A face is never a screen's style: brief 105b retunes every face here and in theme.ts.
+// The type roles (`input` draws the € and ₴ inside an amount field), plus the role-and-weight pairs the screens use,
+// named role + weight. A face is never a screen's style: it's set here and in theme.ts.
 const variants = StyleSheet.create({
   ...text,
-  bodyMedium: { ...text.body, fontFamily: fonts.bodyMedium },
-  labelRegular: { ...text.label, fontFamily: fonts.body },
-  labelSemi: { ...text.label, fontFamily: fonts.bodySemi },
-  // The Expenses rows' "€9 over" and "€5 left", here because it's a face.
-  captionMedium: { ...text.caption, fontFamily: fonts.bodyMedium },
+  bodyMedium: { ...text.body, fontFamily: fonts.medium },
+  labelRegular: { ...text.label, fontFamily: fonts.regular },
+  labelSemi: { ...text.label, fontFamily: fonts.semiBold },
+  // The Expenses rows' "€9 over" and "€5 left", here because it's a weight.
+  captionMedium: { ...text.caption, fontFamily: fonts.medium },
 });
 
 const styles = StyleSheet.create({ tabular: { fontVariant: ['tabular-nums'] } });

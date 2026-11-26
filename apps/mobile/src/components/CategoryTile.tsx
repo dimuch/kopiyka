@@ -20,7 +20,7 @@ export function CategoryTile({ techName, label, size = 40 }: { techName: string;
     >
       <Text
         style={{
-          fontFamily: fonts.display,
+          fontFamily: fonts.extraBold,
           // The corner and letter scale with the tile (26–52pt): tile maths, no token.
           // eslint-disable-next-line no-restricted-syntax
           fontSize: size * 0.43,

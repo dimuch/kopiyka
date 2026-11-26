@@ -57,13 +57,12 @@ is the only place raw colours, font names and sizes may appear (conventions §2)
 | `backdrop`              | `rgba(17,16,20,0.35)` | sheet scrim                                           | —                                                   |
 
 **Progress bars** go from under plan to over plan as `accent` (violet) → `caution` → `danger`.
-This replaces brief 091's green for under-plan bars. Brief 105 makes that change.
+This replaces brief 091's green for under-plan bars. Brief 105 made that change.
 
 **Caution is the same yellow in both themes** (user decision, 2026-11-22). In light it fails
 brief 091's 3:1 bar rule, so colour is never the only signal. Brief 107 made the change and
-records the exception to 091; until brief 105, the row's "€X of €Y" amounts are the text next
-to the bar. Brief 105 adds a caution label (for example "€15 left") in `cautionText`, just as an
-over-plan row shows "€9 over".
+records the exception to 091. Brief 105 added the caution label: a near-plan row shows, for
+example, "€15 left" in `cautionText`, just as an over-plan row shows "€9 over".
 
 ## Colour (dark, first pass)
 
@@ -71,8 +70,10 @@ over-plan row shows "€9 over".
 `muted #A3A0B2` (7.0:1), `accent #A08CFF` (6.5:1 on surface, 5.3:1 on track),
 `onAccent #0E0D12` (7.1:1), `accentTint #241D45`, `accentText #C9BDFF` (9.1:1). Keep today's
 `caution #F2C94C` and `danger #FF8A80`. In dark, `cautionText` is also `#F2C94C`
-(11.2:1 on `surface`). In dark mode, shadows are off: elevation comes from
-`surface` being lighter than `bg`.
+(11.2:1 on `surface`). `faint`, `active`, `activeTint` and `backdrop` aren't set here, so
+they keep their values from before brief 105 (`#6E757E`, `#6FD08C`, `#132A1C`,
+`rgba(5,6,8,0.62)`). In dark mode, shadows are off: elevation comes from `surface` being
+lighter than `bg`.
 
 ## Type
 

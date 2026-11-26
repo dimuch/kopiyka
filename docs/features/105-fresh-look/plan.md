@@ -409,7 +409,15 @@ Each: base `main` after the previous part, a patch bump, before/after screenshot
 
 ## Consolidate
 
-<filled in /kopiyka-hos Phase 3a: CONSOLIDATE line, each reuse/extract, each LEAVE + reason>
+CONSOLIDATE: reused 1 · extracted 0 · left 2
+
+- **Reused:** `BudgetProgress.leftCents` in Statistics' `planGap`, which worked out `planned − spent` itself for the
+  "€30 under" text. When a category isn't over, the two are the same number. `periodSummary.test.ts` is unchanged and
+  passes.
+- **Left:** `barNote` (Expenses) beside `planGap` (Statistics). Both turn a `BudgetProgress` into words, but with
+  different words and states: Expenses names only `near` ("€5 left") and `over`, while Statistics says "under" or
+  "On plan" for every category, and has no bar whose colour needs saying in words.
+- **Left:** ProgressBar's dot. It's a plain `View` with one caller, and nothing else draws a dot.
 
 ## Revision 1
 

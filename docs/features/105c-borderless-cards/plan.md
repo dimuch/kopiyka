@@ -132,7 +132,7 @@ change. The demo store is untouched.
 
 ## Slices
 
-- [ ] 0. Bump version to 1.23.14
+- [x] 0. Bump version to 1.23.14
   - Files: package.json, apps/mobile/app.json
   - Change: set both to 1.23.14
 - [ ] 1. Record the dark hairline in the design system and mark 105b done in the backlog (≈ 14 lines, docs)

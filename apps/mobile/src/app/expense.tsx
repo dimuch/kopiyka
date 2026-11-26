@@ -7,7 +7,6 @@ import {
   Platform,
   ScrollView,
   StyleSheet,
-  Text,
   View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -24,6 +23,7 @@ import { LoadError } from '@/components/LoadError';
 import { NameCombobox } from '@/components/NameCombobox';
 import { ScreenHeader } from '@/components/ScreenHeader';
 import { TabBar } from '@/components/TabBar';
+import { Text } from '@/components/Text';
 import { expenseLocked, firstOpenDate } from '@/data/expenseLock';
 import { lockedText, restoreRefusedText } from '@/data/monthEnded';
 import { deleteExpense, restoreExpense, saveExpense } from '@/data/expenses';
@@ -35,7 +35,7 @@ import { useMonthCategories } from '@/data/useMonthCategories';
 import { type Rate, useRate } from '@/data/useRate';
 import { eur, kyivToday, monthName, normalizeAmount, otherAmountText, shortDate, toCents } from '@/format';
 import { parseIdParam } from '@/linkParams';
-import { fonts, type Palette, radius, size, space, text } from '@/theme';
+import { type Palette, radius, size, space, text } from '@/theme';
 
 function errorText(err: unknown, doing: 'load' | 'save'): string {
   if (err instanceof ApiError) {
@@ -275,17 +275,21 @@ function ExpenseForm({ draft, ledgerId }: { draft: ExpenseDraftData; ledgerId: n
   return (
     <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={{ flex: 1 }}>
       <ScrollView contentContainerStyle={styles.form} keyboardShouldPersistTaps="handled">
-        {expense && locked ? <Text style={styles.locked}>{lockedText(expense.expenseDate.slice(0, 7))}</Text> : null}
+        {expense && locked ? <Text variant="bodyMedium">{lockedText(expense.expenseDate.slice(0, 7))}</Text> : null}
 
         <View style={styles.group}>
-          <Text style={styles.label}>Date</Text>
+          <Text variant="labelSemi" color="muted">
+            Date
+          </Text>
           <DateChips value={date} today={today} min={firstOpenDate(today)} onChange={pickDate} disabled={locked} />
         </View>
 
         <View style={styles.group}>
-          <Text style={styles.label}>Category</Text>
+          <Text variant="labelSemi" color="muted">
+            Category
+          </Text>
           {noBudget ? (
-            <Text accessibilityRole="alert" style={styles.error}>
+            <Text accessibilityRole="alert" variant="label" color="over">
               {noBudget}
             </Text>
           ) : picker ? (
@@ -298,7 +302,7 @@ function ExpenseForm({ draft, ledgerId }: { draft: ExpenseDraftData; ledgerId: n
                 disabled={locked}
               />
               {notInMonth ? (
-                <Text accessibilityRole="alert" style={styles.error}>
+                <Text accessibilityRole="alert" variant="label" color="over">
                   {notInMonth}
                 </Text>
               ) : null}
@@ -314,7 +318,9 @@ function ExpenseForm({ draft, ledgerId }: { draft: ExpenseDraftData; ledgerId: n
         </View>
 
         <View style={[styles.group, styles.nameGroup]}>
-          <Text style={styles.label}>What was it?</Text>
+          <Text variant="labelSemi" color="muted">
+            What was it?
+          </Text>
           <NameCombobox
             accessibilityLabel="What was it?"
             names={names}
@@ -336,11 +342,13 @@ function ExpenseForm({ draft, ledgerId }: { draft: ExpenseDraftData; ledgerId: n
             onChange={typeAmount}
             disabled={locked}
           />
-          <Text style={styles.small}>{rateLabel(rate, date)}</Text>
+          <Text variant="caption" color="muted" tabular>
+            {rateLabel(rate, date)}
+          </Text>
         </View>
 
         {error ? (
-          <Text accessibilityRole="alert" style={styles.error}>
+          <Text accessibilityRole="alert" variant="label" color="over">
             {error}
           </Text>
         ) : null}
@@ -366,7 +374,9 @@ function ExpenseForm({ draft, ledgerId }: { draft: ExpenseDraftData; ledgerId: n
         {added ? (
           <View accessibilityRole="summary" style={styles.added}>
             <Icon name="check" size={18} color={colors.accent} strokeWidth={2.4} />
-            <Text style={styles.addedText}>{added}</Text>
+            <Text variant="labelRegular" style={styles.addedText}>
+              {added}
+            </Text>
           </View>
         ) : null}
       </ScrollView>
@@ -392,11 +402,7 @@ const makeStyles = (colors: Palette) => {
     group: { gap: space.sm },
     // The name suggestions float over the amount fields below; 2 clears the ₴/€ symbols' zIndex 1 there on web.
     nameGroup: { zIndex: 2 },
-    label: { ...text.label, fontFamily: fonts.bodySemi, color: colors.muted },
     input: { ...field, ...text.input, paddingHorizontal: space.lg, color: colors.text },
-    small: { ...text.caption, color: colors.muted, fontVariant: ['tabular-nums'] },
-    locked: { ...text.body, fontFamily: fonts.bodyMedium, color: colors.text },
-    error: { ...text.label, color: colors.over },
     added: {
       flexDirection: 'row',
       alignItems: 'center',
@@ -407,6 +413,6 @@ const makeStyles = (colors: Palette) => {
       borderWidth: 1,
       borderColor: colors.accentLine,
     },
-    addedText: { ...text.label, flex: 1, fontFamily: fonts.body, color: colors.text },
+    addedText: { flex: 1 },
   });
 };

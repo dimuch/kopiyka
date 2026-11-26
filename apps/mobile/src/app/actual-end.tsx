@@ -1,6 +1,6 @@
 import { Stack, useLocalSearchParams } from 'expo-router';
 import { useRef, useState } from 'react';
-import { AccessibilityInfo, ActivityIndicator, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { AccessibilityInfo, ActivityIndicator, ScrollView, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { ApiError } from '@/api/apiError';
 import type { MonthBalance } from '@/api/types';
@@ -10,12 +10,13 @@ import { closeToBudget } from '@/closeToBudget';
 import { Button } from '@/components/Button';
 import { LoadError } from '@/components/LoadError';
 import { ScreenHeader } from '@/components/ScreenHeader';
+import { Text } from '@/components/Text';
 import { TextField } from '@/components/TextField';
 import { clearActualEnd, setActualEnd } from '@/data/actualEnd';
 import { useMonthBalance } from '@/data/useMonthBalance';
 import { eur, monthLabel, normalizeBalance, shiftMonth, toCents } from '@/format';
 import { parseMonthParam } from '@/linkParams';
-import { fonts, type Palette, radius, size, space, text } from '@/theme';
+import { type Palette, radius, size, space, text } from '@/theme';
 
 const noBalanceText = (month: string) => `${monthLabel(month)} has no balance yet.`;
 
@@ -132,13 +133,15 @@ function ActualEndForm({ month, balance, busy, setBusy }: { month: string; balan
 
   return (
     <ScrollView contentContainerStyle={styles.body} keyboardShouldPersistTaps="handled">
-      <Text style={styles.caption}>
+      <Text variant="labelRegular" color="muted">
         {monthLabel(month)} started at {eur(toCents(balance.openingEur))}. Enter what it really ended with;{' '}
         {monthLabel(shiftMonth(month, 1))} starts from it.
       </Text>
 
       <View style={styles.group}>
-        <Text style={styles.label}>Actual end in EUR</Text>
+        <Text variant="labelSemi" color="muted">
+          Actual end in EUR
+        </Text>
         <TextField
           accessibilityLabel="Actual end in EUR"
           value={amountText}
@@ -160,7 +163,7 @@ function ActualEndForm({ month, balance, busy, setBusy }: { month: string; balan
       </View>
 
       {error ? (
-        <Text accessibilityRole="alert" style={styles.error}>
+        <Text accessibilityRole="alert" variant="label" color="over">
           {error}
         </Text>
       ) : null}
@@ -184,9 +187,7 @@ const makeStyles = (colors: Palette) =>
   StyleSheet.create({
     screen: { flex: 1, backgroundColor: colors.bg, paddingHorizontal: space.xl, paddingTop: space.sm },
     body: { gap: space.lg, paddingTop: space.lg, paddingBottom: space.huge },
-    caption: { ...text.label, fontFamily: fonts.body, color: colors.muted },
     group: { gap: space.sm },
-    label: { ...text.label, fontFamily: fonts.bodySemi, color: colors.muted },
     input: {
       height: size.control,
       borderRadius: radius.md,
@@ -197,5 +198,4 @@ const makeStyles = (colors: Palette) =>
       color: colors.text,
       ...text.input,
     },
-    error: { ...text.label, color: colors.over },
   });

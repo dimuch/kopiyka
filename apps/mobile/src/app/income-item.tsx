@@ -1,6 +1,6 @@
 import { router, Stack, useLocalSearchParams } from 'expo-router';
 import { useRef, useState } from 'react';
-import { AccessibilityInfo, ActivityIndicator, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { AccessibilityInfo, ActivityIndicator, ScrollView, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { ApiError } from '@/api/apiError';
 import type { IncomeItem } from '@/api/types';
@@ -10,6 +10,7 @@ import { AmountField } from '@/components/AmountFields';
 import { Button } from '@/components/Button';
 import { LoadError } from '@/components/LoadError';
 import { ScreenHeader } from '@/components/ScreenHeader';
+import { Text } from '@/components/Text';
 import { TextField } from '@/components/TextField';
 import { normalizeName } from '@/data/categoryName';
 import { addIncome, deleteIncome, updateIncome } from '@/data/income';
@@ -18,7 +19,7 @@ import { overIncomeText } from '@/data/overIncome';
 import { useIncome } from '@/data/useIncome';
 import { monthName, normalizeAmount } from '@/format';
 import { parseIdParam, parseMonthParam } from '@/linkParams';
-import { fonts, type Palette, radius, size, space, text } from '@/theme';
+import { type Palette, radius, size, space, text } from '@/theme';
 
 /**
  * Closes the modal. Opened straight from a web link there's nothing to go back to, so it falls back to the Income
@@ -207,10 +208,14 @@ function IncomeForm({
 
   return (
     <ScrollView contentContainerStyle={styles.body} keyboardShouldPersistTaps="handled">
-      <Text style={styles.caption}>Income for {monthName(month)}</Text>
+      <Text variant="labelRegular" color="muted">
+        Income for {monthName(month)}
+      </Text>
 
       <View style={styles.group}>
-        <Text style={styles.label}>Title</Text>
+        <Text variant="labelSemi" color="muted">
+          Title
+        </Text>
         <TextField
           accessibilityLabel="Title"
           value={title}
@@ -233,7 +238,7 @@ function IncomeForm({
       />
 
       {error ? (
-        <Text accessibilityRole="alert" style={styles.error}>
+        <Text accessibilityRole="alert" variant="label" color="over">
           {error}
         </Text>
       ) : null}
@@ -251,9 +256,7 @@ const makeStyles = (colors: Palette) =>
   StyleSheet.create({
     screen: { flex: 1, backgroundColor: colors.bg, paddingHorizontal: space.xl, paddingTop: space.sm },
     body: { gap: space.lg, paddingTop: space.lg, paddingBottom: space.huge },
-    caption: { ...text.label, fontFamily: fonts.body, color: colors.muted },
     group: { gap: space.sm },
-    label: { ...text.label, fontFamily: fonts.bodySemi, color: colors.muted },
     input: {
       height: size.control,
       borderRadius: radius.md,
@@ -264,5 +267,4 @@ const makeStyles = (colors: Palette) =>
       color: colors.text,
       ...text.input,
     },
-    error: { ...text.label, color: colors.over },
   });

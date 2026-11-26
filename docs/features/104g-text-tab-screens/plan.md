@@ -215,7 +215,7 @@ logic changes, and `Text` imports `react-native`, which the app's Node tests can
 - Another session may share the MySQL test database. If the integration tests fail in the schema reset, wait until
   the other run is idle and run them again. Never commit after a failed `yarn test`.
 
-**Snapshot script:** 104f's, installed on both origins (app and demo). The build used 104f's full script, as given in `docs/features/104f-text-component/plan.md` (Deviations); the shorter snippet below is the planner's and records fewer columns. Every row holds the element's tag, box,
+**Snapshot script:** 104f's, installed on both origins (app and demo). The build used 104f's full script, written out in `docs/features/104h-text-other-screens/plan.md` (Visual check); the shorter snippet below is the planner's and records fewer columns. Every row holds the element's tag, box,
 background, top border, radius, padding, opacity, colour, `zIndex`, then font family, size, line height, tracking,
 `fontVariantNumeric`, weight and alignment, then a leaf's first 24 characters. `cmp` also returns the width (must be
 390), `a11yAdded` and `a11yRemoved`. Keys: `snap:before:104g:<view>:<scheme>` and `snap:after:104g:*`. I checked the
@@ -362,7 +362,7 @@ Both snapshot sets are taken before 1 December (Kyiv).
   files copied in (git-ignored). The web app is opened at `127.0.0.1:8084`: the API's CORS list allows that origin,
   not `localhost:8084`. `claude-qa-104g` (#182, ledger 172) was seeded as planned: C is category 994 (rent), D 995
   (groceries), F 996 (education).
-- **The snapshot script is 104f's** (in the 104f plan), not the shorter one above: the same columns plus `stroke`,
+- **The snapshot script is 104f's** (written out in the 104h plan's Visual check), not the shorter one above: the same columns plus `stroke`,
   `borderTopStyle`, paused infinite animations, and `aria-busy`/`aria-disabled`/`aria-selected`/`aria-expanded` in the
   accessibility record. Keys as planned.
 - **The slices were copied from the planner's scratch draft** (outside the repo). After slice 3 the branch's

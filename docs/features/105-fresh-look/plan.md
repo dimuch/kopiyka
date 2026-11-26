@@ -419,7 +419,8 @@ Each: base `main` after the previous part, a patch bump, before/after screenshot
     dots and the "€5 left" label are added. `a11yAdded`/`a11yRemoved` is exactly N's label with and without
     ", €5 left".
   - `expense-added`: 5 rows. The note is 2pt shorter, and its check icon sits 1pt up and left (the edge is gone).
-- The demo build in both themes (Home, Budget, Income, Expenses, the expense form) had no console errors, and
+- The demo build in both themes (Home, Budget, Income, Expenses, the expense form), and in dark also a category
+  page, the expense form's sheet and an income item, had no console errors, and
   `yarn mobile export:web` plus `yarn mobile check-builds` pass.
 
 ## Consolidate

@@ -51,7 +51,7 @@ export default function Settings() {
       <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
         <Card padding="padded" style={styles.account}>
           <View style={styles.avatar}>
-            <Text variant="headingDisplay" color="accent">
+            <Text variant="headingDisplay" color="accentText">
               {user.username.slice(0, 1).toUpperCase()}
             </Text>
           </View>

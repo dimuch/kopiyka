@@ -18,11 +18,11 @@ describe('progressColor', () => {
   it.each([
     ['dark', darkColors],
     ['light', lightColors],
-  ])('paints a category bar green, yellow or red in the %s theme', (_, colors) => {
-    expect(progressColor('under', colors)).toBe(colors.active);
+  ])('paints a category bar violet, yellow or red in the %s theme', (_, colors) => {
+    expect(progressColor('under', colors)).toBe(colors.accent);
     expect(progressColor('near', colors)).toBe(colors.caution);
     expect(progressColor('over', colors)).toBe(colors.danger);
-    expect(new Set([colors.active, colors.caution, colors.danger]).size).toBe(3);
+    expect(new Set([colors.accent, colors.caution, colors.danger]).size).toBe(3);
   });
 
   it.each([
@@ -30,7 +30,8 @@ describe('progressColor', () => {
     ['light', lightColors],
   ])('keeps every bar colour visible on the track in the %s theme', (scheme, colors) => {
     for (const state of ['under', 'near', 'over'] as const) {
-      // Light's near-plan yellow is 1.3:1, an accepted exception to 091's 3:1 (brief 107): the amounts sit next to it.
+      // Light's near-plan yellow is 1.3:1, an accepted exception to 091's 3:1 (brief 107): the row's "€X left" label
+      // sits next to it (brief 105).
       if (scheme === 'light' && state === 'near') continue;
       expect(contrast(progressColor(state, colors), colors.track)).toBeGreaterThanOrEqual(3);
     }
@@ -41,11 +42,46 @@ describe('progressColor', () => {
   });
 });
 
-describe('active', () => {
+// Every text and icon pair the screens draw, from the design system's contrast tables (brief 105's plan).
+const textPairs = [
+  ['text', 'bg'],
+  ['text', 'surface'],
+  ['text', 'fill'],
+  ['text', 'accentTint'],
+  ['muted', 'bg'],
+  ['muted', 'surface'],
+  ['accent', 'bg'],
+  ['accent', 'surface'],
+  ['onAccent', 'accent'],
+  ['onAccent', 'danger'],
+  ['accentText', 'accentTint'],
+  ['danger', 'bg'],
+  ['danger', 'surface'],
+  ['cautionText', 'surface'],
+  ['active', 'activeTint'],
+] as const;
+// `faint` is for minor icons and graphics only, never text.
+const iconPairs = [
+  ['faint', 'bg'],
+  ['faint', 'surface'],
+] as const;
+
+describe('contrast', () => {
   it.each([
     ['dark', darkColors],
     ['light', lightColors],
-  ])("keeps the open ledger's text readable in the %s theme", (_, colors) => {
-    expect(contrast(colors.active, colors.activeTint)).toBeGreaterThanOrEqual(4.5);
+  ])('keeps every text and icon pair readable in the %s theme', (_, colors) => {
+    const failing = [
+      ...textPairs.map(([foreground, background]) => [foreground, background, 4.5] as const),
+      ...iconPairs.map(([foreground, background]) => [foreground, background, 3] as const),
+    ]
+      .map(([foreground, background, need]) => ({
+        pair: `${foreground} on ${background}`,
+        ratio: contrast(colors[foreground], colors[background]),
+        need,
+      }))
+      // `!(>=)` also fails a ratio that couldn't be computed.
+      .filter(({ ratio, need }) => !(ratio >= need));
+    expect(failing).toEqual([]);
   });
 });

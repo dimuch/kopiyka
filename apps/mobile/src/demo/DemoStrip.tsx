@@ -16,7 +16,7 @@ export function DemoStrip() {
         Demo: a reload clears your changes.
       </Text>
       <Link href={SIGN_IN_URL} asChild>
-        <Text variant="labelSemi" color="accent" style={styles.link}>
+        <Text variant="labelSemi" color="accentText" style={styles.link}>
           Sign in
         </Text>
       </Link>

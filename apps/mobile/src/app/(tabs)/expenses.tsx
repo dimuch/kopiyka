@@ -27,7 +27,7 @@ export default function Expenses() {
   const colors = useColors();
   const styles = useThemedStyles(makeStyles);
   const cardStyle = useCardStyle('padded');
-  const listCard = useCardStyle('list');
+  const rowCard = useCardStyle('none');
   const { ledger } = useSession();
   const [thisMonth] = useState(() => kyivMonth(new Date()));
   const [month, setMonth] = useState(thisMonth);
@@ -138,11 +138,10 @@ export default function Expenses() {
                   disabled={order.saving}
                   onDragChange={setDragging}
                   scrollRef={scrollRef}
-                  style={listCard}
-                  renderRow={(row, index, drag) => (
+                  renderRow={(row, drag) => (
                     // Two sibling buttons, not one inside the other: VoiceOver couldn't reach a nested one, and web
                     // would nest role="button" (as on Budget). Only the row drags; an ended month takes no new expenses.
-                    <View style={[styles.openRow, index < rows.length - 1 && styles.divider, !ended && styles.withAdd]}>
+                    <View style={[rowCard, styles.openRow, !ended && styles.withAdd]}>
                       <Pressable
                         {...drag}
                         accessibilityRole="button"
@@ -218,9 +217,8 @@ const makeStyles = (colors: Palette) =>
       alignItems: 'center',
       gap: space.md,
       paddingVertical: space.md,
-      paddingHorizontal: space.lg,
+      paddingHorizontal: space.md,
     },
-    divider: { borderBottomWidth: 1, borderBottomColor: colors.border },
     openRow: { flexDirection: 'row', alignItems: 'center' },
     // The row's "+" sits this far from the card's edge, like Budget's edit button.
     withAdd: { paddingRight: space.sm },

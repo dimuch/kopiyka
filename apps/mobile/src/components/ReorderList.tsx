@@ -7,15 +7,12 @@ import {
   type PanResponderInstance,
   Platform,
   type ScrollViewInstance,
-  type StyleProp,
   StyleSheet,
   View,
-  type ViewStyle,
 } from 'react-native';
-import { useColors } from '@/appearance/AppearanceContext';
 import { blockTextGestures } from '@/components/blockTextGestures';
 import { dropIndex, edgeStep, rowOffset } from '@/data/reorder';
-import { radius } from '@/theme';
+import { space } from '@/theme';
 
 /** What a row spreads on the `Pressable` that picks it up. Empty while the list is disabled. */
 export interface DragHandlers {
@@ -26,7 +23,7 @@ export interface DragHandlers {
 interface Props<T> {
   items: readonly T[];
   keyOf: (item: T) => number;
-  renderRow: (item: T, index: number, drag: DragHandlers) => ReactNode;
+  renderRow: (item: T, drag: DragHandlers) => ReactNode;
   /** Called on a drop that moved the row (`from !== to`). */
   onMove: (from: number, to: number) => void;
   disabled: boolean;
@@ -34,7 +31,6 @@ interface Props<T> {
   onDragChange: (dragging: boolean) => void;
   /** The scroll view the list sits in, scrolled while a held row is near its top or bottom. */
   scrollRef?: RefObject<ScrollViewInstance | null>;
-  style?: StyleProp<ViewStyle>;
 }
 
 interface Held {
@@ -211,10 +207,9 @@ class Drag {
  * a tap still opens the row and a scroll that starts before the long-press still scrolls.
  */
 export function ReorderList<T>(props: Props<T>) {
-  const { items, keyOf, renderRow, onMove, disabled, onDragChange, scrollRef, style } = props;
+  const { items, keyOf, renderRow, onMove, disabled, onDragChange, scrollRef } = props;
   // While disabled a long-press still needs a handler, or the Pressable would take a long hold as a tap.
   const ignore = () => {};
-  const colors = useColors();
   const [held, setHeld] = useState<Held | null>(null);
   const [drag] = useState(() => new Drag(setHeld));
   const listRef = useRef<HostInstance>(null);
@@ -235,7 +230,7 @@ export function ReorderList<T>(props: Props<T>) {
   }, []);
 
   return (
-    <View ref={listRef} {...drag.responder.panHandlers} style={style}>
+    <View ref={listRef} {...drag.responder.panHandlers}>
       {items.map((item, index) => {
         const key = keyOf(item);
         const isHeld = held?.key === key;
@@ -251,10 +246,9 @@ export function ReorderList<T>(props: Props<T>) {
             index={index}
             offset={held && !isHeld ? rowOffset(index, held.from, held.to, held.height) : 0}
             dragY={isHeld ? drag.dragY : null}
-            heldStyle={isHeld ? { backgroundColor: colors.surface } : null}
             onHeight={(height) => drag.heights.set(key, height)}
           >
-            {renderRow(item, index, handlers)}
+            {renderRow(item, handlers)}
           </Row>
         );
       })}
@@ -268,12 +262,11 @@ interface RowProps {
   offset: number;
   /** The finger's travel, for the held row only. */
   dragY: Animated.Value | null;
-  heldStyle: ViewStyle | null;
   onHeight: (height: number) => void;
   children: ReactNode;
 }
 
-function Row({ index, offset, dragY, heldStyle, onHeight, children }: RowProps) {
+function Row({ index, offset, dragY, onHeight, children }: RowProps) {
   const [shift] = useState(() => new Animated.Value(0));
   const shownAt = useRef(index);
   // Before paint, so a dropped row never shows a frame at its old offset.
@@ -294,8 +287,8 @@ function Row({ index, offset, dragY, heldStyle, onHeight, children }: RowProps) 
       onLayout={(event) => onHeight(event.nativeEvent.layout.height)}
       style={
         dragY
-          ? [styles.held, heldStyle, { transform: [{ translateY: dragY }, { scale: 1.03 }] }]
-          : { transform: [{ translateY: shift }] }
+          ? [styles.slot, styles.held, { transform: [{ translateY: dragY }, { scale: 1.03 }] }]
+          : [styles.slot, { transform: [{ translateY: shift }] }]
       }
     >
       {children}
@@ -304,5 +297,8 @@ function Row({ index, offset, dragY, heldStyle, onHeight, children }: RowProps) 
 }
 
 const styles = StyleSheet.create({
-  held: { zIndex: 1, borderRadius: radius.md },
+  // The 8pt between row cards sits inside the measured row (brief 105c), so `dropIndex` and `rowOffset` still add up
+  // plain heights.
+  slot: { paddingBottom: space.sm },
+  held: { zIndex: 1 },
 });

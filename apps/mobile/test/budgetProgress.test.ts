@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { budgetProgress } from '@/data/budgetProgress';
+import { barNote, budgetProgress } from '@/data/budgetProgress';
 
 describe('budgetProgress', () => {
   it.each([
@@ -22,5 +22,19 @@ describe('budgetProgress', () => {
     expect(progress.state).toBe(state);
     expect(progress.overCents).toBe(over);
     expect(progress.leftCents).toBe(left);
+  });
+});
+
+describe('barNote', () => {
+  it.each([
+    // [spent, planned, words under the bar, colour] in EUR cents
+    [5000, 10000, null, null], // under plan: nothing
+    [9500, 10000, '€5 left', 'cautionText'], // near plan
+    [10000, 10000, '€0 left', 'cautionText'], // at plan is near (091): "€0 left", as decided at 105's Gate A
+    [10900, 10000, '€9 over', 'danger'], // over plan
+  ] as const)('%i of %i cents', (spent, planned, words, color) => {
+    const note = barNote(budgetProgress(spent, planned));
+    expect(note && note.words).toBe(words);
+    expect(note && note.color).toBe(color);
   });
 });

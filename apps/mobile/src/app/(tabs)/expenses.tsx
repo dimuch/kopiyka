@@ -15,20 +15,13 @@ import { ProgressBar } from '@/components/ProgressBar';
 import { ReorderList } from '@/components/ReorderList';
 import { ScreenHeader } from '@/components/ScreenHeader';
 import { Text } from '@/components/Text';
-import { type BudgetProgress, budgetProgress } from '@/data/budgetProgress';
+import { barNote, budgetProgress } from '@/data/budgetProgress';
 import { spendingFigures, spentByCategory } from '@/data/monthSummary';
 import { tabTitle } from '@/data/tabItems';
 import { useCategoryOrder } from '@/data/useCategoryOrder';
 import { useMonth } from '@/data/useMonth';
 import { eur, kyivMonth, monthName, toCents } from '@/format';
 import { type Palette, space } from '@/theme';
-
-/** The words under a row's bar: over plan, or near it (brief 105); nothing under plan. */
-function barNote({ state, overCents, leftCents }: BudgetProgress) {
-  if (state === 'over') return { words: `${eur(overCents)} over`, color: 'danger' } as const;
-  if (state === 'near') return { words: `${eur(leftCents)} left`, color: 'cautionText' } as const;
-  return null;
-}
 
 export default function Expenses() {
   const colors = useColors();

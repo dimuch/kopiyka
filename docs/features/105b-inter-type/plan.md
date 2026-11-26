@@ -188,7 +188,7 @@ input's font size. Nothing new to do, nothing that works today stops working, an
   - Verify: `rg -n -i "bricolage|plex" apps/mobile/package.json apps/mobile/src apps/mobile/demo-modules.txt yarn.lock`
     finds nothing. `find apps/mobile/dist apps/mobile/dist-demo -name '*.ttf'` lists the four Inter faces. Any other
     font file is recorded in Deviations.
-- [ ] 7. Name the Text pairs in the design system and mark 105 part 1 done in the backlog (≈ 20 lines, docs)
+- [x] 7. Name the Text pairs in the design system and mark 105 part 1 done in the backlog (≈ 20 lines, docs)
   - Files: `docs/design/design-system.md`, `docs/features/BACKLOG.md`
   - Change:
     - The doc's `Text` row names the four pairs and their weights: `bodyMedium` 500, `labelRegular` 400, `labelSemi`

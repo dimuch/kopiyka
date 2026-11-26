@@ -59,12 +59,12 @@ export const lightColors: Palette = {
   borderStrong: '#D5DAE1',
 };
 
+/** The four Inter faces, by weight; AppShell loads each under this name. */
 export const fonts = {
-  display: 'BricolageGrotesque_700Bold',
-  displayMedium: 'BricolageGrotesque_500Medium',
-  body: 'IBMPlexSans_400Regular',
-  bodyMedium: 'IBMPlexSans_500Medium',
-  bodySemi: 'IBMPlexSans_600SemiBold',
+  regular: 'Inter_400Regular',
+  medium: 'Inter_500Medium',
+  semiBold: 'Inter_600SemiBold',
+  extraBold: 'Inter_800ExtraBold',
 };
 
 /** Spacing on the 4pt grid (docs/design/design-system.md). */
@@ -74,26 +74,26 @@ export const radius = { sm: 10, md: 14, lg: 20, xl: 28, pill: 999 } as const;
 /** Control heights; `iconButton` is also the 44pt touch minimum. */
 export const size = { control: 48, iconButton: 44, chip: 32 } as const;
 
-// Type roles from the design system, in today's faces until brief 105b brings Inter. The face carries the weight:
-// each family has one weight, and a fontWeight would make web draw a fake bolder one.
-const display = { fontFamily: fonts.display, fontSize: 28, lineHeight: 34, letterSpacing: -1 } satisfies TextStyle;
+// Type roles from the design system, in Inter. The face carries the weight: each face has one weight, and a fontWeight
+// would make web draw a fake bolder one.
+const display = { fontFamily: fonts.extraBold, fontSize: 28, lineHeight: 34, letterSpacing: -1 } satisfies TextStyle;
 const bodyStrong = {
-  fontFamily: fonts.bodySemi,
+  fontFamily: fonts.semiBold,
   fontSize: 15,
   lineHeight: 20,
   letterSpacing: -0.2,
 } satisfies TextStyle;
 export const text = {
   display,
-  title: { fontFamily: fonts.display, fontSize: 22, lineHeight: 28, letterSpacing: -0.8 },
-  heading: { fontFamily: fonts.bodySemi, fontSize: 17, lineHeight: 22, letterSpacing: -0.4 },
-  body: { fontFamily: fonts.body, fontSize: 15, lineHeight: 20, letterSpacing: -0.2 },
+  title: { fontFamily: fonts.extraBold, fontSize: 22, lineHeight: 28, letterSpacing: -0.8 },
+  heading: { fontFamily: fonts.semiBold, fontSize: 17, lineHeight: 22, letterSpacing: -0.4 },
+  body: { fontFamily: fonts.regular, fontSize: 15, lineHeight: 20, letterSpacing: -0.2 },
   bodyStrong,
-  label: { fontFamily: fonts.bodyMedium, fontSize: 13, lineHeight: 18, letterSpacing: -0.1 },
-  caption: { fontFamily: fonts.body, fontSize: 12, lineHeight: 16, letterSpacing: 0 },
+  label: { fontFamily: fonts.medium, fontSize: 13, lineHeight: 18, letterSpacing: -0.1 },
+  caption: { fontFamily: fonts.regular, fontSize: 12, lineHeight: 16, letterSpacing: 0 },
   /** Typed text in a field: iOS Safari zooms into an input under 16px. Fields are single-line and centred by their
    *  height, so no lineHeight. */
-  input: { fontFamily: fonts.body, fontSize: 16, letterSpacing: -0.2 },
+  input: { fontFamily: fonts.regular, fontSize: 16, letterSpacing: -0.2 },
   /** Money: tabular digits, so amounts line up. */
   amount: { ...bodyStrong, fontVariant: ['tabular-nums'] },
   amountLg: { ...display, fontVariant: ['tabular-nums'] },

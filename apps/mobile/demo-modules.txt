@@ -1,6 +1,5 @@
 @babel/runtime
-@expo-google-fonts/bricolage-grotesque
-@expo-google-fonts/ibm-plex-sans
+@expo-google-fonts/inter
 @expo/cli
 @expo/metro-runtime
 @radix-ui/react-compose-refs

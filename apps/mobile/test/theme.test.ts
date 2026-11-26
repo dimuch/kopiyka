@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { darkColors, lightColors, progressColor } from '@/theme';
+import { darkColors, fonts, lightColors, progressColor, text } from '@/theme';
 
 // WCAG 2 contrast ratio of two '#RRGGBB' colours.
 function contrast(foreground: string, background: string): number {
@@ -83,5 +83,41 @@ describe('contrast', () => {
       // `!(>=)` also fails a ratio that couldn't be computed.
       .filter(({ ratio, need }) => !(ratio >= need));
     expect(failing).toEqual([]);
+  });
+});
+
+describe('text', () => {
+  // The design system's Type table: role, face, size, line height, tracking, and the amounts' tabular digits.
+  it.each([
+    ['display', 'Inter_800ExtraBold', 28, 34, -1, undefined],
+    ['title', 'Inter_800ExtraBold', 22, 28, -0.8, undefined],
+    ['heading', 'Inter_600SemiBold', 17, 22, -0.4, undefined],
+    ['body', 'Inter_400Regular', 15, 20, -0.2, undefined],
+    ['bodyStrong', 'Inter_600SemiBold', 15, 20, -0.2, undefined],
+    ['label', 'Inter_500Medium', 13, 18, -0.1, undefined],
+    ['caption', 'Inter_400Regular', 12, 16, 0, undefined],
+    ['input', 'Inter_400Regular', 16, undefined, -0.2, undefined],
+    ['amount', 'Inter_600SemiBold', 15, 20, -0.2, ['tabular-nums']],
+    ['amountLg', 'Inter_800ExtraBold', 28, 34, -1, ['tabular-nums']],
+  ] as const)(
+    'sets %s from the design system',
+    (role, fontFamily, fontSize, lineHeight, letterSpacing, fontVariant) => {
+      expect(text[role]).toStrictEqual({
+        fontFamily,
+        fontSize,
+        ...(lineHeight === undefined ? {} : { lineHeight }),
+        letterSpacing,
+        ...(fontVariant === undefined ? {} : { fontVariant }),
+      });
+    },
+  );
+
+  it('has one Inter face per weight', () => {
+    expect(Object.values(fonts)).toEqual([
+      'Inter_400Regular',
+      'Inter_500Medium',
+      'Inter_600SemiBold',
+      'Inter_800ExtraBold',
+    ]);
   });
 });

@@ -5,6 +5,7 @@ import { useColors } from '@/appearance/AppearanceContext';
 import { Icon } from '@/components/Icon';
 import { pressedOpacity } from '@/components/Pressable';
 import { useTabItems } from '@/data/tabItems';
+import { fonts } from '@/theme';
 
 export default function TabsLayout() {
   const colors = useColors();
@@ -36,7 +37,7 @@ export default function TabsLayout() {
               // Without labels the web tab has no name.
               tabBarAccessibilityLabel: Platform.OS === 'web' ? label : undefined,
               tabBarBadge: badge,
-              tabBarBadgeStyle: { backgroundColor: colors.accent, color: colors.onAccent },
+              tabBarBadgeStyle: { backgroundColor: colors.accent, color: colors.onAccent, fontFamily: fonts.regular },
               tabBarIcon: ({ color, size }) => <Icon name={tab.icon} color={color} size={size} />,
             }}
           />

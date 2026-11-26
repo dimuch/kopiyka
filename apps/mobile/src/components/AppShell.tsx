@@ -1,9 +1,8 @@
-import { BricolageGrotesque_500Medium, BricolageGrotesque_700Bold } from '@expo-google-fonts/bricolage-grotesque';
-import {
-  IBMPlexSans_400Regular,
-  IBMPlexSans_500Medium,
-  IBMPlexSans_600SemiBold,
-} from '@expo-google-fonts/ibm-plex-sans';
+// One subpath per face: the package's index requires all 18 of its faces, and every build would ship them.
+import { Inter_400Regular } from '@expo-google-fonts/inter/400Regular';
+import { Inter_500Medium } from '@expo-google-fonts/inter/500Medium';
+import { Inter_600SemiBold } from '@expo-google-fonts/inter/600SemiBold';
+import { Inter_800ExtraBold } from '@expo-google-fonts/inter/800ExtraBold';
 import { useFonts } from 'expo-font';
 import { StatusBar } from 'expo-status-bar';
 import type { ReactNode } from 'react';
@@ -12,16 +11,16 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { AppearanceProvider, useAppearance, useColors } from '@/appearance/AppearanceContext';
 import { FocusStyles } from '@/components/FocusStyles';
 import { PhoneColumn } from '@/components/PhoneColumn';
+import { fonts } from '@/theme';
 
 function Root({ children }: { children: ReactNode }) {
   const { scheme } = useAppearance();
   const palette = useColors();
   const [fontsLoaded] = useFonts({
-    BricolageGrotesque_500Medium,
-    BricolageGrotesque_700Bold,
-    IBMPlexSans_400Regular,
-    IBMPlexSans_500Medium,
-    IBMPlexSans_600SemiBold,
+    [fonts.regular]: Inter_400Regular,
+    [fonts.medium]: Inter_500Medium,
+    [fonts.semiBold]: Inter_600SemiBold,
+    [fonts.extraBold]: Inter_800ExtraBold,
   });
   if (!fontsLoaded) return <View style={{ flex: 1, backgroundColor: palette.bg }} />;
 

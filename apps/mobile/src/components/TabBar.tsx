@@ -6,7 +6,7 @@ import { useColors, useThemedStyles } from '@/appearance/AppearanceContext';
 import { Icon } from '@/components/Icon';
 import { Pressable } from '@/components/Pressable';
 import { readTabs, type TabName, useTabItems } from '@/data/tabItems';
-import { type Palette, radius, space } from '@/theme';
+import { fonts, type Palette, radius, space } from '@/theme';
 
 // The library bar's phone metrics (expo-router 58, BottomTabBar.js, TabBarIcon.js, Badge.js), so this copy lines up
 // with the bar on the tab pages. Recheck them after an expo-router upgrade.
@@ -81,6 +81,8 @@ function makeStyles(colors: Palette) {
       paddingHorizontal: space.xs,
       overflow: 'hidden',
       textAlign: 'center',
+      // The face Badge.js takes from the theme's regular font, so this badge matches the library bar's.
+      fontFamily: fonts.regular,
       // Badge.js sizes its text from the badge: layout maths, no role.
       // eslint-disable-next-line no-restricted-syntax
       fontSize: Math.floor((BADGE_SIZE * 3) / 4),

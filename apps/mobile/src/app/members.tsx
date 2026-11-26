@@ -542,6 +542,6 @@ const makeStyles = (colors: Palette) =>
       color: colors.text,
       paddingHorizontal: space.lg,
     },
-    // One-off until brief 105: Save and Invite dim less than other buttons.
+    // One-off until brief 105d: Save and Invite dim less than other buttons.
     dimmed: { opacity: 0.5 },
   });

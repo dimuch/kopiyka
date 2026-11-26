@@ -48,6 +48,6 @@ const makeStyles = (colors: Palette) =>
       alignItems: 'center',
     },
     text: { textAlign: 'center' },
-    // Full width in a centred card. One-off until brief 105: 48pt with radius.md, and the large size's spinner.
+    // Full width in a centred card. One-off until brief 105d: 48pt with radius.md, and the large size's spinner.
     button: { alignSelf: 'stretch', minHeight: size.control, borderRadius: radius.md },
   });

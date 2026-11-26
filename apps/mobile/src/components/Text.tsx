@@ -4,7 +4,7 @@ import { useColors } from '@/appearance/AppearanceContext';
 import { fonts, type Palette, text } from '@/theme';
 
 // The type roles (`input` draws the € and ₴ inside an amount field), plus the role-and-face pairs the screens use,
-// named role + face. A face is never a screen's style: brief 105 retunes every face here and in theme.ts.
+// named role + face. A face is never a screen's style: brief 105b retunes every face here and in theme.ts.
 const variants = StyleSheet.create({
   ...text,
   bodyMedium: { ...text.body, fontFamily: fonts.bodyMedium },

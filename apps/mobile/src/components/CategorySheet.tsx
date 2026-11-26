@@ -78,7 +78,7 @@ const makeStyles = (colors: Palette) =>
       backgroundColor: colors.faint,
     },
     head: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
-    // Square until brief 105, as before IconButton: a rounded corner would only round its web focus ring.
+    // Square until brief 105d, as before IconButton: a rounded corner would only round its web focus ring.
     // eslint-disable-next-line no-restricted-syntax
     close: { marginRight: -space.sm, borderRadius: 0 },
     grid: { flexDirection: 'row', flexWrap: 'wrap', gap: space.sm },

@@ -273,7 +273,7 @@ const makeStyles = (colors: Palette) =>
       paddingHorizontal: space.xs,
     },
     // All capitals (`dayLabel` upper-cases the date) need positive tracking, and the scale has no overline role
-    // (brief 105 decides).
+    // (brief 105b decides).
     // eslint-disable-next-line no-restricted-syntax
     dayLabel: { letterSpacing: 0.5 },
     item: {

@@ -74,7 +74,7 @@ export const radius = { sm: 10, md: 14, lg: 20, xl: 28, pill: 999 } as const;
 /** Control heights; `iconButton` is also the 44pt touch minimum. */
 export const size = { control: 48, iconButton: 44, chip: 32 } as const;
 
-// Type roles from the design system, in today's faces until brief 105 brings Inter. The face carries the weight:
+// Type roles from the design system, in today's faces until brief 105b brings Inter. The face carries the weight:
 // each family has one weight, and a fontWeight would make web draw a fake bolder one.
 const display = { fontFamily: fonts.display, fontSize: 28, lineHeight: 34, letterSpacing: -1 } satisfies TextStyle;
 const bodyStrong = {

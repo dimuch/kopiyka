@@ -135,7 +135,7 @@ change. The demo store is untouched.
 - [x] 0. Bump version to 1.23.14
   - Files: package.json, apps/mobile/app.json
   - Change: set both to 1.23.14
-- [ ] 1. Record the dark hairline in the design system and mark 105b done in the backlog (≈ 14 lines, docs)
+- [x] 1. Record the dark hairline in the design system and mark 105b done in the backlog (≈ 14 lines, docs)
   - Files: `docs/design/design-system.md`, `docs/features/BACKLOG.md`
   - Change:
     - The doc's dark first pass gains `hairline rgba(237,236,242,0.06)`: dark `text` at 6%, as light's is light

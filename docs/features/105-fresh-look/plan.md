@@ -181,7 +181,7 @@ kept (slice 5's test), and no API, data or connector changes.
     fails if `'dark'` isn't kept explicitly), `'auto' → auto`, `'Dark'`, `''`, `'x'` → light. `resolveScheme` table
     unchanged. Verify: web, `localStorage.removeItem('kopiyka.theme')` + reload → light; `'dark'` + reload → dark;
     `'auto'` follows the browser.
-- [ ] 6. Record the dark tokens and the caution label in the design system (≈ 6 lines, docs)
+- [x] 6. Record the dark tokens and the caution label in the design system (≈ 6 lines, docs)
   - Files: `docs/design/design-system.md`
   - Change: the dark section says `faint`, `active`, `activeTint` and `backdrop` keep their pre-105 values; the
     caution paragraph says the label is in (past tense, not "until brief 105"). No other doc text changes.

@@ -135,7 +135,7 @@ input's font size. Nothing new to do, nothing that works today stops working, an
 
 ## Slices
 
-- [ ] 0. Bump version to 1.23.13
+- [x] 0. Bump version to 1.23.13
   - Files: package.json, apps/mobile/app.json
   - Change: set both to 1.23.13
 - [ ] 1. Type every input at the input weight and every field label in label (≈ 34 lines)

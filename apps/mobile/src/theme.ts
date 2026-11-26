@@ -2,8 +2,8 @@ import type { TextStyle } from 'react-native';
 import type { Scheme } from '@/appearance/preference';
 import type { BudgetState } from '@/data/budgetProgress';
 
-// Colours from docs/design/design-system.md (direction A, brief 105). `border` and `borderStrong` aren't in the doc:
-// briefs 105c and 105d remove their last callers, then the tokens.
+// Colours from docs/design/design-system.md (direction A, brief 105). `borderStrong` isn't in the doc: brief 105d
+// removes its last callers, then the token.
 export const darkColors = {
   bg: '#0E0D12',
   surface: '#18171D',
@@ -31,7 +31,6 @@ export const darkColors = {
   backdrop: 'rgba(5,6,8,0.62)',
   /** The rare edge, where two same-colour surfaces meet: each theme's `text` at 6%. */
   hairline: 'rgba(237,236,242,0.06)',
-  border: '#23272E',
   borderStrong: '#2A2F37',
 };
 
@@ -58,7 +57,6 @@ export const lightColors: Palette = {
   activeTint: '#E3F4E8',
   backdrop: 'rgba(17,16,20,0.35)',
   hairline: 'rgba(17,16,20,0.06)',
-  border: '#E3E6EB',
   borderStrong: '#D5DAE1',
 };
 

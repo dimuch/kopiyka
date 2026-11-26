@@ -74,7 +74,7 @@ export default function Statistics() {
               <EmptyMonth text="Nothing planned, spent or earned in this period." />
             ) : (
               <>
-                <Card padding="list">
+                <Card padding="none" style={styles.totals}>
                   {(
                     [
                       ['Income', summary.totals.incomeEur],
@@ -82,16 +82,11 @@ export default function Statistics() {
                       ['Spent', summary.totals.spentEur],
                       ['Left', summary.totals.leftEur],
                     ] as const
-                  ).map(([name, amount], index, rows) => {
+                  ).map(([name, amount]) => {
                     const cents = toCents(amount);
                     return (
                       // One screen-reader stop per figure.
-                      <View
-                        key={name}
-                        accessible
-                        accessibilityLabel={`${name}, ${eur(cents)}`}
-                        style={[styles.row, index < rows.length - 1 && styles.divider]}
-                      >
+                      <View key={name} accessible accessibilityLabel={`${name}, ${eur(cents)}`} style={styles.row}>
                         <Text variant="bodyMedium" style={styles.grow}>
                           {name}
                         </Text>
@@ -108,18 +103,19 @@ export default function Statistics() {
                     <Text variant="heading" style={styles.sectionTitle}>
                       By category
                     </Text>
-                    <Card padding="list">
-                      {summary.categories.map((category, index) => {
+                    <View style={styles.list}>
+                      {summary.categories.map((category) => {
                         const planned = eur(toCents(category.plannedEur));
                         const spent = eur(toCents(category.spentEur));
                         const gap = planGap(category);
                         return (
                           // One screen-reader stop per category: 'rent, spent €700 of €650 planned, €50 over'.
-                          <View
+                          <Card
                             key={category.categoryId}
+                            padding="none"
                             accessible
                             accessibilityLabel={`${category.name}, spent ${spent} of ${planned} planned, ${gap.text}`}
-                            style={[styles.row, index < summary.categories.length - 1 && styles.divider]}
+                            style={styles.row}
                           >
                             <View style={styles.rowText}>
                               <Text variant="bodyMedium">{category.name}</Text>
@@ -133,10 +129,10 @@ export default function Statistics() {
                                 of {planned}
                               </Text>
                             </View>
-                          </View>
+                          </Card>
                         );
                       })}
-                    </Card>
+                    </View>
                   </>
                 )}
                 {summary.months.length > 1 && (
@@ -144,18 +140,19 @@ export default function Statistics() {
                     <Text variant="heading" style={styles.sectionTitle}>
                       By month
                     </Text>
-                    <Card padding="list">
-                      {summary.months.map((month, index) => {
+                    <View style={styles.list}>
+                      {summary.months.map((month) => {
                         const income = eur(toCents(month.incomeEur));
                         const spent = eur(toCents(month.spentEur));
                         const leftCents = toCents(month.leftEur);
                         const label = shortMonthLabel(month.month);
                         return (
-                          <View
+                          <Card
                             key={month.month}
+                            padding="none"
                             accessible
                             accessibilityLabel={`${label}, income ${income}, spent ${spent}, left ${eur(leftCents)}`}
-                            style={[styles.row, index < summary.months.length - 1 && styles.divider]}
+                            style={styles.row}
                           >
                             <View style={styles.rowText}>
                               <Text variant="bodyMedium">{label}</Text>
@@ -166,10 +163,10 @@ export default function Statistics() {
                             <Text variant="amount" color={leftCents < 0 ? 'danger' : 'text'}>
                               {eur(leftCents)}
                             </Text>
-                          </View>
+                          </Card>
                         );
                       })}
-                    </Card>
+                    </View>
                   </>
                 )}
               </>
@@ -331,9 +328,10 @@ const makeStyles = (colors: Palette) =>
       alignItems: 'center',
       gap: space.md,
       paddingVertical: space.md,
-      paddingHorizontal: space.lg,
+      paddingHorizontal: space.md,
     },
-    divider: { borderBottomWidth: 1, borderBottomColor: colors.border },
+    totals: { paddingVertical: space.xs },
+    list: { gap: space.sm },
     sectionTitle: { paddingHorizontal: space.xs },
     rowText: { flex: 1, gap: space.xxs },
     grow: { flex: 1 },

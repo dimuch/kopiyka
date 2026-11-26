@@ -135,7 +135,7 @@ kept (slice 5's test), and no API, data or connector changes.
 - [x] 0. Bump version to 1.23.12
   - Files: package.json, apps/mobile/app.json
   - Change: set both to 1.23.12
-- [ ] 1. Draw the app in the design system's light and dark palettes, with violet bars (≈ 115 lines)
+- [x] 1. Draw the app in the design system's light and dark palettes, with violet bars (≈ 115 lines)
   - Files: `apps/mobile/src/theme.ts`, `apps/mobile/test/theme.test.ts`, `apps/mobile/src/app/(tabs)/settings.tsx`,
     `apps/mobile/src/demo/DemoStrip.tsx`
   - Change: both palettes take the doc's values and gain `fill`, `accentText`, `cautionText`; the six non-doc tokens

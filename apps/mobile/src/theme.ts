@@ -2,65 +2,73 @@ import type { TextStyle } from 'react-native';
 import type { Scheme } from '@/appearance/preference';
 import type { BudgetState } from '@/data/budgetProgress';
 
-// Colors and type from the "Budget App Screens" design canvas.
+// Colours from docs/design/design-system.md (direction A, brief 105). The tokens after `backdrop` aren't in the
+// doc: briefs 105c and 105d remove their last callers, then the tokens.
 export const darkColors = {
-  bg: '#0E1013',
-  surface: '#181B20',
-  border: '#23272E',
-  borderStrong: '#2A2F37',
-  track: '#262A31',
-  text: '#EDEEF0',
-  muted: '#A0A7B0',
-  accent: '#7CB0FF',
-  onAccent: '#0E1013',
-  over: '#FFA65C',
+  bg: '#0E0D12',
+  surface: '#18171D',
+  /** Grey pill buttons, inputs and chips. */
+  fill: '#211F27',
+  track: '#2A2832',
+  text: '#EDECF2',
+  muted: '#A3A0B2',
+  /** Minor icons and graphics only, never text. Not in the doc's dark first pass: today's value. */
+  faint: '#6E757E',
+  accent: '#A08CFF',
+  onAccent: '#0E0D12',
+  /** Chips and selected rows. */
+  accentTint: '#241D45',
+  /** Text on `accentTint`. */
+  accentText: '#C9BDFF',
   /** A category bar from 90% of plan up to plan; the same yellow in both themes (brief 107). */
   caution: '#F2C94C',
+  /** The "€15 left" label on a near-plan row. */
+  cautionText: '#F2C94C',
   danger: '#FF8A80',
-  /** Selected chips and the "Added" note. */
-  accentTint: '#16233A',
-  accentLine: '#2B4470',
-  /** The open ledger in Settings' picker. */
-  activeTint: '#132A1C',
-  activeLine: '#24543A',
+  /** The open ledger in Settings' picker. Not in the doc's dark first pass: today's values. */
   active: '#6FD08C',
-  /** Toast and sheet items, a step above `surface`. */
+  activeTint: '#132A1C',
+  backdrop: 'rgba(5,6,8,0.62)',
+  border: '#23272E',
+  borderStrong: '#2A2F37',
+  over: '#FFA65C',
   surfaceRaised: '#22262D',
   borderStrongest: '#3A404A',
-  /** Placeholders and minor icons. */
-  faint: '#6E757E',
   fainter: '#4A505A',
-  backdrop: 'rgba(5,6,8,0.62)',
+  accentLine: '#2B4470',
+  activeLine: '#24543A',
 };
 
 export type Palette = typeof darkColors;
 
-// First pass derived from the dark tokens; tuned on the iPhone.
 export const lightColors: Palette = {
-  bg: '#F5F6F8',
+  bg: '#F7F7F8',
   surface: '#FFFFFF',
+  fill: '#F0EFF4',
+  track: '#ECEAF2',
+  text: '#111014',
+  muted: '#6B6780',
+  faint: '#8E8A9E',
+  accent: '#6D4AFF',
+  onAccent: '#FFFFFF',
+  accentTint: '#EEE9FF',
+  accentText: '#4C2FC9',
+  // The dark theme's yellow (brief 107). 1.3:1 on `track`, under brief 091's 3:1: an accepted exception, since a
+  // near-plan row also says "€X left" (brief 105).
+  caution: '#F2C94C',
+  cautionText: '#8A6600',
+  danger: '#C23B31',
+  active: '#1B7A3D',
+  activeTint: '#E3F4E8',
+  backdrop: 'rgba(17,16,20,0.35)',
   border: '#E3E6EB',
   borderStrong: '#D5DAE1',
-  track: '#E2E6EC',
-  text: '#14171C',
-  muted: '#5B6470',
-  accent: '#1F5FD1',
-  onAccent: '#FFFFFF',
   over: '#B25E09',
-  // The dark theme's yellow (brief 107). 1.3:1 on the light `track`, under brief 091's 3:1: an accepted exception,
-  // since the row's amounts sit next to the bar.
-  caution: '#F2C94C',
-  danger: '#C23B31',
-  accentTint: '#E4EEFF',
-  accentLine: '#A9C6F5',
-  activeTint: '#E3F4E8',
-  activeLine: '#9DD5AE',
-  active: '#1B7A3D',
   surfaceRaised: '#FFFFFF',
   borderStrongest: '#B9C0CA',
-  faint: '#8B939E',
   fainter: '#B4BAC3',
-  backdrop: 'rgba(20,23,28,0.35)',
+  accentLine: '#A9C6F5',
+  activeLine: '#9DD5AE',
 };
 
 export const fonts = {
@@ -103,9 +111,10 @@ export const text = {
   amountLg: { ...display, fontVariant: ['tabular-nums'] },
 } satisfies Record<string, TextStyle>;
 
-/** A category's progress bar colour: green under plan, yellow from 90% up to plan, red over it (brief 091). */
+/** A category's progress bar colour: violet under plan (brief 105), yellow from 90% up to plan, red over it (brief
+ *  091). */
 export function progressColor(state: BudgetState, colors: Palette): string {
-  return state === 'over' ? colors.danger : state === 'near' ? colors.caution : colors.active;
+  return state === 'over' ? colors.danger : state === 'near' ? colors.caution : colors.accent;
 }
 
 // Tile hues per category, as on the canvas; anything new gets a stable hue from its name.

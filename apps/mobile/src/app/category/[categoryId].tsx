@@ -5,7 +5,7 @@ import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context'
 import { useColors, useThemedStyles } from '@/appearance/AppearanceContext';
 import { useSession } from '@/auth/AuthContext';
 import { AddExpenseButton } from '@/components/AddExpenseButton';
-import { Card, useCardStyle } from '@/components/Card';
+import { useCardStyle } from '@/components/Card';
 import { CategoryInMonth } from '@/components/CategoryInMonth';
 import { CategoryTile } from '@/components/CategoryTile';
 import { CompactTotal, useCollapsingSummary } from '@/components/CollapsingSummary';
@@ -66,6 +66,7 @@ function CategoryBreakdown({ categoryId, month, ended }: { categoryId: number; m
   const colors = useColors();
   const styles = useThemedStyles(makeStyles);
   const cardStyle = useCardStyle('padded');
+  const rowCard = useCardStyle('none');
   const { ledger } = useSession();
   const { data, error, reload } = useMonth(ledger.ledgerId, month, categoryId);
   const toast = useUndoOffer(reload);
@@ -158,25 +159,23 @@ function CategoryBreakdown({ categoryId, month, ended }: { categoryId: number; m
                     {eur(d.totalCents)}
                   </Text>
                 </View>
-                <Card padding="none">
-                  {d.items.map((e, i) => (
-                    <Pressable
-                      key={e.expenseId}
-                      accessibilityRole="button"
-                      accessibilityHint={ended ? 'View this expense' : 'Edit this expense'}
-                      onPress={() => router.push({ pathname: '/expense', params: { expenseId: e.expenseId } })}
-                      style={[styles.item, i < d.items.length - 1 && styles.divider]}
-                    >
-                      <View style={styles.itemText}>
-                        <Text variant="bodyMedium">{e.name || category.displayName}</Text>
-                        <Text variant="caption" color="muted" tabular>
-                          {uah(toCents(e.amountUah))}
-                        </Text>
-                      </View>
-                      <Text variant="amount">{eur(toCents(e.amountEur))}</Text>
-                    </Pressable>
-                  ))}
-                </Card>
+                {d.items.map((e) => (
+                  <Pressable
+                    key={e.expenseId}
+                    accessibilityRole="button"
+                    accessibilityHint={ended ? 'View this expense' : 'Edit this expense'}
+                    onPress={() => router.push({ pathname: '/expense', params: { expenseId: e.expenseId } })}
+                    style={[rowCard, styles.item]}
+                  >
+                    <View style={styles.itemText}>
+                      <Text variant="bodyMedium">{e.name || category.displayName}</Text>
+                      <Text variant="caption" color="muted" tabular>
+                        {uah(toCents(e.amountUah))}
+                      </Text>
+                    </View>
+                    <Text variant="amount">{eur(toCents(e.amountEur))}</Text>
+                  </Pressable>
+                ))}
               </View>
             ))}
           </View>
@@ -278,7 +277,6 @@ const makeStyles = (colors: Palette) =>
       justifyContent: 'space-between',
       gap: space.md,
       paddingVertical: space.sm,
-      paddingHorizontal: space.lg,
+      paddingHorizontal: space.md,
     },
-    divider: { borderBottomWidth: 1, borderBottomColor: colors.border },
   });

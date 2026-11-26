@@ -2,11 +2,10 @@ import { StyleSheet, View, type StyleProp, type ViewProps, type ViewStyle } from
 import { useAppearance, useThemedStyles } from '@/appearance/AppearanceContext';
 import { type Palette, radius, shadow, space } from '@/theme';
 
-/** padded: 12 all round. list: 4 above and below; its rows pad themselves and draw dividers to the edges.
- *  group: 4 all round, around radio options. none: the caller pads. */
-export type CardPadding = 'padded' | 'list' | 'group' | 'none';
+/** padded: 12 all round. group: 4 all round, around radio options. none: the caller pads. */
+export type CardPadding = 'padded' | 'group' | 'none';
 
-/** The card look, for a host that can't be a plain View: a Pressable, an Animated.View or ReorderList's `style`.
+/** The card look, for a host that can't be a plain View: a Pressable, an Animated.View or a list's row.
  *  A hook: call it at the component's top level only, never inside `.map` or after an early return. */
 export function useCardStyle(padding: CardPadding): StyleProp<ViewStyle> {
   const styles = useThemedStyles(makeStyles);
@@ -26,7 +25,6 @@ const makeStyles = (colors: Palette) =>
       borderRadius: radius.lg,
     },
     padded: { padding: space.md },
-    list: { paddingVertical: space.xs },
     group: { padding: space.xs },
     none: {},
   });

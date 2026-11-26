@@ -194,7 +194,7 @@ change. The demo store is untouched.
       4. Drag it back to first.
       5. Repeat steps 2 and 4 once on Expenses.
     - If the browser tool can't hold a press, that's recorded in Deviations, and Gate B's iPhone drag is the evidence.
-- [ ] 5. Give each item its own card on Income, Statistics, the category page and Members (≈ 70 lines)
+- [x] 5. Give each item its own card on Income, Statistics, the category page and Members (≈ 70 lines)
   - Files: `apps/mobile/src/app/(tabs)/income.tsx`, `statistics.tsx`, `apps/mobile/src/app/category/[categoryId].tsx`,
     `apps/mobile/src/app/members.tsx`, `apps/mobile/src/theme.ts`, `apps/mobile/src/components/Card.tsx`
   - Change:

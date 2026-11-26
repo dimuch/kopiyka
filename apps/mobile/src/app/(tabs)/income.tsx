@@ -6,7 +6,7 @@ import { ApiError } from '@/api/apiError';
 import type { IncomeItem } from '@/api/types';
 import { useColors, useThemedStyles } from '@/appearance/AppearanceContext';
 import { useSession } from '@/auth/AuthContext';
-import { Card } from '@/components/Card';
+import { useCardStyle } from '@/components/Card';
 import { EmptyMonth } from '@/components/EmptyMonth';
 import { IconButton } from '@/components/IconButton';
 import { LoadError } from '@/components/LoadError';
@@ -30,6 +30,7 @@ import { type Palette, space } from '@/theme';
 export default function Income() {
   const colors = useColors();
   const styles = useThemedStyles(makeStyles);
+  const rowCard = useCardStyle('none');
   const pushOnce = usePushOnce();
   const { ledger } = useSession();
   const params = useLocalSearchParams<{ month?: string | string[] }>();
@@ -145,11 +146,11 @@ export default function Income() {
                     </Text>
                   </View>
                 </View>
-                <Card padding="list">
-                  {items.map((item, index) => {
+                <View style={styles.list}>
+                  {items.map((item) => {
                     const amount = eur(toCents(item.amountEur));
                     const label = `${item.title}, ${amount}, added by ${item.addedBy}`;
-                    const style = [styles.row, index < items.length - 1 && styles.divider];
+                    const style = [rowCard, styles.row];
                     const content = (
                       <>
                         <View style={styles.rowText}>
@@ -182,7 +183,7 @@ export default function Income() {
                       </Pressable>
                     );
                   })}
-                </Card>
+                </View>
               </>
             )}
           </>
@@ -208,8 +209,8 @@ const makeStyles = (colors: Palette) =>
       alignItems: 'center',
       gap: space.md,
       paddingVertical: space.md,
-      paddingHorizontal: space.lg,
+      paddingHorizontal: space.md,
     },
-    divider: { borderBottomWidth: 1, borderBottomColor: colors.border },
+    list: { gap: space.sm },
     rowText: { flex: 1, gap: space.xxs },
   });

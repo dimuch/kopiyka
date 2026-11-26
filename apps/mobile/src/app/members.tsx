@@ -194,11 +194,11 @@ function OwnerMembers({ ledgerId }: { ledgerId: number }) {
     <>
       {error && <LoadError message="Couldn’t refresh. Check your connection and try again." onRetry={reload} />}
       {/* Never empty: the list always has the owner, who is the viewer. */}
-      <Card padding="none">
-        {data.members.map((member, index) => {
+      <View style={styles.list}>
+        {data.members.map((member) => {
           const isYou = member.userId === user.userId;
           return (
-            <View key={member.userId} style={[styles.row, index > 0 && styles.divider]}>
+            <Card key={member.userId} padding="none" style={styles.row}>
               <View style={styles.line}>
                 <MemberName member={member} isYou={isYou} />
                 {/* The owner can't remove themselves: the owner is the viewer. */}
@@ -225,10 +225,10 @@ function OwnerMembers({ ledgerId }: { ledgerId: number }) {
                   onDismiss={() => showPanel(null)}
                 />
               )}
-            </View>
+            </Card>
           );
         })}
-      </Card>
+      </View>
       <PendingList ledgerId={ledgerId} invites={data.invites} onChange={reload} />
       <InviteForm ledgerId={ledgerId} onInvited={reload} />
     </>
@@ -284,10 +284,9 @@ function PendingList({
       <Text variant="labelRegular" color="muted">
         Invited
       </Text>
-      {invites.length ? (
-        <Card padding="none">
-          {invites.map((invite, index) => (
-            <View key={invite.inviteId} style={[styles.row, index > 0 && styles.divider]}>
+      {invites.length
+        ? invites.map((invite) => (
+            <Card key={invite.inviteId} padding="none" style={styles.row}>
               <View style={styles.line}>
                 <View style={styles.who}>
                   <Text numberOfLines={1} variant="bodyMedium">
@@ -304,10 +303,9 @@ function PendingList({
                   style={styles.remove}
                 />
               </View>
-            </View>
-          ))}
-        </Card>
-      ) : null}
+            </Card>
+          ))
+        : null}
       {failure ? (
         <Text accessibilityRole="alert" variant="label" color="danger">
           {failure}
@@ -515,8 +513,8 @@ const makeStyles = (colors: Palette) =>
   StyleSheet.create({
     screen: { flex: 1, backgroundColor: colors.bg, paddingHorizontal: space.xl, paddingTop: space.xl },
     content: { gap: space.lg, paddingTop: space.sm, paddingBottom: space.huge },
-    row: { paddingVertical: space.sm, paddingHorizontal: space.lg, gap: space.sm },
-    divider: { borderTopWidth: 1, borderTopColor: colors.border },
+    row: { paddingVertical: space.sm, paddingHorizontal: space.md, gap: space.sm },
+    list: { gap: space.sm },
     line: { flexDirection: 'row', alignItems: 'center', gap: space.md },
     who: { flex: 1, minHeight: size.iconButton, justifyContent: 'center', gap: space.xxs },
     remove: { minWidth: size.iconButton, paddingHorizontal: space.xs },

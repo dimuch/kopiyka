@@ -151,21 +151,21 @@ Every slice runs `yarn format:check && yarn lint && yarn typecheck && yarn test`
 from the main checkout's `.env` in this worktree, or the API integration tests skip. No unit tests are added: no pure
 logic changes, and `Text` imports `react-native`, which the app's Node tests can't load (conventions §6).
 
-- [ ] 0. Bump version to 1.23.10
+- [x] 0. Bump version to 1.23.10
   - Files: package.json, apps/mobile/app.json
   - Change: set both to 1.23.10
-- [ ] 1. Draw Home's, Budget's and Income's text with Text (~89 lines)
+- [x] 1. Draw Home's, Budget's and Income's text with Text (~89 lines)
   - Files: `src/app/(tabs)/index.tsx`, `src/demo-app/(tabs)/index.tsx`, `src/app/(tabs)/budget.tsx`,
     `src/app/(tabs)/income.tsx` (under `apps/mobile`)
   - Change: their rows in the Contracts table, and the clean-up. `IncomeFigures` passes its over state as `color`.
   - Verify: gates. Snapshots: `home`, `budget`, `budget-ended`, `income`; `demo-home` on the demo.
-- [ ] 2. Draw Expenses' and the category page's text with Text (~104 lines)
+- [x] 2. Draw Expenses' and the category page's text with Text (~104 lines)
   - Files: `src/components/Text.tsx` (`captionMedium`), `src/app/(tabs)/expenses.tsx`,
     `src/app/category/[categoryId].tsx`
   - Change: the new pair with its caller, the nested " of €…", their rows in the table, and the moved comments.
   - Verify: gates. Snapshots: `expenses`, `expenses-scrolled`, `category`, `category-scrolled`, `category-menu`,
     `category-empty`.
-- [ ] 3. Draw Statistics' text with Text (~59 lines)
+- [x] 3. Draw Statistics' text with Text (~59 lines)
   - Files: `src/app/(tabs)/statistics.tsx`
   - Change: its rows in the table. The menu item switches variant on `checked`.
   - Verify: gates; the AC1 searches (AC → evidence). Snapshots: `statistics`, `statistics-menu`, `statistics-period`.
@@ -215,7 +215,7 @@ logic changes, and `Text` imports `react-native`, which the app's Node tests can
 - Another session may share the MySQL test database. If the integration tests fail in the schema reset, wait until
   the other run is idle and run them again. Never commit after a failed `yarn test`.
 
-**Snapshot script:** 104f's, installed on both origins (app and demo). Every row holds the element's tag, box,
+**Snapshot script:** 104f's, installed on both origins (app and demo). The build used 104f's full script, as given in `docs/features/104f-text-component/plan.md` (Deviations); the shorter snippet below is the planner's and records fewer columns. Every row holds the element's tag, box,
 background, top border, radius, padding, opacity, colour, `zIndex`, then font family, size, line height, tracking,
 `fontVariantNumeric`, weight and alignment, then a leaf's first 24 characters. `cmp` also returns the width (must be
 390), `a11yAdded` and `a11yRemoved`. Keys: `snap:before:104g:<view>:<scheme>` and `snap:after:104g:*`. I checked the
@@ -358,8 +358,28 @@ Both snapshot sets are taken before 1 December (Kyiv).
 
 ## Deviations
 
-<filled by the developer during build>
+- **Set-up.** The API (:3000), the web app (:8084) and the demo (:8082) ran from this worktree, with the two `.env`
+  files copied in (git-ignored). The web app is opened at `127.0.0.1:8084`: the API's CORS list allows that origin,
+  not `localhost:8084`. `claude-qa-104g` (#182, ledger 172) was seeded as planned: C is category 994 (rent), D 995
+  (groceries), F 996 (education).
+- **The snapshot script is 104f's** (in the 104f plan), not the shorter one above: the same columns plus `stroke`,
+  `borderTopStyle`, paused infinite animations, and `aria-busy`/`aria-disabled`/`aria-selected`/`aria-expanded` in the
+  accessibility record. Keys as planned.
+- **The slices were copied from the planner's scratch draft** (outside the repo). After slice 3 the branch's
+  `apps/mobile/src` matches the draft file for file.
+- **Scrolled views:** the screenshot after the scroll can come before the repaint, so each `*-scrolled` snapshot was
+  taken after a 1 s wait and a screenshot showing the moved rows.
+- **`category-menu`, light, slice 2:** the first compare showed 112 rows, every one moved up by exactly 100pt: the
+  page had been scrolled when the menu opened. Retaken with no element scrolled (checked first): 0 differences.
+- **Results:** every one of the 14 views × 2 schemes matches the before set with 0 differences and identical
+  accessibility records, at width 390, on the final code (slices 1 and 2's views again after slice 3). All on
+  2026-11-26. Demo (Home, Budget, Income, Expenses, a category page), light and dark: no console errors; its Expenses
+  list is too short to scroll. `check-builds` passes (149 demo modules) without `--accept`. The gates passed on every
+  commit: 532 API (2 skipped, integration against MySQL), 327 connector, 466 app tests.
 
 ## Consolidate
 
-<filled in /kopiyka-hos Phase 3a>
+No new function, hook or component apart from the `captionMedium` variant, which has one caller and its twin was the
+`overText` style it replaces. The twins of this part are the role spreads and face overrides in the 7 files, now all
+gone (AC1's searches find nothing). Reused 0, extracted 0, left 0. What remains is 104h: Settings, Members, the form
+screens, login and no-ledger.

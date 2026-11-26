@@ -6,7 +6,7 @@ import { Text, type TextVariant } from '@/components/Text';
 import { type Palette, radius, size, space } from '@/theme';
 
 /**
- * Today's button sizes (briefs 104b and 104c; brief 105 makes the filled ones one 48pt pill).
+ * Today's button sizes (briefs 104b and 104c; brief 105d makes the filled ones one 48pt pill).
  * - large: 56pt, radius.lg. While busy the spinner takes the label's place.
  * - medium: 48pt pill. While busy a spinner shows before the label.
  * - compact: 44pt pill. Spinner as medium.

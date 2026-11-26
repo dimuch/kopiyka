@@ -38,7 +38,7 @@ const makeStyles = (colors: Palette) =>
     monthSwitch: { flexDirection: 'row', alignItems: 'center', gap: space.xs },
     monthLabel: { alignItems: 'center' },
     // All capitals (`monthCaption` upper-cases the title) need positive tracking, and the scale has no overline role
-    // (brief 105 decides).
+    // (brief 105b decides).
     // eslint-disable-next-line no-restricted-syntax
     eyebrow: { letterSpacing: 0.5 },
   });

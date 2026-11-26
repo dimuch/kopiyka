@@ -34,7 +34,7 @@ const makeStyles = (colors: Palette) =>
       paddingLeft: space.xl,
       backgroundColor: colors.accentTint,
       borderBottomWidth: StyleSheet.hairlineWidth,
-      borderBottomColor: colors.border,
+      borderBottomColor: colors.hairline,
     },
     text: { flexShrink: 1 },
     // A 44pt touch target, as the conventions ask.

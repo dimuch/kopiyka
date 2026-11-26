@@ -18,7 +18,7 @@ export default function TabsLayout() {
         tabBarShowLabel: false,
         tabBarActiveTintColor: colors.accent,
         tabBarInactiveTintColor: colors.muted,
-        tabBarStyle: { backgroundColor: colors.bg, borderTopColor: colors.border },
+        tabBarStyle: { backgroundColor: colors.bg, borderTopColor: colors.hairline },
         sceneStyle: { backgroundColor: colors.bg },
         // The library's tabs don't dim by default.
         tabBarButton: (props) => <PlatformPressable {...props} pressOpacity={pressedOpacity} />,

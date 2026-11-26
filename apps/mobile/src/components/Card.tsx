@@ -29,4 +29,8 @@ const makeStyles = (colors: Palette) =>
     none: {},
   });
 
-const shadows = StyleSheet.create({ light: { boxShadow: shadow.light.card }, dark: {} });
+// One style per scheme, made once: the shadow doesn't change with the palette, only with the scheme.
+const shadows = StyleSheet.create({
+  light: { boxShadow: shadow.light.card },
+  dark: { boxShadow: shadow.dark.card },
+});

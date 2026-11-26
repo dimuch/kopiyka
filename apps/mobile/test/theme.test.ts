@@ -130,6 +130,10 @@ describe('hairline', () => {
     const [red, green, blue] = [1, 3, 5].map((offset) => parseInt(colors.text.slice(offset, offset + 2), 16));
     expect(colors.hairline).toBe(`rgba(${red},${green},${blue},0.06)`);
   });
+
+  it("takes the design system's light hairline", () => {
+    expect(lightColors.hairline).toBe('rgba(17,16,20,0.06)');
+  });
 });
 
 describe('shadow', () => {

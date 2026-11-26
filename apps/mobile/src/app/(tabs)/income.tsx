@@ -137,10 +137,10 @@ export default function Income() {
             ) : (
               <>
                 <View style={styles.sectionHead}>
-                  <Text variant="headingDisplay">Income</Text>
+                  <Text variant="heading">Income</Text>
                   <View accessible accessibilityLabel={`Total ${totalText}`}>
                     {/* The month's total, as big and bold as the heading beside it (brief 107). */}
-                    <Text variant="headingDisplay" tabular>
+                    <Text variant="heading" tabular>
                       {totalText}
                     </Text>
                   </View>

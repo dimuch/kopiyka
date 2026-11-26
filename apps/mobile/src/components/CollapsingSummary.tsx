@@ -69,7 +69,7 @@ export function CompactTotal({
           {label}
         </Text>
       ) : null}
-      <Text variant="headingDisplay" color={over ? 'danger' : 'text'} tabular>
+      <Text variant="heading" color={over ? 'danger' : 'text'} tabular>
         {eur(spentCents)}
       </Text>
       {budgetCents != null && (

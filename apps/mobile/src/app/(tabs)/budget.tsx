@@ -199,7 +199,7 @@ export default function Budget() {
                   />
                 ) : null}
                 <View style={styles.sectionHead}>
-                  <Text variant="headingDisplay">Categories</Text>
+                  <Text variant="heading">Categories</Text>
                   <Text variant="caption" color="muted" tabular>
                     {eur(plannedCents(data.categories))} planned
                   </Text>

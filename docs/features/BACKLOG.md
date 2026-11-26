@@ -3,15 +3,19 @@
 A snapshot so work can pick up in any tool (Claude Code or Copilot) without the chat history.
 Update it when a brief ships, is planned or is dropped.
 
-Snapshot: 2026-11-26, `main` at v1.23.10 (`beddcd5`, after PR #170, 104 part 7).
+Snapshot: 2026-11-26, `main` at v1.23.11 (`97b72a5`, after PR #171: brief 104 is complete).
 
 ## In progress
 
-### 104 · Shared components (parts 1–7 merged; 104f split into 104f–104h)
+Nothing yet. Brief 105 (the fresh look) is next: see the design-system roll-out below.
+
+## Recently finished
+
+### 104 · Shared components (done: 104–104h, #156–#171, v1.23.11)
 
 Brief and plan: `docs/features/104-shared-components/`. At Gate A the brief was split into six sequential briefs,
-each branched from `main` after the previous one merges, each a patch bump. The plan's "Later parts" outlines
-104b–104f with their call sites. Write each brief from it (in the format of `brief.md`), then run `/kopiyka-hos` on it.
+each branched from `main` after the previous one merges, each a patch bump. Each part's brief was written from
+the plan's "Later parts", and 104f's Gate A split it into 104f–104h.
 
 | Part | What                                                                             | State                   |
 | ---- | -------------------------------------------------------------------------------- | ----------------------- |
@@ -22,23 +26,26 @@ each branched from `main` after the previous one merges, each a patch bump. The 
 | 104e | `ScreenHeader` (`modal`, `month`, `page`), incl. the actual End form's header    | merged (#166), v1.23.8  |
 | 104f | `Text`, and every shared component's and the demo strip's text through it        | merged (#169), v1.23.9  |
 | 104g | `Text` on Home, Budget, Income, Expenses, Statistics, the category page          | merged (#170), v1.23.10 |
-| 104h | `Text` on Settings, Members, the form screens, login, no-ledger                  | **in review**           |
+| 104h | `Text` on Settings, Members, the form screens, login, no-ledger                  | merged (#171), v1.23.11 |
 
 - **Gate A decisions (2026-11-24):**
   - six parts, Card and ProgressBar first
   - ProgressBar extracted now, with one caller
   - Card takes a required `padding` (`padded`, `list`, `group` or `none`), with layout in `style`
   - hosts that can't be a plain View (Pressable, Animated.View, ReorderList) use `useCardStyle(padding)`
-- **"Nothing moves" is proved with layout snapshots, not screenshots.** The script and how to use it are in the 104
-  plan, under "Snapshot script". Take the before set on `main` before the first code slice.
+- **"Nothing moves" is proved with layout snapshots, not screenshots.** The exact script (104f's columns) is
+  written out in `docs/features/104h-text-other-screens/plan.md`, under Visual check. Take the before set on `main`
+  before the first code slice.
 - **Differences the later parts keep as they are**, because unifying them would move things more than 2pt (105
   unifies them):
   - filled buttons at 56, 48 or 44pt, radius 20, pill or 14, and disabled opacity 0.6, 0.5 or 0.4
   - the form screens' 8pt top padding and 52pt header spacer
   - chips at 48pt
   - the Undo button's 56pt height
-
-## Recently finished
+- **Result:** only `Text.tsx`, `theme.ts` and the listed exceptions (`TextInput` styles, DateField's value,
+  CategoryTile's letter, TabBar's badge) style text directly.
+- **Optional follow-ups, not briefed:** a lint rule against `text` role spreads and `fontFamily` outside `Text.tsx`
+  and `theme.ts` (exceptions allowlisted); a line in conventions §5 pointing new code at the 104 components.
 
 - **109 · Remove the Notion sync and import code**: two patch PRs, app first, so open web tabs never called a removed
   route (the brief's "plain 404" would have shown "Couldn't check Notion sync."). #158 (Home panel, v1.23.2,
@@ -52,11 +59,12 @@ each branched from `main` after the previous one merges, each a patch bump. The 
 
 ## Planned: design-system roll-out (`docs/design/design-system.md`)
 
-103, 103b, 103c and 103d (tokens) are merged (#145, #147, #149, #151). The rest, in order (105 waits for all of 104):
+103, 103b, 103c and 103d (tokens) are merged (#145, #147, #149, #151), and 104 (shared components) is done. The
+rest, in order:
 
 | Brief | Draft                                          | What                                                                                      |
 | ----- | ---------------------------------------------- | ----------------------------------------------------------------------------------------- |
-| 104   | `docs/features/104-shared-components/brief.md` | Shared components, split into 104–104f: see In progress                                   |
+| 104   | `docs/features/104-shared-components/brief.md` | Shared components, split into 104–104h: done, see Recently finished                       |
 | 105   | `docs/features/105-fresh-look/brief.md`        | New palettes, Inter, radii, shadows, no borders, card per row, violet bars, caution label |
 | 106   | `docs/features/106-floating-tab-bar/brief.md`  | Floating pill tab bar with a round "+" (add expense) button                               |
 

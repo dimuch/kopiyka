@@ -148,15 +148,15 @@ are added:
 - no pure logic changes
 - `Text` imports `react-native`, which the app's Node tests can't load (conventions §6)
 
-- [ ] 0. Bump version to 1.23.11
+- [x] 0. Bump version to 1.23.11
   - Files: package.json, apps/mobile/app.json
   - Change: set both to 1.23.11
-- [ ] 1. Draw Settings' and the form screens' text with Text (~118 lines)
+- [x] 1. Draw Settings' and the form screens' text with Text (~118 lines)
   - Files (under `apps/mobile`): `src/app/(tabs)/settings.tsx` (32), `src/app/actual-end.tsx` (16),
     `src/app/delete-category.tsx` (14), `src/app/expense.tsx` (38), `src/app/income-item.tsx` (18)
   - Change: their rows in the Contracts table, and the clean-up. The expense's added note keeps `flex: 1` as its style.
   - Verify: gates. Compare the owner's views (Visual check, step 1), both schemes.
-- [ ] 2. Draw Members', login's and no-ledger's text with Text (~102 lines)
+- [x] 2. Draw Members', login's and no-ledger's text with Text (~102 lines)
   - Files (under `apps/mobile`): `src/app/members.tsx` (56), `src/app/login.tsx` (33), `src/app/no-ledger.tsx` (13)
   - Change: their rows in the table, and the clean-up. Login's price keeps `textAlign: 'center'` as its style.
   - Verify:
@@ -434,4 +434,32 @@ before 1 December (Kyiv).
 
 ## Deviations
 
+- **Set-up.** The API (:3000), the web app (:8084, opened at `127.0.0.1:8084`) and the demo (:8082) ran from this
+  worktree, with the two `.env` files copied in (git-ignored). Users: `claude-qa-104h` (#183, ledger 173),
+  `claude-qa-104h-m` (#184) and `claude-qa-104h-n` (#185, removed from the ledger by the owner). C is category 1009,
+  I is income item 167.
+- **The slices were copied from the planner's scratch draft** (outside the repo). After slice 2 the branch's
+  `apps/mobile/src` matches the draft file for file.
+- **No-ledger's path:** signing in as `-n` lands on `/no-ledger`, not `/`, so both sets took the no-ledger views at
+  `/no-ledger`.
+- **Invites:** the before set used invite 60 and the after set invite 61, each made by the owner just before the
+  Members views and declined on no-ledger within its hour. The after set took the invite-dependent views first.
+- **A transient overlay:** one compare (`actual-end`, dark, after slice 1) showed 3 extra rows: a 42×42 box with
+  opacity 0 and `zIndex` 9999 in the bottom-left corner, gone on reload. It isn't app layout (no app style sets that
+  `zIndex`); the retake after a reload matched with 0 differences.
+- **Results:** all 23 views × 2 schemes match the before set with 0 differences and identical accessibility
+  records, at width 390, on the final code (the owner's 17 views after slice 1 and again after slice 2). Both sets
+  on 2026-11-26. After each `expense-added` snapshot its expense was deleted, and the ledger kept exactly its one `qa`
+  expense. Demo (the expense form, the income item, actual End, Remove category), light and dark: no console errors.
+  `check-builds` passes (149 demo modules) without `--accept`. The gates passed on every commit: 532 API (2 skipped,
+  integration against MySQL), 327 connector, 466 app tests.
+- **The final search over `apps/mobile/src`** finds what the plan expected: 8 role spreads (the 5 screens' `input`
+  styles, DateField, AmountFields, CategoryForm), 7 `fontFamily` lines (DateField, the Members and login inputs,
+  login's `passwordInput`, AmountFields, CategoryForm and CategoryTile's letter), and React Native's `Text` imported
+  only by CategoryTile, DateField, TabBar and `Text.tsx`.
+
 ## Consolidate
+
+No new function, hook, component or variant: `Text.tsx` is unchanged. The twins were the role spreads and face
+overrides in the 8 files, now gone apart from the `TextInput` styles (AC2's search). Reused 0, extracted 0, left 0.
+With this part, brief 104's text work is complete.

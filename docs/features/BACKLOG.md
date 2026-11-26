@@ -7,7 +7,8 @@ Snapshot: 2026-11-26, `main` at v1.23.11 (`97b72a5`, after PR #171: brief 104 is
 
 ## In progress
 
-Nothing yet. Brief 105 (the fresh look) is next: see the design-system roll-out below.
+Brief 105 part 1 (the fresh look: palettes, violet bars, the caution label, light by default) on `feat/fresh-look`,
+v1.23.12. At Gate A the brief was split into 105, 105b, 105c and 105d: see the design-system roll-out below.
 
 ## Recently finished
 
@@ -62,15 +63,18 @@ the plan's "Later parts", and 104f's Gate A split it into 104f–104h.
 103, 103b, 103c and 103d (tokens) are merged (#145, #147, #149, #151), and 104 (shared components) is done. The
 rest, in order:
 
-| Brief | Draft                                          | What                                                                                      |
-| ----- | ---------------------------------------------- | ----------------------------------------------------------------------------------------- |
-| 104   | `docs/features/104-shared-components/brief.md` | Shared components, split into 104–104h: done, see Recently finished                       |
-| 105   | `docs/features/105-fresh-look/brief.md`        | New palettes, Inter, radii, shadows, no borders, card per row, violet bars, caution label |
-| 106   | `docs/features/106-floating-tab-bar/brief.md`  | Floating pill tab bar with a round "+" (add expense) button                               |
+| Brief | Draft                                             | What                                                                                 |
+| ----- | ------------------------------------------------- | ------------------------------------------------------------------------------------ |
+| 104   | `docs/features/104-shared-components/brief.md`    | Shared components, split into 104–104h: done, see Recently finished                  |
+| 105   | `docs/features/105-fresh-look/brief.md`           | Part 1: the palettes, violet bars, the caution label, light by default (in progress) |
+| 105b  | outline in `docs/features/105-fresh-look/plan.md` | Inter and the type mapping, the weight fixes, DateField's hidden input               |
+| 105c  | outline in `docs/features/105-fresh-look/plan.md` | Borderless cards with shadows, one card per row                                      |
+| 105d  | outline in `docs/features/105-fresh-look/plan.md` | One look each for buttons, chips, the header, the toast and inputs                   |
+| 106   | `docs/features/106-floating-tab-bar/brief.md`     | Floating pill tab bar with a round "+" (add expense) button                          |
 
-The 105 and 106 briefs are **drafts** written from the design doc and the follow-ups earlier plans handed on. Read and
-correct each before running `/kopiyka-hos` on it. 107 (budget polish, #146) already brought forward one 105 item:
-the same caution yellow in both themes.
+Each 105 part's brief is written from the plan's "Later parts" after the previous part merges. The 106 brief is a
+**draft** written from the design doc: read and correct it before running `/kopiyka-hos` on it. 107 (budget polish,
+#146) already brought forward one 105 item: the same caution yellow in both themes.
 
 ## Planned: repo tooling
 

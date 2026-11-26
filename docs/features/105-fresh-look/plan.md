@@ -185,7 +185,7 @@ kept (slice 5's test), and no API, data or connector changes.
   - Files: `docs/design/design-system.md`
   - Change: the dark section says `faint`, `active`, `activeTint` and `backdrop` keep their pre-105 values; the
     caution paragraph says the label is in (past tense, not "until brief 105"). No other doc text changes.
-- [ ] 7. Record briefs 105b–105d as planned in the backlog (≈ 4 lines, docs; **only if Gate A approves the split**)
+- [x] 7. Record briefs 105b–105d as planned in the backlog (≈ 4 lines, docs; **only if Gate A approves the split**)
   - Files: `docs/features/BACKLOG.md`
   - Change: 105b (Inter), 105c (cards and rows) and 105d (controls) listed as planned after this PR, one line each,
     as the 104 parts were. Without the split, this slice is dropped.

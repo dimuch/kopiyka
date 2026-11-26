@@ -72,8 +72,9 @@ example, "€15 left" in `cautionText`, just as an over-plan row shows "€9 ove
 `caution #F2C94C` and `danger #FF8A80`. In dark, `cautionText` is also `#F2C94C`
 (11.2:1 on `surface`). `faint`, `active`, `activeTint` and `backdrop` aren't set here, so
 they keep their values from before brief 105 (`#6E757E`, `#6FD08C`, `#132A1C`,
-`rgba(5,6,8,0.62)`). In dark mode, shadows are off: elevation comes from `surface` being
-lighter than `bg`.
+`rgba(5,6,8,0.62)`). `hairline` is `rgba(237,236,242,0.06)`, dark `text` at 6% as light's is
+light `text` at 6% (1.12:1 on `bg`, 1.16:1 on `surface`; light's is 1.13:1 on both). In dark
+mode, shadows are off: elevation comes from `surface` being lighter than `bg`.
 
 ## Type
 

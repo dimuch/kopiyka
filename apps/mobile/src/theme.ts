@@ -29,6 +29,8 @@ export const darkColors = {
   active: '#6FD08C',
   activeTint: '#132A1C',
   backdrop: 'rgba(5,6,8,0.62)',
+  /** The rare edge, where two same-colour surfaces meet: each theme's `text` at 6%. */
+  hairline: 'rgba(237,236,242,0.06)',
   border: '#23272E',
   borderStrong: '#2A2F37',
 };
@@ -55,6 +57,7 @@ export const lightColors: Palette = {
   active: '#1B7A3D',
   activeTint: '#E3F4E8',
   backdrop: 'rgba(17,16,20,0.35)',
+  hairline: 'rgba(17,16,20,0.06)',
   border: '#E3E6EB',
   borderStrong: '#D5DAE1',
 };

@@ -147,7 +147,7 @@ change. The demo store is untouched.
       - the roll-out table's 105b row says done (#174), and the 105c row points at `docs/features/105c-borderless-cards/`
         and says it's in progress.
   - Verify: `yarn format:check`.
-- [ ] 2. Draw the header, tab bar and demo strip edges in the hairline colour (≈ 22 lines)
+- [x] 2. Draw the header, tab bar and demo strip edges in the hairline colour (≈ 22 lines)
   - Files: `apps/mobile/src/theme.ts`, `apps/mobile/src/components/CollapsingSummary.tsx`, `TabBar.tsx`,
     `apps/mobile/src/app/(tabs)/_layout.tsx`, `apps/mobile/src/demo/DemoStrip.tsx`, `apps/mobile/test/theme.test.ts`
   - Change: add `hairline` to both palettes, with a one-line comment ("the rare edge, where two same-colour surfaces

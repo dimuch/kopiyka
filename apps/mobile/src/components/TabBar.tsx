@@ -65,7 +65,7 @@ function makeStyles(colors: Palette) {
       flexDirection: 'row',
       backgroundColor: colors.bg,
       borderTopWidth: StyleSheet.hairlineWidth,
-      borderTopColor: colors.border,
+      borderTopColor: colors.hairline,
     },
     // expo-router's BottomTabItem pads 5, so these icons line up with the library bar on the tab pages.
     // eslint-disable-next-line no-restricted-syntax

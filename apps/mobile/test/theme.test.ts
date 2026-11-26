@@ -121,3 +121,13 @@ describe('text', () => {
     ]);
   });
 });
+
+describe('hairline', () => {
+  it.each([
+    ['dark', darkColors],
+    ['light', lightColors],
+  ])("draws the hairline in %s's text colour at 6%%", (_scheme, colors) => {
+    const [red, green, blue] = [1, 3, 5].map((offset) => parseInt(colors.text.slice(offset, offset + 2), 16));
+    expect(colors.hairline).toBe(`rgba(${red},${green},${blue},0.06)`);
+  });
+});

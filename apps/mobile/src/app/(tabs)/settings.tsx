@@ -138,9 +138,10 @@ const makeStyles = (colors: Palette) =>
       paddingVertical: space.sm,
       paddingHorizontal: space.md,
     },
-    // The same 8pt between sections as PlaceholderPage's own gap.
-    // Out to the screen's edges (PlaceholderPage's gutter), with the gutter inside, so the scroll view doesn't clip the cards' side shadows.
+    // Out to the screen's edges (PlaceholderPage's gutter), with the gutter inside, so the scroll view doesn't clip
+    // the cards' side shadows.
     scroll: { marginHorizontal: -space.xl },
+    // The same 8pt between sections as PlaceholderPage's own gap.
     content: { flexGrow: 1, gap: space.sm, paddingHorizontal: space.xl },
     spacer: { flexGrow: 1, minHeight: space.xxl },
     signOut: { marginBottom: space.xl },

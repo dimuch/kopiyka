@@ -133,7 +133,7 @@ function CategoryBreakdown({ categoryId, month, ended }: { categoryId: number; m
           </View>
 
           <Animated.View onLayout={collapse.onCardLayout} style={[cardStyle, styles.card, collapse.cardStyle]}>
-            <Text variant="labelRegular" color="muted" tabular>
+            <Text variant="labelRegular" color="muted">
               Spent
             </Text>
             <Text variant="amountLg">{eur(totalEur)}</Text>
@@ -144,7 +144,7 @@ function CategoryBreakdown({ categoryId, month, ended }: { categoryId: number; m
 
           <View style={styles.days}>
             {days.length === 0 && (
-              <Text variant="labelRegular" color="muted" tabular style={styles.empty}>
+              <Text variant="labelRegular" color="muted" style={styles.empty}>
                 No expenses in {monthName(month)}.
               </Text>
             )}

@@ -305,7 +305,7 @@ function IncomeFigures({ incomeCents, plannedCents }: { incomeCents: number; pla
           key={figure.label}
           style={[styles.figure, index === 1 && styles.figureCentre, index === 2 && styles.figureEnd]}
         >
-          <Text variant="caption" color="muted" tabular>
+          <Text variant="caption" color="muted">
             {figure.label}
           </Text>
           <Text variant="amount" color={figure.over ? 'danger' : 'text'}>

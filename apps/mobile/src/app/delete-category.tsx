@@ -1,6 +1,6 @@
 import { router, Stack, useLocalSearchParams } from 'expo-router';
 import { useRef, useState } from 'react';
-import { AccessibilityInfo, ScrollView, StyleSheet, Text } from 'react-native';
+import { AccessibilityInfo, ScrollView, StyleSheet } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { ApiError } from '@/api/apiError';
 import type { CategoryWithTotals } from '@/api/types';
@@ -9,6 +9,7 @@ import { useSession } from '@/auth/AuthContext';
 import { Button } from '@/components/Button';
 import { CategoryInMonth } from '@/components/CategoryInMonth';
 import { ScreenHeader } from '@/components/ScreenHeader';
+import { Text } from '@/components/Text';
 import { removeFromMonth, restoreToMonth } from '@/data/categories';
 import { notInMonthText } from '@/data/categoryName';
 import { removedMessage, removeWarning } from '@/data/categoryRemove';
@@ -17,7 +18,7 @@ import { overIncomeText } from '@/data/overIncome';
 import { setPendingUndo } from '@/data/undo';
 import { useCategoryTotals } from '@/data/useCategoryTotals';
 import { parseIdParam, parseMonthParam } from '@/linkParams';
-import { type Palette, space, text } from '@/theme';
+import { type Palette, space } from '@/theme';
 
 // Opened straight from a web link there's nothing to go back to, so fall back to Home.
 function leave() {
@@ -122,13 +123,13 @@ function Confirm({
 
   return (
     <ScrollView contentContainerStyle={styles.body}>
-      <Text accessibilityRole="header" style={styles.question}>
+      <Text accessibilityRole="header" variant="title">
         {warning.title}
       </Text>
-      <Text style={styles.warning}>{warning.body}</Text>
+      <Text variant="body">{warning.body}</Text>
 
       {error ? (
-        <Text accessibilityRole="alert" style={styles.error}>
+        <Text accessibilityRole="alert" variant="label" color="over">
           {error}
         </Text>
       ) : null}
@@ -142,7 +143,4 @@ const makeStyles = (colors: Palette) =>
   StyleSheet.create({
     screen: { flex: 1, backgroundColor: colors.bg, paddingHorizontal: space.xl, paddingTop: space.sm },
     body: { gap: space.lg, paddingTop: space.lg, paddingBottom: space.huge },
-    question: { ...text.title, color: colors.text },
-    warning: { ...text.body, color: colors.text },
-    error: { ...text.label, color: colors.over },
   });

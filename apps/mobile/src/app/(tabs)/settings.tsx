@@ -1,5 +1,5 @@
 import { useRef, useState } from 'react';
-import { AccessibilityInfo, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { AccessibilityInfo, ScrollView, StyleSheet, View } from 'react-native';
 import { useAppearance, useColors, useThemedStyles } from '@/appearance/AppearanceContext';
 import { useSession } from '@/auth/AuthContext';
 import { AppearancePicker } from '@/components/AppearancePicker';
@@ -10,9 +10,10 @@ import { LedgerPicker } from '@/components/LedgerPicker';
 import { PendingInvites } from '@/components/PendingInvites';
 import { PlaceholderPage } from '@/components/PlaceholderPage';
 import { Pressable } from '@/components/Pressable';
+import { Text } from '@/components/Text';
 import { useInvites } from '@/data/invites';
 import { usePushOnce } from '@/pushOnce';
-import { fonts, type Palette, radius, size, space, text } from '@/theme';
+import { type Palette, radius, size, space } from '@/theme';
 
 export default function Settings() {
   const colors = useColors();
@@ -50,11 +51,15 @@ export default function Settings() {
       <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
         <Card padding="padded" style={styles.account}>
           <View style={styles.avatar}>
-            <Text style={styles.initial}>{user.username.slice(0, 1).toUpperCase()}</Text>
+            <Text variant="headingDisplay" color="accent">
+              {user.username.slice(0, 1).toUpperCase()}
+            </Text>
           </View>
           <View style={styles.accountText}>
-            <Text style={styles.caption}>Signed in as</Text>
-            <Text numberOfLines={1} style={styles.username}>
+            <Text variant="caption" color="muted">
+              Signed in as
+            </Text>
+            <Text numberOfLines={1} variant="bodyStrong">
               {user.username}
             </Text>
           </View>
@@ -70,10 +75,12 @@ export default function Settings() {
         />
         {ledgers.length > 1 && (
           <View style={styles.section}>
-            <Text style={styles.caption}>Ledger</Text>
+            <Text variant="caption" color="muted">
+              Ledger
+            </Text>
             <LedgerPicker ledgers={ledgers} selectedId={ledger.ledgerId} onSelect={switchTo} disabled={switching} />
             {switchFailed && (
-              <Text accessibilityRole="alert" style={styles.error}>
+              <Text accessibilityRole="alert" variant="label" color="over">
                 {SWITCH_FAILED}
               </Text>
             )}
@@ -85,11 +92,13 @@ export default function Settings() {
           onPress={() => pushOnce('/members')}
           style={[membersCard, styles.members]}
         >
-          <Text style={styles.membersText}>Members</Text>
+          <Text variant="bodyMedium">Members</Text>
           <Icon name="forward" color={colors.muted} />
         </Pressable>
         <View style={styles.section}>
-          <Text style={styles.caption}>Appearance</Text>
+          <Text variant="caption" color="muted">
+            Appearance
+          </Text>
           <AppearancePicker value={preference} onChange={setPreference} />
         </View>
         {/* Pins Sign out to the bottom when there's room, and keeps a gap above it when the page scrolls. */}
@@ -119,7 +128,6 @@ const makeStyles = (colors: Palette) =>
       alignItems: 'center',
       justifyContent: 'center',
     },
-    initial: { ...text.heading, fontFamily: fonts.display, color: colors.accent },
     section: { marginTop: space.xxl, gap: space.sm },
     members: {
       marginTop: space.xxl,
@@ -131,10 +139,6 @@ const makeStyles = (colors: Palette) =>
       paddingLeft: space.lg,
       paddingRight: space.md,
     },
-    membersText: { ...text.body, fontFamily: fonts.bodyMedium, color: colors.text },
-    error: { ...text.label, color: colors.over },
-    caption: { ...text.caption, color: colors.muted },
-    username: { ...text.bodyStrong, color: colors.text },
     // The same 8pt between sections as PlaceholderPage's own gap.
     content: { flexGrow: 1, gap: space.sm },
     spacer: { flexGrow: 1, minHeight: space.xxl },

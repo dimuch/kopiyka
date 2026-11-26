@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { ActivityIndicator, type LayoutRectangle, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, type LayoutRectangle, ScrollView, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useColors, useThemedStyles } from '@/appearance/AppearanceContext';
 import { useSession } from '@/auth/AuthContext';
@@ -10,6 +10,7 @@ import { LoadError } from '@/components/LoadError';
 import { Icon } from '@/components/Icon';
 import { IconButton } from '@/components/IconButton';
 import { Pressable } from '@/components/Pressable';
+import { Text } from '@/components/Text';
 import {
   canStepForward,
   matchingChoice,
@@ -23,7 +24,7 @@ import {
 import { isEmptySummary, planGap } from '@/data/periodSummary';
 import { useSummary } from '@/data/useSummary';
 import { eur, shortMonthLabel, toCents } from '@/format';
-import { fonts, type Palette, radius, size, space, text } from '@/theme';
+import { type Palette, radius, size, space } from '@/theme';
 
 /**
  * The open ledger's totals for a chosen period of whole months, all members together (brief 089). Home stays on the
@@ -46,7 +47,7 @@ export default function Statistics() {
     <SafeAreaView style={styles.screen} edges={['top']}>
       <View style={styles.header}>
         <HomeButton />
-        <Text style={styles.title} accessibilityRole="header">
+        <Text variant="title" accessibilityRole="header">
           Statistics
         </Text>
       </View>
@@ -91,16 +92,22 @@ export default function Statistics() {
                         accessibilityLabel={`${name}, ${eur(cents)}`}
                         style={[styles.row, index < rows.length - 1 && styles.divider]}
                       >
-                        <Text style={[styles.rowName, styles.grow]}>{name}</Text>
+                        <Text variant="bodyMedium" style={styles.grow}>
+                          {name}
+                        </Text>
                         {/* Only Left can be negative: more spent than came in. */}
-                        <Text style={[styles.rowAmount, cents < 0 && styles.negative]}>{eur(cents)}</Text>
+                        <Text variant="amount" color={cents < 0 ? 'danger' : 'text'}>
+                          {eur(cents)}
+                        </Text>
                       </View>
                     );
                   })}
                 </Card>
                 {summary.categories.length > 0 && (
                   <>
-                    <Text style={styles.sectionTitle}>By category</Text>
+                    <Text variant="headingDisplay" style={styles.sectionTitle}>
+                      By category
+                    </Text>
                     <Card padding="list">
                       {summary.categories.map((category, index) => {
                         const planned = eur(toCents(category.plannedEur));
@@ -115,12 +122,16 @@ export default function Statistics() {
                             style={[styles.row, index < summary.categories.length - 1 && styles.divider]}
                           >
                             <View style={styles.rowText}>
-                              <Text style={styles.rowName}>{category.name}</Text>
-                              <Text style={[styles.small, gap.over && styles.over]}>{gap.text}</Text>
+                              <Text variant="bodyMedium">{category.name}</Text>
+                              <Text variant="caption" color={gap.over ? 'over' : 'muted'} tabular>
+                                {gap.text}
+                              </Text>
                             </View>
                             <View style={styles.amounts}>
-                              <Text style={styles.rowAmount}>{spent}</Text>
-                              <Text style={styles.small}>of {planned}</Text>
+                              <Text variant="amount">{spent}</Text>
+                              <Text variant="caption" color="muted" tabular>
+                                of {planned}
+                              </Text>
                             </View>
                           </View>
                         );
@@ -130,7 +141,9 @@ export default function Statistics() {
                 )}
                 {summary.months.length > 1 && (
                   <>
-                    <Text style={styles.sectionTitle}>By month</Text>
+                    <Text variant="headingDisplay" style={styles.sectionTitle}>
+                      By month
+                    </Text>
                     <Card padding="list">
                       {summary.months.map((month, index) => {
                         const income = eur(toCents(month.incomeEur));
@@ -145,12 +158,14 @@ export default function Statistics() {
                             style={[styles.row, index < summary.months.length - 1 && styles.divider]}
                           >
                             <View style={styles.rowText}>
-                              <Text style={styles.rowName}>{label}</Text>
-                              <Text style={styles.small}>
+                              <Text variant="bodyMedium">{label}</Text>
+                              <Text variant="caption" color="muted" tabular>
                                 Income {income} · Spent {spent}
                               </Text>
                             </View>
-                            <Text style={[styles.rowAmount, leftCents < 0 && styles.negative]}>{eur(leftCents)}</Text>
+                            <Text variant="amount" color={leftCents < 0 ? 'danger' : 'text'}>
+                              {eur(leftCents)}
+                            </Text>
                           </View>
                         );
                       })}
@@ -209,7 +224,7 @@ function PeriodSwitcher({
         onPress={onToggleMenu}
         style={styles.periodButton}
       >
-        <Text numberOfLines={1} style={styles.periodText}>
+        <Text variant="title" numberOfLines={1} style={styles.periodText}>
           {periodLabel(period)}
         </Text>
         <Icon name="down" size={18} color={colors.muted} />
@@ -261,7 +276,7 @@ function PeriodMenu({
               onPress={() => onChoose(choice)}
               style={styles.menuItem}
             >
-              <Text style={[styles.menuText, checked && styles.menuTextOn]}>{label}</Text>
+              <Text variant={checked ? 'bodyStrong' : 'bodyMedium'}>{label}</Text>
               {checked && <Icon name="check" size={18} color={colors.accent} />}
             </Pressable>
           );
@@ -275,7 +290,6 @@ const makeStyles = (colors: Palette) =>
   StyleSheet.create({
     screen: { flex: 1, backgroundColor: colors.bg, paddingHorizontal: space.xl, paddingTop: space.xl },
     header: { flexDirection: 'row', alignItems: 'center', gap: space.sm, paddingBottom: space.sm },
-    title: { ...text.title, color: colors.text },
     content: { gap: space.lg, paddingTop: space.xs, paddingBottom: space.xxl },
     loading: { marginTop: space.xxl },
     switcher: {
@@ -293,7 +307,7 @@ const makeStyles = (colors: Palette) =>
       flexShrink: 1,
       paddingHorizontal: space.xs,
     },
-    periodText: { ...text.title, color: colors.text, flexShrink: 1 },
+    periodText: { flexShrink: 1 },
     // CategoryMenu's layer and card; the card's place comes from the switcher instead of a fixed corner.
     menuLayer: { ...StyleSheet.absoluteFill, zIndex: 2 },
     menuCard: {
@@ -312,8 +326,6 @@ const makeStyles = (colors: Palette) =>
       justifyContent: 'space-between',
       paddingHorizontal: space.lg,
     },
-    menuText: { ...text.body, fontFamily: fonts.bodyMedium, color: colors.text },
-    menuTextOn: { fontFamily: fonts.bodySemi },
     row: {
       flexDirection: 'row',
       alignItems: 'center',
@@ -322,12 +334,7 @@ const makeStyles = (colors: Palette) =>
       paddingHorizontal: space.lg,
     },
     divider: { borderBottomWidth: 1, borderBottomColor: colors.border },
-    rowName: { ...text.body, fontFamily: fonts.bodyMedium, color: colors.text },
-    rowAmount: { ...text.amount, color: colors.text },
-    negative: { color: colors.danger },
-    over: { color: colors.over },
-    sectionTitle: { ...text.heading, fontFamily: fonts.display, color: colors.text, paddingHorizontal: space.xs },
-    small: { ...text.caption, color: colors.muted, fontVariant: ['tabular-nums'] },
+    sectionTitle: { paddingHorizontal: space.xs },
     rowText: { flex: 1, gap: space.xxs },
     grow: { flex: 1 },
     amounts: { alignItems: 'flex-end', gap: space.xxs },

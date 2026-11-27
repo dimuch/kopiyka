@@ -10,8 +10,8 @@ import { LoadError } from '@/components/LoadError';
 import { Icon } from '@/components/Icon';
 import { IconButton } from '@/components/IconButton';
 import { Pressable } from '@/components/Pressable';
-import { Text } from '@/components/Text';
 import { useTabBarRoom } from '@/components/TabBar';
+import { Text } from '@/components/Text';
 import {
   canStepForward,
   matchingChoice,

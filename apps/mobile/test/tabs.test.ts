@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import type { StackRoutes } from '@/tabRoutes';
+import { type StackRoutes, tabHref } from '@/tabRoutes';
 import { readTabs, TABS, tabBadge, tabTitle } from '@/tabs';
 
 describe('tabTitle', () => {
@@ -80,5 +80,16 @@ describe('readTabs', () => {
 
   it('has no params without a tab navigator', () => {
     expect(readTabs([{ name: 'category/[categoryId]' }], 'expenses').params).toEqual({});
+  });
+});
+
+describe('tabHref', () => {
+  it.each([
+    ['/budget', undefined, '/budget'],
+    ['/budget', {}, '/budget'],
+    ['/budget', { month: '2026-10' }, '/budget?month=2026-10'],
+    ['/x', { a: 'b c', d: 'e&f' }, '/x?a=b%20c&d=e%26f'],
+  ])('links %s with %o as %s', (path, params, expected) => {
+    expect(tabHref(path, params)).toBe(expected);
   });
 });

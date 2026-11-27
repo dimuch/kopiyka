@@ -13,7 +13,7 @@ import { IconButton } from '@/components/IconButton';
 import { LoadError } from '@/components/LoadError';
 import { Pressable } from '@/components/Pressable';
 import { ScreenHeader } from '@/components/ScreenHeader';
-import { TabBar } from '@/components/TabBar';
+import { PageTabBar } from '@/components/TabBar';
 import { Text } from '@/components/Text';
 import { toastRoom, UndoToast } from '@/components/UndoToast';
 import { expenseCount, groupByDay, sumCents } from '@/data/monthSummary';
@@ -46,7 +46,7 @@ export default function CategoryScreen() {
       ) : (
         <InvalidLink />
       )}
-      <TabBar fallback="expenses" />
+      <PageTabBar fallback="expenses" />
     </View>
   );
 }

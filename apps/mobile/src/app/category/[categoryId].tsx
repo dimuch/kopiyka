@@ -13,7 +13,7 @@ import { IconButton } from '@/components/IconButton';
 import { LoadError } from '@/components/LoadError';
 import { Pressable } from '@/components/Pressable';
 import { ScreenHeader } from '@/components/ScreenHeader';
-import { PageTabBar } from '@/components/TabBar';
+import { PageTabBar, useTabBarRoom } from '@/components/TabBar';
 import { Text } from '@/components/Text';
 import { UndoToast, useToastRoom } from '@/components/UndoToast';
 import { expenseCount, groupByDay, sumCents } from '@/data/monthSummary';
@@ -71,6 +71,7 @@ function CategoryBreakdown({ categoryId, month, ended }: { categoryId: number; m
   const { data, error, reload } = useMonth(ledger.ledgerId, month, categoryId);
   const toast = useUndoOffer(reload);
   const toastRoom = useToastRoom();
+  const barRoom = useTabBarRoom();
 
   const category = data?.categories.find((c) => c.categoryId === categoryId);
   const days = useMemo(() => groupByDay(data?.expenses ?? []), [data]);
@@ -123,8 +124,9 @@ function CategoryBreakdown({ categoryId, month, ended }: { categoryId: number; m
       ) : (
         <Animated.ScrollView
           {...collapse.scrollProps}
-          style={styles.scroll}
-          contentContainerStyle={[styles.content, { paddingBottom: toastRoom }]}
+          // Ends 16pt above the tab bar, or above the Undo bar while it shows, so no expense scrolls behind either.
+          style={[styles.scroll, { marginBottom: toast.offer ? toastRoom : barRoom }]}
+          contentContainerStyle={styles.content}
         >
           {error && <LoadError message="Couldn’t refresh. Check your connection and try again." onRetry={reload} />}
           <View style={styles.titleRow}>
@@ -248,6 +250,8 @@ const makeStyles = (colors: Palette) =>
     content: {
       gap: space.lg,
       paddingTop: space.sm,
+      // The 8pt under the last card keeps its shadow from being cut at the scroll view's edge.
+      paddingBottom: space.sm,
       paddingHorizontal: space.xl,
     },
     loading: { marginTop: space.xxl },

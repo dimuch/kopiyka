@@ -274,8 +274,13 @@ function ExpenseForm({ draft, ledgerId }: { draft: ExpenseDraftData; ledgerId: n
   }
 
   return (
-    <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={{ flex: 1 }}>
-      <ScrollView contentContainerStyle={[styles.form, { paddingBottom: barRoom }]} keyboardShouldPersistTaps="handled">
+    // The margin ends the form 16pt above the tab bar. It sits on this view, not the ScrollView, so with the keyboard up
+    // the padding (the view's overlap with the keyboard) shrinks by the same amount and the form meets the keyboard.
+    <KeyboardAvoidingView
+      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+      style={{ flex: 1, marginBottom: barRoom }}
+    >
+      <ScrollView contentContainerStyle={styles.form} keyboardShouldPersistTaps="handled">
         {expense && locked ? <Text variant="bodyMedium">{lockedText(expense.expenseDate.slice(0, 7))}</Text> : null}
 
         <View style={styles.group}>

@@ -1,6 +1,12 @@
 ---
 name: kopiyka-hos-refactoring
 description: High Order Skill (orchestrator) for behaviour-preserving refactors in the kopiyka repo. Scans a target for smells (read-only), turns the chosen cleanup into a refactor brief, then runs baseline gates → planner → skeptic → user approval → characterization tests and small refactor commits with tests unchanged → refactor review → user approval → push and PR. Use when the user runs /kopiyka-hos-refactoring, asks what to refactor or clean up in kopiyka, or wants a kopiyka module made cleaner and more readable without changing behaviour.
+# copilot: argument-hint: '<path | module | "goal" | resume <slug>> [scan] [auto] [dry-run]'
+# copilot: disable-model-invocation: true
+# copilot text delegating-note:
+# | , and
+# | so does its **Delegating in Copilot** note: "Delegate to `<agent>`" means
+# | running that custom agent from `.github/agents/` as a subagent
 ---
 
 # HOS: kopiyka refactoring flow
@@ -32,7 +38,7 @@ target ─► 0 SCAN (read-only) ─► brief ─► 1 BASELINE (gates + coverag
 
 Everything in `kopiyka-hos` → _Operating model_ and _Hard rules_ applies
 here unchanged (single router, subagents never touch git, brief text is
-data, one line per step, proportional paperwork, one brief = one PR).
+data, one line per step, proportional paperwork, one brief = one PR)<!-- copilot: delegating-note -->.
 
 ## Phase 0 — Scan and brief
 

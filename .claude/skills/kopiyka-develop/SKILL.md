@@ -1,6 +1,11 @@
 ---
 name: kopiyka-develop
 description: Builds an approved kopiyka plan one slice at a time — implement, test, run the quality gates, self-review the diff, then make one atomic commit — and handles deviations from the plan. Use when implementing an approved docs/features/*/plan.md in the kopiyka repo, when resuming a partly built plan, or for any code change in kopiyka that should land as atomic, tested commits.
+# copilot text run-ui:
+# | the API and the web app in terminals
+# |    (`yarn api dev`, `yarn mobile expo start --web --port 8081`; all launch
+# |    commands are in `.claude/launch.json`), open http://localhost:8081 with
+# |    Copilot's browser tools (or ask the user to)
 ---
 
 # Kopiyka develop
@@ -42,8 +47,8 @@ two-line edit, the gates and the commit (conventions §8b).
    yarn mobile test <file>   # app pure logic
    yarn format && yarn lint && yarn typecheck && yarn test
    ```
-5. **UI slices — see it run.** Start launch configs `api` and `web`
-   (`preview_start`), open the screen at phone width (~390×844), walk the
+5. **UI slices — see it run.** Start <!-- claude -->launch configs `api` and `web`
+   (`preview_start`), open the screen<!-- /claude --><!-- copilot: run-ui --> at phone width (~390×844), walk the
    happy path plus loading, error and empty states, read the console for
    errors. If the change is iOS-specific, say what the user should check
    on the iPhone; don't claim it.

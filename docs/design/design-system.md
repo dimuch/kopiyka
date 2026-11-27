@@ -107,7 +107,7 @@ tabular digits) are used for every figure.
 - **Radius:** `sm 10` (category tile, small chip), `md 14` (input), `lg 20` (card), `xl 28` (sheet,
   hero), `pill 999` (buttons, chips, tab bar).
 - **Control heights:** `control 48` (button, input), `iconButton 44` (touch minimum), `chip 32`,
-  `toast 56` (the Undo bar).
+  `toast 56` (the Undo bar), `tabBar 56` (the floating tab bar and its "+").
 
 ## Elevation
 
@@ -124,22 +124,25 @@ takes no layout room.
 
 ## Components
 
-| Component        | Shape                                                                                                                                                      |
-| ---------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `Text`           | `variant` prop from the type roles, plus four pairs: `bodyMedium` 500, `labelRegular` 400, `labelSemi` 600, `captionMedium` 500; colour defaults to `text` |
-| `Card`           | `surface`, `radius.lg`, `shadow.card`, padding `md`; no border                                                                                             |
-| `Button`         | pill, height 48; variants `primary` (accent), `secondary` (`fill` and `text`), `danger` (`fill` and `danger` text)                                         |
-| `IconButton`     | 44×44 round; `plain` or `raised` (white and `shadow.card`)                                                                                                 |
-| `Chip`           | pill, height 32; `fill` background, or `accentTint` with `accentText` when selected                                                                        |
-| `ScreenHeader`   | back or home button, `title`, one trailing action                                                                                                          |
-| `ProgressBar`    | 4pt track, rounded, with an 8pt dot at the end of the fill                                                                                                 |
-| `TabBar` (later) | floating pill, `shadow.float`, plus a separate round "+" button                                                                                            |
+| Component      | Shape                                                                                                                                                      |
+| -------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `Text`         | `variant` prop from the type roles, plus four pairs: `bodyMedium` 500, `labelRegular` 400, `labelSemi` 600, `captionMedium` 500; colour defaults to `text` |
+| `Card`         | `surface`, `radius.lg`, `shadow.card`, padding `md`; no border                                                                                             |
+| `Button`       | pill, height 48; variants `primary` (accent), `secondary` (`fill` and `text`), `danger` (`fill` and `danger` text)                                         |
+| `IconButton`   | 44×44 round; `plain` or `raised` (white and `shadow.card`)                                                                                                 |
+| `Chip`         | pill, height 32; `fill` background, or `accentTint` with `accentText` when selected                                                                        |
+| `ScreenHeader` | back or home button, `title`, one trailing action                                                                                                          |
+| `ProgressBar`  | 4pt track, rounded, with an 8pt dot at the end of the fill                                                                                                 |
+| `TabBar`       | floating pill, 56 high, `surface` on `shadow.float`, beside a round 56pt "+" in `accent` with an `onAccent` icon                                           |
 
 Text buttons have no fill: the label in `danger`, `muted` or `accent`, 44pt high. Every button dims to 0.4 while busy
 or disabled, and a busy one shows a spinner before its label. A chip's touch area is 44pt high around its 32pt pill.
 ScreenHeader's sides are each one 44pt slot when there's a title, so the title sits on the screen's centre, and the row spans the
 screen with the gutter inside. An input is `fill` with a 1pt `fill` border that turns `accent` on focus. Menus float
 on `shadow.float` with no edge, and sheets sit on the backdrop with none.
+The tab bar floats 20pt in from each side and 20pt off the bottom, or the home indicator's inset where that's more,
+with the "+" 12pt to its right. Scroll views leave that room plus 16pt under their content, and the Undo bar sits
+16pt above the bar.
 
 ## Roll-out (one brief each, in order)
 

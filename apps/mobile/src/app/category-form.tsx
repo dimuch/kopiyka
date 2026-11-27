@@ -58,6 +58,7 @@ export default function CategoryFormScreen() {
           }}
         />
       ) : (
+        // Bare, not the kit's null fallback: it lines up with CategoryInMonth's own states, 16pt higher.
         <LoadError message="That link isn’t valid." />
       )}
     </ModalFormScreen>

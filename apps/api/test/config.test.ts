@@ -18,4 +18,10 @@ describe('loadConfig', () => {
   it('ignores settings it no longer reads, so an old .env keeps working (brief 109)', () => {
     expect(loadConfig({ ...base, OLD_PAIR_A: '1', OLD_TOKEN: 'x' })).toEqual(loadConfig(base));
   });
+
+  it('splits CORS_ORIGINS on commas, trims and drops empty entries', () => {
+    const source = { ...base, CORS_ORIGINS: ' http://localhost:8081 , ,https://kopiyka.example ' };
+    expect(loadConfig(source).corsOrigins).toEqual(['http://localhost:8081', 'https://kopiyka.example']);
+    expect(loadConfig(base).corsOrigins).toEqual([]);
+  });
 });

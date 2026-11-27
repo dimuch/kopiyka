@@ -34,7 +34,5 @@ and Members. Each copy differs only in its spinner style, margins and the first-
 
 ## Notes
 
-Covered by: no tests (UI); web check of loading, error and refresh-error states on five screens. Base: `origin/main` after R15 (#203).
-(`chore/statistics-sections`, in review; it names the Statistics triad's lines), rebased on `origin/main` once it
-merges. Baseline: API 549 passed + 2 skipped, MCP 329, app 531 (547 once R14 #202 merges). R15 takes 1.26.17, so this
+Covered by: no tests (UI); web check of loading, error and refresh-error states on five screens. Base: `origin/main` after R15 (#203). Baseline: API 549 passed + 2 skipped, MCP 329, app 531 (547 once R14 #202 merges). R15 takes 1.26.17, so this
 PR is 1.26.18.

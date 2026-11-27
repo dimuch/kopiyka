@@ -32,14 +32,14 @@ but Members' spinner would change from an inline style to a class, so its DOM wo
 error: boolean; onRetry: () => void; loadMessage: string; spinnerStyle: StyleProp<ViewStyle>; children: (data: T) =>
 ReactNode })`. It has a one-line JSDoc. It reads `useColors()` itself.
 - What each screen passes (data / loadMessage / spinnerStyle; `onRetry={reload}` everywhere):
-  - budget:128-197: `data` / "Couldn’t load this month. …" / `styles.loading`. Children `({ categories })`.
+  - budget:128-197: `data` / "Couldn’t load this month. …" / `styles.loading`. Children `(data)`.
   - expenses:110-194: `rows` (it tests `rows`, not `data`; `rows` is null iff `data` is, since `useCategoryOrder`
     returns `categories` or `moved.order` only when `moved.from === categories`) / the same text as Budget /
-    `styles.loading`. Children `(loadedRows)`.
-  - income:82-164: `items` / "Couldn’t load this month’s income. …" / `styles.loading`. Children `(loadedItems)`.
-  - statistics:66-86: `summary` / "Couldn’t load these figures. …" / `styles.loading`. Children `(loadedSummary)`.
+    `styles.loading`. Children `(rows)`.
+  - income:82-164: `items` / "Couldn’t load this month’s income. …" / `styles.loading`. Children `(items)`.
+  - statistics:66-86: `summary` / "Couldn’t load these figures. …" / `styles.loading`. Children `(summary)`.
   - members:163-210 (`OwnerMembers`, early `return`): `data` / "Couldn’t load the members. …" /
-    `{ marginTop: space.xxl }`. Children `({ members, invites })`.
+    `{ marginTop: space.xxl }`. Children `(data)`.
 - Texts are copied byte for byte, curly `’` included. Imports that become unused go: `ActivityIndicator` from all
   five; `useColors` + `const colors` in expenses and income; `const colors` in `Statistics()` and `OwnerMembers()`;
   `LoadError` from statistics. `styles.loading` stays in all four that have it.
@@ -73,8 +73,8 @@ There are no characterization tests: the change is UI only, and there's no logic
   - Verify: web record, Income (4 states)
 - [x] 2. Use LoadState on Budget and Expenses
   - Files: apps/mobile/src/app/(tabs)/budget.tsx, apps/mobile/src/app/(tabs)/expenses.tsx
-  - Change: as in Contracts. Inside the children, `data.categories` becomes `categories`, and `rows` becomes
-    `loadedRows`. The bodies keep their indentation. ~60 lines. `demo-modules.txt` unchanged.
+  - Change: as in Contracts. Inside the children, the children move unedited (the callback parameter keeps the screen's own name).
+    `rows`. The bodies keep their indentation. ~60 lines. `demo-modules.txt` unchanged.
   - Verify: web record, Budget and Expenses (4 states each)
 - [x] 3. Use LoadState on Statistics and Members
   - Files: apps/mobile/src/app/(tabs)/statistics.tsx, apps/mobile/src/app/members.tsx

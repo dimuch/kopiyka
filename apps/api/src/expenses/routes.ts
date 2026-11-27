@@ -1,5 +1,5 @@
 import type { FastifyInstance, FastifyReply, FastifyRequest } from 'fastify';
-import type { ResultSetHeader, RowDataPacket } from 'mysql2/promise';
+import type { PoolConnection, ResultSetHeader, RowDataPacket } from 'mysql2/promise';
 import { z } from 'zod';
 import type { AppDeps } from '../app.js';
 import { monthOf, monthStart, nextMonthStart, previousMonthStart } from '../dates.js';
@@ -62,6 +62,34 @@ const ExpenseBody = z.object({
 type ExpenseInput = z.infer<typeof ExpenseBody>;
 
 const ExpenseParams = z.object({ expenseId: z.coerce.number().int().positive() });
+
+/** Inserts a priced expense entered by `userId` at `at`, and returns its id. */
+async function insertExpense(
+  conn: PoolConnection,
+  input: ExpenseInput,
+  priced: { amountEur: string; amountUah: string; rate: string },
+  userId: number,
+  at: Date,
+): Promise<number> {
+  const [res] = await conn.query<ResultSetHeader>(
+    `INSERT INTO expenses (category_id, expense_date, name, amount_eur, amount_uah, eur_uah_rate,
+                           entered_currency, created_by, created_at, updated_at)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+    [
+      input.categoryId,
+      input.expenseDate,
+      input.name,
+      priced.amountEur,
+      priced.amountUah,
+      priced.rate,
+      input.currency,
+      userId,
+      at,
+      at,
+    ],
+  );
+  return res.insertId;
+}
 
 const MonthQuery = z.object({
   month: MonthString,
@@ -191,24 +219,7 @@ export async function expenseRoutes(app: FastifyInstance, deps: AppDeps): Promis
           )
         : null;
       if (repeatId) return { expenseId: repeatId, alreadySaved: true };
-      const [res] = await conn.query<ResultSetHeader>(
-        `INSERT INTO expenses (category_id, expense_date, name, amount_eur, amount_uah, eur_uah_rate,
-                               entered_currency, created_by, created_at, updated_at)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-        [
-          input.categoryId,
-          input.expenseDate,
-          input.name,
-          priced.amountEur,
-          priced.amountUah,
-          priced.rate,
-          input.currency,
-          req.auth!.userId,
-          at,
-          at,
-        ],
-      );
-      return { expenseId: res.insertId, alreadySaved: false };
+      return { expenseId: await insertExpense(conn, input, priced, req.auth!.userId, at), alreadySaved: false };
     });
     const expense = await loadExpense(ledgerId, saved.expenseId);
     return saved.alreadySaved

@@ -125,7 +125,6 @@ function LabelForm({ ledger }: { ledger: Ledger }) {
       ) : null}
       <Button
         variant="primary"
-        size="medium"
         label="Save"
         busy={busy}
         disabled={unchanged}
@@ -205,7 +204,6 @@ function OwnerMembers({ ledgerId }: { ledgerId: number }) {
                 {!isYou && (
                   <Button
                     variant="dangerText"
-                    size="compact"
                     label="Remove"
                     accessibilityLabel={`Remove ${member.username}`}
                     disabled={busy}
@@ -295,7 +293,6 @@ function PendingList({
                 </View>
                 <Button
                   variant="dangerText"
-                  size="compact"
                   label="Revoke"
                   accessibilityLabel={`Revoke invite to ${invite.username}`}
                   disabled={busy}
@@ -376,7 +373,6 @@ function InviteForm({ ledgerId, onInvited }: { ledgerId: number; onInvited: () =
       ) : null}
       <Button
         variant="primary"
-        size="medium"
         label="Invite"
         busy={busy}
         disabled={!name}
@@ -451,7 +447,7 @@ function MemberLeave({ ledger }: { ledger: Ledger }) {
       onDismiss={() => showPanel(false)}
     />
   ) : (
-    <Button variant="outlinedDanger" size="medium" label="Leave ledger" onPress={() => showPanel(true)} />
+    <Button variant="outlinedDanger" label="Leave ledger" onPress={() => showPanel(true)} />
   );
 }
 
@@ -488,21 +484,13 @@ function ConfirmPanel({
       <View style={styles.panelButtons}>
         <Button
           variant="mutedText"
-          size="compact"
           label={gone ? 'Close' : 'Back'}
           disabled={busy}
           onPress={onDismiss}
           style={styles.dismiss}
         />
         {!gone && (
-          <Button
-            variant="danger"
-            size="compact"
-            label={action}
-            accessibilityLabel={action}
-            busy={busy}
-            onPress={onConfirm}
-          />
+          <Button variant="danger" label={action} accessibilityLabel={action} busy={busy} onPress={onConfirm} />
         )}
       </View>
     </View>

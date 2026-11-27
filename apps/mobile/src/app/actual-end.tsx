@@ -168,16 +168,10 @@ function ActualEndForm({ month, balance, busy, setBusy }: { month: string; balan
         </Text>
       ) : null}
 
-      {gone ? null : <Button variant="primary" size="large" label="Save" busy={busy} onPress={save} />}
+      {gone ? null : <Button variant="primary" label="Save" busy={busy} onPress={save} />}
 
       {balance.actual && !gone ? (
-        <Button
-          variant="accentText"
-          size="medium"
-          label="Use calculated end"
-          disabled={busy}
-          onPress={clearToCalculated}
-        />
+        <Button variant="accentText" label="Use calculated end" disabled={busy} onPress={clearToCalculated} />
       ) : null}
     </ScrollView>
   );

@@ -134,7 +134,7 @@ function Confirm({
         </Text>
       ) : null}
 
-      {gone ? null : <Button variant="danger" size="large" label={warning.action} busy={busy} onPress={remove} />}
+      {gone ? null : <Button variant="danger" label={warning.action} busy={busy} onPress={remove} />}
     </ScrollView>
   );
 }

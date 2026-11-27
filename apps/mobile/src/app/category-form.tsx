@@ -113,7 +113,6 @@ function EditCategory({
           {month < thisMonth ? null : (
             <Button
               variant="dangerText"
-              size="medium"
               label={`Remove from ${monthName(month)}`}
               disabled={busy}
               onPress={() =>

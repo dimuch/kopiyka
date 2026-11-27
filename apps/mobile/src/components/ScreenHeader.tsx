@@ -49,7 +49,6 @@ export function ScreenHeader(props: Props) {
       <View style={styles.modal}>
         <Button
           variant="mutedText"
-          size="compact"
           label="Back"
           disabled={props.disabled}
           onPress={props.onBack}

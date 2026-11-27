@@ -39,8 +39,8 @@ export default function NoLedger() {
         ) : (
           <PendingInvites invites={invites} busyId={busyId} failure={failure} onAccept={accept} onDecline={decline} />
         )}
-        <Button variant="accentText" size="compact" label="Check for invites" onPress={reload} style={styles.check} />
-        <Button variant="outlinedDanger" size="medium" label="Sign out" onPress={logout} />
+        <Button variant="accentText" label="Check for invites" onPress={reload} style={styles.check} />
+        <Button variant="outlinedDanger" label="Sign out" onPress={logout} />
       </ScrollView>
     </SafeAreaView>
   );

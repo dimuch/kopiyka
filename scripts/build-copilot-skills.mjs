@@ -10,7 +10,7 @@
 //   # copilot: <key>: <value>               front matter only Copilot gets
 // Wording that is the same rule for both tools is a substitution below. An agent's Copilot front matter is built from
 // its Claude front matter (TOOL_ALIASES), and its body opens with a line telling Copilot to read the agent's skills.
-import { existsSync, readdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdirSync, readdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
 import * as prettier from 'prettier';
 
@@ -211,7 +211,11 @@ async function main() {
     const committed = existsSync(targetPath) ? readFileSync(targetPath, 'utf8') : null;
     if (copy !== committed) {
       outOfDate.push(job.target);
-      if (!checkOnly) writeFileSync(targetPath, copy);
+      if (!checkOnly) {
+        // A new kopiyka skill has no folder in .github/skills yet.
+        mkdirSync(path.dirname(targetPath), { recursive: true });
+        writeFileSync(targetPath, copy);
+      }
     }
   }
   SUBSTITUTIONS.forEach(([from], index) => {
@@ -220,7 +224,12 @@ async function main() {
   });
   for (const orphan of orphanCopies(allJobs)) {
     outOfDate.push(orphan);
-    if (!checkOnly) rmSync(path.join(root, orphan));
+    if (!checkOnly) {
+      const orphanPath = path.join(root, orphan);
+      rmSync(orphanPath);
+      // A removed skill's folder goes too, unless something else (a script, a reference) is left in it.
+      if (readdirSync(path.dirname(orphanPath)).length === 0) rmSync(path.dirname(orphanPath), { recursive: true });
+    }
   }
 
   if (checkOnly) {

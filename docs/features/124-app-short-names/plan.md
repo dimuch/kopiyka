@@ -78,10 +78,10 @@ against them. Slice 2's keyboard-scroll check runs before slice 2 is committed.
 Proof that a characterization test bites (refactoring §2): break the line it pins by hand, watch the named case fail,
 then restore the line.
 
-- [ ] 0. Bump version to 1.26.10
+- [x] 0. Bump version to 1.26.10
   - Files: package.json, apps/mobile/app.json
   - Change: set both to 1.26.10
-- [ ] 1. Pin category tile colours with characterization tests
+- [x] 1. Pin category tile colours with characterization tests
   - Files: apps/mobile/test/theme.test.ts
   - Change: add `categoryTile` to the import, and add `describe('categoryTile')` with one `it.each` of 6 rows. The
     values come from running Base's `theme.ts`:
@@ -96,7 +96,7 @@ then restore the line.
     - `''`, light → the seed, hue 7 → `{ bg: 'hsla(7, 70%, 45%, 0.14)', fg: 'hsl(7, 70%, 32%)' }`.
   - Tests: bite check. Seed 7 → 0 fails the `''` row. Multiplier 31 → 37 fails `pets` and `a`. `??` → `||` fails `car`.
     App tests: 517.
-- [ ] 2. Extract scrollToShow for the name list's scroll offset
+- [x] 2. Extract scrollToShow for the name list's scroll offset
   - Files: apps/mobile/src/data/nameSuggestions.ts, apps/mobile/src/components/NameCombobox.tsx,
     apps/mobile/test/nameSuggestions.test.ts
   - Change: add `scrollToShow` (Contracts). `highlight` keeps `setActive(...)`, then
@@ -136,7 +136,7 @@ then restore the line.
     and reopen, then press ↑ with no highlight: the last row shows at the bottom. Scroll the list by hand half a row,
     then press ↓: a row that is partly hidden scrolls fully into view, and a row that is already fully visible doesn't
     move the list. Enter picks the highlighted name.
-- [ ] 3. Use descriptive names in the app's screens
+- [x] 3. Use descriptive names in the app's screens
   - Files: apps/mobile/src/app/category/[categoryId].tsx, apps/mobile/src/app/(tabs)/budget.tsx,
     apps/mobile/src/app/(tabs)/expenses.tsx, apps/mobile/src/app/expense.tsx, apps/mobile/src/app/income-item.tsx
   - Change (renames only; each name changes at its declaration and at every use):
@@ -163,7 +163,7 @@ then restore the line.
       opens the edit form.
     - New expense: add one, and the note reads "Added “…” to <Category> · €… · <date>".
     - Income item: type a title and an amount, then save.
-- [ ] 4. Use descriptive names in the app's components
+- [x] 4. Use descriptive names in the app's components
   - Files: apps/mobile/src/components/{CollapsingSummary,CategorySheet,Icon,AppearancePicker,CategoryPicker,DateChips}.tsx
   - Change (renames only):
     - `CollapsingSummary.tsx:37` `(e: LayoutChangeEvent)` → `(event: LayoutChangeEvent)`, use on line 38. `{ y, height }`
@@ -182,7 +182,7 @@ then restore the line.
     - Settings: Light, Dark and Auto switch the theme.
     - Icons on tiles, the tab bar and buttons.
     - Scroll Expenses and a category screen: the card fades and the compact total shows in the top bar.
-- [ ] 5. Use descriptive names in the app's data modules
+- [x] 5. Use descriptive names in the app's data modules
   - Files: apps/mobile/src/data/{monthSummary,quick,categoryRemove,undo,useCategoryTotals,useExpenseDraft,useMonthCategories,useExpenseNames,useRate}.ts
   - Change (renames only). This slice is the largest, about 30 lines in 9 files, and fully mechanical:
     - `monthSummary.ts:6` `(sum, e)` → `(sum, expense)`.
@@ -220,7 +220,7 @@ then restore the line.
     - Delete-category screen and category form: totals load.
     - With `api` stopped, the expense form and the delete-category screen show an error with Retry. Start `api` and
       press Retry: they load.
-- [ ] 6. Use descriptive names in format, theme and ledger choice
+- [x] 6. Use descriptive names in format, theme and ledger choice
   - Files: apps/mobile/src/format.ts, apps/mobile/src/theme.ts, apps/mobile/src/auth/ledgerChoice.ts
   - Change (renames only):
     - `format.ts:27` `[y, m, d]` → `[year, monthNumber, day]`, uses on line 28. Not `month`: in this repo `month` means
@@ -241,7 +241,7 @@ character.charCodeAt(0)) % 360`. Not `hue`: that line declares `const hue`.
   - Verify: after this slice `find-short-names.sh apps/mobile/src` lists exactly the 3 `categoryIcons.LICENSE.txt`
     lines. Web check: dates and month labels on Expenses, a category screen and the form; tile colours match the Base
     screenshots; after a page reload the same ledger opens.
-- [ ] 7. Mark R8 in review in the backlog
+- [x] 7. Mark R8 in review in the backlog
   - Files: docs/features/BACKLOG.md
   - Change: roadmap row R8: brief `124`, state `in review`.
 
@@ -301,6 +301,11 @@ character.charCodeAt(0)) % 360`. Not `hue`: that line declares `const hue`.
   clean them.
 
 ## Deviations
+
+- `expense.tsx`'s setter label is `next`, not `text` (the file imports `text` from `@/theme`; skeptic suggestion).
+- Web check: base shots (Budget, Expenses, a category, the expense form, income item, Settings in dark; Expenses and
+  the form in light) and the same screens on the finished branch match; slice 2's arrow-key scrolling was checked
+  before its commit; the add note reads "Added “…” to groceries · €3 · <date>".
 
 <filled by the developer during build>
 

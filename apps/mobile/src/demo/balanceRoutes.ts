@@ -1,11 +1,11 @@
 import type { MonthBalance } from '@/api/types';
+import { sumCents } from '@/data/monthSummary';
 import { centsToInput, kyivMonth, shiftMonth, toCents } from '@/format';
 import { liveExpensesIn, monthIncomeCents, refuse, type Route, type StoreData } from './state';
 
 /** A month's income − live spent, in cents. */
 function flowOf(data: StoreData, month: string): number {
-  const spent = liveExpensesIn(data, month);
-  return monthIncomeCents(data, month) - spent.reduce((sum, expense) => sum + toCents(expense.amountEur), 0);
+  return monthIncomeCents(data, month) - sumCents(liveExpensesIn(data, month), 'amountEur');
 }
 
 /**

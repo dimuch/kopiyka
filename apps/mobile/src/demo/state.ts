@@ -1,6 +1,7 @@
 import { ApiError } from '@/api/apiError';
 import type { Expense, IncomeItem, User } from '@/api/types';
-import { kyivMonth, toCents } from '@/format';
+import { incomeCents } from '@/data/monthSummary';
+import { kyivMonth } from '@/format';
 
 /** The one person in the demo, shown as the one who added income. */
 export const DEMO_USER: User = { userId: 1, username: 'you' };
@@ -53,7 +54,7 @@ export function liveExpensesIn(data: StoreData, month: string): DemoExpense[] {
 
 /** A 'YYYY-MM' month's income total, in EUR cents. */
 export function monthIncomeCents(data: StoreData, month: string): number {
-  return data.income.filter((item) => item.month === month).reduce((sum, item) => sum + toCents(item.amountEur), 0);
+  return incomeCents(data.income.filter((item) => item.month === month));
 }
 
 /** What a route gets from one `api()` call. */

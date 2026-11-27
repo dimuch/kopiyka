@@ -1,5 +1,6 @@
 import type { Category, CategoryWithTotals } from '@/api/types';
 import { findCategoryIcon } from '@/components/categoryIcons';
+import { sumCents } from '@/data/monthSummary';
 import { centsToInput, shiftMonth, toCents } from '@/format';
 import { refuseOverIncome } from './incomeLimit';
 import {
@@ -193,7 +194,7 @@ export const categoryRoutes: Route[] = [
       const totals: CategoryWithTotals = {
         ...toDto(data, category, month),
         expenseCount: expenses.length,
-        totalEur: centsToInput(expenses.reduce((sum, expense) => sum + toCents(expense.amountEur), 0)),
+        totalEur: centsToInput(sumCents(expenses, 'amountEur')),
         inMonth: inMonth(data, category.categoryId, month),
       };
       return totals;

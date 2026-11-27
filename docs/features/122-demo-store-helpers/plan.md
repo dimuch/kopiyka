@@ -32,18 +32,18 @@ Why: §8b says a behaviour-preserving refactor of shipped code (the demo web bui
 
 ## Slices
 
-- [ ] 0. Bump version to 1.26.8
+- [x] 0. Bump version to 1.26.8
   - Files: package.json, apps/mobile/app.json
   - Change: set both to 1.26.8.
-- [ ] 1. Pin the 404 for an edit or remove of a removed category row
+- [x] 1. Pin the 404 for an edit or remove of a removed category row
   - Files: apps/mobile/test/demoCategories.test.ts ("removing and restoring" block)
   - Change: new case. Remove category 1 from 2026-11, then PATCH it there → `[404,'not_found']`, and DELETE it again → `[404,'not_found']`. Today's 404 cases use category 3, which has no row at all, so `removal === null` is unpinned.
   - Tests: the new case passes on Base (511 app tests). Bite check: drop `&& candidate.removal === null` from PATCH, then from DELETE; the case must fail each time. Restore the lines afterwards.
-- [ ] 2. Look up a category's month row in one place
+- [x] 2. Look up a category's month row in one place
   - Files: apps/mobile/src/demo/categoryRoutes.ts
   - Change: add `monthRow` next to `rowName`. Use it in PATCH and DELETE (`false`) and in restore (`true`). The POST reuse lookup has no removal filter, so it is not one of the three and stays as it is.
   - Tests: demoCategories "404 for an edit of a category the month doesn't list", "refuses a remove … 404 …", "refuses a restore … 404 when it isn't removed there", "removes with its expenses and restores exactly those", and the slice-1 case.
-- [ ] 3. Name the month's live expenses in the demo store
+- [x] 3. Name the month's live expenses in the demo store
   - Files: apps/mobile/src/demo/state.ts, categoryRoutes.ts, expenseRoutes.ts, balanceRoutes.ts
   - Change: add `liveExpensesIn` to `state.ts` and use it at four places:
     - GET one category: `.filter(categoryId)` on its result;
@@ -54,7 +54,7 @@ Why: §8b says a behaviour-preserving refactor of shipped code (the demo web bui
     - every `month` that reaches it is `YYYY-MM`: the routes' `(\d{4}-\d{2})`, plus `shiftMonth` steps from a month row's month, and those rows come from the same regexes and from `sampleData`;
     - every expense date is `YYYY-MM-DD`, from `sampleData` or the app's `ExpenseInput`, so its 8th character is always `-`.
   - Tests: demoCategories "counts its live expenses in the month" (it pins the other month, the removed expense and the other category) and "removes with its expenses …" (October untouched, 13 keeps its own removal). demoExpenses "lists newest first …" and "orders a day … leaves out deleted". demoBalance "starts the first listed month at €0 …" and "leaves out a deleted expense".
-- [ ] 4. Reuse sumCents and incomeCents for the demo's cents totals
+- [x] 4. Reuse sumCents and incomeCents for the demo's cents totals
   - Files: apps/mobile/src/demo/state.ts, categoryRoutes.ts, balanceRoutes.ts
   - Change:
     - `monthIncomeCents` = `incomeCents(data.income.filter(month))`;
@@ -62,16 +62,16 @@ Why: §8b says a behaviour-preserving refactor of shipped code (the demo web bui
     - `flowOf` = `monthIncomeCents(...) - sumCents(liveExpensesIn(data, month), 'amountEur')`.
     - Drop the `toCents` import from `state.ts`, which is now unused.
   - Tests: the same demoBalance and demoCategories cases as slice 3, plus demoIncome "demo income limit" (5 cases).
-- [ ] 5. Extract reuseOrCreate from the category add
+- [x] 5. Extract reuseOrCreate from the category add
   - Files: apps/mobile/src/demo/categoryRoutes.ts
   - Change: move the find/reuse/create block, as a guard on `found` with an early return. The `const found = category` alias goes. The POST keeps its checks, `planned.set` and the literal `added` DTO, and comes to about 21 lines. The order of writes stays the same.
   - Tests: demoCategories "creates a new category …" (full DTO), "reuses a category by name, keeping its expenses deleted", "… from another month …", "… by its name in another month …" and "adds a category with an icon". demoDataFunctions "keeps a reused category's icon …".
-- [ ] 6. Name the expense-name comparator without nested ternaries
+- [x] 6. Name the expense-name comparator without nested ternaries
   - Files: apps/mobile/src/demo/expenseRoutes.ts
   - Change: `byRank` as an `if` chain that compares uses, then `latestDate` with `>`, then `key` with `<`, then returns 0. `.sort(byRank)`. The `(a, b)` lambda goes as a whole, so there is no separate rename slice. Equal because `b.uses - a.uses` is non-zero exactly when the uses differ.
   - Tests: demoExpenses "orders by uses, then the newest date, then A–Z" bites at each level (Delhaize / Market / aldi before Lidl), plus the other 4 "demo expense names" cases.
   - Verify: `find-short-names.sh --diff origin/main` is clean. `yarn mobile export:web && yarn mobile check-builds` passes without `--accept`.
-- [ ] 7. Mark R6 in review in the backlog
+- [x] 7. Mark R6 in review in the backlog
   - Files: docs/features/BACKLOG.md
   - Change: roadmap row R6 becomes brief `122`, status `in review`.
 

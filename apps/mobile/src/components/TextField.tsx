@@ -1,6 +1,7 @@
 import { useState, type ComponentPropsWithRef } from 'react';
 import { TextInput } from 'react-native';
 import { useColors } from '@/appearance/AppearanceContext';
+import { type Palette, radius, size, space, text } from '@/theme';
 
 type Props = ComponentPropsWithRef<typeof TextInput>;
 
@@ -26,3 +27,23 @@ export function TextField({ style, onFocus, onBlur, ...rest }: Props) {
     />
   );
 }
+
+/**
+ * The filled field look: its 1pt border in `fill` is the edge TextField's focus colour shows on. Spread it first, so a
+ * caller's own keys win.
+ */
+export function fieldStyle(colors: Palette) {
+  return {
+    height: size.control,
+    borderRadius: radius.md,
+    borderWidth: 1,
+    borderColor: colors.fill,
+    backgroundColor: colors.fill,
+    paddingHorizontal: space.lg,
+    color: colors.text,
+    ...text.input,
+  };
+}
+
+/** Where the ₴/€ sits over a `fieldStyle` field, inside the left padding its caller adds. */
+export const symbolStyle = { position: 'absolute', left: 14, top: 13, zIndex: 1 } as const;

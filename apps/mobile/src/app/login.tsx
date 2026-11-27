@@ -8,9 +8,9 @@ import { useAuth } from '@/auth/AuthContext';
 import { Button } from '@/components/Button';
 import { Pressable } from '@/components/Pressable';
 import { Text } from '@/components/Text';
-import { TextField } from '@/components/TextField';
+import { fieldStyle, TextField } from '@/components/TextField';
 import { loginErrorText } from '@/data/loginError';
-import { fonts, type Palette, radius, size, space, text } from '@/theme';
+import { fonts, type Palette, size, space } from '@/theme';
 
 /** The demo (briefs 080, 081): the app with sample data in the browser, no account needed. */
 const DEMO_URL = 'https://demo.kopiyka.englishplus.com.ua';
@@ -137,16 +137,7 @@ const makeStyles = (colors: Palette) =>
       alignSelf: 'center',
     },
     field: { gap: space.sm },
-    input: {
-      ...text.input,
-      height: size.control,
-      borderRadius: radius.md,
-      borderWidth: 1,
-      borderColor: colors.fill,
-      backgroundColor: colors.fill,
-      color: colors.text,
-      paddingHorizontal: space.lg,
-    },
+    input: fieldStyle(colors),
     // The one-time code: big, spaced digits that the scale has no role for (one caller), in the display role's face (800).
     // eslint-disable-next-line no-restricted-syntax
     passwordInput: { fontFamily: fonts.extraBold, fontSize: 26, letterSpacing: 8, fontVariant: ['tabular-nums'] },

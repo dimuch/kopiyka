@@ -12,7 +12,7 @@ import { Button } from '@/components/Button';
 import { LoadError } from '@/components/LoadError';
 import { ScreenHeader } from '@/components/ScreenHeader';
 import { Text } from '@/components/Text';
-import { TextField } from '@/components/TextField';
+import { fieldStyle, TextField } from '@/components/TextField';
 import { normalizeName } from '@/data/categoryName';
 import { addIncome, deleteIncome, updateIncome } from '@/data/income';
 import { monthEndedText } from '@/data/monthEnded';
@@ -20,7 +20,7 @@ import { overIncomeText } from '@/data/overIncome';
 import { useIncome } from '@/data/useIncome';
 import { monthName, normalizeAmount } from '@/format';
 import { parseIdParam, parseMonthParam } from '@/linkParams';
-import { type Palette, radius, size, space, text } from '@/theme';
+import { type Palette, space } from '@/theme';
 
 /**
  * Closes the modal. Opened straight from a web link there's nothing to go back to, so it falls back to the Income
@@ -255,14 +255,5 @@ const makeStyles = (colors: Palette) =>
     screen: { flex: 1, backgroundColor: colors.bg, paddingHorizontal: space.xl, paddingTop: space.sm },
     body: { gap: space.lg, paddingTop: space.lg, paddingBottom: space.huge },
     group: { gap: space.sm },
-    input: {
-      height: size.control,
-      borderRadius: radius.md,
-      borderWidth: 1,
-      borderColor: colors.fill,
-      backgroundColor: colors.fill,
-      paddingHorizontal: space.lg,
-      color: colors.text,
-      ...text.input,
-    },
+    input: fieldStyle(colors),
   });

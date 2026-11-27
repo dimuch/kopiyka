@@ -11,12 +11,12 @@ import { Button } from '@/components/Button';
 import { LoadError } from '@/components/LoadError';
 import { ScreenHeader } from '@/components/ScreenHeader';
 import { Text } from '@/components/Text';
-import { TextField } from '@/components/TextField';
+import { fieldStyle, TextField } from '@/components/TextField';
 import { clearActualEnd, setActualEnd } from '@/data/actualEnd';
 import { useMonthBalance } from '@/data/useMonthBalance';
 import { eur, monthLabel, normalizeBalance, shiftMonth, toCents } from '@/format';
 import { parseMonthParam } from '@/linkParams';
-import { type Palette, radius, size, space, text } from '@/theme';
+import { type Palette, space } from '@/theme';
 
 const noBalanceText = (month: string) => `${monthLabel(month)} has no balance yet.`;
 
@@ -182,14 +182,5 @@ const makeStyles = (colors: Palette) =>
     screen: { flex: 1, backgroundColor: colors.bg, paddingHorizontal: space.xl, paddingTop: space.sm },
     body: { gap: space.lg, paddingTop: space.lg, paddingBottom: space.huge },
     group: { gap: space.sm },
-    input: {
-      height: size.control,
-      borderRadius: radius.md,
-      borderWidth: 1,
-      borderColor: colors.fill,
-      backgroundColor: colors.fill,
-      paddingHorizontal: space.lg,
-      color: colors.text,
-      ...text.input,
-    },
+    input: fieldStyle(colors),
   });

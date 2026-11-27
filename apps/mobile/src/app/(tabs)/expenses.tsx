@@ -9,6 +9,7 @@ import { CategoryTile } from '@/components/CategoryTile';
 import { useCollapsingSummary } from '@/components/CollapsingSummary';
 import { useCardStyle } from '@/components/Card';
 import { EmptyMonth } from '@/components/EmptyMonth';
+import { FigureRow } from '@/components/FigureRow';
 import { LoadError } from '@/components/LoadError';
 import { LoadState } from '@/components/LoadState';
 import { MonthSwitcher } from '@/components/MonthSwitcher';
@@ -79,24 +80,13 @@ export default function Expenses() {
             accessibilityLabel={figures?.label ?? `Spent this month, ${error ? 'not available' : 'loading'}`}
             style={styles.figures}
           >
-            {[
-              { label: 'Spent', value: figures?.spent },
-              { label: 'Budgeted', value: figures?.budgeted },
-              { label: 'Remaining', value: figures?.remaining, over: figures?.over },
-            ].map((figure, index) => (
-              <View
-                key={figure.label}
-                style={[styles.figure, index === 1 && styles.figureCentre, index === 2 && styles.figureEnd]}
-              >
-                <Text variant="caption" color="muted">
-                  {figure.label}
-                </Text>
-                {/* "—" in the value's own size until the month loads, so the card keeps its height. */}
-                <Text variant="amount" color={figure.over ? 'danger' : figures ? 'text' : 'muted'}>
-                  {figure.value ?? '—'}
-                </Text>
-              </View>
-            ))}
+            <FigureRow
+              figures={[
+                { label: 'Spent', value: figures?.spent },
+                { label: 'Budgeted', value: figures?.budgeted },
+                { label: 'Remaining', value: figures?.remaining, over: figures?.over },
+              ]}
+            />
           </View>
         </Animated.View>
 
@@ -210,9 +200,6 @@ const makeStyles = (colors: Palette) =>
     card: { gap: space.sm },
     // Spread across the card's full width, as on Budget: Spent at the left, Budgeted centred, Remaining at the right.
     figures: { flexDirection: 'row', justifyContent: 'space-between', gap: space.sm },
-    figure: { gap: space.xs },
-    figureCentre: { alignItems: 'center' },
-    figureEnd: { alignItems: 'flex-end' },
     sectionHead: {
       flexDirection: 'row',
       justifyContent: 'space-between',

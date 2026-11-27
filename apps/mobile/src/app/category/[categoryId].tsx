@@ -2,7 +2,7 @@ import { router, useLocalSearchParams } from 'expo-router';
 import { useMemo, useState } from 'react';
 import { ActivityIndicator, Animated, StyleSheet, View } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useColors, useThemedStyles } from '@/appearance/AppearanceContext';
+import { useAppearance, useColors, useThemedStyles } from '@/appearance/AppearanceContext';
 import { useSession } from '@/auth/AuthContext';
 import { AddExpenseButton } from '@/components/AddExpenseButton';
 import { useCardStyle } from '@/components/Card';
@@ -23,7 +23,7 @@ import { useMonth } from '@/data/useMonth';
 import { dayLabel, eur, kyivMonth, monthLabel, monthName, toCents, uah } from '@/format';
 import { parseIdParam, parseMonthParam } from '@/linkParams';
 import { usePushOnce } from '@/pushOnce';
-import { type Palette, radius, size, space } from '@/theme';
+import { type Palette, radius, shadow, size, space } from '@/theme';
 
 // Opened straight from a web link there's nothing to go back to, so fall back to Expenses (current month).
 function goBack() {
@@ -198,6 +198,7 @@ function CategoryBreakdown({ categoryId, month, ended }: { categoryId: number; m
 /** The ⋯ menu: over the whole screen, so a tap anywhere outside the card (Back and "+" included) only closes it. */
 function CategoryMenu({ label, onRemove, onClose }: { label: string; onRemove: () => void; onClose: () => void }) {
   const styles = useThemedStyles(makeStyles);
+  const { scheme } = useAppearance();
   // Absolute children ignore the SafeAreaView's padding, so the top inset is added here.
   const insets = useSafeAreaInsets();
   return (
@@ -209,7 +210,7 @@ function CategoryMenu({ label, onRemove, onClose }: { label: string; onRemove: (
         style={StyleSheet.absoluteFill}
       />
       {/* 64 = the screen's paddingTop (20) + the header's 44 pt row: just under the ⋯ button. */}
-      <View style={[styles.menuCard, { top: insets.top + 64 }]}>
+      <View style={[styles.menuCard, { top: insets.top + 64, boxShadow: shadow[scheme].float }]}>
         <Pressable accessibilityRole="button" onPress={onRemove} style={styles.menuItem}>
           {/* A menu row, not a button (brief 104c), so its label is text in the danger colour. */}
           <Text variant="bodyMedium" color="danger">
@@ -257,8 +258,6 @@ const makeStyles = (colors: Palette) =>
       right: 20,
       minWidth: 200,
       borderRadius: radius.md,
-      borderWidth: 1,
-      borderColor: colors.borderStrong,
       backgroundColor: colors.surface,
       paddingVertical: space.xs,
     },

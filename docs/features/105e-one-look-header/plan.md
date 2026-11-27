@@ -211,7 +211,7 @@ data, connector or demo-store change.
   - Tests: `theme.test.ts` › shadow, renamed "takes the design system's shadows in light, and in dark only a hairline
     ring for floating surfaces", expects the dark ring. Verify: `rg -n "104|eslint-disable" "apps/mobile/src/app/(tabs)/budget.tsx" "apps/mobile/src/app/category/[categoryId].tsx"`
     finds no toast line; Visual check C.
-- [ ] 4. Float the period menu, the category menu and the name suggestions on the float shadow, with no edge
+- [x] 4. Float the period menu, the category menu and the name suggestions on the float shadow, with no edge
       (≈ 33 lines)
   - Files: `app/category/[categoryId].tsx`, `app/(tabs)/statistics.tsx`, `components/NameCombobox.tsx`
   - Change: as in Contracts. Each `borderWidth`/`borderColor` pair goes. NameCombobox loses `LIST_BORDER` and the

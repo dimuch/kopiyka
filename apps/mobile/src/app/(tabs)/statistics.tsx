@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { ActivityIndicator, type LayoutRectangle, ScrollView, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useColors, useThemedStyles } from '@/appearance/AppearanceContext';
+import { useAppearance, useColors, useThemedStyles } from '@/appearance/AppearanceContext';
 import { useSession } from '@/auth/AuthContext';
 import { Card } from '@/components/Card';
 import { EmptyMonth } from '@/components/EmptyMonth';
@@ -24,7 +24,7 @@ import {
 import { isEmptySummary, planGap } from '@/data/periodSummary';
 import { useSummary } from '@/data/useSummary';
 import { eur, shortMonthLabel, toCents } from '@/format';
-import { type Palette, radius, size, space } from '@/theme';
+import { type Palette, radius, shadow, size, space } from '@/theme';
 
 /**
  * The open ledger's totals for a chosen period of whole months, all members together (brief 089). Home stays on the
@@ -250,6 +250,7 @@ function PeriodMenu({
 }) {
   const colors = useColors();
   const styles = useThemedStyles(makeStyles);
+  const { scheme } = useAppearance();
   // anchor.y already includes the SafeAreaView's padding (inset + 20). Absolute children are placed from its outer
   // edge, so no inset is added here, unlike CategoryMenu.
   const place = { top: anchor.y + anchor.height + 4, left: anchor.x + (anchor.width - MENU_WIDTH) / 2 };
@@ -261,7 +262,11 @@ function PeriodMenu({
         onPress={onClose}
         style={StyleSheet.absoluteFill}
       />
-      <View accessibilityRole="radiogroup" accessibilityLabel="Period" style={[styles.menuCard, place]}>
+      <View
+        accessibilityRole="radiogroup"
+        accessibilityLabel="Period"
+        style={[styles.menuCard, place, { boxShadow: shadow[scheme].float }]}
+      >
         {PERIOD_CHOICES.map(({ choice, label }) => {
           const checked = choice === marked;
           return (
@@ -313,8 +318,6 @@ const makeStyles = (colors: Palette) =>
       position: 'absolute',
       width: MENU_WIDTH,
       borderRadius: radius.md,
-      borderWidth: 1,
-      borderColor: colors.borderStrong,
       backgroundColor: colors.surface,
       paddingVertical: space.xs,
     },

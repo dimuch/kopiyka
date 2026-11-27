@@ -4,8 +4,9 @@ import { Platform, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useAppearance, useColors, useThemedStyles } from '@/appearance/AppearanceContext';
 import { Icon } from '@/components/Icon';
-import { pressedOpacity } from '@/components/Pressable';
+import { Pressable, pressedOpacity } from '@/components/Pressable';
 import { readTabs, type TabItem, type TabName, useTabItems } from '@/data/tabItems';
+import { usePushOnce } from '@/pushOnce';
 import { tabHref } from '@/tabRoutes';
 import { fonts, type Palette, radius, shadow, size, space } from '@/theme';
 
@@ -43,6 +44,7 @@ export function TabBar({
   const { scheme } = useAppearance();
   const insets = useSafeAreaInsets();
   const { tabs } = useTabItems();
+  const pushOnce = usePushOnce();
   const float = { boxShadow: shadow[scheme].float };
 
   return (
@@ -81,6 +83,15 @@ export function TabBar({
           );
         })}
       </View>
+      {/* No category: the form starts on the last used one (brief 106). */}
+      <Pressable
+        accessibilityRole="button"
+        accessibilityLabel="Add expense"
+        onPress={() => pushOnce('/expense')}
+        style={[styles.add, float]}
+      >
+        <Icon name="plus" color={colors.onAccent} size={ICON_SIZE} />
+      </Pressable>
     </View>
   );
 }
@@ -124,6 +135,14 @@ function makeStyles(colors: Palette) {
       backgroundColor: colors.surface,
     },
     item: { flex: 1, alignItems: 'center', justifyContent: 'center' },
+    add: {
+      width: size.tabBar,
+      height: size.tabBar,
+      borderRadius: radius.pill,
+      alignItems: 'center',
+      justifyContent: 'center',
+      backgroundColor: colors.accent,
+    },
     icon: { ...StyleSheet.absoluteFill, alignItems: 'center', justifyContent: 'center' },
     badge: {
       position: 'absolute',

@@ -264,3 +264,8 @@ instructions that mentions Copilot, delegating or .github; else reply NONE."` â†
 ## Deviations
 
 ## Consolidate
+
+One pass over `origin/main...HEAD`. The new code is one script, `scripts/build-copilot-skills.mjs`. No other code in the repo
+parses front matter, rewrites skill files or calls Prettier's API (`rg` over `apps/` and `scripts/`; the only other
+scripts are `apps/api/scripts/{create-user,migrate}.ts` and `apps/mobile/scripts/buildCheck.mts`). Reused 0, extracted
+0, left 0.

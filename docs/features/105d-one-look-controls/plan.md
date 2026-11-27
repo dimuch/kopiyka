@@ -523,8 +523,26 @@ size.toast + space.lg` (104). Budget's `toastRoom` and the category page's `padd
 
 ## Deviations
 
-<filled by the developer during build>
+- Slice 5: DateChips' row gained `alignItems: 'center'`, so each chip's 44pt touch area sits centred beside the 48pt
+  date field instead of stretching to the row's height; the pill is centred either way.
+- Review: Chip's and AppearancePicker's pill take `minHeight: size.chip` instead of `height`, so a large text size
+  grows the pill instead of clipping its label. Same 32pt box at the default size.
+- Visual check: before (Base e83f8c9) and after (8884074e) on 27 November (Kyiv), 34 views × 2 themes, in a
+  same-origin 390×844 iframe, compared in Node. A: texts equal and in order on all 68 pairs; the only type change is
+  the Appearance labels (15/20 → 13/18); `aria-label` leaves exactly the buttons the plan lists; element counts grow
+  only by the chips' pill elements. B: filled buttons 48 high with 16 a side, text buttons 44 with 8, opacity 0.4 on
+  Sign in and Members' Save and Invite, danger buttons grey with a red label. C: every pill 32 high in `fill` or
+  `accentTint`, touch areas 44; "education" truncated before and whole after. D: every icon button round. E: every
+  move over 2pt matches What moves.
+- The pressed state couldn't be shown: a synthetic `pointerdown` doesn't trigger react-native-web's press, on Base
+  either. Pressable's 0.6 is unchanged code.
+- Touch area: a click 5pt above or below the "education" pill selects it. Focus with Tab: Back, the date chips, the
+  category chips, Add and Budget's pencil show the 2px accent outline on a round radius.
+- Demo, light and dark: no console errors. `export:web` and `check-builds` (no `--accept`) pass.
 
 ## Consolidate
 
-<filled in /kopiyka-hos Phase 3a: CONSOLIDATE line, each reuse/extract, each LEAVE + reason>
+CONSOLIDATE: reused 0 · extracted 0 · left 1
+
+- **Left:** AppearancePicker draws Chip's pill (about 6 lines of style) itself: its options are radios and Chip is a
+  button, and it's the pill's only second use.

@@ -7,6 +7,13 @@ interface Suggestion {
   latestDate: string;
 }
 
+/** -1, 0 or 1 by UTF-16 code unit, for sorting; deliberately not `localeCompare`, which orders strings differently. */
+function compareText(left: string, right: string): number {
+  if (left < right) return -1;
+  if (left > right) return 1;
+  return 0;
+}
+
 /**
  * Ranks expense names for suggestions. `newestFirst` must be sorted newest first: the first row seen for a name sets
  * its spelling and latest date. Names that differ only in case or surrounding spaces count as one; empty names are
@@ -25,9 +32,7 @@ export function rankNames(newestFirst: readonly { name: string; expenseDate: str
   return [...byKey.values()]
     .sort(
       (left, right) =>
-        right.uses - left.uses ||
-        (left.latestDate === right.latestDate ? 0 : left.latestDate > right.latestDate ? -1 : 1) ||
-        (left.key === right.key ? 0 : left.key < right.key ? -1 : 1),
+        right.uses - left.uses || compareText(right.latestDate, left.latestDate) || compareText(left.key, right.key),
     )
     .map((suggestion) => suggestion.name);
 }

@@ -9,10 +9,10 @@ export function withQuick(quick: number[], id: number): number[] {
 
 /** The quick row's categories in its order, and the rest for "More". Ids not in `categories` are dropped. */
 export function splitQuick(quick: number[], categories: Category[]): { quick: Category[]; more: Category[] } {
-  const byId = new Map(categories.map((c) => [c.categoryId, c]));
+  const byId = new Map(categories.map((category) => [category.categoryId, category]));
   return {
-    quick: quick.map((id) => byId.get(id)).filter((c): c is Category => !!c),
-    more: categories.filter((c) => !quick.includes(c.categoryId)),
+    quick: quick.map((id) => byId.get(id)).filter((category): category is Category => !!category),
+    more: categories.filter((category) => !quick.includes(category.categoryId)),
   };
 }
 
@@ -25,13 +25,13 @@ export function monthPicker(
   quickIds: number[],
   selectedId: number | null,
 ): { quick: Category[]; more: Category[]; missing: boolean } {
-  const missing = selectedId !== null && !categories.some((c) => c.categoryId === selectedId);
+  const missing = selectedId !== null && !categories.some((category) => category.categoryId === selectedId);
   const row = selectedId === null || missing ? quickIds : withQuick(quickIds, selectedId);
   return { ...splitQuick(row, categories), missing };
 }
 
 /** The category a new expense starts on: the last used one when the month has it, else the month's first quick one. */
 export function startCategoryId(lastUsedId: number | null, categories: Category[], quickIds: number[]): number | null {
-  if (lastUsedId !== null && categories.some((c) => c.categoryId === lastUsedId)) return lastUsedId;
+  if (lastUsedId !== null && categories.some((category) => category.categoryId === lastUsedId)) return lastUsedId;
   return quickIds[0] ?? null;
 }

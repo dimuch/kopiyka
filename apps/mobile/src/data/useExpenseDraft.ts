@@ -63,6 +63,6 @@ export function useExpenseDraft(ledgerId: number, expenseId: number | null, cate
     };
   }, [key, ledgerId, expenseId, categoryId]);
 
-  const reload = useCallback(() => setVersion((v) => v + 1), []);
+  const reload = useCallback(() => setVersion((current) => current + 1), []);
   return loaded?.key === key ? { ...loaded.draft, reload } : { status: 'loading', reload };
 }

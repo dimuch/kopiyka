@@ -17,7 +17,7 @@ export function useExpenseNames(ledgerId: number, categoryId: number | null, mon
     if (categoryId === null) return;
     let live = true;
     api<ExpenseNames>(`/api/ledgers/${ledgerId}/expenses/names?categoryId=${categoryId}&month=${month}`)
-      .then((r) => live && setLoaded({ key, names: r.names }))
+      .then((expenseNames) => live && setLoaded({ key, names: expenseNames.names }))
       .catch(() => live && setLoaded({ key, names: NONE }));
     return () => {
       live = false;

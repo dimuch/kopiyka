@@ -64,6 +64,53 @@ function periodMonths(from: string, to: string): string[] {
   });
 }
 
+/** Each month of `from…to` with its income, spent and left; `income` and `spent` are the period's rows. */
+function monthFigures(from: string, to: string, income: RowDataPacket[], spent: RowDataPacket[]): SummaryMonthDto[] {
+  return periodMonths(from, to).map((month) => {
+    const monthIncome = addRows(income, 'income_eur', month);
+    const monthSpent = addRows(spent, 'spent_eur', month);
+    return {
+      month,
+      incomeEur: centsToString(monthIncome),
+      spentEur: centsToString(monthSpent),
+      leftEur: centsToString(monthIncome - monthSpent),
+    };
+  });
+}
+
+/** The period's categories with their planned and spent figures, largest spent first. */
+function categoryFigures(
+  named: RowDataPacket[],
+  planned: RowDataPacket[],
+  spent: RowDataPacket[],
+): SummaryCategoryDto[] {
+  // Listed in a month of the period, or spent on there; the planned and spent rows already leave deleted data out.
+  const inPeriod = new Set([...planned, ...spent].map((row) => row.category_id as number));
+  const ofCategory = (rows: RowDataPacket[], categoryId: number) =>
+    rows.filter((row) => row.category_id === categoryId);
+  return named
+    .filter((row) => inPeriod.has(row.category_id))
+    .map((row) => ({
+      categoryId: row.category_id as number,
+      name: row.name as string,
+      sortOrder: row.sort_order as number,
+      plannedCents: addRows(ofCategory(planned, row.category_id), 'planned_eur'),
+      spentCents: addRows(ofCategory(spent, row.category_id), 'spent_eur'),
+    }))
+    .sort(
+      (left, right) =>
+        compareCents(right.spentCents, left.spentCents) ||
+        left.sortOrder - right.sortOrder ||
+        left.categoryId - right.categoryId,
+    )
+    .map(({ categoryId, name, plannedCents, spentCents }) => ({
+      categoryId,
+      name,
+      plannedEur: centsToString(plannedCents),
+      spentEur: centsToString(spentCents),
+    }));
+}
+
 /**
  * A period's totals for the open ledger, all members together (brief 089), read-only. Each figure uses the same rows
  * as its month endpoint: planned as `GET /categories` (a plan counts while its category is in the month's list),
@@ -97,46 +144,13 @@ export async function summaryRoutes(app: FastifyInstance, { db }: AppDeps): Prom
       spentEur: centsToString(spentCents),
       leftEur: centsToString(incomeCents - spentCents),
     };
-    const months: SummaryMonthDto[] = periodMonths(from, to).map((month) => {
-      const monthIncome = addRows(income, 'income_eur', month);
-      const monthSpent = addRows(spent, 'spent_eur', month);
-      return {
-        month,
-        incomeEur: centsToString(monthIncome),
-        spentEur: centsToString(monthSpent),
-        leftEur: centsToString(monthIncome - monthSpent),
-      };
-    });
+    const months = monthFigures(from, to, income, spent);
     const [named] = await db.query<RowDataPacket[]>(
       `SELECT c.category_id, ${NAME_IN_MONTH} AS name, c.sort_order FROM categories c
         WHERE c.ledger_id = ? AND c.deleted_at IS NULL`,
       [last, ledgerId],
     );
-    // Listed in a month of the period, or spent on there; the planned and spent rows already leave deleted data out.
-    const inPeriod = new Set([...planned, ...spent].map((row) => row.category_id as number));
-    const ofCategory = (rows: RowDataPacket[], categoryId: number) =>
-      rows.filter((row) => row.category_id === categoryId);
-    const categories: SummaryCategoryDto[] = named
-      .filter((row) => inPeriod.has(row.category_id))
-      .map((row) => ({
-        categoryId: row.category_id as number,
-        name: row.name as string,
-        sortOrder: row.sort_order as number,
-        plannedCents: addRows(ofCategory(planned, row.category_id), 'planned_eur'),
-        spentCents: addRows(ofCategory(spent, row.category_id), 'spent_eur'),
-      }))
-      .sort(
-        (left, right) =>
-          compareCents(right.spentCents, left.spentCents) ||
-          left.sortOrder - right.sortOrder ||
-          left.categoryId - right.categoryId,
-      )
-      .map(({ categoryId, name, plannedCents, spentCents }) => ({
-        categoryId,
-        name,
-        plannedEur: centsToString(plannedCents),
-        spentEur: centsToString(spentCents),
-      }));
+    const categories = categoryFigures(named, planned, spent);
     return { totals, months, categories };
   });
 }

@@ -3,7 +3,7 @@
 Status: approved <!-- draft → skeptic-approved → approved (by the user) -->
 Brief: ./brief.md
 Branch: chore/api-extract-long-handlers
-Base: stacked on origin/chore/api-descriptive-names (R1, PR #189, auto-merging); the PR says so until it lands
+Base: origin/main (after R1, #189)
 
 ## Approach
 

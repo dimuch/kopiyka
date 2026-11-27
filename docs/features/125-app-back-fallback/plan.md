@@ -4,7 +4,6 @@ Status: approved <!-- draft → skeptic-approved → approved (by the user) -->
 Brief: ./brief.md
 Branch: chore/app-back-fallback
 Base: origin/main (after R8 #196)
-the PR says it is stacked on R8.
 
 ## Approach
 
@@ -141,7 +140,12 @@ land back where you came from. (b) Opened directly by URL in a fresh tab: press 
 
 ## Follow-ups
 
+- `closeToBudget.ts` now also holds the general `backOr`; a rename (e.g. `backOr.ts`) could follow if wanted.
+
 ## Deviations
+
+- `closeToBudget`'s and `income-item`'s `leave` JSDocs keep their web-link reason: they're why-comments for their own
+  fallback, so they weren't trimmed as slices 1–2 said.
 
 - The category screen keeps a one-line why-comment above its first `backOr('/expenses')` (Expenses opens on the
   current month, not the screen's), as the skeptic suggested. Web check ran in dark only: no style changed.

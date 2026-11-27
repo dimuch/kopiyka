@@ -83,8 +83,8 @@ export function StrokeIcon({
       strokeLinecap="round"
       strokeLinejoin="round"
     >
-      {paths.map((d) => (
-        <Path key={d} d={d} />
+      {paths.map((path) => (
+        <Path key={path} d={path} />
       ))}
     </Svg>
   );

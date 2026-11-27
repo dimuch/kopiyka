@@ -27,8 +27,13 @@ export function DateChips({ value, today, min, onChange, disabled = false }: Pro
   return (
     <View style={styles.row}>
       <DateField value={value} onChange={onChange} min={min} max={today} label="Date" disabled={disabled} />
-      {chips.map((d) => (
-        <Chip key={d.label} label={d.label} selected={value === d.value} onPress={() => onChange(d.value)} />
+      {chips.map((chip) => (
+        <Chip
+          key={chip.label}
+          label={chip.label}
+          selected={value === chip.value}
+          onPress={() => onChange(chip.value)}
+        />
       ))}
     </View>
   );

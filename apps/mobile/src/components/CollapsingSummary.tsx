@@ -34,8 +34,8 @@ export function useCollapsingSummary() {
 
   return {
     scrollProps: { onScroll, scrollEventThrottle: 16 },
-    onCardLayout: (e: LayoutChangeEvent) => {
-      const { y, height } = e.nativeEvent.layout;
+    onCardLayout: (event: LayoutChangeEvent) => {
+      const { y, height } = event.nativeEvent.layout;
       setCard({ y, height });
     },
     ...animated,

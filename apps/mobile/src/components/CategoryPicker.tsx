@@ -26,16 +26,18 @@ export function CategoryPicker({ quick, more, selectedId, onPick, disabled = fal
   const [sheetOpen, setSheetOpen] = useState(false);
   return (
     <View style={styles.grid}>
-      {quick.map((c) => {
-        const on = c.categoryId === selectedId;
+      {quick.map((category) => {
+        const on = category.categoryId === selectedId;
         return (
           <Chip
-            key={c.categoryId}
-            label={c.displayName}
-            leading={<CategoryTile techName={c.techName} label={c.displayName} icon={c.icon} size={26} />}
+            key={category.categoryId}
+            label={category.displayName}
+            leading={
+              <CategoryTile techName={category.techName} label={category.displayName} icon={category.icon} size={26} />
+            }
             selected={on}
             disabled={disabled}
-            onPress={() => onPick(c)}
+            onPress={() => onPick(category)}
             style={styles.cat}
           />
         );
@@ -54,9 +56,9 @@ export function CategoryPicker({ quick, more, selectedId, onPick, disabled = fal
         visible={sheetOpen}
         categories={more}
         onClose={() => setSheetOpen(false)}
-        onPick={(c) => {
+        onPick={(category) => {
           setSheetOpen(false);
-          onPick(c);
+          onPick(category);
         }}
       />
     </View>

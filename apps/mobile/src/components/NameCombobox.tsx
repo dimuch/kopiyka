@@ -14,7 +14,7 @@ import { useAppearance, useThemedStyles } from '@/appearance/AppearanceContext';
 import { Pressable } from '@/components/Pressable';
 import { Text } from '@/components/Text';
 import { TextField } from '@/components/TextField';
-import { matchingNames } from '@/data/nameSuggestions';
+import { matchingNames, scrollToShow } from '@/data/nameSuggestions';
 import { type Palette, radius, shadow, size, space } from '@/theme';
 
 /** Rows shown before the list scrolls; each row is the 44pt touch minimum high. */
@@ -86,14 +86,11 @@ export function NameCombobox({ value, onChangeText, names, editable, style, ...f
 
   function highlight(index: number) {
     setActive({ list: shownKey, index });
-    const top = index * ROW_HEIGHT;
-    const visible = VISIBLE_ROWS * ROW_HEIGHT;
-    const y =
-      top < scrollY.current ? top : top + ROW_HEIGHT > scrollY.current + visible ? top + ROW_HEIGHT - visible : null;
-    if (y === null) return;
-    listRef.current?.scrollTo({ y, animated: false });
+    const targetY = scrollToShow(index, scrollY.current, ROW_HEIGHT, VISIBLE_ROWS);
+    if (targetY === null) return;
+    listRef.current?.scrollTo({ y: targetY, animated: false });
     // Set now: onScroll comes later, and not at all when the list is already there.
-    scrollY.current = y;
+    scrollY.current = targetY;
   }
 
   function onKeyPress(event: TextInputKeyPressEvent) {

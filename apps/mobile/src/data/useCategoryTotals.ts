@@ -32,7 +32,7 @@ export function useCategoryTotals(ledgerId: number, categoryId: number | null, m
     };
   }, [key, ledgerId, categoryId, month]);
 
-  const reload = useCallback(() => setVersion((v) => v + 1), []);
+  const reload = useCallback(() => setVersion((current) => current + 1), []);
   if (categoryId === null || month === null) return { status: 'invalid', reload };
   if (loaded?.key !== key) return { status: 'loading', reload };
   return loaded.totals.status === 'ready' ? { ...loaded.totals, month, reload } : { ...loaded.totals, reload };

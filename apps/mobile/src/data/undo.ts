@@ -62,7 +62,7 @@ export function useUndoOffer(onRestored: () => void): {
     // Only touch the offer this restore started from: another delete may have replaced it meanwhile.
     try {
       await undo.restore();
-      setOffer((o) => (o?.undo === undo ? null : o));
+      setOffer((current) => (current?.undo === undo ? null : current));
       onRestored();
     } catch (err) {
       const text = undo.refusedText?.(err) ?? null;

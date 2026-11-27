@@ -28,10 +28,13 @@ export function useMonthCategories(ledgerId: number, month: string, lastUsedId: 
   useEffect(() => {
     let live = true;
     api<{ categories: Category[]; quickCategoryIds: number[] }>(`/api/ledgers/${ledgerId}/categories?month=${month}`)
-      .then((c) => {
+      .then((monthList) => {
         if (!live) return;
-        setLoaded({ key, list: { status: 'ready', categories: c.categories, quickIds: c.quickCategoryIds } });
-        setStartId((id) => id ?? startCategoryId(lastUsedId, c.categories, c.quickCategoryIds));
+        setLoaded({
+          key,
+          list: { status: 'ready', categories: monthList.categories, quickIds: monthList.quickCategoryIds },
+        });
+        setStartId((id) => id ?? startCategoryId(lastUsedId, monthList.categories, monthList.quickCategoryIds));
       })
       .catch(() => live && setLoaded({ key, list: { status: 'error' } }));
     return () => {
@@ -39,6 +42,6 @@ export function useMonthCategories(ledgerId: number, month: string, lastUsedId: 
     };
   }, [key, ledgerId, month, lastUsedId]);
 
-  const reload = useCallback(() => setVersion((v) => v + 1), []);
+  const reload = useCallback(() => setVersion((current) => current + 1), []);
   return loaded?.key === key ? { ...loaded.list, reload, startId } : { status: 'loading', reload, startId };
 }

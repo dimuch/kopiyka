@@ -15,7 +15,10 @@ export function useRate(date: string): Rate {
   useEffect(() => {
     let live = true;
     api<EurUahRate>(`/api/rates/eur-uah?date=${date}`)
-      .then((r) => live && setLoaded({ date, rate: { status: 'ok', eurUah: r.eurUah, rateDate: r.rateDate } }))
+      .then(
+        (nbuRate) =>
+          live && setLoaded({ date, rate: { status: 'ok', eurUah: nbuRate.eurUah, rateDate: nbuRate.rateDate } }),
+      )
       .catch(() => live && setLoaded({ date, rate: { status: 'unavailable' } }));
     return () => {
       live = false;

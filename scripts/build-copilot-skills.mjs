@@ -77,7 +77,11 @@ function readFrontMatterMarks(source, frontLines) {
 }
 
 function dropClaudeBlocks(source, body) {
-  const dropped = body.replace(/<!-- claude -->[\s\S]*?<!-- \/claude -->/g, '');
+  const dropped = body.replace(/<!-- claude -->([\s\S]*?)<!-- \/claude -->/g, (_, inside) => {
+    // A missing close would otherwise run on to the next block's close and drop the shared text between them.
+    if (inside.includes('<!-- claude -->')) fail(source, 'unbalanced <!-- claude --> marker');
+    return '';
+  });
   if (dropped.includes('<!-- claude -->') || dropped.includes('<!-- /claude -->')) {
     fail(source, 'unbalanced <!-- claude --> marker');
   }

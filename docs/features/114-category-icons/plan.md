@@ -235,7 +235,7 @@ two callers.
 - [x] 0. Bump version to 1.25.0
   - Files: package.json, apps/mobile/app.json
   - Change: set both to 1.25.0.
-- [ ] 1. Add a nullable icon column to categories (≈ 25 lines)
+- [x] 1. Add a nullable icon column to categories (≈ 25 lines)
   - Files: `apps/api/migrations/019_category_icons.sql`, `apps/api/test/categoryIcons.migration.int.test.ts`
   - Change: the migration under Contracts.
   - Tests: modelled on `monthActualEnds.migration.int.test.ts`.

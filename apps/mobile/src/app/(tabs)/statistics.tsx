@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { ActivityIndicator, type LayoutRectangle, ScrollView, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import type { SummaryTotals } from '@/api/types';
 import { useAppearance, useColors, useThemedStyles } from '@/appearance/AppearanceContext';
 import { useSession } from '@/auth/AuthContext';
 import { Card } from '@/components/Card';
@@ -76,30 +77,7 @@ export default function Statistics() {
               <EmptyMonth text="Nothing planned, spent or earned in this period." />
             ) : (
               <>
-                <Card padding="none" style={styles.totals}>
-                  {(
-                    [
-                      ['Income', summary.totals.incomeEur],
-                      ['Planned', summary.totals.plannedEur],
-                      ['Spent', summary.totals.spentEur],
-                      ['Left', summary.totals.leftEur],
-                    ] as const
-                  ).map(([name, amount]) => {
-                    const cents = toCents(amount);
-                    return (
-                      // One screen-reader stop per figure.
-                      <View key={name} accessible accessibilityLabel={`${name}, ${eur(cents)}`} style={styles.row}>
-                        <Text variant="bodyMedium" style={styles.grow}>
-                          {name}
-                        </Text>
-                        {/* Only Left can be negative: more spent than came in. */}
-                        <Text variant="amount" color={cents < 0 ? 'danger' : 'text'}>
-                          {eur(cents)}
-                        </Text>
-                      </View>
-                    );
-                  })}
-                </Card>
+                <TotalsCard totals={summary.totals} />
                 {summary.categories.length > 0 && (
                   <>
                     <Text variant="heading" style={styles.sectionTitle}>
@@ -287,6 +265,37 @@ function PeriodMenu({
         })}
       </View>
     </View>
+  );
+}
+
+/** The period's four figures: income, planned, spent and what's left. */
+function TotalsCard({ totals }: { totals: SummaryTotals }) {
+  const styles = useThemedStyles(makeStyles);
+  return (
+    <Card padding="none" style={styles.totals}>
+      {(
+        [
+          ['Income', totals.incomeEur],
+          ['Planned', totals.plannedEur],
+          ['Spent', totals.spentEur],
+          ['Left', totals.leftEur],
+        ] as const
+      ).map(([name, amount]) => {
+        const cents = toCents(amount);
+        return (
+          // One screen-reader stop per figure.
+          <View key={name} accessible accessibilityLabel={`${name}, ${eur(cents)}`} style={styles.row}>
+            <Text variant="bodyMedium" style={styles.grow}>
+              {name}
+            </Text>
+            {/* Only Left can be negative: more spent than came in. */}
+            <Text variant="amount" color={cents < 0 ? 'danger' : 'text'}>
+              {eur(cents)}
+            </Text>
+          </View>
+        );
+      })}
+    </Card>
   );
 }
 

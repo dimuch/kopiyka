@@ -188,7 +188,7 @@ inside its scroll view.
 | R14 | expense-form-split        | 130   | done (#202) |
 | R15 | statistics-sections       | 131   | done (#203) |
 | R16 | load-state                | 132   | done (#204) |
-| R17 | figure-row                | 133   | in review   |
+| R17 | figure-row                | 133   | done (#205) |
 
 ### Named in earlier briefs and plans as "its own brief"
 

@@ -1,6 +1,6 @@
 {
   "name": "kopiyka",
-  "version": "1.26.4",
+  "version": "1.26.5",
   "private": true,
   "packageManager": "yarn@4.18.1",
   "engines": {

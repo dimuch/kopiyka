@@ -165,6 +165,6 @@ Every slice: gates green, with tests unchanged (api 549 + 2 skipped, mcp 329, mo
   each slice (category amount and taken name, actual End, income title, expense form, members invite; light and dark
   for three of them): all identical. Sign-in's error was checked after the change only (no base record); the ledger
   switch error needs two ledgers and the API down, so it's covered by the identical shape, not a run.
-- The three "role=alert covers web" comments in members went with their pairs: the hook's JSDoc says it once.
+- The four "role=alert covers web" comments in members (LabelForm's `fail`, Remove, Revoke, Invite) went with their pairs: the hook's JSDoc says it once.
 
 ## Consolidate

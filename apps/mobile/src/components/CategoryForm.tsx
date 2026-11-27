@@ -9,12 +9,12 @@ import { findCategoryIcon } from '@/components/categoryIcons';
 import { Icon, StrokeIcon } from '@/components/Icon';
 import { Pressable } from '@/components/Pressable';
 import { Text } from '@/components/Text';
-import { TextField } from '@/components/TextField';
+import { fieldStyle, symbolStyle, TextField } from '@/components/TextField';
 import { type CategoryFields, checkFields } from '@/data/categoryForm';
 import { nameRefusedText } from '@/data/categoryName';
 import { overIncomeText } from '@/data/overIncome';
 import { monthName } from '@/format';
-import { type Palette, radius, size, space, text } from '@/theme';
+import { type Palette, space } from '@/theme';
 
 /** The chosen icon in the Icon field: Icon's own default size, like the chevron beside it. */
 const FIELD_ICON_SIZE = 20;
@@ -210,17 +210,8 @@ const makeStyles = (colors: Palette) =>
   StyleSheet.create({
     body: { gap: space.lg, paddingTop: space.lg, paddingBottom: space.huge },
     field: { gap: space.sm },
-    symbol: { position: 'absolute', left: 14, top: 13, zIndex: 1 },
-    input: {
-      height: size.control,
-      borderRadius: radius.md,
-      borderWidth: 1,
-      borderColor: colors.fill,
-      backgroundColor: colors.fill,
-      paddingHorizontal: space.lg,
-      color: colors.text,
-      ...text.input,
-    },
+    symbol: symbolStyle,
+    input: fieldStyle(colors),
     amount: { paddingLeft: space.xxxl, fontVariant: ['tabular-nums'] },
     iconField: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
     iconChoice: { flexDirection: 'row', alignItems: 'center', gap: space.sm },

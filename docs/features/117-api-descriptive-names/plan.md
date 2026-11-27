@@ -34,22 +34,22 @@ no behaviour change.
 Each slice is renames only (or, for slice 1, a new test). Proof for every rename slice: typecheck (a missed use is an
 undefined name), the existing tests named below pass unmodified, and `find-short-names.sh` clean on the slice's files.
 
-- [ ] 0. Bump version to 1.26.3
+- [x] 0. Bump version to 1.26.3
   - Files: package.json, apps/mobile/app.json
   - Change: set both to 1.26.3
-- [ ] 1. Pin how CORS_ORIGINS is split into origins
+- [x] 1. Pin how CORS_ORIGINS is split into origins
   - Files: apps/api/test/config.test.ts
   - Change: new case `it('splits CORS_ORIGINS on commas, trims and drops empty entries')`:
     `loadConfig({ ...base, CORS_ORIGINS: ' http://localhost:8081 , ,https://kopiyka.example ' }).corsOrigins` →
     `['http://localhost:8081', 'https://kopiyka.example']`; `loadConfig(base).corsOrigins` → `[]` (both checked with
     `tsx` on Base).
   - Tests: passes on Base before slice 8 touches `config.ts`; bite check: drop the `.map(trim)` and then the `.filter(Boolean)` by hand, see it fail each time, restore.
-- [ ] 2. Name the rate lookups' values
+- [x] 2. Name the rate lookups' values
   - `rates/nbu.ts:18` `(r)` → `(quote)`; `:21` `[d, m, y]` → `[day, month, year]` (and `:22`).
   - `rates/service.ts:14` `(d)` → `(date)`.
   - Proof: `nbu.test.ts` (all four cases, incl. "returns null when the answer is for another day"),
     `rates.routes.int.test.ts` "rejects malformed and impossible dates".
-- [ ] 3. Name the sign-in helpers' keys, octets and characters
+- [x] 3. Name the sign-in helpers' keys, octets and characters
   - `auth/throttle.ts:32` `(k)` → `(key)` (both callbacks); `:112` `[i, key]` → `[keyIndex, key]`, `:114`
     `states[keyIndex]` (same name as `:158`).
   - `auth/ipKey.ts:19-20` `[a, b, c, d]` → `[octet1, octet2, octet3, octet4]`; `:26` `(g)` → `(group)`.
@@ -57,25 +57,25 @@ undefined name), the existing tests named below pass unmodified, and `find-short
   - Proof: `throttle.test.ts` "throttleKeys"; `auth.int.test.ts` "blocks the username for 24 h after 5 wrong codes",
     "blocks an IPv6 /64 across usernames", "blocks a device id across usernames and IPs"; `ipKey.test.ts` table
     (incl. `64:ff9b::203.0.113.7`); `totp.test.ts` "base32" cases.
-- [ ] 4. Name the expense rows, amounts and suggestions
+- [x] 4. Name the expense rows, amounts and suggestions
   - `expenses/routes.ts:32` `toDto(r)` → `toDto(row)` (all 11 uses); `:56` `(a)` → `(amount)`; `:152` `(r)` → `(row)`.
   - `expenses/nameSuggestions.ts:27` `(a, b)` → `(left, right)`, parameters and their uses; ternary shape unchanged.
   - Proof: `expenses.int.test.ts` "stores a EUR expense with the UAH amount at that day’s NBU rate", "rejects bad
     amounts, dates and currencies", "lists the most used names first", "merges names that differ only in case or
     spaces"; `nameSuggestions.test.ts` "rankNames".
-- [ ] 5. Name the category rows
+- [x] 5. Name the category rows
   - `categories/routes.ts:78` `toDto(r)` → `toDto(row)` (6 uses); `:146` `const r` → `const row` (and `:147-152`).
   - Proof: `categories.int.test.ts` "one category" › "counts only one month's expenses with ?month=", "answers 404 for
     an unknown, foreign or deleted category"; "gives each category its planned amount for the month, €0 without one".
-- [ ] 6. Name the summary's period, offsets and compared totals
+- [x] 6. Name the summary's period, offsets and compared totals
   - `summary/routes.ts:52-53` `(q)` → `(period)`; `:56` `compareCents(a, b)` → `(left, right)`, parameters and their uses, ternary shape unchanged;
     `:61` `(_, i)` → `(_, offset)` (and `:62`); `:129` `(a, b)` → `(left, right)`.
   - Proof: `summary.int.test.ts` "rejects a bad month, from after to, or more than 24 months", "a three-month
     summary's totals are the sums of its months", "its categories add up to the totals, largest spent first".
-- [ ] 7. Name addMember's database handle
+- [x] 7. Name addMember's database handle
   - `ledgers/members.ts:8-9` `q` → `db`.
   - Proof: `members.int.test.ts`, `invites.int.test.ts`, `actualEnd.int.test.ts` (calls `addMember(db, …)`).
-- [ ] 8. Name the values in money, dates, config, migrate and admin
+- [x] 8. Name the values in money, dates, config, migrate and admin
   - `money.ts:37` `divRound(a, b)` → `(numerator, divisor)`, its JSDoc `a / b` → `numerator / divisor`.
   - `dates.ts:11,16` `const d` → `const utcDate` (and its uses).
   - `config.ts:47` `(o)` → `(origin)`.

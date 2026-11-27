@@ -66,6 +66,32 @@ export async function pruneThrottle(db: Db, now: Date): Promise<void> {
 
 export type Attempt<T> = { outcome: 'blocked' } | { outcome: 'rejected' } | { outcome: 'accepted'; value: T };
 
+/** Locks and reads the throttle row of each key, creating missing ones; one state per key, in `keys` order. */
+async function lockStates(conn: PoolConnection, keys: ThrottleKey[]): Promise<ThrottleState[]> {
+  const states: ThrottleState[] = [];
+  // Fixed key order (username, ip, device), which is the ENUM's index order and so ascending primary key order: two
+  // attempts can't lock each other's rows crosswise, and neither can pruneThrottle's DELETE, which walks that key.
+  for (const key of keys) {
+    // ODKU takes an exclusive lock on an existing row; INSERT IGNORE's shared one deadlocks under a burst.
+    await conn.query(
+      'INSERT INTO login_throttle (key_type, key_value) VALUES (?, ?) ON DUPLICATE KEY UPDATE key_value = key_value',
+      [key.type, key.value],
+    );
+    const [rows] = await conn.query<RowDataPacket[]>(
+      `SELECT failed_attempts, last_failed_at, locked_until FROM login_throttle
+        WHERE key_type = ? AND key_value = ? FOR UPDATE`,
+      [key.type, key.value],
+    );
+    const row = rows[0]!;
+    states.push({
+      failedAttempts: row.failed_attempts,
+      lastFailedAt: row.last_failed_at,
+      lockedUntil: row.locked_until,
+    });
+  }
+  return states;
+}
+
 /**
  * Locks the throttle rows for `keys`; if none is locked, runs `check` on that connection and counts a
  * failure (null) or clears the username/device counts and remembers the device (non-null), all in one
@@ -82,27 +108,7 @@ export async function throttledAttempt<T extends { userId: number }>(
   const conn = await db.getConnection();
   try {
     await conn.beginTransaction();
-    const states: ThrottleState[] = [];
-    // Fixed key order (username, ip, device), which is the ENUM's index order and so ascending primary key order: two
-    // attempts can't lock each other's rows crosswise, and neither can pruneThrottle's DELETE, which walks that key.
-    for (const key of keys) {
-      // ODKU takes an exclusive lock on an existing row; INSERT IGNORE's shared one deadlocks under a burst.
-      await conn.query(
-        'INSERT INTO login_throttle (key_type, key_value) VALUES (?, ?) ON DUPLICATE KEY UPDATE key_value = key_value',
-        [key.type, key.value],
-      );
-      const [rows] = await conn.query<RowDataPacket[]>(
-        `SELECT failed_attempts, last_failed_at, locked_until FROM login_throttle
-          WHERE key_type = ? AND key_value = ? FOR UPDATE`,
-        [key.type, key.value],
-      );
-      const row = rows[0]!;
-      states.push({
-        failedAttempts: row.failed_attempts,
-        lastFailedAt: row.last_failed_at,
-        lockedUntil: row.locked_until,
-      });
-    }
+    const states = await lockStates(conn, keys);
     if (await blocked(conn, keys, states, now)) {
       await conn.rollback();
       return { outcome: 'blocked' };

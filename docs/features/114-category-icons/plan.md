@@ -232,7 +232,7 @@ two callers.
 
 ### PR A: API (`feat/category-icons`)
 
-- [ ] 0. Bump version to 1.25.0
+- [x] 0. Bump version to 1.25.0
   - Files: package.json, apps/mobile/app.json
   - Change: set both to 1.25.0.
 - [ ] 1. Add a nullable icon column to categories (≈ 25 lines)

@@ -4,7 +4,6 @@ Status: approved <!-- draft → skeptic-approved → approved (by the user) -->
 Brief: ./brief.md
 Branch: chore/app-short-names
 Base: origin/main (after R7 #195)
-plan-only commit). Once R7 merges, rebase onto origin/main. Until then the PR says it is stacked on R7.
 
 ## Approach
 
@@ -64,9 +63,9 @@ Proof for every slice:
   past 120 characters, which is still mechanical, so run `yarn format` after each rename.
 - Test counts: api 549 passed + 2 skipped and mcp 329 throughout. The app goes 511 → 517 (slice 1) → 531 (slice 2), then
   stays at 531.
-- `git diff 298dd23e -- apps/*/test` adds lines, plus the two edited import lines.
+- `git diff origin/main -- apps/*/test` adds lines, plus the two edited import lines.
 - `yarn mobile export:web && yarn mobile check-builds` passes, and `git diff -- apps/mobile/demo-modules.txt` is empty.
-- `find-short-names.sh --diff 298dd23e` reports no lines.
+- `find-short-names.sh --diff origin/main` reports no lines.
 
 Web check: web from this worktree at exactly http://127.0.0.1:8084, API on 3000, signed in as a QA user, at 390×844 in
 light and dark, once on the finished branch: the renamed screens (Budget, Expenses, a category, the expense form,
@@ -247,15 +246,15 @@ character.charCodeAt(0)) % 360`. Not `hue`: that line declares `const hue`.
 
 ## AC → evidence
 
-| AC                                                                                                 | Evidence                                                                                                                     |
-| -------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------- |
-| `nameSuggestions.ts` exports pure `scrollToShow`, unit-tested; no nested ternary in `NameCombobox` | slice 2: `nameSuggestions.test.ts` › `scrollToShow` (14 rows, bite-checked); review: `highlight` calls it and holds no `? :` |
-| `find-short-names.sh apps/mobile/src`: no lines outside the licence file                           | slices 2–6 (55 code lines); run at the end, only the 3 `categoryIcons.LICENSE.txt` lines remain                              |
-| Rename commits are renames only, one per area                                                      | slices 3–6 each touch one area; review `git show` per commit: only identifiers change (plus Prettier rewraps)                |
-| `demo-modules.txt` unchanged; `check-builds` passes                                                | every slice: `yarn mobile export:web && yarn mobile check-builds`; `git diff 298dd23e -- apps/mobile/demo-modules.txt` empty |
-| Web check 390×844 light and dark, renamed screens, no visible change                               | slices 2–6 Verify, compared with the Base screenshots; results in the PR test plan                                           |
-| Behaviour unchanged: existing tests pass unmodified                                                | `yarn test` with api 549 + 2 skipped, mcp 329, app 511 + 20 new = 531; `git diff 298dd23e -- apps/*/test` only adds lines    |
-| One patch bump in root `package.json` and `apps/mobile/app.json`                                   | slice 0 (1.26.10 in both)                                                                                                    |
+| AC                                                                                                 | Evidence                                                                                                                        |
+| -------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------- |
+| `nameSuggestions.ts` exports pure `scrollToShow`, unit-tested; no nested ternary in `NameCombobox` | slice 2: `nameSuggestions.test.ts` › `scrollToShow` (14 rows, bite-checked); review: `highlight` calls it and holds no `? :`    |
+| `find-short-names.sh apps/mobile/src`: no lines outside the licence file                           | slices 2–6 (55 code lines); run at the end, only the 3 `categoryIcons.LICENSE.txt` lines remain                                 |
+| Rename commits are renames only, one per area                                                      | slices 3–6 each touch one area; review `git show` per commit: only identifiers change (plus Prettier rewraps)                   |
+| `demo-modules.txt` unchanged; `check-builds` passes                                                | every slice: `yarn mobile export:web && yarn mobile check-builds`; `git diff origin/main -- apps/mobile/demo-modules.txt` empty |
+| Web check 390×844 light and dark, renamed screens, no visible change                               | slices 2–6 Verify, compared with the Base screenshots; results in the PR test plan                                              |
+| Behaviour unchanged: existing tests pass unmodified                                                | `yarn test` with api 549 + 2 skipped, mcp 329, app 511 + 20 new = 531; `git diff origin/main -- apps/*/test` only adds lines    |
+| One patch bump in root `package.json` and `apps/mobile/app.json`                                   | slice 0 (1.26.10 in both)                                                                                                       |
 
 ## Not doing (YAGNI)
 
@@ -289,7 +288,7 @@ character.charCodeAt(0)) % 360`. Not `hue`: that line declares `const hue`.
 - no — `categoryRemove.ts:17`'s `c:` isn't in the finder's 58 lines, but it's a single-letter parameter in a module the
   brief names, and refactoring §4 covers it. Assumption: rename it in slice 5. Drop it if the AC should mean the
   finder's list only.
-- no — If R7 has merged before slice 7, also mark R7 `done (#<PR>)`, as 298dd23e did for R6. Assumption: yes.
+- no — If R7 has merged before slice 7, also mark R7 `done (#<PR>)`, as origin/main did for R6. Assumption: yes.
 - no — The brief lists `theme` among the covering tests, but `categoryTile` had none. Assumption: slice 1 adds them;
   that's refactoring §2 for a thinly covered target.
 
@@ -306,8 +305,6 @@ character.charCodeAt(0)) % 360`. Not `hue`: that line declares `const hue`.
 - Web check: base shots (Budget, Expenses, a category, the expense form, income item, Settings in dark; Expenses and
   the form in light) and the same screens on the finished branch match; slice 2's arrow-key scrolling was checked
   before its commit; the add note reads "Added “…” to groceries · €3 · <date>".
-
-<filled by the developer during build>
 
 ## Consolidate
 

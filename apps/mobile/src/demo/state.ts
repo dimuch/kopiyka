@@ -46,6 +46,11 @@ export interface StoreData {
   nextId: number;
 }
 
+/** A 'YYYY-MM' month's expenses that aren't deleted, in store order: the store's own objects, so they can change. */
+export function liveExpensesIn(data: StoreData, month: string): DemoExpense[] {
+  return data.expenses.filter((expense) => expense.removal === null && expense.expenseDate.startsWith(`${month}-`));
+}
+
 /** A 'YYYY-MM' month's income total, in EUR cents. */
 export function monthIncomeCents(data: StoreData, month: string): number {
   return data.income.filter((item) => item.month === month).reduce((sum, item) => sum + toCents(item.amountEur), 0);

@@ -1,7 +1,16 @@
 import type { Currency, EurUahRate, Expense, ExpenseNames } from '@/api/types';
 import type { ExpenseInput } from '@/data/expenses';
 import { addDays, centsToInput, convertPreview, kyivToday, shiftMonth, toCents } from '@/format';
-import { DEMO_USER, type DemoExpense, inMonth, refuse, refuseIfEnded, type Route, type StoreData } from './state';
+import {
+  DEMO_USER,
+  type DemoExpense,
+  inMonth,
+  liveExpensesIn,
+  refuse,
+  refuseIfEnded,
+  type Route,
+  type StoreData,
+} from './state';
 
 /** The demo's EUR→UAH rate for every date: invented, close to the NBU's in late 2026. */
 const SAMPLE_RATE = 50.483;
@@ -100,8 +109,7 @@ export const expenseRoutes: Route[] = [
     answer: (data, { query }) => {
       const month = query.get('month') ?? '';
       const categoryId = Number(query.get('categoryId') ?? 0);
-      const expenses = data.expenses
-        .filter((expense) => expense.removal === null && expense.expenseDate.startsWith(`${month}-`))
+      const expenses = liveExpensesIn(data, month)
         .filter((expense) => !categoryId || expense.categoryId === categoryId)
         .sort(newestFirst);
       return { expenses: expenses.map(toDto) };

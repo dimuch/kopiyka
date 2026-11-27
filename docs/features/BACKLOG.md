@@ -120,6 +120,12 @@ Drafted on 2026-11-25, after PR #167 turned Copilot's identical copies of the sk
 
 Item 3 of the same review, finishing the design system with 104f and 105, is already planned above.
 
+## Planned: small fixes
+
+| Brief | Draft                                              | What                                                                           |
+| ----- | -------------------------------------------------- | ------------------------------------------------------------------------------ |
+| 112   | `docs/features/112-summary-figures-order/brief.md` | Expenses card in Budget's order: Spent · Budgeted · Remaining (label included) |
+
 ## Not briefed yet
 
 ### Refactor roadmap (project scan, 2026-11-21)

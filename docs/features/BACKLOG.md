@@ -12,6 +12,12 @@ Snapshot: 2026-11-27, `main` at v1.23.16 (`3899b99`, after PR #177: brief 105e i
 Brief and plan: `docs/features/115-flush-chip-tile/`. A chip with a leading tile or icon has a 3pt inset on both
 sides, so the tile sits concentric with the pill's round end; chips without one keep 8pt on both sides.
 
+### 116 · Scroll areas end above the tab bar (in review, branch `fix/scroll-above-tab-bar`, v1.26.2)
+
+Brief and plan: `docs/features/116-scroll-above-tab-bar/`. Every page with the floating tab bar ends its scroll view
+16pt above the bar, or above the Undo bar while it shows, so no row scrolls behind it. Follow-up:
+`docs/design/design-system.md`'s `TabBar` component row still describes the round "+" removed in a465e421.
+
 ## Recently finished
 
 ### 114 · Category icons (done: #182 API, v1.25.0; the app's PR, v1.26.0)

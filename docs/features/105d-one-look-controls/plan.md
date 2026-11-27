@@ -227,7 +227,7 @@ today stops working, and no API, data, connector or demo-store change.
     - `iconPairs` gains `['muted', 'fill']`.
   - Tests: `theme.test.ts` as above (4.74, 6.38). Verify: `rg -n "borderStrong" apps/mobile/src/components/Chip.tsx
 apps/mobile/src/components/Button.tsx` finds nothing; Visual check C.
-- [ ] 6. Draw the Appearance options in the chip's pill and colours (≈ 24 lines)
+- [x] 6. Draw the Appearance options in the chip's pill and colours (≈ 24 lines)
   - Files: `components/AppearancePicker.tsx`
   - Change: as Contracts. `optionOn` and its `accent` edge go, and a comment says why the picker isn't a Chip (a
     radio, not a button).

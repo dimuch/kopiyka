@@ -16,7 +16,7 @@ import { ReorderList } from '@/components/ReorderList';
 import { MonthSwitcher } from '@/components/MonthSwitcher';
 import { ScreenHeader } from '@/components/ScreenHeader';
 import { Text } from '@/components/Text';
-import { UndoToast } from '@/components/UndoToast';
+import { toastRoom, UndoToast } from '@/components/UndoToast';
 import { copyPreviousMonth } from '@/data/categories';
 import { copyRefusedText } from '@/data/monthCopy';
 import { balanceLine } from '@/data/monthBalance';
@@ -327,9 +327,7 @@ const makeStyles = (colors: Palette) =>
     // Out to the screen's edges, with the gutter inside, so the scroll view doesn't clip the cards' side shadows.
     scroll: { marginHorizontal: -space.xl },
     content: { gap: space.lg, paddingTop: space.xs, paddingBottom: space.xxl, paddingHorizontal: space.xl },
-    // UndoToast's bottom 32 + height 56 + a 16pt gap: toast clearance, not a step on the scale.
-    // eslint-disable-next-line no-restricted-syntax
-    toastRoom: { paddingBottom: 104 },
+    toastRoom: { paddingBottom: toastRoom },
     loading: { marginTop: space.xxl },
     sectionHead: {
       flexDirection: 'row',

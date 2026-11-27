@@ -1,9 +1,12 @@
 import { StyleSheet, View } from 'react-native';
-import { useThemedStyles } from '@/appearance/AppearanceContext';
+import { useAppearance, useThemedStyles } from '@/appearance/AppearanceContext';
 import { Pressable } from '@/components/Pressable';
 import { Text } from '@/components/Text';
 import type { UndoOffer } from '@/data/undo';
-import { type Palette, radius, space } from '@/theme';
+import { type Palette, radius, shadow, size, space } from '@/theme';
+
+/** The scroll room a screen leaves under its content while the bar shows: its bottom offset, its height and a 16pt gap. */
+export const toastRoom = space.xxxl + size.toast + space.lg;
 
 /**
  * The bar over the bottom of a screen after a delete: what went and Undo, Retry after a failed Undo, or only the
@@ -11,8 +14,9 @@ import { type Palette, radius, space } from '@/theme';
  */
 export function UndoToast({ offer, onUndo }: { offer: UndoOffer; onUndo: () => void }) {
   const styles = useThemedStyles(makeStyles);
+  const { scheme } = useAppearance();
   return (
-    <View accessibilityLiveRegion="polite" style={styles.toast}>
+    <View accessibilityLiveRegion="polite" style={[styles.toast, { boxShadow: shadow[scheme].float }]}>
       <Text
         numberOfLines={2}
         variant="bodyMedium"
@@ -40,14 +44,12 @@ const makeStyles = (colors: Palette) =>
   StyleSheet.create({
     toast: {
       position: 'absolute',
-      left: 20,
-      right: 20,
-      bottom: 32,
-      minHeight: 56,
+      left: space.xl,
+      right: space.xl,
+      bottom: space.xxxl,
+      minHeight: size.toast,
       borderRadius: radius.lg,
       backgroundColor: colors.surface,
-      borderWidth: 1,
-      borderColor: colors.borderStrong,
       flexDirection: 'row',
       alignItems: 'center',
       paddingLeft: space.lg,
@@ -56,5 +58,5 @@ const makeStyles = (colors: Palette) =>
     toastText: { flex: 1 },
     // No button to its right, so it keeps the bar's padding on both sides.
     refusedText: { paddingRight: space.lg, paddingVertical: space.sm },
-    undo: { height: 56, paddingHorizontal: space.lg, justifyContent: 'center' },
+    undo: { height: size.toast, paddingHorizontal: space.lg, justifyContent: 'center' },
   });

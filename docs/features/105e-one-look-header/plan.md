@@ -197,7 +197,7 @@ data, connector or demo-store change.
     - typecheck finds no `variant=`, `backLabel` or `onBack` on a ScreenHeader;
     - `rg -n "spacer|modalBack|left: -20" apps/mobile/src/components` finds nothing;
     - Visual check B.
-- [ ] 3. Float the Undo bar on the float shadow, with its height and the screens' room for it from one token
+- [x] 3. Float the Undo bar on the float shadow, with its height and the screens' room for it from one token
       (≈ 44 lines)
   - Files: `theme.ts`, `components/UndoToast.tsx`, `app/(tabs)/budget.tsx`, `app/category/[categoryId].tsx`,
     `test/theme.test.ts`

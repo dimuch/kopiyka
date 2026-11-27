@@ -139,10 +139,10 @@ describe('hairline', () => {
 });
 
 describe('shadow', () => {
-  it("takes the design system's shadows in light, and none in dark", () => {
+  it("takes the design system's shadows in light, and in dark only a hairline ring for floating surfaces", () => {
     expect(shadow).toEqual({
       light: { card: '0 2px 8px rgba(17,16,20,0.06)', float: '0 4px 24px rgba(17,16,20,0.12)' },
-      dark: { card: undefined, float: undefined },
+      dark: { card: undefined, float: '0 0 0 1px rgba(237,236,242,0.06)' },
     });
   });
 });

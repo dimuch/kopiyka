@@ -109,6 +109,7 @@ src/data/useCategoryOrder.ts
 src/data/useCategoryTotals.ts
 src/data/useExpenseDraft.ts
 src/data/useExpenseNames.ts
+src/data/useFocusLoad.ts
 src/data/useIncome.ts
 src/data/useMonth.ts
 src/data/useMonthBalance.ts

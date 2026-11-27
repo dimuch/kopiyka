@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { ActivityIndicator, type LayoutRectangle, ScrollView, StyleSheet, View } from 'react-native';
+import { type LayoutRectangle, ScrollView, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import type { SummaryCategory, SummaryMonth, SummaryTotals } from '@/api/types';
 import { useAppearance, useColors, useThemedStyles } from '@/appearance/AppearanceContext';
@@ -7,7 +7,7 @@ import { useSession } from '@/auth/AuthContext';
 import { Card } from '@/components/Card';
 import { EmptyMonth } from '@/components/EmptyMonth';
 import { HomeButton } from '@/components/HomeButton';
-import { LoadError } from '@/components/LoadError';
+import { LoadState } from '@/components/LoadState';
 import { Icon } from '@/components/Icon';
 import { IconButton } from '@/components/IconButton';
 import { Pressable } from '@/components/Pressable';
@@ -33,7 +33,6 @@ import { type Palette, radius, shadow, size, space } from '@/theme';
  * current month; this is where earlier months and longer periods are read.
  */
 export default function Statistics() {
-  const colors = useColors();
   const styles = useThemedStyles(makeStyles);
   const barRoom = useTabBarRoom();
   const { ledger } = useSession();
@@ -64,26 +63,27 @@ export default function Statistics() {
       />
 
       <ScrollView style={[styles.scroll, { marginBottom: barRoom }]} contentContainerStyle={styles.content}>
-        {!summary ? (
-          error ? (
-            <LoadError message="Couldn’t load these figures. Check your connection and try again." onRetry={reload} />
-          ) : (
-            <ActivityIndicator color={colors.accent} style={styles.loading} />
-          )
-        ) : (
-          <>
-            {error && <LoadError message="Couldn’t refresh. Check your connection and try again." onRetry={reload} />}
-            {isEmptySummary(summary) ? (
-              <EmptyMonth text="Nothing planned, spent or earned in this period." />
-            ) : (
-              <>
-                <TotalsCard totals={summary.totals} />
-                {summary.categories.length > 0 && <CategoryRows categories={summary.categories} />}
-                {summary.months.length > 1 && <MonthRows months={summary.months} />}
-              </>
-            )}
-          </>
-        )}
+        <LoadState
+          data={summary}
+          error={error}
+          onRetry={reload}
+          loadMessage="Couldn’t load these figures. Check your connection and try again."
+          spinnerStyle={styles.loading}
+        >
+          {(summary) => (
+            <>
+              {isEmptySummary(summary) ? (
+                <EmptyMonth text="Nothing planned, spent or earned in this period." />
+              ) : (
+                <>
+                  <TotalsCard totals={summary.totals} />
+                  {summary.categories.length > 0 && <CategoryRows categories={summary.categories} />}
+                  {summary.months.length > 1 && <MonthRows months={summary.months} />}
+                </>
+              )}
+            </>
+          )}
+        </LoadState>
       </ScrollView>
       {menuOpen && anchor && (
         <PeriodMenu

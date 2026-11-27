@@ -1,6 +1,6 @@
 import { router } from 'expo-router';
 import { useRef, useState } from 'react';
-import { AccessibilityInfo, ActivityIndicator, ScrollView, StyleSheet, View } from 'react-native';
+import { AccessibilityInfo, ScrollView, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useAnnouncedError } from '@/announcedError';
 import { ApiError } from '@/api/apiError';
@@ -11,7 +11,7 @@ import { backOr } from '@/closeToBudget';
 import { Button } from '@/components/Button';
 import { Card } from '@/components/Card';
 import { ErrorLine } from '@/components/ErrorLine';
-import { LoadError } from '@/components/LoadError';
+import { LoadState } from '@/components/LoadState';
 import { ScreenHeader } from '@/components/ScreenHeader';
 import { Text } from '@/components/Text';
 import { fieldStyle, TextField } from '@/components/TextField';
@@ -116,7 +116,6 @@ function LabelForm({ ledger }: { ledger: Ledger }) {
 }
 
 function OwnerMembers({ ledgerId }: { ledgerId: number }) {
-  const colors = useColors();
   const styles = useThemedStyles(makeStyles);
   const { user } = useSession();
   const { data, error, reload } = useMembers(ledgerId);
@@ -160,53 +159,55 @@ function OwnerMembers({ ledgerId }: { ledgerId: number }) {
     }
   }
 
-  if (!data) {
-    return error ? (
-      <LoadError message="Couldn’t load the members. Check your connection and try again." onRetry={reload} />
-    ) : (
-      <ActivityIndicator color={colors.accent} style={{ marginTop: space.xxl }} />
-    );
-  }
   return (
-    <>
-      {error && <LoadError message="Couldn’t refresh. Check your connection and try again." onRetry={reload} />}
-      {/* Never empty: the list always has the owner, who is the viewer. */}
-      <View style={styles.list}>
-        {data.members.map((member) => {
-          const isYou = member.userId === user.userId;
-          return (
-            <Card key={member.userId} padding="none" style={styles.row}>
-              <View style={styles.line}>
-                <MemberName member={member} isYou={isYou} />
-                {/* The owner can't remove themselves: the owner is the viewer. */}
-                {!isYou && (
-                  <Button
-                    variant="dangerText"
-                    label="Remove"
-                    accessibilityLabel={`Remove ${member.username}`}
-                    disabled={busy}
-                    onPress={() => showPanel(member)}
-                  />
-                )}
-              </View>
-              {confirming?.userId === member.userId && (
-                <ConfirmPanel
-                  question={`Remove ${member.username}?`}
-                  action="Remove"
-                  busy={busy}
-                  failure={failure}
-                  gone={gone}
-                  onConfirm={() => remove(member)}
-                  onDismiss={() => showPanel(null)}
-                />
-              )}
-            </Card>
-          );
-        })}
-      </View>
-      <PendingList ledgerId={ledgerId} invites={data.invites} onChange={reload} />
-      <InviteForm ledgerId={ledgerId} onInvited={reload} />
-    </>
+    <LoadState
+      data={data}
+      error={error}
+      onRetry={reload}
+      loadMessage="Couldn’t load the members. Check your connection and try again."
+      spinnerStyle={{ marginTop: space.xxl }}
+    >
+      {(data) => (
+        <>
+          {/* Never empty: the list always has the owner, who is the viewer. */}
+          <View style={styles.list}>
+            {data.members.map((member) => {
+              const isYou = member.userId === user.userId;
+              return (
+                <Card key={member.userId} padding="none" style={styles.row}>
+                  <View style={styles.line}>
+                    <MemberName member={member} isYou={isYou} />
+                    {/* The owner can't remove themselves: the owner is the viewer. */}
+                    {!isYou && (
+                      <Button
+                        variant="dangerText"
+                        label="Remove"
+                        accessibilityLabel={`Remove ${member.username}`}
+                        disabled={busy}
+                        onPress={() => showPanel(member)}
+                      />
+                    )}
+                  </View>
+                  {confirming?.userId === member.userId && (
+                    <ConfirmPanel
+                      question={`Remove ${member.username}?`}
+                      action="Remove"
+                      busy={busy}
+                      failure={failure}
+                      gone={gone}
+                      onConfirm={() => remove(member)}
+                      onDismiss={() => showPanel(null)}
+                    />
+                  )}
+                </Card>
+              );
+            })}
+          </View>
+          <PendingList ledgerId={ledgerId} invites={data.invites} onChange={reload} />
+          <InviteForm ledgerId={ledgerId} onInvited={reload} />
+        </>
+      )}
+    </LoadState>
   );
 }
 

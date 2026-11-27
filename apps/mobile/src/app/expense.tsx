@@ -170,7 +170,7 @@ function ExpenseForm({ draft, ledgerId }: { draft: ExpenseDraftData; ledgerId: n
     if (categoryAlert) AccessibilityInfo.announceForAccessibility(categoryAlert);
   }, [categoryAlert]);
 
-  function edit(setter: (v: string) => void, value: string) {
+  function edit(setter: (next: string) => void, value: string) {
     setter(value);
     setError(null);
     setAdded(null);
@@ -188,8 +188,8 @@ function ExpenseForm({ draft, ledgerId }: { draft: ExpenseDraftData; ledgerId: n
     edit(setAmountText, typed);
   }
 
-  function pickCategory(c: Category) {
-    setCategoryId(c.categoryId);
+  function pickCategory(category: Category) {
+    setCategoryId(category.categoryId);
     setError(null);
   }
 
@@ -223,8 +223,9 @@ function ExpenseForm({ draft, ledgerId }: { draft: ExpenseDraftData; ledgerId: n
         return;
       }
       rememberLastCategory(ledgerId, saved.categoryId);
-      const cat = list.categories.find((c) => c.categoryId === saved.categoryId)?.displayName ?? '';
-      const note = `Added “${saved.name}” to ${cat} · ${eur(toCents(saved.amountEur))} · ${shortDate(saved.expenseDate)}`;
+      const categoryName =
+        list.categories.find((category) => category.categoryId === saved.categoryId)?.displayName ?? '';
+      const note = `Added “${saved.name}” to ${categoryName} · ${eur(toCents(saved.amountEur))} · ${shortDate(saved.expenseDate)}`;
       setAdded(note);
       AccessibilityInfo.announceForAccessibility(note);
       setName('');

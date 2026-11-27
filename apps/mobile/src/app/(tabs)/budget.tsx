@@ -118,7 +118,11 @@ export default function Budget() {
     <SafeAreaView style={styles.screen} edges={['top']}>
       <ScreenHeader
         title={
-          <MonthSwitcher title={tabTitle('budget')} month={month} onChange={(m) => router.setParams({ month: m })} />
+          <MonthSwitcher
+            title={tabTitle('budget')}
+            month={month}
+            onChange={(nextMonth) => router.setParams({ month: nextMonth })}
+          />
         }
         trailing={
           // Like the Expenses tab's "+"; an ended month can't change, and nothing shows before the month loads.

@@ -53,7 +53,7 @@ export default function Expenses() {
     });
   }, [data, ordered]);
   // Null until the month has loaded: €0 would read as "spent nothing".
-  const total = rows ? rows.reduce((s, r) => s + r.spent, 0) : null;
+  const total = rows ? rows.reduce((sum, row) => sum + row.spent, 0) : null;
   const figures = data && total !== null ? spendingFigures(total, data.categories) : null;
   const collapse = useCollapsingSummary();
 

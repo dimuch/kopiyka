@@ -156,8 +156,8 @@ function IncomeForm({
     AccessibilityInfo.announceForAccessibility(message);
   }
 
-  function edit(set: (value: string) => void, typed: string) {
-    set(typed);
+  function edit(setter: (value: string) => void, typed: string) {
+    setter(typed);
     setError(null);
   }
 

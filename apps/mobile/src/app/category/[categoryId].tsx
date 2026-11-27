@@ -73,7 +73,7 @@ function CategoryBreakdown({ categoryId, month, ended }: { categoryId: number; m
   const toastRoom = useToastRoom();
   const barRoom = useTabBarRoom();
 
-  const category = data?.categories.find((c) => c.categoryId === categoryId);
+  const category = data?.categories.find((candidate) => candidate.categoryId === categoryId);
   const days = useMemo(() => groupByDay(data?.expenses ?? []), [data]);
   const totalEur = data ? sumCents(data.expenses, 'amountEur') : 0;
   const totalUah = data ? sumCents(data.expenses, 'amountUah') : 0;
@@ -155,31 +155,31 @@ function CategoryBreakdown({ categoryId, month, ended }: { categoryId: number; m
                 No expenses in {monthName(month)}.
               </Text>
             )}
-            {days.map((d) => (
-              <View key={d.date} style={styles.day}>
+            {days.map((day) => (
+              <View key={day.date} style={styles.day}>
                 <View style={styles.dayHead}>
                   <Text variant="caption" color="muted">
-                    {dayLabel(d.date)}
+                    {dayLabel(day.date)}
                   </Text>
                   <Text variant="labelRegular" color="muted" tabular>
-                    {eur(d.totalCents)}
+                    {eur(day.totalCents)}
                   </Text>
                 </View>
-                {d.items.map((e) => (
+                {day.items.map((expense) => (
                   <Pressable
-                    key={e.expenseId}
+                    key={expense.expenseId}
                     accessibilityRole="button"
                     accessibilityHint={ended ? 'View this expense' : 'Edit this expense'}
-                    onPress={() => router.push({ pathname: '/expense', params: { expenseId: e.expenseId } })}
+                    onPress={() => router.push({ pathname: '/expense', params: { expenseId: expense.expenseId } })}
                     style={[rowCard, styles.item]}
                   >
                     <View style={styles.itemText}>
-                      <Text variant="bodyMedium">{e.name || category.displayName}</Text>
+                      <Text variant="bodyMedium">{expense.name || category.displayName}</Text>
                       <Text variant="caption" color="muted" tabular>
-                        {uah(toCents(e.amountUah))}
+                        {uah(toCents(expense.amountUah))}
                       </Text>
                     </View>
-                    <Text variant="amount">{eur(toCents(e.amountEur))}</Text>
+                    <Text variant="amount">{eur(toCents(expense.amountEur))}</Text>
                   </Pressable>
                 ))}
               </View>

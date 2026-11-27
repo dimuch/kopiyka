@@ -68,10 +68,10 @@ Each slice's proof: all gates pass. `find-short-names.sh --diff origin/main` is 
 `find-short-names.sh apps/mcp/src/mcp apps/mcp/test` is also clean, because `--diff` doesn't scan `apps/mcp` (see
 Risks). After slice 1, `git diff --stat HEAD -- apps/mcp/test` is empty for every later slice.
 
-- [ ] 0. Bump version to 1.26.7
+- [x] 0. Bump version to 1.26.7
   - Files: package.json, apps/mobile/app.json
   - Change: set both to 1.26.7
-- [ ] 1. Pin the API reads month_summary and list_income make
+- [x] 1. Pin the API reads month_summary and list_income make
   - Files: apps/mcp/test/tools.test.ts
   - Change: add two cases. Existing cases are untouched.
     - `month_summary` › "asks the API for the month's categories, expenses and income, once each". It expects
@@ -87,7 +87,7 @@ Risks). After slice 1, `git diff --stat HEAD -- apps/mcp/test` is empty for ever
   - Verify: break the code each new case pins by hand and see that case fail, then restore it. For month_summary, change
     the income path in the third `scope.read`. For list_income, call its read twice. Afterwards `git diff` shows only
     `apps/mcp/test/tools.test.ts`.
-- [ ] 2. Move the connector's refusal and note tables to refusals.ts
+- [x] 2. Move the connector's refusal and note tables to refusals.ts
   - Files: apps/mcp/src/mcp/refusals.ts (new), apps/mcp/src/mcp/tools.ts
   - Change: cut lines 47–178 (`ALREADY_SAVED_NOTE` through `DELETED_EXPENSE_NOTE`, with their JSDoc and the
     `month_ended` comment) and paste them into `refusals.ts` in the same order. Add `export ` in front of the nine
@@ -105,7 +105,7 @@ Risks). After slice 1, `git diff --stat HEAD -- apps/mcp/test` is empty for ever
   - Verify: `git diff -M HEAD~1 --color-moved=plain` shows the block as moved, not changed. The only new lines are the
     `export ` prefixes and the import. `sed -n '1,/export function buildServer/p' apps/mcp/src/mcp/tools.ts` contains no
     `_REFUSAL`, `_NOTE`, `NOTHING`, `ending` or `lostAnswerFor` declaration.
-- [ ] 3. Read a month's income through one readIncome
+- [x] 3. Read a month's income through one readIncome
   - Files: apps/mcp/src/mcp/tools.ts
   - Change: add `readIncome` (Contracts) after `incomeFields` and use it at the three reads as written there. About
     +6/−9 lines.
@@ -118,7 +118,7 @@ Risks). After slice 1, `git diff --stat HEAD -- apps/mcp/test` is empty for ever
     `flow.test.ts` (`month_summary` end to end).
   - Verify: `rg -n "months/\\$\\{month\\}/income" apps/mcp/src/mcp/tools.ts` shows two hits: `readIncome` and
     `add_income`'s POST. `add_income` writes, so it stays as it is.
-- [ ] 4. Mark R5 in review in the backlog
+- [x] 4. Mark R5 in review in the backlog
   - Files: docs/features/BACKLOG.md (roadmap table, R5 row: Brief `121`, State `in review`), this plan's ticks
   - Change: only the R5 row. Leave the R2–R4 rows as `main` has them at rebase time.
   - Verify: `yarn format:check`

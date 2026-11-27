@@ -1,5 +1,6 @@
 import { type ReactNode, useRef, useState } from 'react';
-import { AccessibilityInfo, Keyboard, ScrollView, StyleSheet, type TextInputInstance, View } from 'react-native';
+import { Keyboard, ScrollView, StyleSheet, type TextInputInstance, View } from 'react-native';
+import { useAnnouncedError } from '@/announcedError';
 import { ApiError } from '@/api/apiError';
 import type { Category } from '@/api/types';
 import { useColors, useThemedStyles } from '@/appearance/AppearanceContext';
@@ -51,18 +52,12 @@ export function CategoryForm({
   const [amountText, setAmountText] = useState(current?.plannedEur ?? '');
   const [icon, setIcon] = useState(current?.icon ?? null);
   const [picking, setPicking] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const { error, showError, clearError } = useAnnouncedError();
   // The month ended, or the edited category left it, meanwhile: saving again can't help.
   const [gone, setGone] = useState(false);
   // `busy` disables the button only after a re-render; two presses in one tick would both get here.
   const inFlight = useRef(false);
   const amountInput = useRef<TextInputInstance>(null);
-
-  // The alert role covers web; VoiceOver needs an explicit announcement.
-  function showError(message: string) {
-    setError(message);
-    AccessibilityInfo.announceForAccessibility(message);
-  }
 
   const chosen = findCategoryIcon(icon);
 
@@ -75,7 +70,7 @@ export function CategoryForm({
     }
     inFlight.current = true;
     setBusy(true);
-    setError(null);
+    clearError();
     try {
       await save({ ...fields, icon });
     } catch (err) {
@@ -111,7 +106,7 @@ export function CategoryForm({
           value={nameText}
           onChangeText={(typed) => {
             setNameText(typed);
-            setError(null);
+            clearError();
           }}
           onSubmitEditing={() => amountInput.current?.focus()}
           returnKeyType="next"
@@ -139,7 +134,7 @@ export function CategoryForm({
             value={amountText}
             onChangeText={(typed) => {
               setAmountText(typed);
-              setError(null);
+              clearError();
             }}
             onSubmitEditing={submit}
             keyboardType="decimal-pad"
@@ -184,7 +179,7 @@ export function CategoryForm({
             onChange={(picked) => {
               setIcon(picked);
               setPicking(false);
-              setError(null);
+              clearError();
             }}
           />
         ) : null}

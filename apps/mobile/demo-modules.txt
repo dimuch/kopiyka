@@ -37,6 +37,7 @@ react-native-screens
 react-native-svg
 react-native-web
 scheduler
+src/announcedError.ts
 src/api/apiError.ts
 src/app/(tabs)/_layout.tsx
 src/app/(tabs)/budget.tsx

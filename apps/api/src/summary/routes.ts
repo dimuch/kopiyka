@@ -53,7 +53,11 @@ const PeriodQuery = z
   .refine((period) => monthSpan(period.from, period.to) <= MAX_MONTHS, `at most ${MAX_MONTHS} months`);
 
 /** -1, 0 or 1, for sorting by an amount. */
-const compareCents = (left: bigint, right: bigint) => (left < right ? -1 : left > right ? 1 : 0);
+function compareCents(left: bigint, right: bigint): number {
+  if (left < right) return -1;
+  if (left > right) return 1;
+  return 0;
+}
 
 /** Every month `from…to`, oldest first. */
 function periodMonths(from: string, to: string): string[] {

@@ -9,6 +9,7 @@ const category = (categoryId: number, sortOrder: number): CategoryDto => ({
   displayName: `C${categoryId}`,
   sortOrder,
   plannedEur: '0.00',
+  icon: null,
 });
 
 describe('pickQuick', () => {

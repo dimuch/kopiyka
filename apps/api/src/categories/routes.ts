@@ -28,6 +28,8 @@ export interface CategoryDto {
   sortOrder: number;
   /** The month's planned EUR (brief 036): a decimal string ≥ 0, '0.00' when none is set. */
   plannedEur: string;
+  /** A key from `categories/icons.ts`; null shows the letter (brief 114). The same in every month. */
+  icon: string | null;
 }
 
 /** One category with its live expenses in one month (`?month=`), and whether that month's list has it. */
@@ -74,6 +76,7 @@ function toDto(r: RowDataPacket): CategoryDto {
     displayName: r.display_name,
     sortOrder: r.sort_order,
     plannedEur: r.planned_eur,
+    icon: r.icon,
   };
 }
 
@@ -93,7 +96,7 @@ export async function categoryRoutes(app: FastifyInstance, { db, now }: AppDeps)
     const { month } = Month.parse(req.query);
     const first = monthStart(month);
     const [rows] = await db.query<RowDataPacket[]>(
-      `SELECT c.category_id, c.tech_name, ${NAME_IN_MONTH} AS display_name, c.sort_order,
+      `SELECT c.category_id, c.tech_name, ${NAME_IN_MONTH} AS display_name, c.sort_order, c.icon,
               COALESCE(b.planned_eur, 0) AS planned_eur
            FROM categories c
            LEFT JOIN category_budgets b ON b.category_id = c.category_id AND b.budget_month = ?
@@ -114,7 +117,7 @@ export async function categoryRoutes(app: FastifyInstance, { db, now }: AppDeps)
     // A category the month lacks is still named (the app says it isn't in that month). Its counts are 0: no live
     // expense can sit in a month whose list lacks its category.
     const [rows] = await db.query<RowDataPacket[]>(
-      `SELECT c.category_id, c.tech_name, ${NAME_IN_MONTH} AS display_name, c.sort_order,
+      `SELECT c.category_id, c.tech_name, ${NAME_IN_MONTH} AS display_name, c.sort_order, c.icon,
               ${inMonthList('?')} AS in_month,
               COALESCE(b.planned_eur, 0) AS planned_eur,
               COUNT(e.expense_id) AS expense_count, COALESCE(SUM(e.amount_eur), 0) AS total_eur

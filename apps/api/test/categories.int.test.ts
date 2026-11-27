@@ -189,6 +189,27 @@ describe.skipIf(!(await testDbReachable()))('categories API (MySQL)', () => {
     expect(quickCategoryIds).toEqual(categories.slice(0, 5).map((c: { categoryId: number }) => c.categoryId));
   });
 
+  it('lists every seeded category with no icon', async () => {
+    const { categories } = (await get(owner.ledgerId)).json();
+    expect(categories.map((c: { icon: string | null }) => c.icon)).toEqual(Array(15).fill(null));
+  });
+
+  it("gives a category's icon in the list and on its own, to every member", async () => {
+    const rent = await idOf('rent');
+    await db.query("UPDATE categories SET icon = 'dog' WHERE category_id = ?", [rent]);
+    const member = await makeUser(db, config, 'olena');
+    await addMember(db, owner.ledgerId, member.userId);
+    const memberAuth = await authHeader(app, member, clock);
+
+    for (const headers of [auth, memberAuth]) {
+      const { categories } = (await get(owner.ledgerId, headers)).json();
+      const iconOf = (id: number) => categories.find((c: { categoryId: number }) => c.categoryId === id).icon;
+      expect(iconOf(rent)).toBe('dog');
+      expect(iconOf(await idOf('groceries'))).toBeNull();
+      expect((await one(`${rent}?month=2026-10`, headers)).json().icon).toBe('dog');
+    }
+  });
+
   it('keeps the quick row to the first five, whatever was spent last', async () => {
     // Brief 099: both are newer than anything else and outside the first five, so the old most-recent rule put them
     // first.
@@ -963,6 +984,7 @@ describe.skipIf(!(await testDbReachable()))('categories API (MySQL)', () => {
         displayName: 'pets',
         sortOrder: 160,
         plannedEur: '0.00',
+        icon: null,
       });
       const october = await listOf('2026-10');
       expect(october).toHaveLength(16);
@@ -1069,6 +1091,7 @@ describe.skipIf(!(await testDbReachable()))('categories API (MySQL)', () => {
         displayName: 'Eating Out',
         sortOrder: 80,
         plannedEur: '0.00',
+        icon: null,
       });
       expect(await listOf('2026-11')).toEqual(['eating_out']);
 

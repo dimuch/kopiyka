@@ -60,10 +60,10 @@ Every slice ends with the gates green and the test counts unchanged (api 549 pas
 Every slice also runs `.claude/skills/kopiyka-refactoring/scripts/find-short-names.sh --diff origin/main` and drops
 the imports and style keys it leaves unused.
 
-- [ ] 0. Bump version to 1.26.14
+- [x] 0. Bump version to 1.26.14
   - Files: package.json, apps/mobile/app.json
   - Change: set both to 1.26.14
-- [ ] 1. Add ModalFormScreen and use it for the actual end (~55 lines)
+- [x] 1. Add ModalFormScreen and use it for the actual end (~55 lines)
   - Files: apps/mobile/src/components/ModalFormScreen.tsx (new), src/app/actual-end.tsx, apps/mobile/demo-modules.txt
   - Change: write the kit as in Contracts. `ActualEndScreen` returns
     `<ModalFormScreen title="Actual end" onBack={() => closeToBudget(month)} busy={busy}>{month ? <BalanceLoader …/> : null}</ModalFormScreen>`.
@@ -72,7 +72,7 @@ the imports and style keys it leaves unused.
     `yarn mobile export:web && yarn mobile check-builds --accept`. The only list change should be
     `+src/components/ModalFormScreen.tsx`, because `demo-app/actual-end.tsx` re-exports the screen.
   - Verify: web check, actual-end rows
-- [ ] 2. Use ModalFormScreen in the income and category forms (~45 lines, mechanical)
+- [x] 2. Use ModalFormScreen in the income and category forms (~45 lines, mechanical)
   - Files: src/app/income-item.tsx, src/app/category-form.tsx
   - Change: in income, wrap in `<ModalFormScreen title={editing ? …} onBack={() => leave(month)} busy={busy}>` and
     swap the bad-link branch for `null`. `LoadError` stays imported for `EditLoader`. In category, wrap in
@@ -80,12 +80,12 @@ the imports and style keys it leaves unused.
     `makeStyles`, `StyleSheet`, `useThemedStyles`, `Palette` and `space` imports go. `check-builds` passes with no
     list change.
   - Verify: web check, income and category rows
-- [ ] 3. Share one Saving type across the three modal forms (~15 lines)
+- [x] 3. Share one Saving type across the three modal forms (~15 lines)
   - Files: src/components/ModalFormScreen.tsx, src/app/income-item.tsx, src/app/actual-end.tsx,
     src/app/category-form.tsx
   - Change: export `Saving` from the kit and delete the two local `interface Saving` copies. Category's `EditCategory`
     swaps its inline `busy`/`setBusy` fields for `& Saving`. Type-only, so the gates are the proof.
-- [ ] 4. Mark R12 in review in the backlog
+- [x] 4. Mark R12 in review in the backlog
   - Files: docs/features/BACKLOG.md
   - Change: roadmap row R12 gets brief `128` and state `in review`. The "One modal-form kit" line under "Named in
     earlier briefs" becomes: briefed as 128 (roadmap R12), in review.
@@ -147,5 +147,10 @@ first body line starts.
 - `components/CategoryForm.tsx` could take `& Saving` for its `busy`/`setBusy` props: a small follow-up, outside R12.
 
 ## Deviations
+
+- Web proof by recorded element trees (role, text, aria-label, aria-disabled, rect, colours, opacity) instead of
+  screenshots: taken on the base before slice 1 for actual End, income (add, edit, bad link) and category (add, edit,
+  bad link) in light, three of them in dark, and compared after each slice: all identical. Back reads
+  `aria-disabled=true` while a save is held (API paused with `kill -STOP`) on actual End (base) and income (branch).
 
 ## Consolidate

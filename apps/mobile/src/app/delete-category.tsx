@@ -10,6 +10,7 @@ import { useSession } from '@/auth/AuthContext';
 import { backOr } from '@/closeToBudget';
 import { Button } from '@/components/Button';
 import { CategoryInMonth } from '@/components/CategoryInMonth';
+import { ErrorLine } from '@/components/ErrorLine';
 import { ScreenHeader } from '@/components/ScreenHeader';
 import { Text } from '@/components/Text';
 import { removeFromMonth, restoreToMonth } from '@/data/categories';
@@ -122,11 +123,7 @@ function Confirm({
       </Text>
       <Text variant="body">{warning.body}</Text>
 
-      {error ? (
-        <Text accessibilityRole="alert" variant="label" color="danger">
-          {error}
-        </Text>
-      ) : null}
+      <ErrorLine text={error} />
 
       {gone ? null : <Button variant="danger" label={warning.action} busy={busy} onPress={remove} />}
     </ScrollView>

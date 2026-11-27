@@ -20,6 +20,7 @@ import { AmountFields } from '@/components/AmountFields';
 import { Button } from '@/components/Button';
 import { CategoryPicker } from '@/components/CategoryPicker';
 import { DateChips } from '@/components/DateChips';
+import { ErrorLine } from '@/components/ErrorLine';
 import { Icon } from '@/components/Icon';
 import { LoadError } from '@/components/LoadError';
 import { NameCombobox } from '@/components/NameCombobox';
@@ -290,9 +291,7 @@ function ExpenseForm({ draft, ledgerId }: { draft: ExpenseDraftData; ledgerId: n
             Category
           </Text>
           {noBudget ? (
-            <Text accessibilityRole="alert" variant="label" color="danger">
-              {noBudget}
-            </Text>
+            <ErrorLine text={noBudget} />
           ) : picker ? (
             <>
               <CategoryPicker
@@ -302,11 +301,7 @@ function ExpenseForm({ draft, ledgerId }: { draft: ExpenseDraftData; ledgerId: n
                 onPick={pickCategory}
                 disabled={locked}
               />
-              {notInMonth ? (
-                <Text accessibilityRole="alert" variant="label" color="danger">
-                  {notInMonth}
-                </Text>
-              ) : null}
+              <ErrorLine text={notInMonth} />
             </>
           ) : list.status === 'error' ? (
             <LoadError
@@ -348,11 +343,7 @@ function ExpenseForm({ draft, ledgerId }: { draft: ExpenseDraftData; ledgerId: n
           </Text>
         </View>
 
-        {error ? (
-          <Text accessibilityRole="alert" variant="label" color="danger">
-            {error}
-          </Text>
-        ) : null}
+        <ErrorLine text={error} />
 
         {locked ? null : (
           <>

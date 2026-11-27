@@ -263,6 +263,10 @@ instructions that mentions Copilot, delegating or .github; else reply NONE."` â†
 
 ## Deviations
 
+- slices 1â€“2 and review: the script is 261 lines, not the ~150 estimated. The rest is Prettier's line breaks,
+  the comments, and the review's error-path fixes (a new skill's folder, an unclosed `claude` block, writing only
+  after every source builds, agent front matter types). No contract or file outside the plan changed.
+
 ## Consolidate
 
 One pass over `origin/main...HEAD`. The new code is one script, `scripts/build-copilot-skills.mjs`. No other code in the repo

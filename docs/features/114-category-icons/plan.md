@@ -254,7 +254,7 @@ two callers.
     - New: "gives a category's icon in the list and on its own, to every member". It sets
       `UPDATE categories SET icon = 'dog'` in SQL, then reads with the owner and with a member added via `addMember`.
     - The `categories.test.ts` fixture gains `icon: null`.
-- [ ] 3. Let a category's add and edit set or clear its icon (≈ 120 lines + the 101-line key table)
+- [x] 3. Let a category's add and edit set or clear its icon (≈ 120 lines + the 101-line key table)
   - Files: `apps/api/src/categories/icons.ts` (new), `routes.ts`, `monthLists.ts`, `categories.int.test.ts`
   - Change: `CATEGORY_ICONS`; the `IconKey` schema in the `AddBody` and `EditBody` schemas; the writes in
     `editInMonth` and `addToMonth` as under Contracts, with their doc comments updated.

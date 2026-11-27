@@ -974,6 +974,124 @@ describe.skipIf(!(await testDbReachable()))('categories API (MySQL)', () => {
     });
   });
 
+  describe('icons (brief 114)', () => {
+    /** A category's stored icon. */
+    async function storedIcon(categoryId: number): Promise<string | null> {
+      const [[row]] = await db.query<RowDataPacket[]>('SELECT icon FROM categories WHERE category_id = ?', [
+        categoryId,
+      ]);
+      return row!.icon;
+    }
+
+    const addWith = (payload: Record<string, unknown>, month = '2026-10') =>
+      app.inject({
+        method: 'POST',
+        url: `/api/ledgers/${owner.ledgerId}/months/${month}/categories`,
+        payload,
+        headers: auth,
+      });
+
+    it('sets the icon on the category, in every month and for every member', async () => {
+      await storeMonthList(db, owner.ledgerId, '2026-11', []);
+      const groceries = await idOf('groceries');
+      const before = await fieldsIn(groceries);
+
+      const res = await edit(groceries, auth, owner.ledgerId, '2026-10', { icon: 'shopping-cart' });
+      expect(res.statusCode).toBe(204);
+
+      const member = await makeUser(db, config, 'olena');
+      await addMember(db, owner.ledgerId, member.userId);
+      const memberAuth = await authHeader(app, member, clock);
+      for (const [month, headers] of [
+        ['2026-10', auth],
+        ['2026-11', auth],
+        ['2026-10', memberAuth],
+      ] as const) {
+        const res = await app.inject({
+          method: 'GET',
+          url: `/api/ledgers/${owner.ledgerId}/categories?month=${month}`,
+          headers,
+        });
+        const listed = res.json().categories.find((c: { categoryId: number }) => c.categoryId === groceries);
+        expect(listed.icon, month).toBe('shopping-cart');
+      }
+      expect((await one(`${groceries}?month=2026-10`)).json().icon).toBe('shopping-cart');
+      expect(await fieldsIn(groceries)).toEqual(before);
+    });
+
+    it('clears it with null', async () => {
+      const groceries = await idOf('groceries');
+      await db.query("UPDATE categories SET icon = 'carrot' WHERE category_id = ?", [groceries]);
+      expect((await edit(groceries, auth, owner.ledgerId, '2026-10', { icon: null })).statusCode).toBe(204);
+      expect(await storedIcon(groceries)).toBeNull();
+    });
+
+    it('rejects a key not in the list, storing nothing', async () => {
+      const rent = await idOf('rent');
+      await db.query("UPDATE categories SET icon = 'house' WHERE category_id = ?", [rent]);
+      for (const payload of [
+        { icon: 'rocket' },
+        { icon: 'Shopping-Cart' },
+        { icon: '' },
+        { icon: 5 },
+        { name: 'home', icon: 'rocket' },
+      ]) {
+        const res = await edit(rent, auth, owner.ledgerId, '2026-10', payload);
+        expect([res.statusCode, res.json().error], JSON.stringify(payload)).toEqual([400, 'invalid_request']);
+      }
+      expect(await storedIcon(rent)).toBe('house');
+      expect((await fieldsIn(rent)).displayName).toBe('rent');
+    });
+
+    it('stores no icon when the edit is refused', async () => {
+      const gym = await idOf('gym');
+      const taken = await edit(gym, auth, owner.ledgerId, '2026-10', { name: 'rent', icon: 'dumbbell' });
+      expect([taken.statusCode, taken.json()]).toEqual([400, { error: 'name_taken' }]);
+
+      const ended = await edit(gym, auth, owner.ledgerId, '2026-09', { icon: 'dumbbell' });
+      expect([ended.statusCode, ended.json()]).toEqual([409, { error: 'month_ended' }]);
+
+      expect((await removeFrom(gym)).statusCode).toBe(204);
+      const removed = await edit(gym, auth, owner.ledgerId, '2026-10', { icon: 'dumbbell' });
+      expect([removed.statusCode, removed.json()]).toEqual([404, { error: 'not_found' }]);
+
+      expect(await storedIcon(gym)).toBeNull();
+    });
+
+    it('adds a category with an icon', async () => {
+      const res = await addWith({ name: 'pets', icon: 'dog' });
+      expect(res.statusCode).toBe(201);
+      expect(res.json()).toMatchObject({ techName: 'pets', icon: 'dog' });
+      expect(await storedIcon(res.json().categoryId)).toBe('dog');
+    });
+
+    it("keeps a reused category's icon unless one is sent", async () => {
+      const eatingOut = await idOf('eating_out');
+      await db.query("UPDATE categories SET icon = 'pizza' WHERE category_id = ?", [eatingOut]);
+      await storeMonthList(db, owner.ledgerId, '2026-11', ['eating_out']);
+
+      const res = await addWith({ name: 'eating out' }, '2026-11');
+      expect([res.statusCode, res.json().categoryId, res.json().icon]).toEqual([201, eatingOut, 'pizza']);
+      expect(await storedIcon(eatingOut)).toBe('pizza');
+    });
+
+    it('… replaces it when one is sent', async () => {
+      const eatingOut = await idOf('eating_out');
+      await db.query("UPDATE categories SET icon = 'pizza' WHERE category_id = ?", [eatingOut]);
+      await storeMonthList(db, owner.ledgerId, '2026-11', ['eating_out']);
+
+      const res = await addWith({ name: 'eating out', icon: 'coffee' }, '2026-11');
+      expect([res.statusCode, res.json().categoryId, res.json().icon]).toEqual([201, eatingOut, 'coffee']);
+      expect(await storedIcon(eatingOut)).toBe('coffee');
+    });
+
+    it('rejects an add with an unknown key, adding nothing', async () => {
+      const res = await addWith({ name: 'pets', icon: 'rocket' });
+      expect([res.statusCode, res.json().error]).toEqual([400, 'invalid_request']);
+      expect(await categoryCount()).toBe(15);
+    });
+  });
+
   describe('add to a month', () => {
     it("creates a category at the end of the month's list, at €0", async () => {
       const res = await add();
@@ -1264,6 +1382,16 @@ describe.skipIf(!(await testDbReachable()))('categories API (MySQL)', () => {
 
     const editNovember = async (techName: string, payload: Record<string, unknown>) =>
       edit(await idOf(techName), auth, owner.ledgerId, '2026-11', payload);
+
+    it('stores no icon when the edit is over income', async () => {
+      await storeIncome('2026-11', '100.00');
+      const refused = await editNovember('rent', { amount: '101', icon: 'house' });
+      expect([refused.statusCode, refused.json()]).toEqual([409, { error: 'over_income', overEur: '1.00' }]);
+      const [[row]] = await db.query<RowDataPacket[]>('SELECT icon FROM categories WHERE category_id = ?', [
+        await idOf('rent'),
+      ]);
+      expect(row!.icon).toBeNull();
+    });
 
     it('stores neither when the amount is over income', async () => {
       await storeIncome('2026-11', '100.00');

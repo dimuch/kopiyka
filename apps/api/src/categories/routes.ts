@@ -15,6 +15,7 @@ import {
   removeFromMonth,
   restoreToMonth,
 } from './monthLists.js';
+import { CATEGORY_ICONS } from './icons.js';
 import { IN_MY_ORDER, MY_ORDER_JOIN, saveOrder } from './order.js';
 
 export const QUICK_CATEGORY_COUNT = 5;
@@ -55,11 +56,16 @@ const MonthParams = CategoryParams.extend(Month.shape);
 const NameBody = z.object({ name: z.string().trim().min(1).max(40) });
 // Money crosses the wire as decimal strings; €0 is a plan.
 const Amount = z.string().regex(AMOUNT_RE, 'expected an amount ≥ 0, 2 decimals at most');
-const AddBody = NameBody.extend({ amount: Amount.default('0') });
+// Brief 114: a key from the list, or null to clear it and show the letter.
+const IconKey = z.enum(CATEGORY_ICONS).nullable();
+const AddBody = NameBody.extend({ amount: Amount.default('0'), icon: IconKey.optional() });
 // A field left out stays as it is, so saving one can't overwrite the other a member just changed (brief 065).
 const EditBody = z
-  .object({ name: NameBody.shape.name.optional(), amount: Amount.optional() })
-  .refine(({ name, amount }) => name !== undefined || amount !== undefined, 'expected a name or an amount');
+  .object({ name: NameBody.shape.name.optional(), amount: Amount.optional(), icon: IconKey.optional() })
+  .refine(
+    ({ name, amount, icon }) => name !== undefined || amount !== undefined || icon !== undefined,
+    'expected a name, an amount or an icon',
+  );
 // Brief 092: one month's list in its new order, top first. The cap is far above any ledger's list.
 const OrderBody = z.object({
   categoryIds: z
@@ -200,9 +206,9 @@ export async function categoryRoutes(app: FastifyInstance, { db, now }: AppDeps)
   // Brief 038. An ended month is read-only, so it's refused before anything is read.
   app.post('/api/ledgers/:id/months/:month/categories', guards, async (req, reply) => {
     const { month } = Month.parse(req.params);
-    const { name, amount } = AddBody.parse(req.body);
+    const { name, amount, icon } = AddBody.parse(req.body);
     if (!checkMonthOpen(reply, now(), month)) return reply;
-    const added = await addToMonth(db, req.ledger!.ledgerId, month, name, amount);
+    const added = await addToMonth(db, req.ledger!.ledgerId, month, name, amount, icon);
     if (added === 'name_taken') return reply.code(400).send({ error: 'name_taken' });
     if ('overCents' in added) return reply.code(409).send(overIncomeError(added));
     const dto: CategoryDto = { ...added, displayName: name, plannedEur: centsToString(toCents(amount)) };

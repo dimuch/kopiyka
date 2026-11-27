@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { ActivityIndicator, type LayoutRectangle, ScrollView, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import type { SummaryTotals } from '@/api/types';
+import type { SummaryCategory, SummaryTotals } from '@/api/types';
 import { useAppearance, useColors, useThemedStyles } from '@/appearance/AppearanceContext';
 import { useSession } from '@/auth/AuthContext';
 import { Card } from '@/components/Card';
@@ -78,43 +78,7 @@ export default function Statistics() {
             ) : (
               <>
                 <TotalsCard totals={summary.totals} />
-                {summary.categories.length > 0 && (
-                  <>
-                    <Text variant="heading" style={styles.sectionTitle}>
-                      By category
-                    </Text>
-                    <View style={styles.list}>
-                      {summary.categories.map((category) => {
-                        const planned = eur(toCents(category.plannedEur));
-                        const spent = eur(toCents(category.spentEur));
-                        const gap = planGap(category);
-                        return (
-                          // One screen-reader stop per category: 'rent, spent €700 of €650 planned, €50 over'.
-                          <Card
-                            key={category.categoryId}
-                            padding="none"
-                            accessible
-                            accessibilityLabel={`${category.name}, spent ${spent} of ${planned} planned, ${gap.text}`}
-                            style={styles.row}
-                          >
-                            <View style={styles.rowText}>
-                              <Text variant="bodyMedium">{category.name}</Text>
-                              <Text variant="caption" color={gap.over ? 'danger' : 'muted'} tabular>
-                                {gap.text}
-                              </Text>
-                            </View>
-                            <View style={styles.amounts}>
-                              <Text variant="amount">{spent}</Text>
-                              <Text variant="caption" color="muted" tabular>
-                                of {planned}
-                              </Text>
-                            </View>
-                          </Card>
-                        );
-                      })}
-                    </View>
-                  </>
-                )}
+                {summary.categories.length > 0 && <CategoryRows categories={summary.categories} />}
                 {summary.months.length > 1 && (
                   <>
                     <Text variant="heading" style={styles.sectionTitle}>
@@ -296,6 +260,48 @@ function TotalsCard({ totals }: { totals: SummaryTotals }) {
         );
       })}
     </Card>
+  );
+}
+
+/** The period's categories, each with its spent and planned figures. */
+function CategoryRows({ categories }: { categories: SummaryCategory[] }) {
+  const styles = useThemedStyles(makeStyles);
+  return (
+    <>
+      <Text variant="heading" style={styles.sectionTitle}>
+        By category
+      </Text>
+      <View style={styles.list}>
+        {categories.map((category) => {
+          const planned = eur(toCents(category.plannedEur));
+          const spent = eur(toCents(category.spentEur));
+          const gap = planGap(category);
+          return (
+            // One screen-reader stop per category: 'rent, spent €700 of €650 planned, €50 over'.
+            <Card
+              key={category.categoryId}
+              padding="none"
+              accessible
+              accessibilityLabel={`${category.name}, spent ${spent} of ${planned} planned, ${gap.text}`}
+              style={styles.row}
+            >
+              <View style={styles.rowText}>
+                <Text variant="bodyMedium">{category.name}</Text>
+                <Text variant="caption" color={gap.over ? 'danger' : 'muted'} tabular>
+                  {gap.text}
+                </Text>
+              </View>
+              <View style={styles.amounts}>
+                <Text variant="amount">{spent}</Text>
+                <Text variant="caption" color="muted" tabular>
+                  of {planned}
+                </Text>
+              </View>
+            </Card>
+          );
+        })}
+      </View>
+    </>
   );
 }
 

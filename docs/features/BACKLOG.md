@@ -161,39 +161,30 @@ Item 3 of the same review, finishing the design system with 104f and 105, is alr
 
 ## Not briefed yet
 
-### Refactor roadmap (project scan, 2026-11-21)
+### Refactor roadmap (project scan, 2026-11-27)
 
-Order: A → C → G → B → D, E, F. Run each through `/kopiyka-hos-refactoring`.
+`docs/features/refactor-roadmap-2026-11.md`: 17 behaviour-preserving PRs, R1–R17, each its own brief and a patch bump,
+run in order through `/kopiyka-hos-refactoring`, then a deploy. It replaces the 2026-11-21 roadmap's D (data hooks →
+R7, R13), E (button actions → R9, R11), F (UI pieces → R10, R16, R17) and H (split `members.tsx` and `expense.tsx`:
+`expense.tsx` → R14; splitting `members.tsx` is left alone). A, C and G merged (#138, #140, #143); B was dropped with
+brief 109.
 
-| PR  | What                                                    | State                    |
-| --- | ------------------------------------------------------- | ------------------------ |
-| A   | API month guards                                        | merged (#138, brief 096) |
-| C   | Importer scripts' shared command-line code              | merged (#140, brief 098) |
-| G   | Small cleanups                                          | merged (#143, brief 100) |
-| B   | Shared SQL between the Notion import and the API routes | dropped: goes with 109   |
-| D   | App: data hooks                                         | not briefed              |
-| E   | App: button actions                                     | not briefed              |
-| F   | App: UI pieces                                          | not briefed              |
-| H   | Split the two largest screens                           | not briefed              |
-
-B is dropped: brief 109 removes the Notion import code it would have shared.
-
-H (added 2026-11-25): `members.tsx` (539 lines) and `expense.tsx` (412) are the largest screens. Run
-`/kopiyka-hos-refactoring` on each, one PR per screen, after 104f merges, because 104f edits both. Check its scan
-against D–F first, since the data hooks or button actions may be what makes them long.
+| PRs    | Area           | State       |
+| ------ | -------------- | ----------- |
+| R1–R5  | API, connector | not started |
+| R6–R17 | App            | not started |
 
 ### Named in earlier briefs and plans as "its own brief"
 
 - **Drop the four `notion_*` tables** (`notion_grocery_rows`, `notion_syncs`, `notion_total_adds`,
   `notion_counted_expenses`) once brief 109's release has run fine (109, Out of scope).
-- **One modal-form kit** for `income-item.tsx`, `category-form.tsx` and `actual-end.tsx` (102 follow-up). A refactor
-  session holds it until 104b's `Button` and 104e's `ScreenHeader` are on `main`.
+- **One modal-form kit** for `income-item.tsx`, `category-form.tsx` and `actual-end.tsx` (102 follow-up): roadmap R12.
 - **Statistics' category list follows the member's order** as a tie-break, if wanted (092 follow-up).
 - **Chips that are silent on web**: `aria-selected` isn't valid on `role="button"`, so the category and date chips
   may not say "selected" on web. Pick `aria-pressed` or a radio group as in `AppearancePicker` (095 follow-up).
-- **API-wide single-letter names**: about 29 lines across `apps/api/src`, plus `addMember(q, …)` in
-  `ledgers/members.ts` (100 follow-up). A rename slice.
-- **`categories/routes.ts` passed 200 lines**: a `service.ts` split (092 follow-up). 114 took it to 217.
+- **API-wide single-letter names** (100 follow-up): roadmap R1.
+- **`categories/routes.ts` passed 200 lines** (092 follow-up): the 2026-11-27 scan left it alone; its logic is already in
+  `monthLists.ts` and `order.ts`, and the extra lines are DTOs and schemas.
 
 ### Small follow-ups (no brief needed until one is picked)
 

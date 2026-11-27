@@ -4,7 +4,6 @@ Status: approved <!-- draft → skeptic-approved → approved (by the user) -->
 Brief: ./brief.md
 Branch: chore/figure-row
 Base: origin/main (after R16 #204)
-until then.
 
 ## Approach
 
@@ -173,8 +172,6 @@ There are no characterization tests: the change is UI only, with no logic to pin
   base and compared after each slice for Budget and Expenses in light and dark, Expenses while loading (muted "—") and
   with a negative Remaining: identical. `?month=2026-12` on Expenses showed the current month, so the no-categories
   state wasn't reached.
-
-<filled by the developer during build>
 
 ## Consolidate
 

@@ -3,7 +3,7 @@
 Status: approved <!-- draft → skeptic-approved → approved (by the user) -->
 Brief: ./brief.md
 Branch: chore/statistics-sections
-Base: origin/main (after R13 #201, d9357f14)
+Base: origin/main (after R13 #201)
 
 ## Approach
 
@@ -67,23 +67,23 @@ Run `yarn format`. Prettier may rewrap the moved lines, now 12–16 columns shal
 with `git show --color-moved=zebra --color-moved-ws=allow-indentation-change`. No characterization tests: no logic
 moves, and the pure parts stay covered by `periodSummary.test` and `period.test`.
 
-- [ ] 0. Bump version to 1.26.17
+- [x] 0. Bump version to 1.26.17
   - Files: package.json, apps/mobile/app.json
   - Change: set both to 1.26.17
-- [ ] 1. Draw Statistics' totals with an in-file TotalsCard
+- [x] 1. Draw Statistics' totals with an in-file TotalsCard
   - Files: apps/mobile/src/app/(tabs)/statistics.tsx
   - Change: `TotalsCard` as in Contracts. Both comments ("One screen-reader stop per figure", "Only Left can be
     negative") move with their lines. ~55 lines, mostly moved.
   - Verify: web check, totals card
-- [ ] 2. Draw Statistics' category rows with an in-file CategoryRows
+- [x] 2. Draw Statistics' category rows with an in-file CategoryRows
   - Files: same
   - Change: `CategoryRows` as in Contracts. The "One screen-reader stop per category" comment moves. ~75 lines.
   - Verify: web check, "By category"
-- [ ] 3. Draw Statistics' month rows with an in-file MonthRows
+- [x] 3. Draw Statistics' month rows with an in-file MonthRows
   - Files: same
   - Change: `MonthRows` as in Contracts. ~70 lines. Re-run the depth walk: 3 without fragments, 5 with them.
   - Verify: web check, "By month"
-- [ ] 4. Mark R15 in review in the backlog
+- [x] 4. Mark R15 in review in the backlog
   - Files: docs/features/BACKLOG.md. Roadmap row R15 becomes `131 | in review`, and only that row changes. On a
     rebase conflict, keep `main`'s rows for R13/R14 (R14's PR owns them) and re-apply R15 alone.
 
@@ -145,5 +145,10 @@ moves, and the pure parts stay covered by `periodSummary.test` and `period.test`
 - BACKLOG on `main` still shows R13 "in review", though #201 merged. R14's plan updates it.
 
 ## Deviations
+
+- Web proof with a lighter matrix (skeptic suggestion): page tree (role, label, text, position, size) recorded on the
+  base for Current, Previous (empty), Last 3 months and This year in light and Current and Last 3 in dark; the two dark
+  views compared after each slice, and all six after slice 3: identical. Load and refresh errors were not rerun: the
+  triad is untouched.
 
 ## Consolidate

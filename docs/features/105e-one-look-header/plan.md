@@ -242,7 +242,7 @@ data, connector or demo-store change.
     - typecheck passes, so no `colors.borderStrong` is left;
     - `rg -n borderStrong apps docs/design` finds nothing;
     - Visual check F and G.
-- [ ] 7. Mark 105d done and 105 complete in the backlog, with 106 next (≈ 20 lines, docs)
+- [x] 7. Mark 105d done and 105 complete in the backlog, with 106 next (≈ 20 lines, docs)
   - Files: `docs/features/BACKLOG.md`
   - Change:
     - The Snapshot line moves to v1.23.15 (`210d798`, after #176).

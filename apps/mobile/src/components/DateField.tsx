@@ -135,8 +135,6 @@ const makeStyles = (colors: Palette) =>
     backdrop: { flex: 1, backgroundColor: colors.backdrop },
     sheet: {
       backgroundColor: colors.surface,
-      borderTopWidth: 1,
-      borderColor: colors.borderStrong,
       borderTopLeftRadius: radius.xl,
       borderTopRightRadius: radius.xl,
       paddingTop: space.sm,

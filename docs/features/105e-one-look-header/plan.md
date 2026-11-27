@@ -230,7 +230,7 @@ data, connector or demo-store change.
       field's border".
   - Tests: `theme.test.ts` › "keeps every text and icon pair readable", in both themes (4.74/6.38 at 4.5; 4.51/5.96 at
     3). Verify: Visual check D.
-- [ ] 6. Draw the sheets without a top edge and Members' confirm panel with a hairline, and remove `borderStrong`
+- [x] 6. Draw the sheets without a top edge and Members' confirm panel with a hairline, and remove `borderStrong`
       (≈ 11 lines)
   - Files: `components/CategorySheet.tsx`, `components/DateField.tsx`, `app/members.tsx`, `theme.ts`
   - Change:

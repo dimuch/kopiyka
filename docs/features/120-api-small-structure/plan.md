@@ -31,7 +31,7 @@ domains (rule of three), and one function over `string | bigint` is harder to re
 
 ## Version
 
-Bump: patch — 1.26.4 → 1.26.6
+Bump: patch — 1.26.5 → 1.26.6
 Why: §8b says a refactor that touches shipped code is `patch`. Base is 1.26.4, and R3 (brief 119, in flight) takes
 1.26.5. If main has moved when this rebases, take main's number and bump it once more.
 
@@ -115,5 +115,9 @@ or 547 + 2 from slice 1 on.
 none
 
 ## Deviations
+
+- After R3 (#191) merged, the branch was rebased: base `origin/main` at 1.26.5, API baseline 548 + 2 skipped (549 + 2
+  after slice 1), and slice 5 marks R3 done instead of R2. `Month`'s why-comment went above the list route's parse in a
+  review fix.
 
 ## Consolidate

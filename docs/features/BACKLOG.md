@@ -7,7 +7,10 @@ Snapshot: 2026-11-27, `main` at v1.23.16 (`3899b99`, after PR #177: brief 105e i
 
 ## In progress
 
-None. The design roll-out (103–106) is complete; what comes next isn't chosen yet: see the Planned sections below.
+### 115 · Flush chip tile (planned, branch `feat/flush-chip-tile`, v1.26.1)
+
+Brief and plan: `docs/features/115-flush-chip-tile/`. A chip with a leading tile or icon has no left padding, so the
+tile touches the pill's left end; chips without one keep 8pt on both sides.
 
 ## Recently finished
 

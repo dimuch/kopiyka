@@ -15,11 +15,11 @@ export function nbuFetcher(fetchImpl: typeof fetch = fetch): RateFetcher {
     const res = await fetchImpl(url, { signal: AbortSignal.timeout(TIMEOUT_MS) });
     if (!res.ok) throw new Error(`NBU responded ${res.status}`);
     const body = (await res.json()) as Array<{ cc?: string; rate?: number; exchangedate?: string }>;
-    const eur = Array.isArray(body) ? body.find((r) => r.cc === 'EUR') : undefined;
+    const eur = Array.isArray(body) ? body.find((quote) => quote.cc === 'EUR') : undefined;
     if (!eur || typeof eur.rate !== 'number' || !(eur.rate > 0)) return null;
     // Guard against the NBU answering for a different day than asked.
-    const [d, m, y] = (eur.exchangedate ?? '').split('.');
-    if (`${y}-${m}-${d}` !== date) return null;
+    const [day, month, year] = (eur.exchangedate ?? '').split('.');
+    if (`${year}-${month}-${day}` !== date) return null;
     return eur.rate;
   };
 }

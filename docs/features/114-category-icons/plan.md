@@ -276,7 +276,7 @@ two callers.
 
 ### PR B: app (`feat/category-icons-app`, stacked on PR A)
 
-- [ ] 4. Bump version to 1.26.0
+- [x] 4. Bump version to 1.26.0
   - Files: package.json, apps/mobile/app.json
   - Change: set both to 1.26.0.
 - [ ] 5. Add the category icon set, copied from Lucide with its licence (≈ 45 hand-written lines + ≈ 620 generated +

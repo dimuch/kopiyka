@@ -1,7 +1,7 @@
-import { useFocusEffect } from 'expo-router';
-import { useCallback, useState } from 'react';
+import { useCallback } from 'react';
 import { api } from '@/api/client';
 import type { MonthBalance } from '@/api/types';
+import { useFocusLoad } from '@/data/useFocusLoad';
 
 /** A month's balance as a screen sees it; `balance` is null when the month has none. */
 export type MonthBalanceState = { reload: () => void } & (
@@ -16,29 +16,12 @@ export type MonthBalanceState = { reload: () => void } & (
  */
 export function useMonthBalance(ledgerId: number, month: string): MonthBalanceState {
   const key = `${ledgerId}/${month}`;
-  // A reload is a new attempt, so its fetch is cancelled like a focus one and its error is its own.
-  const [version, setVersion] = useState(0);
-  const attempt = `${key}#${version}`;
-  const [loaded, setLoaded] = useState<{ key: string; balance: MonthBalance | null } | null>(null);
-  const [failed, setFailed] = useState<string | null>(null);
-
-  useFocusEffect(
-    useCallback(() => {
-      let live = true;
-      api<{ balance: MonthBalance | null }>(`/api/ledgers/${ledgerId}/months/${month}/balance`)
-        .then(({ balance }) => {
-          if (!live) return;
-          setLoaded({ key, balance });
-          setFailed(null);
-        })
-        .catch(() => live && setFailed(attempt));
-      return () => {
-        live = false;
-      };
-    }, [key, attempt, ledgerId, month]),
+  // The answer keeps its `{ balance }` wrapper, so a month without a balance (null) still reads as loaded.
+  const load = useCallback(
+    () => api<{ balance: MonthBalance | null }>(`/api/ledgers/${ledgerId}/months/${month}/balance`),
+    [ledgerId, month],
   );
-
-  const reload = useCallback(() => setVersion((current) => current + 1), []);
-  if (loaded?.key === key) return { status: 'ready', balance: loaded.balance, reload };
-  return failed === attempt ? { status: 'error', reload } : { status: 'loading', reload };
+  const { value, error, reload } = useFocusLoad(key, load);
+  if (value) return { status: 'ready', balance: value.balance, reload };
+  return error ? { status: 'error', reload } : { status: 'loading', reload };
 }

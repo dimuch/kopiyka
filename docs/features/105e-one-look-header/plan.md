@@ -217,7 +217,7 @@ data, connector or demo-store change.
   - Change: as in Contracts. Each `borderWidth`/`borderColor` pair goes. NameCombobox loses `LIST_BORDER` and the
     comment "The border adds to the height…".
   - Verify: Visual check E (`statistics-menu`, `category-menu`, `expense-names`).
-- [ ] 5. Draw every input in the fill colour, with its edge only on focus, and login's fields at 48 (≈ 47 lines)
+- [x] 5. Draw every input in the fill colour, with its edge only on focus, and login's fields at 48 (≈ 47 lines)
   - Files: `app/login.tsx`, `app/members.tsx`, `app/expense.tsx`, `app/income-item.tsx`, `app/actual-end.tsx`,
     `components/AmountFields.tsx`, `components/CategoryForm.tsx`, `components/DateField.tsx`,
     `components/TextField.tsx`, `test/theme.test.ts`

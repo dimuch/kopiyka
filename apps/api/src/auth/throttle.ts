@@ -29,7 +29,7 @@ export function throttleKeys(input: { username: string; ip: string; deviceId: st
     { type: 'ip', value: input.ip },
     { type: 'device', value: input.deviceId },
   ];
-  return keys.filter((k) => k.value !== '').map((k) => ({ ...k, value: k.value.slice(0, 64) }));
+  return keys.filter((key) => key.value !== '').map((key) => ({ ...key, value: key.value.slice(0, 64) }));
 }
 
 export function isLocked(state: ThrottleState | undefined, now: Date): boolean {
@@ -109,9 +109,9 @@ export async function throttledAttempt<T extends { userId: number }>(
     }
 
     const value = await check(conn);
-    for (const [i, key] of keys.entries()) {
+    for (const [keyIndex, key] of keys.entries()) {
       if (value === null) {
-        const next = afterFailure(states[i], now);
+        const next = afterFailure(states[keyIndex], now);
         await conn.query(
           `UPDATE login_throttle SET failed_attempts = ?, last_failed_at = ?, locked_until = ?
             WHERE key_type = ? AND key_value = ?`,

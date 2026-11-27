@@ -16,12 +16,14 @@ function expandIPv6(addr: string): string[] {
   // An embedded IPv4 tail (e.g. 64:ff9b::1.2.3.4) becomes two hex groups.
   const v4 = text.match(/(\d+\.\d+\.\d+\.\d+)$/);
   if (v4) {
-    const [a, b, c, d] = v4[1]!.split('.').map(Number) as [number, number, number, number];
-    text = text.slice(0, -v4[1]!.length) + `${((a << 8) | b).toString(16)}:${((c << 8) | d).toString(16)}`;
+    const [octet1, octet2, octet3, octet4] = v4[1]!.split('.').map(Number) as [number, number, number, number];
+    text =
+      text.slice(0, -v4[1]!.length) +
+      `${((octet1 << 8) | octet2).toString(16)}:${((octet3 << 8) | octet4).toString(16)}`;
   }
   const [head = '', tail] = text.split('::');
   const left = head ? head.split(':') : [];
   const right = tail ? tail.split(':') : [];
   const fill = tail === undefined ? [] : Array<string>(8 - left.length - right.length).fill('0');
-  return [...left, ...fill, ...right].map((g) => parseInt(g, 16).toString(16));
+  return [...left, ...fill, ...right].map((group) => parseInt(group, 16).toString(16));
 }

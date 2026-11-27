@@ -2,7 +2,7 @@ import type { TextStyle } from 'react-native';
 import type { Scheme } from '@/appearance/preference';
 import type { BudgetState } from '@/data/budgetProgress';
 
-// Colours from docs/design/design-system.md (direction A, brief 105). `borderStrong` isn't in the doc: brief 105d
+// Colours from docs/design/design-system.md (direction A, brief 105). `borderStrong` isn't in the doc: brief 105e
 // removes its last callers, then the token.
 export const darkColors = {
   bg: '#0E0D12',

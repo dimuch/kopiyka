@@ -182,8 +182,8 @@ brief 109.
 | R9  | app-back-fallback         | 125   | done (#197) |
 | R10 | app-field-style           | 126   | done (#198) |
 | R11 | app-announced-errors      | 127   | done (#199) |
-| R12 | modal-form-kit            | 128   | in review   |
-| R13 | copy-previous-hook        |       | not started |
+| R12 | modal-form-kit            | 128   | done (#200) |
+| R13 | copy-previous-hook        | 129   | in review   |
 | R14 | expense-form-split        |       | not started |
 | R15 | statistics-sections       |       | not started |
 | R16 | load-state                |       | not started |
@@ -194,7 +194,7 @@ brief 109.
 - **Drop the four `notion_*` tables** (`notion_grocery_rows`, `notion_syncs`, `notion_total_adds`,
   `notion_counted_expenses`) once brief 109's release has run fine (109, Out of scope).
 - **One modal-form kit** for `income-item.tsx`, `category-form.tsx` and `actual-end.tsx` (102 follow-up): roadmap R12,
-  brief 128 (`ModalFormScreen`), in review.
+  brief 128 (`ModalFormScreen`), done (#200).
 - **Statistics' category list follows the member's order** as a tie-break, if wanted (092 follow-up).
 - **Chips that are silent on web**: `aria-selected` isn't valid on `role="button"`, so the category and date chips
   may not say "selected" on web. Pick `aria-pressed` or a radio group as in `AppearancePicker` (095 follow-up).

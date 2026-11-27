@@ -428,6 +428,8 @@ two callers.
 
 ## Deviations
 
+- PR A: rebased onto main after #181 (brief 113, 1.24.2) merged; the bump is now 1.24.2 → 1.25.0, still minor.
+
 ## Consolidate
 
 PR A (slices 0–3): reused 0 · extracted 0 · left 3.

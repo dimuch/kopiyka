@@ -326,7 +326,7 @@ two callers.
     - It shows in the Add expense quick row chip, the "N more" sheet, Budget, Expenses and the category screen.
     - The other categories keep their letter.
     - The tab bar and header icons look unchanged.
-- [ ] 8. Let members pick a category's icon, or the letter, in the category form (≈ 150 lines)
+- [x] 8. Let members pick a category's icon, or the letter, in the category form (≈ 150 lines)
   - Files: `apps/mobile/src/components/CategoryIconPicker.tsx` (new), `CategoryForm.tsx`
   - Change:
     - `CategoryForm` keeps `icon` state, starting at `current?.icon ?? null`.
@@ -431,6 +431,8 @@ two callers.
 - PR A: rebased onto main after #181 (brief 113, 1.24.2) merged; the bump is now 1.24.2 → 1.25.0, still minor.
 - slice 7: checked on the demo web build that letters, tab bar and header icons are unchanged; the icon in each tile
   is checked in slice 8, where the picker can set one, instead of by `curl` against a local API.
+- slice 8: the Icon field shows the chosen icon's name beside it ("Paw print"), not the icon alone, so it reads
+  without the picker open; a few lines in the same component.
 - slice 5: the script re-writes every path from its parsed commands with a space between all numbers, not only the
   arcs, so no arc flags run together and the native parser reads one simple form. Same drawing; ≈ 9.8 KB gzipped
   rather than ≈ 7.5 KB, and ≈ 1,000 formatted lines rather than ≈ 620.

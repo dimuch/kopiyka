@@ -57,6 +57,7 @@ src/components/AppShell.tsx
 src/components/Button.tsx
 src/components/Card.tsx
 src/components/CategoryForm.tsx
+src/components/CategoryIconPicker.tsx
 src/components/CategoryInMonth.tsx
 src/components/CategoryPicker.tsx
 src/components/CategorySheet.tsx

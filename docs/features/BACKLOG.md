@@ -11,6 +11,18 @@ None. The design roll-out (103–106) is complete; what comes next isn't chosen 
 
 ## Recently finished
 
+### 114 · Category icons (done: #182 API, v1.25.0; the app's PR, v1.26.0)
+
+Brief and plan: `docs/features/114-category-icons/`. A category can hold one of 101 icons copied from Lucide 1.81.0
+(ISC/MIT, licence beside `apps/mobile/src/components/categoryIcons.ts`), picked in the category form and stored on the
+category, so every member sees it in every month. No icon shows the letter. Shipped as two PRs: the API, then the app.
+
+### 113 · Round category tile (done: #181, v1.24.2)
+
+Brief and plan: `docs/features/113-round-category-tile/`. The category tile is a circle everywhere, so it follows the
+chip's round ends. Its centre sits 5pt in from the chip's end because of the chip's left padding; accepted at plan
+approval.
+
 ### The tab bar's "+" removed (no brief)
 
 The round "+" beside the tab bar (brief 106) is gone: each page already has its own way to add an expense, income
@@ -165,7 +177,7 @@ against D–F first, since the data hooks or button actions may be what makes th
   may not say "selected" on web. Pick `aria-pressed` or a radio group as in `AppearancePicker` (095 follow-up).
 - **API-wide single-letter names**: about 29 lines across `apps/api/src`, plus `addMember(q, …)` in
   `ledgers/members.ts` (100 follow-up). A rename slice.
-- **`categories/routes.ts` passed 200 lines**: a `service.ts` split (092 follow-up).
+- **`categories/routes.ts` passed 200 lines**: a `service.ts` split (092 follow-up). 114 took it to 217.
 
 ### Small follow-ups (no brief needed until one is picked)
 

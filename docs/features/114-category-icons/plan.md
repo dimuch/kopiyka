@@ -350,7 +350,7 @@ two callers.
     - Web's accessibility tree shows `role=radio`, `aria-label` and `aria-checked`.
     - A second member signed in sees the same icon.
     - An ended month's form refuses the save (`month_ended`), as for names.
-- [ ] 9. Record brief 114 in the backlog (≈ 10 lines; docs only)
+- [x] 9. Record brief 114 in the backlog (≈ 10 lines; docs only)
   - Files: `docs/features/BACKLOG.md`
   - Change: a "114 · Category icons (done: #A, #B, v1.26.0)" entry. The 092 `routes.ts` follow-up line notes 114's
     growth.

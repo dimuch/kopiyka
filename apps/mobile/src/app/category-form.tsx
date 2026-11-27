@@ -60,8 +60,8 @@ export default function CategoryFormScreen() {
           current={null}
           busy={busy}
           setBusy={setBusy}
-          save={async ({ name, amount }) => {
-            await addToMonth(ledger.ledgerId, month, name, amount);
+          save={async ({ name, amount, icon }) => {
+            await addToMonth(ledger.ledgerId, month, name, amount, icon);
             closeToBudget(month);
           }}
         />

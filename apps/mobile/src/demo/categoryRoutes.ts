@@ -1,4 +1,5 @@
 import type { Category, CategoryWithTotals } from '@/api/types';
+import { findCategoryIcon } from '@/components/categoryIcons';
 import { centsToInput, shiftMonth, toCents } from '@/format';
 import { refuseOverIncome } from './incomeLimit';
 import {
@@ -23,6 +24,7 @@ function toDto(data: StoreData, category: DemoCategory, month: string): Category
     displayName: nameInMonth(data, category, month),
     sortOrder: category.sortOrder,
     plannedEur: centsToInput(data.planned.get(plannedKey(category.categoryId, month)) ?? 0),
+    icon: category.icon ?? null,
   };
 }
 
@@ -91,6 +93,17 @@ const CATEGORY_IN_MONTH = /^\/api\/ledgers\/\d+\/categories\/(\d+)\/months\/(\d{
 interface CategoryInput {
   name?: string;
   amount?: string;
+  icon?: unknown;
+}
+
+/**
+ * The body's icon, as the API's schema reads it (brief 114): left out, null, or a key the icon set has; anything else
+ * is a 400 before any other check, so even in an ended month.
+ */
+function iconOf(input: CategoryInput): string | null | undefined {
+  const { icon } = input;
+  if (icon === undefined || icon === null) return icon;
+  return typeof icon === 'string' && findCategoryIcon(icon) ? icon : refuse(400, 'invalid_request');
 }
 
 /** Ignores case and accents, as the API's `utf8mb4_0900_ai_ci` comparison does. */
@@ -201,6 +214,7 @@ export const categoryRoutes: Route[] = [
       const input = body as CategoryInput;
       const name = (input.name ?? '').trim();
       const amountCents = toCents(input.amount ?? '0');
+      const icon = iconOf(input);
       refuseIfEnded(month, now);
       if (nameTaken(data, month, name, 0)) refuse(400, 'name_taken');
       // All of it is a raise: nothing the category planned before counts until it's back in the month.
@@ -215,12 +229,15 @@ export const categoryRoutes: Route[] = [
         );
         if (row) Object.assign(row, { displayName: name, removal: null });
         else data.monthRows.push({ categoryId: found.categoryId, month, displayName: name, removal: null });
+        // Left out, a reused category keeps its icon.
+        if (icon !== undefined) found.icon = icon;
       } else {
         category = {
           categoryId: data.nextId++,
           techName: techNameBase(name),
           displayName: name,
           sortOrder: Math.max(0, ...data.categories.map((existing) => existing.sortOrder)) + 10,
+          icon: icon ?? null,
         };
         data.categories.push(category);
         data.monthRows.push({ categoryId: category.categoryId, month, displayName: name, removal: null });
@@ -232,6 +249,7 @@ export const categoryRoutes: Route[] = [
         displayName: name,
         sortOrder: category.sortOrder,
         plannedEur: centsToInput(amountCents),
+        icon: category.icon ?? null,
       };
       return added;
     },
@@ -242,11 +260,13 @@ export const categoryRoutes: Route[] = [
     answer: (data, { body, now }, [categoryId = '', month = '']) => {
       const input = body as CategoryInput;
       const id = Number(categoryId);
+      const icon = iconOf(input);
       refuseIfEnded(month, now);
       const row =
         data.monthRows.find(
           (candidate) => candidate.categoryId === id && candidate.month === month && candidate.removal === null,
         ) ?? refuse(404, 'not_found');
+      const category = data.categories.find((candidate) => candidate.categoryId === id) ?? refuse(404, 'not_found');
       const name = input.name?.trim();
       // Every check comes before the first write, as in the API.
       if (name !== undefined && nameTaken(data, month, name, id)) refuse(400, 'name_taken');
@@ -257,6 +277,7 @@ export const categoryRoutes: Route[] = [
       }
       if (name !== undefined) row.displayName = name;
       if (input.amount !== undefined) data.planned.set(key, toCents(input.amount));
+      if (icon !== undefined) category.icon = icon;
     },
   },
   {

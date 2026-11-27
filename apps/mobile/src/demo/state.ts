@@ -11,6 +11,8 @@ export interface DemoCategory {
   techName: string;
   displayName: string;
   sortOrder: number;
+  /** The API's `categories.icon` (brief 114); left out shows the letter, as for every sample category. */
+  icon?: string | null;
 }
 
 /** A category's place in one month's list (the API's `category_months`). */

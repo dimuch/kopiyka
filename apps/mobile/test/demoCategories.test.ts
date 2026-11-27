@@ -10,8 +10,8 @@ describe('demo categories, a month’s list', () => {
     const list = await fixtureStore()<MonthList>('/api/ledgers/1/categories?month=2026-11');
 
     expect(list.categories).toEqual([
-      { categoryId: 1, techName: 'rent', displayName: 'rent', sortOrder: 10, plannedEur: '100.00' },
-      { categoryId: 2, techName: 'food', displayName: 'food', sortOrder: 20, plannedEur: '50.00' },
+      { categoryId: 1, techName: 'rent', displayName: 'rent', sortOrder: 10, plannedEur: '100.00', icon: null },
+      { categoryId: 2, techName: 'food', displayName: 'food', sortOrder: 20, plannedEur: '50.00', icon: null },
     ]);
   });
 
@@ -122,6 +122,7 @@ describe('demo categories, one in a month', () => {
       displayName: 'rent',
       sortOrder: 10,
       plannedEur: '100.00',
+      icon: null,
       expenseCount: 1,
       totalEur: '10.00',
       inMonth: true,
@@ -160,6 +161,7 @@ describe('demo categories, adding and editing', () => {
       displayName: 'Eating   Out',
       sortOrder: 40,
       plannedEur: '12.50',
+      icon: null,
     });
     expect((await november(api)).map((category) => category.categoryId)).toEqual([1, 2, 100]);
   });
@@ -483,5 +485,61 @@ describe('demo categories, my order', () => {
     ]);
     expect((await refusal(saveOrder(api, [99]))).slice(0, 2)).toEqual([400, 'unknown_category']);
     expect(await idsIn(api, '2026-11')).toEqual([2, 1]);
+  });
+});
+
+describe('demo categories, icons (brief 114)', () => {
+  it('sets an icon on the category, in the list and on its own, in every month', async () => {
+    const api = fixtureStore();
+
+    await expect(editCategory(api, 1, '2026-11', { icon: 'house' })).resolves.toBeUndefined();
+
+    expect((await november(api))[0]).toMatchObject({ categoryId: 1, displayName: 'rent', icon: 'house' });
+    await expect(api<CategoryWithTotals>('/api/ledgers/1/categories/1?month=2026-10')).resolves.toMatchObject({
+      icon: 'house',
+    });
+  });
+
+  it('clears it with null', async () => {
+    const api = fixtureStore();
+    await editCategory(api, 1, '2026-11', { icon: 'house' });
+
+    await editCategory(api, 1, '2026-11', { icon: null });
+
+    expect((await november(api))[0]!.icon).toBeNull();
+  });
+
+  it.each([
+    [
+      'an edit',
+      (api: ReturnType<typeof fixtureStore>) => editCategory(api, 1, '2026-11', { name: 'Home', icon: 'rocket' }),
+    ],
+    [
+      'an edit in an ended month',
+      (api: ReturnType<typeof fixtureStore>) => editCategory(api, 1, '2026-09', { icon: 'rocket' }),
+    ],
+    [
+      'an add',
+      (api: ReturnType<typeof fixtureStore>) =>
+        api('/api/ledgers/1/months/2026-11/categories', { method: 'POST', body: { name: 'Pets', icon: 'rocket' } }),
+    ],
+  ])('refuses %s with a key it doesn’t know, changing nothing', async (_case, call) => {
+    const api = fixtureStore();
+
+    expect(await refusal(call(api))).toEqual([400, 'invalid_request', { error: 'invalid_request' }]);
+
+    expect((await november(api)).map((category) => [category.displayName, category.icon])).toEqual([
+      ['rent', null],
+      ['food', null],
+    ]);
+  });
+
+  it('adds a category with an icon', async () => {
+    const api = fixtureStore();
+
+    await expect(
+      api('/api/ledgers/1/months/2026-11/categories', { method: 'POST', body: { name: 'Pets', icon: 'dog' } }),
+    ).resolves.toMatchObject({ displayName: 'Pets', icon: 'dog' });
+    expect((await november(api)).at(-1)).toMatchObject({ displayName: 'Pets', icon: 'dog' });
   });
 });

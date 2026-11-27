@@ -9,6 +9,7 @@ function category(categoryId: number, sortOrder: number): Category {
     displayName: `Category ${categoryId}`,
     sortOrder,
     plannedEur: '0.00',
+    icon: null,
   };
 }
 

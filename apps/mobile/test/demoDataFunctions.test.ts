@@ -17,8 +17,9 @@ describe('the app’s data functions against the demo store', () => {
   });
 
   it('runs every category function', async () => {
-    await categories.addToMonth(1, '2026-11', 'Gym', '10');
-    await categories.editInMonth(1, 1, '2026-11', { name: 'Flat', amount: '90' });
+    await categories.addToMonth(1, '2026-11', 'Gym', '10', 'dumbbell');
+    await categories.addToMonth(1, '2026-11', 'Pets', '0', null);
+    await categories.editInMonth(1, 1, '2026-11', { name: 'Flat', amount: '90', icon: 'house' });
     await categories.removeFromMonth(1, 2, '2026-11');
     await categories.restoreToMonth(1, 2, '2026-11');
     await expect(categories.copyPreviousMonth(1, '2026-12')).resolves.toBeUndefined();

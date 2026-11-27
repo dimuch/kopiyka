@@ -42,23 +42,34 @@ describe('checkFields when editing', () => {
 });
 
 describe('changedFields', () => {
+  const rentWithIcon = { ...rent, icon: 'house' };
+
   it.each([
-    [{ name: 'Home', amount: '120.50' }, { name: 'Home' }],
-    [{ name: 'Rent', amount: '200.00' }, { amount: '200.00' }],
+    [{ name: 'Home', amount: '120.50', icon: 'house' }, { name: 'Home' }],
+    [{ name: 'Rent', amount: '200.00', icon: 'house' }, { amount: '200.00' }],
     [
-      { name: 'Home', amount: '200.00' },
+      { name: 'Home', amount: '200.00', icon: 'house' },
       { name: 'Home', amount: '200.00' },
     ],
-    [{ name: 'Rent', amount: '120.50' }, {}],
-    [{ name: 'rent', amount: '120.50' }, { name: 'rent' }],
-  ])('%j against Rent at 120.50 gives %j', (fields, expected) => {
-    expect(changedFields(fields, rent)).toEqual(expected);
+    [{ name: 'Rent', amount: '120.50', icon: 'house' }, {}],
+    [{ name: 'rent', amount: '120.50', icon: 'house' }, { name: 'rent' }],
+    // Brief 114: the icon changed, or cleared to the letter.
+    [{ name: 'Rent', amount: '120.50', icon: 'key-round' }, { icon: 'key-round' }],
+    [{ name: 'Rent', amount: '120.50', icon: null }, { icon: null }],
+  ])('%j against Rent at 120.50 with a house gives %j', (fields, expected) => {
+    expect(changedFields(fields, rentWithIcon)).toEqual(expected);
+  });
+
+  it('sends an icon added to a category that had none', () => {
+    expect(changedFields({ name: 'Rent', amount: '120.50', icon: 'house' }, { ...rent, icon: null })).toEqual({
+      icon: 'house',
+    });
   });
 
   it('treats 120.5 as no change to 120.50 once checked', () => {
     const fields = checkFields('Rent', '120.5', rent);
     expect(fields).toEqual({ name: 'Rent', amount: '120.50' });
     if ('error' in fields) throw new Error('expected fields');
-    expect(changedFields(fields, rent)).toEqual({});
+    expect(changedFields({ ...fields, icon: null }, { ...rent, icon: null })).toEqual({});
   });
 });

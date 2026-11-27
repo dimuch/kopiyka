@@ -1,6 +1,6 @@
 import { Text, View } from 'react-native';
 import { useAppearance } from '@/appearance/AppearanceContext';
-import { categoryTile, fonts } from '@/theme';
+import { categoryTile, fonts, radius } from '@/theme';
 
 export function CategoryTile({ techName, label, size = 40 }: { techName: string; label: string; size?: number }) {
   const { scheme } = useAppearance();
@@ -10,9 +10,8 @@ export function CategoryTile({ techName, label, size = 40 }: { techName: string;
       style={{
         width: size,
         height: size,
-        // The corner and letter scale with the tile (26–52pt): tile maths, no token.
-        // eslint-disable-next-line no-restricted-syntax
-        borderRadius: size * 0.3,
+        // A circle at any size, so the tile follows the round ends of the chip it sits in.
+        borderRadius: radius.pill,
         backgroundColor: tile.bg,
         alignItems: 'center',
         justifyContent: 'center',
@@ -21,7 +20,7 @@ export function CategoryTile({ techName, label, size = 40 }: { techName: string;
       <Text
         style={{
           fontFamily: fonts.extraBold,
-          // The corner and letter scale with the tile (26–52pt): tile maths, no token.
+          // The letter scales with the tile (26–52pt): tile maths, no token.
           // eslint-disable-next-line no-restricted-syntax
           fontSize: size * 0.43,
           color: tile.fg,

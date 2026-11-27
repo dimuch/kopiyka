@@ -104,8 +104,8 @@ tabular digits) are used for every figure.
 - **Space (4pt grid):** `xxs 2`, `xs 4`, `sm 8`, `md 12`, `lg 16`, `xl 20`, `xxl 24`, `xxxl 32`,
   `huge 40`.
 - **Screen gutter:** `lg` (16). Gap between cards: `sm` (8). Card padding: `md` to `lg`.
-- **Radius:** `sm 10` (category tile, small chip), `md 14` (input), `lg 20` (card), `xl 28` (sheet,
-  hero), `pill 999` (buttons, chips, tab bar).
+- **Radius:** `sm 10` (small chip), `md 14` (input), `lg 20` (card), `xl 28` (sheet, hero), `pill 999`
+  (buttons, chips, tab bar, category tile).
 - **Control heights:** `control 48` (button, input), `iconButton 44` (touch minimum), `chip 32`,
   `toast 56` (the Undo bar), `tabBar 56` (the floating tab bar and its "+").
 

@@ -35,7 +35,7 @@ import { setPendingUndo } from '@/data/undo';
 import { monthPicker } from '@/data/quick';
 import { type ExpenseDraftData, rememberLastCategory, useExpenseDraft } from '@/data/useExpenseDraft';
 import { useExpenseNames } from '@/data/useExpenseNames';
-import { useMonthCategories } from '@/data/useMonthCategories';
+import { type MonthCategories, useMonthCategories } from '@/data/useMonthCategories';
 import { rateLabel, useRate } from '@/data/useRate';
 import { eur, kyivToday, monthName, normalizeAmount, otherAmountText, shortDate, toCents } from '@/format';
 import { parseIdParam } from '@/linkParams';
@@ -270,32 +270,15 @@ function ExpenseForm({ draft, ledgerId }: { draft: ExpenseDraftData; ledgerId: n
           <DateChips value={date} today={today} min={firstOpenDate(today)} onChange={pickDate} disabled={locked} />
         </View>
 
-        <View style={styles.group}>
-          <Text variant="label" color="muted">
-            Category
-          </Text>
-          {noBudget ? (
-            <ErrorLine text={noBudget} />
-          ) : picker ? (
-            <>
-              <CategoryPicker
-                quick={picker.quick}
-                more={picker.more}
-                selectedId={selectedId}
-                onPick={pickCategory}
-                disabled={locked}
-              />
-              <ErrorLine text={notInMonth} />
-            </>
-          ) : list.status === 'error' ? (
-            <LoadError
-              message="Couldn’t load the categories. Check your connection and try again."
-              onRetry={list.reload}
-            />
-          ) : (
-            <ActivityIndicator color={colors.accent} />
-          )}
-        </View>
+        <CategorySection
+          noBudget={noBudget}
+          notInMonth={notInMonth}
+          picker={picker}
+          selectedId={selectedId}
+          locked={locked}
+          list={list}
+          onPick={pickCategory}
+        />
 
         <View style={[styles.group, styles.nameGroup]}>
           <Text variant="label" color="muted">
@@ -354,6 +337,53 @@ function ExpenseForm({ draft, ledgerId }: { draft: ExpenseDraftData; ledgerId: n
         ) : null}
       </ScrollView>
     </KeyboardAvoidingView>
+  );
+}
+
+/** The form's Category group: the month's tiles to pick from, or why there are none yet. */
+function CategorySection({
+  noBudget,
+  notInMonth,
+  picker,
+  selectedId,
+  locked,
+  list,
+  onPick,
+}: {
+  noBudget: string | null;
+  notInMonth: string | null;
+  picker: ReturnType<typeof monthPicker> | null;
+  selectedId: number | null;
+  locked: boolean;
+  list: MonthCategories;
+  onPick: (category: Category) => void;
+}) {
+  const colors = useColors();
+  const styles = useThemedStyles(makeStyles);
+  return (
+    <View style={styles.group}>
+      <Text variant="label" color="muted">
+        Category
+      </Text>
+      {noBudget ? (
+        <ErrorLine text={noBudget} />
+      ) : picker ? (
+        <>
+          <CategoryPicker
+            quick={picker.quick}
+            more={picker.more}
+            selectedId={selectedId}
+            onPick={onPick}
+            disabled={locked}
+          />
+          <ErrorLine text={notInMonth} />
+        </>
+      ) : list.status === 'error' ? (
+        <LoadError message="Couldn’t load the categories. Check your connection and try again." onRetry={list.reload} />
+      ) : (
+        <ActivityIndicator color={colors.accent} />
+      )}
+    </View>
   );
 }
 

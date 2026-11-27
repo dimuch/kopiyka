@@ -3,7 +3,7 @@
 Status: approved <!-- draft → skeptic-approved → approved (by the user) -->
 Brief: ./brief.md
 Branch: chore/app-focus-load-hook
-Base: origin/main (7d54a906, after R5 #193)
+Base: origin/main (after R6 #194)
 
 ## Approach
 
@@ -70,7 +70,7 @@ the React Compiler lint. A `useCallback` per caller keeps both lint rules checki
 
 ## Version
 
-Bump: patch — 1.26.7 → 1.26.9
+Bump: patch — 1.26.8 → 1.26.9
 Why: §8b "behaviour-preserving refactor" of shipped app code. 1.26.8 is held by R6 (brief 122, in flight). If main moves
 before merge, rebase and bump once more (§8b step 4).
 

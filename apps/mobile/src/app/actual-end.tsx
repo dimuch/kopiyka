@@ -9,6 +9,7 @@ import { useColors, useThemedStyles } from '@/appearance/AppearanceContext';
 import { useSession } from '@/auth/AuthContext';
 import { closeToBudget } from '@/closeToBudget';
 import { Button } from '@/components/Button';
+import { ErrorLine } from '@/components/ErrorLine';
 import { LoadError } from '@/components/LoadError';
 import { ScreenHeader } from '@/components/ScreenHeader';
 import { Text } from '@/components/Text';
@@ -157,11 +158,7 @@ function ActualEndForm({ month, balance, busy, setBusy }: { month: string; balan
         />
       </View>
 
-      {error ? (
-        <Text accessibilityRole="alert" variant="label" color="danger">
-          {error}
-        </Text>
-      ) : null}
+      <ErrorLine text={error} />
 
       {gone ? null : <Button variant="primary" label="Save" busy={busy} onPress={save} />}
 

@@ -6,6 +6,7 @@ import { ApiError } from '@/api/apiError';
 import { useColors, useThemedStyles } from '@/appearance/AppearanceContext';
 import { useAuth } from '@/auth/AuthContext';
 import { Button } from '@/components/Button';
+import { ErrorLine } from '@/components/ErrorLine';
 import { Pressable } from '@/components/Pressable';
 import { Text } from '@/components/Text';
 import { fieldStyle, TextField } from '@/components/TextField';
@@ -85,11 +86,7 @@ export default function Login() {
               placeholderTextColor={colors.muted}
             />
           </View>
-          {error ? (
-            <Text accessibilityRole="alert" variant="label" color="danger">
-              {error}
-            </Text>
-          ) : null}
+          <ErrorLine text={error} />
         </View>
 
         <View style={styles.actions}>

@@ -3,6 +3,7 @@ import type { Invite } from '@/api/types';
 import { useThemedStyles } from '@/appearance/AppearanceContext';
 import { Button } from '@/components/Button';
 import { Card } from '@/components/Card';
+import { ErrorLine } from '@/components/ErrorLine';
 import { Text } from '@/components/Text';
 import { type Palette, space } from '@/theme';
 
@@ -58,11 +59,7 @@ export function PendingInvites({
           </Card>
         );
       })}
-      {failure ? (
-        <Text accessibilityRole="alert" variant="label" color="danger">
-          {failure}
-        </Text>
-      ) : null}
+      <ErrorLine text={failure} />
     </View>
   );
 }

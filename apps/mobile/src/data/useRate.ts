@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { api } from '@/api/client';
 import type { EurUahRate } from '@/api/types';
+import { shortDate } from '@/format';
 
 export type Rate =
   { status: 'loading' } | { status: 'ok'; eurUah: number; rateDate: string } | { status: 'unavailable' };
@@ -26,4 +27,14 @@ export function useRate(date: string): Rate {
   }, [date]);
 
   return loaded?.date === date ? loaded.rate : LOADING;
+}
+
+/** The line under the amount fields: the NBU rate the amounts use, or why there's none yet. */
+export function rateLabel(rate: Rate, date: string): string {
+  if (rate.status === 'loading') return 'Fetching the NBU rate…';
+  if (rate.status === 'unavailable') {
+    return `NBU rate for ${shortDate(date)} isn’t available yet; it’s fetched again when you save`;
+  }
+  const fallback = rate.rateDate !== date ? ` (the latest before ${shortDate(date)})` : '';
+  return `1 € = ₴${rate.eurUah.toFixed(4)} · NBU official rate for ${shortDate(rate.rateDate)}${fallback}`;
 }

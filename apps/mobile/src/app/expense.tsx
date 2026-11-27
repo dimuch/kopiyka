@@ -36,7 +36,7 @@ import { monthPicker } from '@/data/quick';
 import { type ExpenseDraftData, rememberLastCategory, useExpenseDraft } from '@/data/useExpenseDraft';
 import { useExpenseNames } from '@/data/useExpenseNames';
 import { useMonthCategories } from '@/data/useMonthCategories';
-import { type Rate, useRate } from '@/data/useRate';
+import { rateLabel, useRate } from '@/data/useRate';
 import { eur, kyivToday, monthName, normalizeAmount, otherAmountText, shortDate, toCents } from '@/format';
 import { parseIdParam } from '@/linkParams';
 import { type Palette, radius, space } from '@/theme';
@@ -52,15 +52,6 @@ function errorText(err: unknown, doing: 'load' | 'save'): string {
     if (err.code === 'internal') return 'Something went wrong on the server. Try again.';
   }
   return `Couldn’t ${doing}. Check your connection and try again.`;
-}
-
-function rateLabel(rate: Rate, date: string): string {
-  if (rate.status === 'loading') return 'Fetching the NBU rate…';
-  if (rate.status === 'unavailable') {
-    return `NBU rate for ${shortDate(date)} isn’t available yet; it’s fetched again when you save`;
-  }
-  const fallback = rate.rateDate !== date ? ` (the latest before ${shortDate(date)})` : '';
-  return `1 € = ₴${rate.eurUah.toFixed(4)} · NBU official rate for ${shortDate(rate.rateDate)}${fallback}`;
 }
 
 export default function ExpenseScreen() {

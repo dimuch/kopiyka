@@ -52,6 +52,11 @@ export interface Category {
   sortOrder: number;
   /** The month's planned EUR (brief 036): a decimal string ≥ 0, '0.00' when none is set. */
   plannedEur: string;
+  /**
+   * The category's icon key (brief 114), the same in every month; null shows the letter. Not a union of the keys this
+   * build draws: the API may know newer ones, which then show the letter too.
+   */
+  icon: string | null;
 }
 
 /** A month's balances (briefs 090, 102): signed decimal strings, '-180.00'. The month runs from opening to closing. */

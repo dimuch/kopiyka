@@ -87,6 +87,7 @@ describe('monthSummary', () => {
       displayName: `Category ${categoryId}`,
       sortOrder: categoryId,
       plannedEur,
+      icon: null,
     });
     expect(plannedCents([])).toBe(0);
     // 120.50 + 0 + 0.10 + 0.20; in floats 0.1 + 0.2 isn't 0.3, in cents it's exactly 30.
@@ -117,6 +118,7 @@ describe('spendingFigures', () => {
     displayName: `Category ${categoryId}`,
     sortOrder: categoryId,
     plannedEur,
+    icon: null,
   });
 
   it.each([

@@ -84,6 +84,7 @@ src/components/Text.tsx
 src/components/TextField.tsx
 src/components/UndoToast.tsx
 src/components/blockTextGestures.ts
+src/components/categoryIcons.ts
 src/data/actualEnd.ts
 src/data/budgetProgress.ts
 src/data/categories.ts

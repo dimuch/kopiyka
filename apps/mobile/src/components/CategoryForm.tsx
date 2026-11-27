@@ -65,7 +65,8 @@ export function CategoryForm({
     setBusy(true);
     setError(null);
     try {
-      await save(fields);
+      // The picker comes in a later slice; until then the icon stays as it is.
+      await save({ ...fields, icon: current?.icon ?? null });
     } catch (err) {
       const code = err instanceof ApiError ? err.code : null;
       // An over-income or name refusal leaves the fields editable, so a corrected save can still go through.

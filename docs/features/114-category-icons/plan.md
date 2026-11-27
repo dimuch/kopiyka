@@ -296,7 +296,7 @@ two callers.
     - The keys in order equal `CATEGORY_ICONS`, imported from `../../api/src/categories/icons`.
     - `findCategoryIcon(null)` and `findCategoryIcon('rocket')` return null; `findCategoryIcon('dog')` returns its
       paths.
-- [ ] 6. Carry the icon in the app's category types, form fields and demo store (≈ 120 lines)
+- [x] 6. Carry the icon in the app's category types, form fields and demo store (≈ 120 lines)
   - Files:
     - `apps/mobile/src/api/types.ts`, `src/data/categories.ts`, `src/data/categoryForm.ts`
     - `src/components/CategoryForm.tsx`: `save({ ...fields, icon: current?.icon ?? null })`, with no UI yet

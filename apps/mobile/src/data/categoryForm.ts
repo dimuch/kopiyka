@@ -2,10 +2,11 @@ import type { Category } from '@/api/types';
 import { normalizeName } from '@/data/categoryName';
 import { normalizePlanned } from '@/format';
 
-/** A category's checked name and planned EUR ('12.50'). */
+/** A category's checked name and planned EUR ('12.50'), and its icon key or null for the letter (brief 114). */
 export interface CategoryFields {
   name: string;
   amount: string;
+  icon: string | null;
 }
 
 type Current = Pick<Category, 'displayName' | 'plannedEur'>;
@@ -19,7 +20,7 @@ export function checkFields(
   nameText: string,
   amountText: string,
   current: Current | null,
-): CategoryFields | { error: string } {
+): Omit<CategoryFields, 'icon'> | { error: string } {
   const name = nameText === current?.displayName ? nameText : normalizeName(nameText);
   if (name === null) return { error: 'A name needs 1 to 40 characters.' };
   const amount = current === null && amountText.trim() === '' ? '0.00' : normalizePlanned(amountText);
@@ -28,9 +29,13 @@ export function checkFields(
 }
 
 /** The checked fields that differ from the category: saving only these leaves what a member changed meanwhile alone. */
-export function changedFields(fields: CategoryFields, current: Current): Partial<CategoryFields> {
+export function changedFields(
+  fields: CategoryFields,
+  current: Current & Pick<Category, 'icon'>,
+): Partial<CategoryFields> {
   return {
     ...(fields.name !== current.displayName && { name: fields.name }),
     ...(fields.amount !== current.plannedEur && { amount: fields.amount }),
+    ...(fields.icon !== current.icon && { icon: fields.icon }),
   };
 }

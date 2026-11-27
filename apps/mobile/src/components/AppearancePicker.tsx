@@ -1,4 +1,4 @@
-import { StyleSheet } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 import { useThemedStyles } from '@/appearance/AppearanceContext';
 import type { ThemePreference } from '@/appearance/preference';
 import { Card } from '@/components/Card';
@@ -12,7 +12,10 @@ const OPTIONS: { value: ThemePreference; label: string }[] = [
   { value: 'auto', label: 'Auto' },
 ];
 
-/** Light, Dark or Auto as one row of radio options; each choice applies at once. */
+/**
+ * Light, Dark or Auto as one row of radio options; each choice applies at once. Drawn in Chip's pill and colours, but
+ * not a Chip: these are radios, and Chip is a button.
+ */
 export function AppearancePicker({
   value,
   onChange,
@@ -32,11 +35,13 @@ export function AppearancePicker({
             accessibilityLabel={o.label}
             aria-checked={checked}
             onPress={() => onChange(o.value)}
-            style={[styles.option, checked && styles.optionOn]}
+            style={styles.option}
           >
-            <Text variant="bodyMedium" color={checked ? 'text' : 'muted'}>
-              {o.label}
-            </Text>
+            <View style={[styles.pill, checked && styles.pillOn]}>
+              <Text variant="label" color={checked ? 'accentText' : 'text'}>
+                {o.label}
+              </Text>
+            </View>
           </Pressable>
         );
       })}
@@ -47,12 +52,13 @@ export function AppearancePicker({
 const makeStyles = (colors: Palette) =>
   StyleSheet.create({
     group: { flexDirection: 'row', gap: space.sm },
-    option: {
-      flex: 1,
-      minHeight: size.iconButton,
-      borderRadius: radius.md,
+    option: { flex: 1, minHeight: size.iconButton, justifyContent: 'center', borderRadius: radius.pill },
+    pill: {
+      height: size.chip,
+      borderRadius: radius.pill,
+      backgroundColor: colors.fill,
       alignItems: 'center',
       justifyContent: 'center',
     },
-    optionOn: { backgroundColor: colors.accentTint, borderWidth: 1, borderColor: colors.accent },
+    pillOn: { backgroundColor: colors.accentTint },
   });

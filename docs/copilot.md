@@ -51,14 +51,14 @@ brief → plan → skeptic → your approval → atomic commits → review → y
 
 - Edit `.claude/skills/kopiyka-*/SKILL.md` or `.claude/agents/*.md`, then run `yarn skills:build` and commit both
   sides. Every `.github/agents/*.agent.md` comes from `.claude/agents/`: the build deletes any other, so a Copilot-only
-  agent isn't possible. Never edit the generated files by hand: each says so on its second line, and CI's `yarn skills:check` fails
-  when one differs from what the build writes.
+  agent isn't possible. Never edit the generated files by hand: each says so on its second line, and CI's
+  `yarn skills:check` fails when one differs from what the build writes.
 - Wording that is the same rule for both tools (paths, "Spawn" → "Delegate to", Bash → the terminal) is a
   substitution list in the script. An agent's Copilot front matter and its "read these SKILL.md files first" line are
   built from its Claude front matter.
 - Text that only one tool gets is marked in the source:
-  - `<!-- claude -->…<!-- /claude -->` in the body: only Claude gets it. It can sit inside a line. For whole lines, put
-    the opening marker at the end of the line before (`…opinion.<!-- claude -->`), so dropping the block leaves no
+  - `<!-- claude -->…<!-- /claude -->` in the body: only Claude gets it. It can sit inside a line. For whole lines,
+    put the opening marker at the end of the line before (`…opinion.<!-- claude -->`), so dropping the block leaves no
     blank line, which would break a list in Copilot's copy.
   - `<!-- copilot: <id> -->` in the body: Copilot gets the text named `<id>` there. The text itself sits in the front
     matter as YAML comment lines, `# copilot text <id>:` followed by `# | <line>` (`# |` alone is an empty line).

@@ -351,6 +351,18 @@ describe('demo categories, removing and restoring', () => {
     expect(await refusal(removeCategory(api, 3, '2026-11'))).toEqual([404, 'not_found', { error: 'not_found' }]);
   });
 
+  it('404 for an edit or a second remove of a category removed from the month', async () => {
+    const api = fixtureStore();
+    await removeCategory(api, 1, '2026-11');
+
+    expect(await refusal(editCategory(api, 1, '2026-11', { name: 'New' }))).toEqual([
+      404,
+      'not_found',
+      { error: 'not_found' },
+    ]);
+    expect(await refusal(removeCategory(api, 1, '2026-11'))).toEqual([404, 'not_found', { error: 'not_found' }]);
+  });
+
   it('refuses a restore in an ended month, and 404 when it isn’t removed there', async () => {
     const api = fixtureStore();
 

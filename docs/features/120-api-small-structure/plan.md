@@ -37,28 +37,28 @@ Why: §8b says a refactor that touches shipped code is `patch`. Base is 1.26.4, 
 
 ## Slices
 
-- [ ] 0. Bump version to 1.26.6
+- [x] 0. Bump version to 1.26.6
   - Files: package.json, apps/mobile/app.json
   - Change: set both to 1.26.6
-- [ ] 1. Pin that name suggestions sort A–Z by code unit, not locale
+- [x] 1. Pin that name suggestions sort A–Z by code unit, not locale
   - Files: apps/api/test/nameSuggestions.test.ts
   - Change: a new `it.each` row, `'a tie on uses and date sorts by code unit, not locale'`, with
     `[row('Éclair', '2026-10-20'), row('Zeeman', '2026-10-20')]` → `['Zeeman', 'Éclair']`. This is today's output,
     checked with tsx. `localeCompare` would give Éclair first.
   - Proof it bites: change the key tie-break to `left.key.localeCompare(right.key)` and the new row fails. Then restore
     it, so `git diff` shows the test file only.
-- [ ] 2. Replace the nested ternaries in the API's sort comparators
+- [x] 2. Replace the nested ternaries in the API's sort comparators
   - Files: apps/api/src/summary/routes.ts, apps/api/src/expenses/nameSuggestions.ts
   - Change: as in Approach. JSDoc on `compareText`: negative, zero or positive, by UTF-16 code unit, deliberately not
     `localeCompare`.
   - Tests: nameSuggestions.test (every row: most used first; ties on uses go to the newer date; ties on uses and date go
     A–Z; slice 1's row). summary.int `its categories add up to the totals, largest spent first` (spent descending; equal
     spent falls back to `sortOrder`).
-- [ ] 3. Rename categories' category-and-month params to CategoryMonthParams
+- [x] 3. Rename categories' category-and-month params to CategoryMonthParams
   - Files: apps/api/src/categories/routes.ts
   - Change: a pure rename of the declaration and its 3 uses (remove, restore, edit in month)
   - Tests: categories.int, unchanged
-- [ ] 4. Share one MonthParams schema from monthChecks.ts
+- [x] 4. Share one MonthParams schema from monthChecks.ts
   - Files: apps/api/src/monthChecks.ts, apps/api/src/income/routes.ts, apps/api/src/balances/routes.ts,
     apps/api/src/categories/routes.ts
   - Change: export `MonthParams` with a one-line JSDoc (`month` in a route's path or query). Delete the local copies
@@ -70,9 +70,9 @@ Why: §8b says a refactor that touches shipped code is `patch`. Base is 1.26.4, 
     (list, add, copy). balances.int, same name (GET balance). actualEnd.int `refuses a malformed month` (PUT/DELETE
     actual End). categories.int `answers a malformed month with its Zod issue, in a query and in a path` (list and one
     category queries for `MonthParams`, copy path, remove path for `CategoryMonthParams`).
-- [ ] 5. Mark R2 done and R4 in review in the backlog
+- [x] 5. Mark R3 done and R4 in review in the backlog (R2 was marked done by #191)
   - Files: docs/features/BACKLOG.md
-  - Change: in the roadmap table, set R2 to `done (#190)`, and set R4's Brief to `120` and its State to `in review`
+  - Change: in the roadmap table, set R3 to `done (#191)`, and set R4's Brief to `120` and its State to `in review`
 
 After each slice: all gates, `find-short-names.sh --diff origin/main` clean, and the API test count 546 + 2 skipped,
 or 547 + 2 from slice 1 on.

@@ -218,7 +218,7 @@ the last used category. Everything that exists keeps working.
 - [x] 0. Bump version to 1.24.0
   - Files: package.json, apps/mobile/app.json
   - Change: set both to 1.24.0
-- [ ] 1. Record the floating tab bar's size and place in the design system (≈ 16 lines, docs)
+- [x] 1. Record the floating tab bar's size and place in the design system (≈ 16 lines, docs)
   - Files: `docs/design/design-system.md`
   - Change:
     - Control heights gains `tabBar 56` (the floating tab bar and its "+").

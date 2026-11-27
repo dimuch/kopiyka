@@ -15,7 +15,7 @@ import { Pressable } from '@/components/Pressable';
 import { ScreenHeader } from '@/components/ScreenHeader';
 import { TabBar } from '@/components/TabBar';
 import { Text } from '@/components/Text';
-import { UndoToast } from '@/components/UndoToast';
+import { toastRoom, UndoToast } from '@/components/UndoToast';
 import { expenseCount, groupByDay, sumCents } from '@/data/monthSummary';
 import { useUndoOffer } from '@/data/undo';
 import { useCategoryTotals } from '@/data/useCategoryTotals';
@@ -243,9 +243,7 @@ const makeStyles = (colors: Palette) =>
       gap: space.lg,
       paddingTop: space.sm,
       paddingHorizontal: space.xl,
-      // UndoToast's bottom 32 + height 56 + a 16pt gap: toast clearance, not a step on the scale.
-      // eslint-disable-next-line no-restricted-syntax
-      paddingBottom: 104,
+      paddingBottom: toastRoom,
     },
     loading: { marginTop: space.xxl },
     days: { gap: space.lg },

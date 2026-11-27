@@ -306,7 +306,7 @@ the last used category. Everything that exists keeps working.
     - Settings' Sign out ends at 752.
   - Also: Visual check B–E on the finished branch. `rg -nw toastRoom apps/mobile/src` finds only Budget's local
     `toastRoom` (from `useToastRoom()`): the exported constant and its imports are gone.
-- [ ] 5. Keep a held row's edge scrolling above the floating tab bar (≈ 16 lines)
+- [x] 5. Keep a held row's edge scrolling above the floating tab bar (≈ 16 lines)
   - Files: `src/components/ReorderList.tsx`, `src/app/(tabs)/budget.tsx`, `src/app/(tabs)/expenses.tsx`
   - Change:
     - the `bottomInset` prop, its JSDoc and the two edge lines;

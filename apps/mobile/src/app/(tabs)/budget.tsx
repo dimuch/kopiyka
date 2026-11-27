@@ -217,6 +217,7 @@ export default function Budget() {
                   disabled={order.saving}
                   onDragChange={setDragging}
                   scrollRef={scrollRef}
+                  bottomInset={bottomRoom}
                   renderRow={(category, drag) => {
                     const planned = eur(toCents(category.plannedEur));
                     const content = (

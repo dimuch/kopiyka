@@ -113,6 +113,17 @@ describe('the budget tools', () => {
       });
     });
 
+    it('asks the API for the month’s categories, expenses and income, once each', async () => {
+      await callTool('month_summary', { ledgerId: 1, month: '2026-10' });
+
+      expect(api.calls.map((call) => [call.method, call.path])).toEqual([
+        ['GET', '/api/api-tokens'],
+        ['GET', '/api/ledgers/1/categories?month=2026-10'],
+        ['GET', '/api/ledgers/1/expenses?month=2026-10'],
+        ['GET', '/api/ledgers/1/months/2026-10/income'],
+      ]);
+    });
+
     it('answers ledger_not_found for someone else’s ledger', async () => {
       const result = await callTool('month_summary', { ledgerId: 1, month: '2026-10' }, 'kpk.taras');
 
@@ -145,6 +156,15 @@ describe('the budget tools', () => {
           { incomeId: 4, title: 'Bonus', amount: { amount: '250.50', formatted: '€250.50' }, addedBy: 'taras' },
         ],
       });
+    });
+
+    it('asks the API for the month’s income once', async () => {
+      await callTool('list_income', { ledgerId: 1, month: '2026-10' });
+
+      expect(api.calls.map((call) => [call.method, call.path])).toEqual([
+        ['GET', '/api/api-tokens'],
+        ['GET', '/api/ledgers/1/months/2026-10/income'],
+      ]);
     });
 
     it('answers ledger_not_found for someone else’s ledger', async () => {

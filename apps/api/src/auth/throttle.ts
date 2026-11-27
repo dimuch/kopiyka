@@ -93,6 +93,44 @@ async function lockStates(conn: PoolConnection, keys: ThrottleKey[]): Promise<Th
 }
 
 /**
+ * Writes an attempt's outcome: a failure (null) counts against every key; a success clears the username and device
+ * counts and remembers the device.
+ */
+async function recordOutcome(
+  conn: PoolConnection,
+  keys: ThrottleKey[],
+  states: ThrottleState[],
+  value: { userId: number } | null,
+  now: Date,
+): Promise<void> {
+  for (const [keyIndex, key] of keys.entries()) {
+    if (value === null) {
+      const next = afterFailure(states[keyIndex], now);
+      await conn.query(
+        `UPDATE login_throttle SET failed_attempts = ?, last_failed_at = ?, locked_until = ?
+          WHERE key_type = ? AND key_value = ?`,
+        [next.failedAttempts, next.lastFailedAt, next.lockedUntil, key.type, key.value],
+      );
+    } else if (key.type !== 'ip') {
+      // A good login clears the username and device counts. The IP count only decays, so a shared
+      // IP can't be reset by a valid login.
+      await conn.query('UPDATE login_throttle SET failed_attempts = 0 WHERE key_type = ? AND key_value = ?', [
+        key.type,
+        key.value,
+      ]);
+    }
+  }
+  const device = keys.find((key) => key.type === 'device');
+  if (value !== null && device) {
+    await conn.query(
+      `INSERT INTO known_devices (user_id, device_id, first_login_at, last_login_at) VALUES (?, ?, ?, ?)
+       ON DUPLICATE KEY UPDATE last_login_at = ?`,
+      [value.userId, device.value, now, now, now],
+    );
+  }
+}
+
+/**
  * Locks the throttle rows for `keys`; if none is locked, runs `check` on that connection and counts a
  * failure (null) or clears the username/device counts and remembers the device (non-null), all in one
  * transaction, so parallel attempts on a shared key are checked one at a time. `check` must use only
@@ -115,31 +153,7 @@ export async function throttledAttempt<T extends { userId: number }>(
     }
 
     const value = await check(conn);
-    for (const [keyIndex, key] of keys.entries()) {
-      if (value === null) {
-        const next = afterFailure(states[keyIndex], now);
-        await conn.query(
-          `UPDATE login_throttle SET failed_attempts = ?, last_failed_at = ?, locked_until = ?
-            WHERE key_type = ? AND key_value = ?`,
-          [next.failedAttempts, next.lastFailedAt, next.lockedUntil, key.type, key.value],
-        );
-      } else if (key.type !== 'ip') {
-        // A good login clears the username and device counts. The IP count only decays, so a shared
-        // IP can't be reset by a valid login.
-        await conn.query('UPDATE login_throttle SET failed_attempts = 0 WHERE key_type = ? AND key_value = ?', [
-          key.type,
-          key.value,
-        ]);
-      }
-    }
-    const device = keys.find((key) => key.type === 'device');
-    if (value !== null && device) {
-      await conn.query(
-        `INSERT INTO known_devices (user_id, device_id, first_login_at, last_login_at) VALUES (?, ?, ?, ?)
-         ON DUPLICATE KEY UPDATE last_login_at = ?`,
-        [value.userId, device.value, now, now, now],
-      );
-    }
+    await recordOutcome(conn, keys, states, value, now);
     await conn.commit();
     return value === null ? { outcome: 'rejected' } : { outcome: 'accepted', value };
   } catch (err) {

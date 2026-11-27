@@ -29,7 +29,7 @@ import { PageTabBar, useTabBarRoom } from '@/components/TabBar';
 import { Text } from '@/components/Text';
 import { fieldStyle } from '@/components/TextField';
 import { expenseLocked, firstOpenDate } from '@/data/expenseLock';
-import { lockedText, restoreRefusedText } from '@/data/monthEnded';
+import { lockedText, restoreRefusedText, saveErrorText } from '@/data/monthEnded';
 import { deleteExpense, restoreExpense, saveExpense } from '@/data/expenses';
 import { setPendingUndo } from '@/data/undo';
 import { monthPicker } from '@/data/quick';
@@ -218,14 +218,7 @@ function ExpenseForm({ draft, ledgerId }: { draft: ExpenseDraftData; ledgerId: n
       setAmountText('');
     } catch (err) {
       const code = err instanceof ApiError ? err.code : null;
-      showError(
-        code === 'category_not_in_month'
-          ? `That category isn’t in ${monthName(body.expenseDate.slice(0, 7))}.`
-          : // The month ended while the form was open.
-            code === 'month_ended'
-            ? lockedText(body.expenseDate.slice(0, 7))
-            : errorText(err, 'save'),
-      );
+      showError(saveErrorText(code, body.expenseDate.slice(0, 7)) ?? errorText(err, 'save'));
     } finally {
       setBusy(false);
     }

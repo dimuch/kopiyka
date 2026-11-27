@@ -49,17 +49,17 @@ const PeriodQuery = z
     from: MonthString,
     to: MonthString,
   })
-  .refine((q) => q.from <= q.to, 'from must not be after to')
-  .refine((q) => monthSpan(q.from, q.to) <= MAX_MONTHS, `at most ${MAX_MONTHS} months`);
+  .refine((period) => period.from <= period.to, 'from must not be after to')
+  .refine((period) => monthSpan(period.from, period.to) <= MAX_MONTHS, `at most ${MAX_MONTHS} months`);
 
 /** -1, 0 or 1, for sorting by an amount. */
-const compareCents = (a: bigint, b: bigint) => (a < b ? -1 : a > b ? 1 : 0);
+const compareCents = (left: bigint, right: bigint) => (left < right ? -1 : left > right ? 1 : 0);
 
 /** Every month `from…to`, oldest first. */
 function periodMonths(from: string, to: string): string[] {
   // Arithmetic, not dates: 9999-12 has no next month to step to.
-  return Array.from({ length: monthSpan(from, to) }, (_, i) => {
-    const index = monthIndex(from) + i;
+  return Array.from({ length: monthSpan(from, to) }, (_, offset) => {
+    const index = monthIndex(from) + offset;
     return `${String(Math.floor(index / 12)).padStart(4, '0')}-${String((index % 12) + 1).padStart(2, '0')}`;
   });
 }
@@ -126,7 +126,10 @@ export async function summaryRoutes(app: FastifyInstance, { db }: AppDeps): Prom
         spentCents: addRows(ofCategory(spent, row.category_id), 'spent_eur'),
       }))
       .sort(
-        (a, b) => compareCents(b.spentCents, a.spentCents) || a.sortOrder - b.sortOrder || a.categoryId - b.categoryId,
+        (left, right) =>
+          compareCents(right.spentCents, left.spentCents) ||
+          left.sortOrder - right.sortOrder ||
+          left.categoryId - right.categoryId,
       )
       .map(({ categoryId, name, plannedCents, spentCents }) => ({
         categoryId,

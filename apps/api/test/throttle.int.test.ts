@@ -1,6 +1,6 @@
-import type { RowDataPacket } from 'mysql2/promise';
-import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest';
-import { pruneThrottle } from '../src/auth/throttle.js';
+import type { PoolConnection, RowDataPacket } from 'mysql2/promise';
+import { afterAll, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
+import { pruneThrottle, throttledAttempt, type ThrottleKey } from '../src/auth/throttle.js';
 import { createDb, type Db } from '../src/db.js';
 import { clearData, resetSchema, TEST_DB_URL, testDbReachable } from './helpers.js';
 
@@ -65,5 +65,70 @@ describe.skipIf(!(await testDbReachable()))('pruneThrottle (MySQL)', () => {
 
     await pruneThrottle(db, now);
     expect(await remaining()).toEqual(kept);
+  });
+});
+
+describe.skipIf(!(await testDbReachable()))('throttledAttempt (MySQL)', () => {
+  let db: Db;
+  let conn: PoolConnection | undefined;
+  const keys: ThrottleKey[] = [
+    { type: 'username', value: 'ivanka' },
+    { type: 'ip', value: '192.0.2.1' },
+  ];
+
+  const rowsLeft = async () => {
+    const [rows] = await db.query<RowDataPacket[]>(
+      'SELECT key_type, key_value, failed_attempts FROM login_throttle ORDER BY key_type, key_value',
+    );
+    return rows.map((row) => [row.key_type, row.key_value, row.failed_attempts]);
+  };
+
+  beforeAll(async () => {
+    await resetSchema();
+    db = createDb(TEST_DB_URL!);
+  });
+
+  afterAll(async () => {
+    await db?.end();
+  });
+
+  beforeEach(async () => {
+    await clearData(db);
+    // Watch the attempt's own connection, so the rollback is seen whichever connection the rows read gets.
+    const getConnection = db.getConnection.bind(db);
+    vi.spyOn(db, 'getConnection').mockImplementationOnce(async () => {
+      conn = await getConnection();
+      vi.spyOn(conn, 'rollback');
+      vi.spyOn(conn, 'commit');
+      return conn;
+    });
+  });
+
+  it('rolls back the rows it added and skips the check when a key is locked', async () => {
+    await db.query(
+      `INSERT INTO login_throttle (key_type, key_value, failed_attempts, last_failed_at, locked_until)
+       VALUES ('username', 'ivanka', 0, ?, ?)`,
+      [now, ahead(HOUR)],
+    );
+    const check = vi.fn(async () => null);
+
+    expect(await throttledAttempt(db, keys, now, check)).toEqual({ outcome: 'blocked' });
+    expect(check).not.toHaveBeenCalled();
+    expect(conn!.rollback).toHaveBeenCalledTimes(1);
+    expect(conn!.commit).not.toHaveBeenCalled();
+    expect(await rowsLeft()).toEqual([['username', 'ivanka', 0]]);
+  });
+
+  it('rolls back and rethrows when the check throws', async () => {
+    const failure = new Error('check failed');
+    const check = async (attemptConn: PoolConnection) => {
+      await attemptConn.query('UPDATE login_throttle SET failed_attempts = 3');
+      throw failure;
+    };
+
+    await expect(throttledAttempt(db, keys, now, check)).rejects.toBe(failure);
+    expect(conn!.rollback).toHaveBeenCalledTimes(1);
+    expect(conn!.commit).not.toHaveBeenCalled();
+    expect(await rowsLeft()).toEqual([]);
   });
 });

@@ -6,7 +6,7 @@ import { Button } from '@/components/Button';
 import { CategoryForm } from '@/components/CategoryForm';
 import { CategoryInMonth } from '@/components/CategoryInMonth';
 import { LoadError } from '@/components/LoadError';
-import { ModalFormScreen } from '@/components/ModalFormScreen';
+import { ModalFormScreen, type Saving } from '@/components/ModalFormScreen';
 import { addToMonth, editInMonth } from '@/data/categories';
 import { changedFields } from '@/data/categoryForm';
 import { useCategoryTotals } from '@/data/useCategoryTotals';
@@ -76,9 +76,7 @@ function EditCategory({
   month: string | null;
   focusAmount: boolean;
   ledgerId: number;
-  busy: boolean;
-  setBusy: (busy: boolean) => void;
-}) {
+} & Saving) {
   // Nothing is fetched for a bad link.
   const totals = useCategoryTotals(ledgerId, categoryId, linkedMonth);
   const [thisMonth] = useState(() => kyivMonth(new Date()));

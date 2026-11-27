@@ -7,6 +7,12 @@ import { LoadError } from '@/components/LoadError';
 import { ScreenHeader } from '@/components/ScreenHeader';
 import { type Palette, space } from '@/theme';
 
+/** A modal form's save lock: `busy` while a save is in flight. */
+export interface Saving {
+  busy: boolean;
+  setBusy: (busy: boolean) => void;
+}
+
 /**
  * The frame of a modal form screen: safe-area edges, a header whose Back waits while `busy`, and no swipe-away while
  * `busy`. `children` is the screen's content, or null when its link isn't valid.

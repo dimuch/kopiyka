@@ -11,7 +11,7 @@ import { AmountField } from '@/components/AmountFields';
 import { Button } from '@/components/Button';
 import { ErrorLine } from '@/components/ErrorLine';
 import { LoadError } from '@/components/LoadError';
-import { ModalFormScreen } from '@/components/ModalFormScreen';
+import { ModalFormScreen, type Saving } from '@/components/ModalFormScreen';
 import { Text } from '@/components/Text';
 import { fieldStyle, TextField } from '@/components/TextField';
 import { normalizeName } from '@/data/categoryName';
@@ -65,11 +65,6 @@ export default function IncomeItemScreen() {
       )}
     </ModalFormScreen>
   );
-}
-
-interface Saving {
-  busy: boolean;
-  setBusy: (busy: boolean) => void;
 }
 
 /** Finds the item in its month's list, which the tab already loads, and opens the form on it. */

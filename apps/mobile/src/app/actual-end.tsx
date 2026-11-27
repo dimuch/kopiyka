@@ -10,7 +10,7 @@ import { closeToBudget } from '@/closeToBudget';
 import { Button } from '@/components/Button';
 import { ErrorLine } from '@/components/ErrorLine';
 import { LoadError } from '@/components/LoadError';
-import { ModalFormScreen } from '@/components/ModalFormScreen';
+import { ModalFormScreen, type Saving } from '@/components/ModalFormScreen';
 import { Text } from '@/components/Text';
 import { fieldStyle, TextField } from '@/components/TextField';
 import { clearActualEnd, setActualEnd } from '@/data/actualEnd';
@@ -36,11 +36,6 @@ export default function ActualEndScreen() {
       {month ? <BalanceLoader month={month} busy={busy} setBusy={setBusy} /> : null}
     </ModalFormScreen>
   );
-}
-
-interface Saving {
-  busy: boolean;
-  setBusy: (busy: boolean) => void;
 }
 
 /** Loads the month's balance and opens the form on it. */

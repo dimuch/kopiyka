@@ -119,7 +119,7 @@ Risks). After slice 1, `git diff --stat HEAD -- apps/mcp/test` is empty for ever
   - Verify: `rg -n "months/\\$\\{month\\}/income" apps/mcp/src/mcp/tools.ts` shows two hits: `readIncome` and
     `add_income`'s POST. `add_income` writes, so it stays as it is.
 - [x] 4. Mark R5 in review in the backlog
-  - Files: docs/features/BACKLOG.md (roadmap table, R5 row: Brief `121`, State `in review`), this plan's ticks
+  - Files: docs/features/BACKLOG.md (R4 done (#192) after the rebase) (roadmap table, R5 row: Brief `121`, State `in review`), this plan's ticks
   - Change: only the R5 row. Leave the R2–R4 rows as `main` has them at rebase time.
   - Verify: `yarn format:check`
 

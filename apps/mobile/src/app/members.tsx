@@ -32,7 +32,7 @@ export default function MembersScreen() {
   const { ledger } = useSession();
   return (
     <SafeAreaView style={styles.screen} edges={['top']}>
-      <ScreenHeader variant="page" backLabel="Back" onBack={goBack} />
+      <ScreenHeader back={{ label: 'Back', onPress: goBack }} />
       {/* One tap on Save or Invite works on iPhone with the keyboard up. */}
       <ScrollView style={styles.scroll} contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
         <View style={{ gap: space.xxs }}>

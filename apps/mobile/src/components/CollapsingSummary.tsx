@@ -91,5 +91,5 @@ const makeStyles = (colors: Palette) =>
   StyleSheet.create({
     compact: { flexDirection: 'row', alignItems: 'baseline', flexShrink: 1 },
     label: { flexShrink: 1, marginRight: space.sm },
-    divider: { position: 'absolute', left: -20, right: -20, bottom: 0, height: 1, backgroundColor: colors.hairline },
+    divider: { position: 'absolute', left: 0, right: 0, bottom: 0, height: 1, backgroundColor: colors.hairline },
   });

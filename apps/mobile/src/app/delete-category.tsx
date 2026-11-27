@@ -45,7 +45,7 @@ export default function DeleteCategoryScreen() {
     <SafeAreaView style={styles.screen} edges={['top', 'bottom']}>
       {/* The iOS modal can’t be swiped away while a removal is in flight either. */}
       <Stack.Screen options={{ gestureEnabled: !busy }} />
-      <ScreenHeader variant="modal" title="Remove category" onBack={leave} disabled={busy} />
+      <ScreenHeader back={{ label: 'Back', onPress: leave, disabled: busy }} title="Remove category" />
 
       <CategoryInMonth totals={totals}>
         {(category, month) => (

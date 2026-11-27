@@ -56,7 +56,7 @@ function InvalidLink() {
   const styles = useThemedStyles(makeStyles);
   return (
     <SafeAreaView style={styles.screen} edges={['top']}>
-      <ScreenHeader variant="page" backLabel="Back" onBack={goBack} />
+      <ScreenHeader back={{ label: 'Back', onPress: goBack }} />
       <LoadError message="That link isn’t valid." />
     </SafeAreaView>
   );
@@ -85,9 +85,8 @@ function CategoryBreakdown({ categoryId, month, ended }: { categoryId: number; m
   return (
     <SafeAreaView style={styles.screen} edges={['top']}>
       <ScreenHeader
-        variant="page"
-        backLabel={monthName(month)}
-        onBack={goBack}
+        // The month isn't shown any more, so the name says where Back goes.
+        back={{ label: `Back to ${monthName(month)}`, onPress: goBack }}
         dividerStyle={collapse.dividerStyle}
         trailing={
           <>

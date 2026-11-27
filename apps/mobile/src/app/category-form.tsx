@@ -41,10 +41,8 @@ export default function CategoryFormScreen() {
       {/* The iOS modal can’t be swiped away while a save is in flight either. */}
       <Stack.Screen options={{ gestureEnabled: !busy }} />
       <ScreenHeader
-        variant="modal"
+        back={{ label: 'Back', onPress: () => closeToBudget(month), disabled: busy }}
         title={editing ? 'Edit category' : 'Add a category'}
-        onBack={() => closeToBudget(month)}
-        disabled={busy}
       />
 
       {editing ? (

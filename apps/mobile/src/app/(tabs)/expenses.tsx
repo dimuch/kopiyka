@@ -13,6 +13,7 @@ import { LoadError } from '@/components/LoadError';
 import { Pressable } from '@/components/Pressable';
 import { ProgressBar } from '@/components/ProgressBar';
 import { ReorderList } from '@/components/ReorderList';
+import { MonthSwitcher } from '@/components/MonthSwitcher';
 import { ScreenHeader } from '@/components/ScreenHeader';
 import { Text } from '@/components/Text';
 import { barNote, budgetProgress } from '@/data/budgetProgress';
@@ -58,10 +59,7 @@ export default function Expenses() {
     <SafeAreaView style={styles.screen} edges={['top']}>
       {/* Adding starts from a category's row now (brief 107), so there's no action on the right. */}
       <ScreenHeader
-        variant="month"
-        title={tabTitle('expenses')}
-        month={month}
-        onMonthChange={setMonth}
+        title={<MonthSwitcher title={tabTitle('expenses')} month={month} onChange={setMonth} />}
         dividerStyle={collapse.dividerStyle}
       />
 

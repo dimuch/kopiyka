@@ -55,10 +55,8 @@ export default function IncomeItemScreen() {
       {/* The iOS modal can’t be swiped away while a save is in flight either. */}
       <Stack.Screen options={{ gestureEnabled: !busy }} />
       <ScreenHeader
-        variant="modal"
+        back={{ label: 'Back', onPress: () => leave(month), disabled: busy }}
         title={editing ? 'Edit income' : 'Add income'}
-        onBack={() => leave(month)}
-        disabled={busy}
       />
 
       {!month || (editing && !incomeId) ? (

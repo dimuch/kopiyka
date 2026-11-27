@@ -35,7 +35,7 @@ export default function ActualEndScreen() {
     <SafeAreaView style={styles.screen} edges={['top', 'bottom']}>
       {/* The iOS modal can’t be swiped away while a save is in flight either. */}
       <Stack.Screen options={{ gestureEnabled: !busy }} />
-      <ScreenHeader variant="modal" title="Actual end" onBack={() => closeToBudget(month)} disabled={busy} />
+      <ScreenHeader back={{ label: 'Back', onPress: () => closeToBudget(month), disabled: busy }} title="Actual end" />
 
       {month ? (
         <BalanceLoader month={month} busy={busy} setBusy={setBusy} />

@@ -62,43 +62,43 @@ Every slice: gates green, with tests unchanged (api 549 + 2 skipped, mcp 329, mo
 `.claude/skills/kopiyka-refactoring/scripts/find-short-names.sh --diff origin/main` and drops `AccessibilityInfo` or
 `Text` imports that become unused.
 
-- [ ] 0. Bump version to 1.26.13
+- [x] 0. Bump version to 1.26.13
   - Files: package.json, apps/mobile/app.json
   - Change: set both to 1.26.13
-- [ ] 1. Add useAnnouncedError and use it in the category form
+- [x] 1. Add useAnnouncedError and use it in the category form
   - Files: apps/mobile/src/announcedError.ts (new), src/components/CategoryForm.tsx, apps/mobile/demo-modules.txt
   - Change: hook as in Contracts. In CategoryForm, the local `showError` goes, and the four `setError(null)` become
     `clearError()`. `yarn mobile export:web && yarn mobile check-builds --accept`: the only new line is
     `src/announcedError.ts` (CategoryForm is in the demo).
   - Verify: web check A (CategoryForm rows)
-- [ ] 2. Use useAnnouncedError in the end, income, remove and expense screens
+- [x] 2. Use useAnnouncedError in the end, income, remove and expense screens
   - Files: src/app/actual-end.tsx, income-item.tsx, delete-category.tsx, expense.tsx
   - Change: the local `showError` (or delete-category's inline pair) goes. `setGone` stays before `showError`, as now.
     Expense's announce-only calls stay. `check-builds` passes with no list change.
   - Verify: web check A (those rows)
-- [ ] 3. Use useAnnouncedError in the members screen
+- [x] 3. Use useAnnouncedError in the members screen
   - Files: src/app/members.tsx
   - Change: five components take `{ error: failure, showError: fail, clearError }`. LabelForm's `fail` goes, and the
     other four `setFailure+announce` pairs become `fail(message)`. `setGone`, PendingList's `if (gone) onChange()`
     after it, and `showPanel` stay in place.
   - Verify: web check B (members rows)
-- [ ] 4. Use useAnnouncedError for the ledger switch
+- [x] 4. Use useAnnouncedError for the ledger switch
   - Files: src/app/(tabs)/settings.tsx
   - Change: settings swaps `switchFailed` for the hook and calls `showError(SWITCH_FAILED)`. The render becomes
     `{switchError ? <Text …>{switchError}</Text> : null}`.
   - Verify: web check B (settings row)
-- [ ] 5. Add ErrorLine and use it in the category form
+- [x] 5. Add ErrorLine and use it in the category form
   - Files: src/components/ErrorLine.tsx (new), src/components/CategoryForm.tsx, apps/mobile/demo-modules.txt
   - Change: component as in Contracts, and `<ErrorLine text={error} />`. `check-builds --accept` adds only
     `src/components/ErrorLine.tsx`.
   - Verify: web check A (CategoryForm rows)
-- [ ] 6. Use ErrorLine in the end, income, remove and expense screens
+- [x] 6. Use ErrorLine in the end, income, remove and expense screens
   - Files: actual-end.tsx, income-item.tsx, delete-category.tsx, expense.tsx (×3)
   - Verify: web check A
-- [ ] 7. Use ErrorLine in members, invites, settings and sign-in
+- [x] 7. Use ErrorLine in members, invites, settings and sign-in
   - Files: src/app/members.tsx (×4), src/components/PendingInvites.tsx, src/app/(tabs)/settings.tsx, src/app/login.tsx
   - Verify: web check B
-- [ ] 8. Mark R11 in review in the backlog
+- [x] 8. Mark R11 in review in the backlog
   - Files: docs/features/BACKLOG.md (roadmap row R11: brief 127, `in review`)
 
 **Web check.** Run it at 390×844, light and dark, at http://127.0.0.1:8084 (web from a sibling worktree) with the API on 3000. Compare each error's text and place with screenshots of the same rows taken on the base before slice 1. "API down" means stop the API after the screen loads.
@@ -159,5 +159,12 @@ Every slice: gates green, with tests unchanged (api 549 + 2 skipped, mcp 329, mo
   It's not fixed here.
 
 ## Deviations
+
+- `data/invites.tsx` keeps its own announce pair (roadmap: left alone); `PendingInvites`' block still uses `ErrorLine`.
+- Web proof: each error's text, position, size, colour and font recorded on the base before slice 1 and compared after
+  each slice (category amount and taken name, actual End, income title, expense form, members invite; light and dark
+  for three of them): all identical. Sign-in's error was checked after the change only (no base record); the ledger
+  switch error needs two ledgers and the API down, so it's covered by the identical shape, not a run.
+- The three "role=alert covers web" comments in members went with their pairs: the hook's JSDoc says it once.
 
 ## Consolidate

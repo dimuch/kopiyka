@@ -180,8 +180,8 @@ brief 109.
 | R7  | app-focus-load-hook       | 123   | done (#195) |
 | R8  | app-short-names           | 124   | done (#196) |
 | R9  | app-back-fallback         | 125   | done (#197) |
-| R10 | app-field-style           | 126   | in review   |
-| R11 | app-announced-errors      |       | not started |
+| R10 | app-field-style           | 126   | done (#198) |
+| R11 | app-announced-errors      | 127   | in review   |
 | R12 | modal-form-kit            |       | not started |
 | R13 | copy-previous-hook        |       | not started |
 | R14 | expense-form-split        |       | not started |

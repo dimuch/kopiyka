@@ -8,5 +8,5 @@ export function choiceKey(userId: number): string {
 /** The stored ledger while the user is still in it, else the first (oldest membership), else null for no ledger. */
 export function pickLedger(ledgers: Ledger[], stored: string | null): Ledger | null {
   const chosen = stored !== null && /^\d+$/.test(stored) ? Number(stored) : null;
-  return ledgers.find((l) => l.ledgerId === chosen) ?? ledgers[0] ?? null;
+  return ledgers.find((ledger) => ledger.ledgerId === chosen) ?? ledgers[0] ?? null;
 }

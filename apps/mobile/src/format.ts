@@ -24,15 +24,15 @@ export const uah = (cents: number) => money('₴', cents, 'never');
 
 /** Local noon of a 'YYYY-MM-DD' date, only to display it or seed the picker; noon stays on that day across DST. */
 export function parseDate(date: string): Date {
-  const [y, m, d] = date.split('-').map(Number) as [number, number, number];
-  return new Date(y, m - 1, d, 12);
+  const [year, monthNumber, day] = date.split('-').map(Number) as [number, number, number];
+  return new Date(year, monthNumber - 1, day, 12);
 }
 
 /** Shifts a 'YYYY-MM-DD' date by whole days; UTC arithmetic has no DST gaps. Mirrors apps/api/src/dates.ts. */
 export function addDays(date: string, days: number): string {
-  const d = new Date(`${date}T00:00:00Z`);
-  d.setUTCDate(d.getUTCDate() + days);
-  return d.toISOString().slice(0, 10);
+  const utcMidnight = new Date(`${date}T00:00:00Z`);
+  utcMidnight.setUTCDate(utcMidnight.getUTCDate() + days);
+  return utcMidnight.toISOString().slice(0, 10);
 }
 
 // One field per formatter: a combined pattern takes its field order from the device's locale data, which differs
@@ -61,14 +61,14 @@ export function kyivMonth(now: Date): string {
 
 /** 'YYYY-MM' moved by `by` months ('2026-01', -1 → '2025-12'). */
 export function shiftMonth(month: string, by: number): string {
-  const [y, m] = month.split('-').map(Number) as [number, number];
-  const index = y * 12 + (m - 1) + by;
+  const [year, monthNumber] = month.split('-').map(Number) as [number, number];
+  const index = year * 12 + (monthNumber - 1) + by;
   return `${Math.floor(index / 12)}-${String((index % 12) + 1).padStart(2, '0')}`;
 }
 
 export function monthName(month: string): string {
-  const [y, m] = month.split('-').map(Number) as [number, number];
-  return new Date(y, m - 1, 1).toLocaleString('en-US', { month: 'long' });
+  const [year, monthNumber] = month.split('-').map(Number) as [number, number];
+  return new Date(year, monthNumber - 1, 1).toLocaleString('en-US', { month: 'long' });
 }
 
 /** The month switcher's caption: the tab's title and the month's two-digit year ('Income', '2026-11' → 'INCOME ’26'). */
@@ -82,8 +82,8 @@ export function monthLabel(month: string): string {
 
 /** 'Jan 2027' for '2027-01'. */
 export function shortMonthLabel(month: string): string {
-  const [y, m] = month.split('-').map(Number) as [number, number];
-  return `${new Date(y, m - 1, 1).toLocaleString('en-US', { month: 'short' })} ${y}`;
+  const [year, monthNumber] = month.split('-').map(Number) as [number, number];
+  return `${new Date(year, monthNumber - 1, 1).toLocaleString('en-US', { month: 'short' })} ${year}`;
 }
 
 /** 'TUE 29 SEP' for '2026-09-29'. */
@@ -99,9 +99,9 @@ export function dayLabel(date: string): string {
  * mark.
  */
 export function normalizePlanned(text: string): string | null {
-  const t = text.trim().replace(',', '.');
-  if (!/^\d{1,8}(\.\d{0,2})?$/.test(t)) return null;
-  const [whole, frac = ''] = t.split('.');
+  const decimalText = text.trim().replace(',', '.');
+  if (!/^\d{1,8}(\.\d{0,2})?$/.test(decimalText)) return null;
+  const [whole, frac = ''] = decimalText.split('.');
   return `${Number(whole)}.${frac.padEnd(2, '0')}`;
 }
 
@@ -110,9 +110,9 @@ export function normalizePlanned(text: string): string | null {
  * the app's own U+2212, makes it negative; the rest reads like a planned amount. Zero has no sign.
  */
 export function normalizeBalance(text: string): string | null {
-  const t = text.trim();
-  const negative = t.startsWith('-') || t.startsWith('\u2212');
-  const value = normalizePlanned(negative ? t.slice(1) : t);
+  const trimmed = text.trim();
+  const negative = trimmed.startsWith('-') || trimmed.startsWith('\u2212');
+  const value = normalizePlanned(negative ? trimmed.slice(1) : trimmed);
   if (value === null) return null;
   return negative && toCents(value) !== 0 ? `-${value}` : value;
 }
@@ -147,6 +147,6 @@ export function shortDate(date: string): string {
 
 /** '13/10/2026' for '2026-10-13': the field text a browser date input shows in a day-first locale. */
 export function numericDate(date: string): string {
-  const [y, m, d] = date.split('-');
-  return `${d}/${m}/${y}`;
+  const [year, monthNumber, day] = date.split('-');
+  return `${day}/${monthNumber}/${year}`;
 }

@@ -169,7 +169,7 @@ update` line (AC4). For AC2, append `- probe` to `.claude/skills/kopiyka-review/
     and id. Restore it. Sources read the same: `git diff --word-diff=plain HEAD~1 --
 .claude` shows only added marks and `# copilot`/`# |` front matter lines. `claude plugin validate .claude/skills`
     passes. Gates.
-- [ ] 2. Generate Copilot's agents from the `.claude` ones
+- [x] 2. Generate Copilot's agents from the `.claude` ones
   - Files: scripts/build-copilot-skills.mjs, .claude/agents/kopiyka-plan-skeptic.md (3 `claude` blocks),
     .github/agents/\*.agent.md (regenerated)
   - Change: an agent's Copilot front matter and its "read these SKILL.md files" line are built from its Claude front

@@ -10,6 +10,7 @@ import { useSession } from '@/auth/AuthContext';
 import { backOr } from '@/closeToBudget';
 import { Button } from '@/components/Button';
 import { Card } from '@/components/Card';
+import { ErrorLine } from '@/components/ErrorLine';
 import { LoadError } from '@/components/LoadError';
 import { ScreenHeader } from '@/components/ScreenHeader';
 import { Text } from '@/components/Text';
@@ -108,11 +109,7 @@ function LabelForm({ ledger }: { ledger: Ledger }) {
       <Text variant="labelRegular" color="muted">
         Only you see it. Leave it empty for the usual name.
       </Text>
-      {failure ? (
-        <Text accessibilityRole="alert" variant="label" color="danger">
-          {failure}
-        </Text>
-      ) : null}
+      <ErrorLine text={failure} />
       <Button variant="primary" label="Save" busy={busy} disabled={unchanged} onPress={save} />
     </View>
   );
@@ -280,11 +277,7 @@ function PendingList({
             </Card>
           ))
         : null}
-      {failure ? (
-        <Text accessibilityRole="alert" variant="label" color="danger">
-          {failure}
-        </Text>
-      ) : null}
+      <ErrorLine text={failure} />
     </View>
   );
 }
@@ -341,11 +334,7 @@ function InviteForm({ ledgerId, onInvited }: { ledgerId: number; onInvited: () =
       <Text variant="labelRegular" color="muted">
         They’ll see it in the app for an hour.
       </Text>
-      {failure ? (
-        <Text accessibilityRole="alert" variant="label" color="danger">
-          {failure}
-        </Text>
-      ) : null}
+      <ErrorLine text={failure} />
       <Button variant="primary" label="Invite" busy={busy} disabled={!name} onPress={invite} />
     </View>
   );
@@ -443,11 +432,7 @@ function ConfirmPanel({
     <View style={styles.panel}>
       <Text variant="bodyStrong">{question}</Text>
       {detail ? <Text variant="labelRegular">{detail}</Text> : null}
-      {failure ? (
-        <Text accessibilityRole="alert" variant="label" color="danger">
-          {failure}
-        </Text>
-      ) : null}
+      <ErrorLine text={failure} />
       <View style={styles.panelButtons}>
         <Button variant="mutedText" label={gone ? 'Close' : 'Back'} disabled={busy} onPress={onDismiss} />
         {!gone && <Button variant="danger" label={action} busy={busy} onPress={onConfirm} />}

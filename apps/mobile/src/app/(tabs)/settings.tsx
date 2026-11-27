@@ -6,6 +6,7 @@ import { useSession } from '@/auth/AuthContext';
 import { AppearancePicker } from '@/components/AppearancePicker';
 import { Button } from '@/components/Button';
 import { Card, useCardStyle } from '@/components/Card';
+import { ErrorLine } from '@/components/ErrorLine';
 import { Icon } from '@/components/Icon';
 import { LedgerPicker } from '@/components/LedgerPicker';
 import { PendingInvites } from '@/components/PendingInvites';
@@ -85,11 +86,7 @@ export default function Settings() {
               Ledger
             </Text>
             <LedgerPicker ledgers={ledgers} selectedId={ledger.ledgerId} onSelect={switchTo} disabled={switching} />
-            {switchError ? (
-              <Text accessibilityRole="alert" variant="label" color="danger">
-                {switchError}
-              </Text>
-            ) : null}
+            <ErrorLine text={switchError} />
           </View>
         )}
         {/* On its own, always shown: with one ledger there's no Ledger section to put it in. */}

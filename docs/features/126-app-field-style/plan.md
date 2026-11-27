@@ -107,25 +107,25 @@ signing in), `category-form-add` (`/category-form?month=<this month>`), `actual-
 `income-item-add` (`/income-item?month=<this month>`), `expense-new` (`/expense`), `members` (owner: label and invite
 fields).
 
-- [ ] 0. Bump version to 1.26.12
+- [x] 0. Bump version to 1.26.12
   - Files: package.json, apps/mobile/app.json
   - Change: set both to 1.26.12
-- [ ] 1. Share the filled field and symbol styles from TextField, starting with the category form
+- [x] 1. Share the filled field and symbol styles from TextField, starting with the category form
   - Files: apps/mobile/src/components/TextField.tsx, apps/mobile/src/components/CategoryForm.tsx
   - Change: add `fieldStyle` and `symbolStyle` as in Contracts; CategoryForm's `input: fieldStyle(colors)`,
     `symbol: symbolStyle`, `amount` unchanged; drop `radius`, `size`, `text` from its import. ~30 lines.
   - Verify: `category-form-add` light and dark against the before set.
-- [ ] 2. Use the shared field and symbol styles in the amount fields
+- [x] 2. Use the shared field and symbol styles in the amount fields
   - Files: apps/mobile/src/components/AmountFields.tsx
   - Change: `input` as in Contracts (row AmountFields), `symbol: symbolStyle`; drop `radius`, `text`. ~15 lines.
   - Verify: `expense-new` (both rows), `income-item-add`, light and dark; `fields:` records show paddingLeft 32px,
     paddingRight 16px and `tabular-nums` as before.
-- [ ] 3. Use the shared field style in the five form screens
+- [x] 3. Use the shared field style in the five form screens
   - Files: apps/mobile/src/app/actual-end.tsx, income-item.tsx, members.tsx, login.tsx, expense.tsx
   - Change: `input: fieldStyle(colors)`, imports as in Contracts; expense's `field` const goes and its `makeStyles`
     loses the block body (re-indent, mechanical). ~45 lines.
   - Verify: all views, light and dark.
-- [ ] 4. Mark R10 in review in the backlog
+- [x] 4. Mark R10 in review in the backlog
   - Files: docs/features/BACKLOG.md
   - Change: roadmap row R10: Brief `126`, State `in review`.
   - Verify: `yarn format:check`.
@@ -165,5 +165,9 @@ fields).
 ## Follow-ups
 
 ## Deviations
+
+- The visual proof is the `__fieldSrc` record only (extended with each field's rounded x, y, width and height), not
+  brief 104's full-page `__snapSrc`: every field's position, size and computed style matched before and after in all
+  6 views × light and dark. A real click turned the login field's border accent.
 
 ## Consolidate

@@ -153,7 +153,7 @@ Why: conventions §8b `none` row: nothing reaches production. The PR touches `.c
 
 ## Slices
 
-- [ ] 1. Generate Copilot's kopiyka skills from the `.claude` ones
+- [x] 1. Generate Copilot's kopiyka skills from the `.claude` ones
   - Files: scripts/build-copilot-skills.mjs (new), package.json (`skills:build`, `skills:check`),
     .claude/skills/kopiyka-{conventions,develop,hos,hos-refactoring}/SKILL.md (marks, per the table),
     .github/skills/kopiyka-\*/SKILL.md (regenerated)

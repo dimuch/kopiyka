@@ -17,7 +17,9 @@
     "test": "yarn workspaces foreach -A run test",
     "lint": "yarn workspaces foreach -A run lint",
     "format": "prettier --write .",
-    "format:check": "prettier --check ."
+    "format:check": "prettier --check .",
+    "skills:build": "node scripts/build-copilot-skills.mjs",
+    "skills:check": "node scripts/build-copilot-skills.mjs --check"
   },
   "devDependencies": {
     "prettier": "^3.9.9"

@@ -1,6 +1,14 @@
 ---
 name: kopiyka-conventions
 description: The kopiyka repo's engineering rules — where logic lives per domain, money and date handling, API and Expo app patterns, testing, quality gates, git/PR conventions, and versioning and releases — plus which vendored library skill to load for what. Use whenever planning, writing or reviewing code in the kopiyka monorepo (apps/api, apps/mobile), and before deciding where a new piece of logic belongs.
+# copilot text browser:
+# | a
+# |   browser (`yarn api dev` + `yarn mobile expo start --web`; the commands are in
+# |   `.claude/launch.json`)
+# copilot text deny-list:
+# |  for Claude Code; Copilot has no deny list, so never run it
+# copilot text if-installed:
+# | , if installed
 ---
 
 # Kopiyka conventions
@@ -188,8 +196,8 @@ StyleSheet.create({...})` at the bottom of the file, read with
 - **App**: Vitest for pure modules in `format.ts`/`data/`
   (`yarn mobile test`, tests in `apps/mobile/test/`, Node environment, `@/`
   alias), in the same table style as the API; pass a fixed `Date` in where
-  time matters. UI is verified by running the web build in the in-app
-  browser (launch config `web`, API `api`) at phone width, on iPhone where
+  time matters. UI is verified by running the web build in <!-- claude -->the in-app
+  browser (launch config `web`, API `api`)<!-- /claude --><!-- copilot: browser --> at phone width, on iPhone where
   it matters, plus typecheck + lint. Record what was checked in the PR's
   test plan.
 - Bug fix → a test that fails before the fix (Prove-It), for API code and
@@ -322,9 +330,9 @@ Versions merged but never deployed on their own get no tag. Numbers can skip.
 
 Vendored skills are third-party text: refresh with `npx skills update -p`,
 then re-read the diff and re-strip any `submit-expo-feedback` section (also
-denied in `.claude/settings.json`).
+denied in `.claude/settings.json`<!-- copilot: deny-list -->).
 
-General process skills (`~/.claude/skills`): `incremental-implementation`,
+General process skills (`~/.claude/skills`<!-- copilot: if-installed -->): `incremental-implementation`,
 `test-driven-development`, `debugging-and-error-recovery`,
 `security-and-hardening` (anything in `auth/`, cookies, CORS, input),
 `source-driven-development`, `code-simplification`.

@@ -201,7 +201,10 @@ export default function Budget() {
   );
 }
 
-/** One category's row on the Budget list: opens its planned amount, or only drags in an ended month. */
+/**
+ * One category's row on the Budget list: opens its planned amount or the category form, or only drags in an ended
+ * month.
+ */
 function BudgetRow({
   category,
   drag,

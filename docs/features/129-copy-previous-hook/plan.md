@@ -81,7 +81,7 @@ drag={drag} month={month} ended={ended} pushOnce={pushOnce} />}`. ReorderList's 
 
 ## Version
 
-Bump: patch — 1.26.13 → 1.26.15
+Bump: patch — 1.26.14 → 1.26.15
 Why: §8b "a refactor that touches shipped code is `patch`". R12 (brief 128, in flight) takes 1.26.14. If `main` has
 moved when this rebases, re-bump once (§8b step 4).
 
@@ -178,9 +178,6 @@ the cookie. Tab A doesn't reload when it gets focus back, so it keeps the state 
 - no — for the failure, the API is stopped rather than paused (see the web check). Assumed acceptable to the user.
 
 ## Follow-ups
-
-- BACKLOG's roadmap row R11 still says `in review`, though the brief says #199 merged. Slice 4 leaves it alone, so it
-  doesn't clash with R12's branch.
 
 ## Deviations
 

@@ -8,6 +8,7 @@ import { useSession } from '@/auth/AuthContext';
 import { CategoryTile } from '@/components/CategoryTile';
 import { Card, useCardStyle } from '@/components/Card';
 import { EmptyMonth } from '@/components/EmptyMonth';
+import { FigureRow } from '@/components/FigureRow';
 import { Icon } from '@/components/Icon';
 import { IconButton } from '@/components/IconButton';
 import { LoadError } from '@/components/LoadError';
@@ -280,11 +281,6 @@ function IncomeFigures({ incomeCents, plannedCents }: { incomeCents: number; pla
   const income = eur(incomeCents);
   const planned = eur(plannedCents);
   const leftText = eur(left);
-  const figures = [
-    { label: 'Income', value: income },
-    { label: 'Budgeted', value: planned },
-    { label: 'Remaining', value: leftText, over: left < 0 },
-  ];
   return (
     <Card
       padding="padded"
@@ -292,19 +288,13 @@ function IncomeFigures({ incomeCents, plannedCents }: { incomeCents: number; pla
       accessibilityLabel={`Income ${income}, budgeted ${planned}, remaining ${leftText}`}
       style={styles.figures}
     >
-      {figures.map((figure, index) => (
-        <View
-          key={figure.label}
-          style={[styles.figure, index === 1 && styles.figureCentre, index === 2 && styles.figureEnd]}
-        >
-          <Text variant="caption" color="muted">
-            {figure.label}
-          </Text>
-          <Text variant="amount" color={figure.over ? 'danger' : 'text'}>
-            {figure.value}
-          </Text>
-        </View>
-      ))}
+      <FigureRow
+        figures={[
+          { label: 'Income', value: income },
+          { label: 'Budgeted', value: planned },
+          { label: 'Remaining', value: leftText, over: left < 0 },
+        ]}
+      />
     </Card>
   );
 }
@@ -341,9 +331,6 @@ const makeStyles = (colors: Palette) =>
     },
     // Like the Expenses card: Income at the left edge, Budgeted centred, Remaining at the right edge.
     figures: { flexDirection: 'row', justifyContent: 'space-between', gap: space.sm },
-    figure: { gap: space.xs },
-    figureCentre: { alignItems: 'center' },
-    figureEnd: { alignItems: 'flex-end' },
     openRow: { flexDirection: 'row', alignItems: 'center' },
     edit: { marginRight: space.sm },
     rowName: { flex: 1 },

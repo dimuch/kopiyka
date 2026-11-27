@@ -98,7 +98,7 @@ rest, in order:
 | 105b  | `docs/features/105b-inter-type/brief.md`        | Inter and the type mapping, the weight fixes, DateField's hidden input (done, #174) |
 | 105c  | `docs/features/105c-borderless-cards/brief.md`  | Borderless cards with shadows, one card per row (done, #175)                        |
 | 105d  | `docs/features/105d-one-look-controls/brief.md` | One look each for buttons, chips and icon buttons (done, #176)                      |
-| 105e  | `docs/features/105e-one-look-header/brief.md`   | The header, the toast, inputs, menus and sheets (done)                              |
+| 105e  | `docs/features/105e-one-look-header/brief.md`   | The header, the toast, inputs, menus and sheets (done, #177)                        |
 | 106   | `docs/features/106-floating-tab-bar/brief.md`   | Floating pill tab bar with a round "+" (add expense) button                         |
 
 Each 105 part's brief is written from the plan's "Later parts" after the previous part merges. The 106 brief is a

@@ -54,7 +54,7 @@ const makeStyles = (colors: Palette) =>
     group: { flexDirection: 'row', gap: space.sm },
     option: { flex: 1, minHeight: size.iconButton, justifyContent: 'center', borderRadius: radius.pill },
     pill: {
-      height: size.chip,
+      minHeight: size.chip,
       borderRadius: radius.pill,
       backgroundColor: colors.fill,
       alignItems: 'center',

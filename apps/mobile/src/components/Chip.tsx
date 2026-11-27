@@ -40,7 +40,8 @@ const makeStyles = (colors: Palette) =>
   StyleSheet.create({
     touch: { minHeight: size.iconButton, justifyContent: 'center', borderRadius: radius.pill },
     pill: {
-      height: size.chip,
+      // At least 32: a large text size grows the pill instead of clipping its label.
+      minHeight: size.chip,
       borderRadius: radius.pill,
       backgroundColor: colors.fill,
       paddingHorizontal: space.sm,

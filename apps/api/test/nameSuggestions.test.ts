@@ -40,6 +40,11 @@ describe('rankNames', () => {
       rows: [row('', '2026-10-20'), row('  ', '2026-10-19'), row('Colruyt', '2026-10-01')],
       want: ['Colruyt'],
     },
+    {
+      why: 'a tie on uses and date sorts by code unit, not locale',
+      rows: [row('Éclair', '2026-10-20'), row('Zeeman', '2026-10-20')],
+      want: ['Zeeman', 'Éclair'],
+    },
     { why: 'no rows', rows: [], want: [] },
   ])('$why', ({ rows, want }) => {
     expect(rankNames(rows)).toEqual(want);

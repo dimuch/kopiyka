@@ -78,3 +78,5 @@ Why: §8b `patch` row (styling). The tile's look changes in production and nothi
 ## Deviations
 
 ## Consolidate
+
+Skipped: the branch adds no new function, hook, component, route or query (one style value and a doc line).

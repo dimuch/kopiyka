@@ -488,7 +488,7 @@ const makeStyles = (colors: Palette) =>
       padding: space.lg,
       borderRadius: radius.md,
       borderWidth: 1,
-      borderColor: colors.borderStrong,
+      borderColor: colors.hairline,
       backgroundColor: colors.surface,
     },
     panelButtons: { flexDirection: 'row', justifyContent: 'flex-end', alignItems: 'center', gap: space.sm },

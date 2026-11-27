@@ -53,10 +53,10 @@ const textPairs = [
   ['accent', 'bg'],
   ['accent', 'surface'],
   ['onAccent', 'accent'],
-  ['onAccent', 'danger'],
   ['accentText', 'accentTint'],
   ['danger', 'bg'],
   ['danger', 'surface'],
+  ['danger', 'fill'],
   ['cautionText', 'surface'],
   ['active', 'activeTint'],
 ] as const;

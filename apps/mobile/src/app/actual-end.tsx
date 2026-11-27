@@ -171,7 +171,7 @@ function ActualEndForm({ month, balance, busy, setBusy }: { month: string; balan
       {gone ? null : <Button variant="primary" label="Save" busy={busy} onPress={save} />}
 
       {balance.actual && !gone ? (
-        <Button variant="accentText" label="Use calculated end" disabled={busy} onPress={clearToCalculated} />
+        <Button variant="accentLabel" label="Use calculated end" disabled={busy} onPress={clearToCalculated} />
       ) : null}
     </ScrollView>
   );

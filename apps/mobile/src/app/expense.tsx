@@ -385,8 +385,8 @@ const makeStyles = (colors: Palette) => {
     height: size.control,
     borderRadius: radius.md,
     borderWidth: 1,
-    borderColor: colors.borderStrong,
-    backgroundColor: colors.surface,
+    borderColor: colors.fill,
+    backgroundColor: colors.fill,
   } as const;
 
   return StyleSheet.create({

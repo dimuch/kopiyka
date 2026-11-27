@@ -57,6 +57,8 @@ const textPairs = [
   ['danger', 'bg'],
   ['danger', 'surface'],
   ['danger', 'fill'],
+  // Placeholders and the ₴/€ signs in a field; also the "N more" chip's icon.
+  ['muted', 'fill'],
   ['cautionText', 'surface'],
   ['active', 'activeTint'],
 ] as const;
@@ -64,8 +66,8 @@ const textPairs = [
 const iconPairs = [
   ['faint', 'bg'],
   ['faint', 'surface'],
-  // The "N more" chip's icon.
-  ['muted', 'fill'],
+  // A focused field's border.
+  ['accent', 'fill'],
 ] as const;
 
 describe('contrast', () => {

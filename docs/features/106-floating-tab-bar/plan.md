@@ -229,7 +229,7 @@ the last used category. Everything that exists keeps working.
       indicator's inset where that's more, with the "+" 12pt to its right. Scroll views leave that room plus 16pt
       under their content, and the Undo bar sits 16pt above the bar.
   - Verify: `yarn format:check`.
-- [ ] 2. Start a new expense on the category of the last one added in this ledger (≈ 60 lines)
+- [x] 2. Start a new expense on the category of the last one added in this ledger (≈ 60 lines)
   - Files: `src/data/quick.ts`, `test/quick.test.ts`, `src/data/useMonthCategories.ts`, `src/data/useExpenseDraft.ts`,
     `src/app/expense.tsx`
   - Change:

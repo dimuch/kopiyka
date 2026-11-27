@@ -29,3 +29,9 @@ export function monthPicker(
   const row = selectedId === null || missing ? quickIds : withQuick(quickIds, selectedId);
   return { ...splitQuick(row, categories), missing };
 }
+
+/** The category a new expense starts on: the last used one when the month has it, else the month's first quick one. */
+export function startCategoryId(lastUsedId: number | null, categories: Category[], quickIds: number[]): number | null {
+  if (lastUsedId !== null && categories.some((c) => c.categoryId === lastUsedId)) return lastUsedId;
+  return quickIds[0] ?? null;
+}

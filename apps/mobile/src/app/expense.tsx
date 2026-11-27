@@ -29,7 +29,7 @@ import { lockedText, restoreRefusedText } from '@/data/monthEnded';
 import { deleteExpense, restoreExpense, saveExpense } from '@/data/expenses';
 import { setPendingUndo } from '@/data/undo';
 import { monthPicker } from '@/data/quick';
-import { type ExpenseDraftData, useExpenseDraft } from '@/data/useExpenseDraft';
+import { type ExpenseDraftData, rememberLastCategory, useExpenseDraft } from '@/data/useExpenseDraft';
 import { useExpenseNames } from '@/data/useExpenseNames';
 import { useMonthCategories } from '@/data/useMonthCategories';
 import { type Rate, useRate } from '@/data/useRate';
@@ -149,8 +149,8 @@ function ExpenseForm({ draft, ledgerId }: { draft: ExpenseDraftData; ledgerId: n
 
   // The categories of the date's month (brief 030); a new expense defaults to the one the form opened with.
   const month = date.slice(0, 7);
-  const list = useMonthCategories(ledgerId, month);
-  const selectedId = categoryId ?? list.firstQuickId;
+  const list = useMonthCategories(ledgerId, month, draft.lastUsedId);
+  const selectedId = categoryId ?? list.startId;
   // Names already used in the category, to pick instead of typing (brief 108); a locked form has nothing to fill.
   const names = useExpenseNames(ledgerId, locked ? null : selectedId, month);
   const picker = list.status === 'ready' ? monthPicker(list.categories, list.quickIds, selectedId) : null;
@@ -221,6 +221,7 @@ function ExpenseForm({ draft, ledgerId }: { draft: ExpenseDraftData; ledgerId: n
         leave();
         return;
       }
+      rememberLastCategory(ledgerId, saved.categoryId);
       const cat = list.categories.find((c) => c.categoryId === saved.categoryId)?.displayName ?? '';
       const note = `Added “${saved.name}” to ${cat} · ${eur(toCents(saved.amountEur))} · ${shortDate(saved.expenseDate)}`;
       setAdded(note);

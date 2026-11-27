@@ -1,9 +1,13 @@
 import { type ReactNode, useRef, useState } from 'react';
-import { AccessibilityInfo, ScrollView, StyleSheet, type TextInputInstance, View } from 'react-native';
+import { AccessibilityInfo, Keyboard, ScrollView, StyleSheet, type TextInputInstance, View } from 'react-native';
 import { ApiError } from '@/api/apiError';
 import type { Category } from '@/api/types';
 import { useColors, useThemedStyles } from '@/appearance/AppearanceContext';
 import { Button } from '@/components/Button';
+import { CategoryIconPicker } from '@/components/CategoryIconPicker';
+import { findCategoryIcon } from '@/components/categoryIcons';
+import { Icon, StrokeIcon } from '@/components/Icon';
+import { Pressable } from '@/components/Pressable';
 import { Text } from '@/components/Text';
 import { TextField } from '@/components/TextField';
 import { type CategoryFields, checkFields } from '@/data/categoryForm';
@@ -12,9 +16,13 @@ import { overIncomeText } from '@/data/overIncome';
 import { monthName } from '@/format';
 import { type Palette, radius, size, space, text } from '@/theme';
 
+/** The chosen icon in the Icon field: Icon's own default size, like the chevron beside it. */
+const FIELD_ICON_SIZE = 20;
+
 /**
  * A category's name and planned amount with one Save, for adding and editing in a 'YYYY-MM' month (brief 065): checks
- * both, sends them with `save`, and shows a refusal's text.
+ * both, sends them with `save`, and shows a refusal's text. The icon (brief 114) is picked below them and saved with
+ * them; it is the category's in every month.
  */
 export function CategoryForm({
   month,
@@ -41,6 +49,8 @@ export function CategoryForm({
   const styles = useThemedStyles(makeStyles);
   const [nameText, setNameText] = useState(current?.displayName ?? '');
   const [amountText, setAmountText] = useState(current?.plannedEur ?? '');
+  const [icon, setIcon] = useState(current?.icon ?? null);
+  const [picking, setPicking] = useState(false);
   const [error, setError] = useState<string | null>(null);
   // The month ended, or the edited category left it, meanwhile: saving again can't help.
   const [gone, setGone] = useState(false);
@@ -54,6 +64,8 @@ export function CategoryForm({
     AccessibilityInfo.announceForAccessibility(message);
   }
 
+  const chosen = findCategoryIcon(icon);
+
   async function submit() {
     if (inFlight.current || gone) return;
     const fields = checkFields(nameText, amountText, current);
@@ -65,8 +77,7 @@ export function CategoryForm({
     setBusy(true);
     setError(null);
     try {
-      // The picker comes in a later slice; until then the icon stays as it is.
-      await save({ ...fields, icon: current?.icon ?? null });
+      await save({ ...fields, icon });
     } catch (err) {
       const code = err instanceof ApiError ? err.code : null;
       // An over-income or name refusal leaves the fields editable, so a corrected save can still go through.
@@ -142,6 +153,43 @@ export function CategoryForm({
         </View>
       </View>
 
+      <View style={styles.field}>
+        <Text variant="label" color="muted">
+          Icon
+        </Text>
+        <Text variant="labelRegular" color="muted">
+          Same in every month
+        </Text>
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel={`Icon: ${chosen?.label ?? 'Letter'}`}
+          aria-expanded={picking}
+          disabled={busy || gone}
+          onPress={() => {
+            Keyboard.dismiss();
+            setPicking(!picking);
+          }}
+          style={[styles.input, styles.iconField]}
+        >
+          <View style={styles.iconChoice}>
+            {chosen ? <StrokeIcon paths={chosen.paths} size={FIELD_ICON_SIZE} color={colors.text} /> : null}
+            <Text variant="input">{chosen?.label ?? 'Letter'}</Text>
+          </View>
+          <Icon name="down" color={colors.muted} />
+        </Pressable>
+        {picking ? (
+          <CategoryIconPicker
+            value={icon}
+            disabled={busy || gone}
+            onChange={(picked) => {
+              setIcon(picked);
+              setPicking(false);
+              setError(null);
+            }}
+          />
+        ) : null}
+      </View>
+
       {error ? (
         <Text accessibilityRole="alert" variant="label" color="danger">
           {error}
@@ -174,4 +222,6 @@ const makeStyles = (colors: Palette) =>
       ...text.input,
     },
     amount: { paddingLeft: space.xxxl, fontVariant: ['tabular-nums'] },
+    iconField: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
+    iconChoice: { flexDirection: 'row', alignItems: 'center', gap: space.sm },
   });

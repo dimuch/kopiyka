@@ -6,6 +6,7 @@ import { ApiError } from '@/api/apiError';
 import type { CategoryWithTotals } from '@/api/types';
 import { useThemedStyles } from '@/appearance/AppearanceContext';
 import { useSession } from '@/auth/AuthContext';
+import { backOr } from '@/closeToBudget';
 import { Button } from '@/components/Button';
 import { CategoryInMonth } from '@/components/CategoryInMonth';
 import { ScreenHeader } from '@/components/ScreenHeader';
@@ -19,12 +20,6 @@ import { setPendingUndo } from '@/data/undo';
 import { useCategoryTotals } from '@/data/useCategoryTotals';
 import { parseIdParam, parseMonthParam } from '@/linkParams';
 import { type Palette, space } from '@/theme';
-
-// Opened straight from a web link there's nothing to go back to, so fall back to Home.
-function leave() {
-  if (router.canGoBack()) router.back();
-  else router.replace('/');
-}
 
 export default function DeleteCategoryScreen() {
   const styles = useThemedStyles(makeStyles);
@@ -45,7 +40,7 @@ export default function DeleteCategoryScreen() {
     <SafeAreaView style={styles.screen} edges={['top', 'bottom']}>
       {/* The iOS modal can’t be swiped away while a removal is in flight either. */}
       <Stack.Screen options={{ gestureEnabled: !busy }} />
-      <ScreenHeader back={{ label: 'Back', onPress: leave, disabled: busy }} title="Remove category" />
+      <ScreenHeader back={{ label: 'Back', onPress: () => backOr('/'), disabled: busy }} title="Remove category" />
 
       <CategoryInMonth totals={totals}>
         {(category, month) => (

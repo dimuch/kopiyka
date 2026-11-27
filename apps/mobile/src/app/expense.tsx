@@ -1,4 +1,4 @@
-import { router, useLocalSearchParams } from 'expo-router';
+import { useLocalSearchParams } from 'expo-router';
 import { useEffect, useRef, useState } from 'react';
 import {
   AccessibilityInfo,
@@ -14,6 +14,7 @@ import { ApiError } from '@/api/apiError';
 import type { Category, Currency } from '@/api/types';
 import { useColors, useThemedStyles } from '@/appearance/AppearanceContext';
 import { useSession } from '@/auth/AuthContext';
+import { backOr } from '@/closeToBudget';
 import { AmountFields } from '@/components/AmountFields';
 import { Button } from '@/components/Button';
 import { CategoryPicker } from '@/components/CategoryPicker';
@@ -59,12 +60,6 @@ function rateLabel(rate: Rate, date: string): string {
   return `1 € = ₴${rate.eurUah.toFixed(4)} · NBU official rate for ${shortDate(rate.rateDate)}${fallback}`;
 }
 
-// Opened straight from a web link there's nothing to go back to, so fall back to Home.
-function leave() {
-  if (router.canGoBack()) router.back();
-  else router.replace('/');
-}
-
 export default function ExpenseScreen() {
   const styles = useThemedStyles(makeStyles);
   const params = useLocalSearchParams<{ expenseId?: string | string[]; categoryId?: string | string[] }>();
@@ -76,7 +71,10 @@ export default function ExpenseScreen() {
     <View style={styles.page}>
       {/* The tab bar floats over the bottom inset. */}
       <SafeAreaView style={styles.screen} edges={['top']}>
-        <ScreenHeader back={{ label: 'Back', onPress: leave }} title={editing ? 'Edit expense' : 'New expense'} />
+        <ScreenHeader
+          back={{ label: 'Back', onPress: () => backOr('/') }}
+          title={editing ? 'Edit expense' : 'New expense'}
+        />
 
         {editing && expenseId === null ? (
           <LoadFailed message="That link isn’t valid." />
@@ -111,7 +109,7 @@ function LoadFailed({ message, onRetry }: { message: string; onRetry?: () => voi
   return (
     <View>
       <LoadError message={message} onRetry={onRetry} />
-      <Button variant="mutedText" label="Back" onPress={leave} />
+      <Button variant="mutedText" label="Back" onPress={() => backOr('/')} />
     </View>
   );
 }
@@ -219,7 +217,7 @@ function ExpenseForm({ draft, ledgerId }: { draft: ExpenseDraftData; ledgerId: n
     try {
       const saved = await saveExpense(ledgerId, expense?.expenseId ?? null, body);
       if (expense) {
-        leave();
+        backOr('/');
         return;
       }
       rememberLastCategory(ledgerId, saved.categoryId);
@@ -262,7 +260,7 @@ function ExpenseForm({ draft, ledgerId }: { draft: ExpenseDraftData; ledgerId: n
         restore: () => restoreExpense(ledgerId, expenseId),
         refusedText: (err) => (err instanceof ApiError ? restoreRefusedText(err.code, storedMonth) : null),
       });
-      leave();
+      backOr('/');
     } catch (err) {
       showError(
         err instanceof ApiError && err.code === 'month_ended'

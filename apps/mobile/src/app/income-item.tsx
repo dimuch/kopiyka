@@ -1,4 +1,4 @@
-import { router, Stack, useLocalSearchParams } from 'expo-router';
+import { Stack, useLocalSearchParams } from 'expo-router';
 import { useRef, useState } from 'react';
 import { AccessibilityInfo, ActivityIndicator, ScrollView, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -6,6 +6,7 @@ import { ApiError } from '@/api/apiError';
 import type { IncomeItem } from '@/api/types';
 import { useColors, useThemedStyles } from '@/appearance/AppearanceContext';
 import { useSession } from '@/auth/AuthContext';
+import { backOr } from '@/closeToBudget';
 import { AmountField } from '@/components/AmountFields';
 import { Button } from '@/components/Button';
 import { LoadError } from '@/components/LoadError';
@@ -26,8 +27,7 @@ import { type Palette, radius, size, space, text } from '@/theme';
  * tab on that month, like closeToBudget does for Budget.
  */
 function leave(month: string | null): void {
-  if (router.canGoBack()) router.back();
-  else router.replace(month ? { pathname: '/income', params: { month } } : '/income');
+  backOr(month ? { pathname: '/income', params: { month } } : '/income');
 }
 
 /** What the screen says when an item has left its month (deleted meanwhile, or a link to another one). */

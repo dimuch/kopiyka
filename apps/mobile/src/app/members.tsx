@@ -6,6 +6,7 @@ import { ApiError } from '@/api/apiError';
 import type { Ledger, Member, PendingInvite } from '@/api/types';
 import { useColors, useThemedStyles } from '@/appearance/AppearanceContext';
 import { useSession } from '@/auth/AuthContext';
+import { backOr } from '@/closeToBudget';
 import { Button } from '@/components/Button';
 import { Card } from '@/components/Card';
 import { LoadError } from '@/components/LoadError';
@@ -17,12 +18,6 @@ import { inviteMember, removeMember, revokeInvite, setLedgerLabel } from '@/data
 import { useMembers } from '@/data/useMembers';
 import { type Palette, radius, size, space, text } from '@/theme';
 
-// Opened straight from a web link there's nothing to go back to, so fall back to Settings.
-function goBack() {
-  if (router.canGoBack()) router.back();
-  else router.replace('/settings');
-}
-
 /**
  * Everyone sets their own label for the open ledger at the top. Below, its owner sees the members, can remove them and
  * invite people; a member sees only Leave.
@@ -32,7 +27,7 @@ export default function MembersScreen() {
   const { ledger } = useSession();
   return (
     <SafeAreaView style={styles.screen} edges={['top']}>
-      <ScreenHeader back={{ label: 'Back', onPress: goBack }} />
+      <ScreenHeader back={{ label: 'Back', onPress: () => backOr('/settings') }} />
       {/* One tap on Save or Invite works on iPhone with the keyboard up. */}
       <ScrollView style={styles.scroll} contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
         <View style={{ gap: space.xxs }}>

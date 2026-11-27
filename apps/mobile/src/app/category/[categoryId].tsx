@@ -4,6 +4,7 @@ import { ActivityIndicator, Animated, StyleSheet, View } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useAppearance, useColors, useThemedStyles } from '@/appearance/AppearanceContext';
 import { useSession } from '@/auth/AuthContext';
+import { backOr } from '@/closeToBudget';
 import { AddExpenseButton } from '@/components/AddExpenseButton';
 import { useCardStyle } from '@/components/Card';
 import { CategoryInMonth } from '@/components/CategoryInMonth';
@@ -24,12 +25,6 @@ import { dayLabel, eur, kyivMonth, monthLabel, monthName, toCents, uah } from '@
 import { parseIdParam, parseMonthParam } from '@/linkParams';
 import { usePushOnce } from '@/pushOnce';
 import { type Palette, radius, shadow, size, space } from '@/theme';
-
-// Opened straight from a web link there's nothing to go back to, so fall back to Expenses (current month).
-function goBack() {
-  if (router.canGoBack()) router.back();
-  else router.replace('/expenses');
-}
 
 export default function CategoryScreen() {
   const params = useLocalSearchParams<{ categoryId: string | string[]; month?: string | string[] }>();
@@ -56,7 +51,8 @@ function InvalidLink() {
   const styles = useThemedStyles(makeStyles);
   return (
     <SafeAreaView style={styles.screen} edges={['top']}>
-      <ScreenHeader back={{ label: 'Back', onPress: goBack }} />
+      {/* With no history, Expenses opens on the current month, not this screen's. */}
+      <ScreenHeader back={{ label: 'Back', onPress: () => backOr('/expenses') }} />
       <LoadError message="That link isn’t valid." />
     </SafeAreaView>
   );
@@ -88,7 +84,7 @@ function CategoryBreakdown({ categoryId, month, ended }: { categoryId: number; m
     <SafeAreaView style={styles.screen} edges={['top']}>
       <ScreenHeader
         // The month isn't shown any more, so the name says where Back goes.
-        back={{ label: `Back to ${monthName(month)}`, onPress: goBack }}
+        back={{ label: `Back to ${monthName(month)}`, onPress: () => backOr('/expenses') }}
         dividerStyle={collapse.dividerStyle}
         trailing={
           <>

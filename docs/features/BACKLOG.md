@@ -3,14 +3,18 @@
 A snapshot so work can pick up in any tool (Claude Code or Copilot) without the chat history.
 Update it when a brief ships, is planned or is dropped.
 
-Snapshot: 2026-11-27, `main` at v1.23.15 (`210d798`, after PR #176: brief 105d is done).
+Snapshot: 2026-11-27, `main` at v1.23.16 (`3899b99`, after PR #177: brief 105e is done).
 
 ## In progress
 
-Next: brief 106, the floating tab bar. Its brief in `docs/features/106-floating-tab-bar/` is a draft written before
-104 and 105: read it against the current code first.
+None. The design roll-out (103–106) is complete; what comes next isn't chosen yet: see the Planned sections below.
 
 ## Recently finished
+
+### 106 · The floating tab bar and its "+" (done: v1.24.0)
+
+Brief and plan: `docs/features/106-floating-tab-bar/`. A floating pill tab bar and a round "+" on every page with
+tabs, one component for both kinds of page; "+" opens the add-expense form on the category last used on this device.
 
 ### 105e · The header, the toast, inputs, menus and sheets (done: #177, v1.23.16)
 
@@ -99,10 +103,9 @@ rest, in order:
 | 105c  | `docs/features/105c-borderless-cards/brief.md`  | Borderless cards with shadows, one card per row (done, #175)                        |
 | 105d  | `docs/features/105d-one-look-controls/brief.md` | One look each for buttons, chips and icon buttons (done, #176)                      |
 | 105e  | `docs/features/105e-one-look-header/brief.md`   | The header, the toast, inputs, menus and sheets (done, #177)                        |
-| 106   | `docs/features/106-floating-tab-bar/brief.md`   | Floating pill tab bar with a round "+" (add expense) button                         |
+| 106   | `docs/features/106-floating-tab-bar/brief.md`   | Floating pill tab bar with a round "+" (add expense) button (done)                  |
 
-Each 105 part's brief is written from the plan's "Later parts" after the previous part merges. The 106 brief is a
-**draft** written from the design doc: read and correct it before running `/kopiyka-hos` on it. 107 (budget polish,
+Each 105 part's brief is written from the plan's "Later parts" after the previous part merges. 107 (budget polish,
 #146) already brought forward one 105 item: the same caution yellow in both themes.
 
 ## Planned: repo tooling

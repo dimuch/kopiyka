@@ -324,7 +324,7 @@ the last used category. Everything that exists keeps working.
       today;
     - Back returns, and "+" opens it again (Risk 1);
     - a double click opens one form.
-- [ ] 7. Mark 106 done in the backlog, after 105e (≈ 18 lines, docs)
+- [x] 7. Mark 106 done in the backlog, after 105e (≈ 18 lines, docs)
   - Files: `docs/features/BACKLOG.md`
   - Change:
     - Snapshot: `main` at v1.23.16 (`3899b99`, after PR #177: brief 105e is done).

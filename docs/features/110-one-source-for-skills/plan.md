@@ -192,7 +192,7 @@ instructions that mentions Copilot, delegating or .github; else reply NONE."` â†
   - Change: `- run: yarn skills:check` right after `yarn format:check` in the `check` job. `deploy.yml`'s `gates` job
     reuses `ci.yml`, so Deploy runs it too. ~2 lines.
   - Verify: the PR's CI run shows the step green. AC3: slice 2's local hand-edit run is the same command CI runs. Gates.
-- [ ] 4. Tell people to edit `.claude` and run `yarn skills:build`
+- [x] 4. Tell people to edit `.claude` and run `yarn skills:build`
   - Files: docs/copilot.md ("Keeping the two copies in step": the generated files, the marks, never hand-edit),
     AGENTS.md (one bullet: edit `.claude/skills/kopiyka-*` or `.claude/agents/`, run `yarn skills:build`, never
     hand-edit `.github/skills/kopiyka-*/SKILL.md` or `.github/agents/`), .claude/skills/kopiyka-conventions/SKILL.md

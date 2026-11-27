@@ -7,6 +7,12 @@ Snapshot: 2026-11-27, `main` at v1.23.16 (`3899b99`, after PR #177: brief 105e i
 
 ## In progress
 
+### 110 · One source for the skills and agents (in review, branch `chore/one-source-for-skills`, no version)
+
+Brief and plan: `docs/features/110-one-source-for-skills/`. `yarn skills:build` generates Copilot's `kopiyka-*`
+skills and agents from `.claude`, and CI's `yarn skills:check` fails when they differ. Brief 111 comes next. From now
+on, skills-sync's commits to `.claude/skills/kopiyka-*` or `.claude/agents` need `yarn skills:build` too.
+
 ### 116 · Scroll areas end above the tab bar (in review, branch `fix/scroll-above-tab-bar`, v1.26.2)
 
 Brief and plan: `docs/features/116-scroll-above-tab-bar/`. Every page with the floating tab bar ends its scroll view

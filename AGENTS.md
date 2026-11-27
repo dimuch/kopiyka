@@ -15,6 +15,8 @@ This file is the Copilot twin of `CLAUDE.md`; keep the two in step. How Copilot 
   (rules: `.github/skills/kopiyka-refactoring/SKILL.md`).
 - The planner, plan skeptic and reviewers are custom agents in `.github/agents/`; the
   orchestrator skills run them as subagents.
+- `.github/skills/kopiyka-*/SKILL.md` and `.github/agents/` are generated: never edit them by hand. Edit
+  `.claude/skills/kopiyka-*` or `.claude/agents/`, then run `yarn skills:build` (how: `docs/copilot.md`).
 - Where things stand (open PRs of a brief, planned briefs, follow-ups): `docs/features/BACKLOG.md`.
   Read it before suggesting what to do next, and update it when a brief ships or is planned.
 - Before every commit: `yarn format:check && yarn lint && yarn typecheck && yarn test`.

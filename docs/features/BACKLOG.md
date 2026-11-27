@@ -174,8 +174,8 @@ brief 109.
 | R1  | api-descriptive-names     | 117   | done (#189) |
 | R2  | api-extract-long-handlers | 118   | done (#190) |
 | R3  | throttle-attempt-steps    | 119   | done (#191) |
-| R4  | api-small-structure       | 120   | in review   |
-| R5  | mcp-tools-layout          |       | not started |
+| R4  | api-small-structure       | 120   | done (#192) |
+| R5  | mcp-tools-layout          | 121   | in review   |
 | R6  | demo-store-helpers        |       | not started |
 | R7  | app-focus-load-hook       |       | not started |
 | R8  | app-short-names           |       | not started |

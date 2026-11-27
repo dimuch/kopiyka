@@ -42,15 +42,15 @@ different origin. And the per-page change is a few lines on each page.
 
 ## Version
 
-Bump: patch — 1.26.0 → 1.26.1
+Bump: patch — 1.26.1 → 1.26.2 (planned from 1.26.0; brief 115 took 1.26.1 on main first, so §8b step 4 bumps once more)
 Why: the §8b `patch` row (bug fix, styling). The scroll areas' layout changes in production. No capability is added,
 and no API or connector changes.
 
 ## Slices
 
-- [ ] 0. Bump version to 1.26.1
+- [x] 0. Bump version to 1.26.2
   - Files: package.json, apps/mobile/app.json
-  - Change: set both to 1.26.1
+  - Change: set both to 1.26.2
 - [ ] 1. Stop the tab pages' lists 16pt above the tab bar instead of behind it
   - Files: apps/mobile/src/app/(tabs)/{budget,expenses,income,statistics,settings}.tsx,
     apps/mobile/src/components/ReorderList.tsx, apps/mobile/src/components/TabBar.tsx,

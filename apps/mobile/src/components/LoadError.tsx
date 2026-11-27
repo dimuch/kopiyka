@@ -25,5 +25,5 @@ export function LoadError({ message, onRetry }: { message: string; onRetry?: () 
 const makeStyles = (colors: Palette) =>
   StyleSheet.create({
     box: { gap: space.xs, paddingVertical: space.md },
-    retry: { alignSelf: 'flex-start', paddingHorizontal: space.sm },
+    retry: { alignSelf: 'flex-start' },
   });

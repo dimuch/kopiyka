@@ -45,7 +45,6 @@ export function PendingInvites({
                 accessibilityLabel={`Decline invite from ${from}`}
                 disabled={busy}
                 onPress={() => onDecline(invite)}
-                style={[styles.decline, busy && { opacity: 0.6 }]}
               />
               <Button
                 variant="primary"
@@ -73,5 +72,4 @@ const makeStyles = (colors: Palette) =>
     section: { gap: space.sm },
     card: { gap: space.sm },
     buttons: { flexDirection: 'row', justifyContent: 'flex-end', alignItems: 'center', gap: space.sm },
-    decline: { paddingHorizontal: space.md },
   });

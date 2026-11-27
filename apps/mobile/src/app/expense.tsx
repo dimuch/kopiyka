@@ -108,11 +108,10 @@ function ExpenseLoader({ expenseId, categoryId }: { expenseId: number | null; ca
 }
 
 function LoadFailed({ message, onRetry }: { message: string; onRetry?: () => void }) {
-  const styles = useThemedStyles(makeStyles);
   return (
     <View>
       <LoadError message={message} onRetry={onRetry} />
-      <Button variant="mutedText" label="Back" onPress={leave} style={styles.failedBack} />
+      <Button variant="mutedText" label="Back" onPress={leave} />
     </View>
   );
 }
@@ -393,8 +392,6 @@ const makeStyles = (colors: Palette) => {
   return StyleSheet.create({
     page: { flex: 1, backgroundColor: colors.bg },
     screen: { flex: 1, backgroundColor: colors.bg, paddingHorizontal: space.xl, paddingTop: space.sm },
-    // Below a failed load: full width as before, with the word at the left like the header's Back.
-    failedBack: { justifyContent: 'flex-start', marginLeft: -space.sm, paddingHorizontal: space.sm },
     form: { gap: space.xxl, paddingBottom: space.huge },
     group: { gap: space.sm },
     // The name suggestions float over the amount fields below; 2 clears the ₴/€ symbols' zIndex 1 there on web.

@@ -184,7 +184,7 @@ today stops working, and no API, data, connector or demo-store change.
     - The callers' overrides still apply and come last, so Decline's 0.6 and Members' 0.5 still win until slice 3.
   - Verify: typecheck (no `size` left); `rg -n 'size="(large|medium|compact)"|ButtonSize' apps/mobile/src` finds
     nothing.
-- [ ] 3. Drop the buttons' one-off heights, corners, paddings and opacities (≈ 50 lines)
+- [x] 3. Drop the buttons' one-off heights, corners, paddings and opacities (≈ 50 lines)
   - Files: `app/login.tsx`, `components/EmptyMonth.tsx`, `app/members.tsx`, `components/PendingInvites.tsx`,
     `components/LoadError.tsx`, `app/no-ledger.tsx`, `app/expense.tsx`, `components/ScreenHeader.tsx`
   - Change: as the Inventory's last column.

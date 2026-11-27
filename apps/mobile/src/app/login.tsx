@@ -93,14 +93,7 @@ export default function Login() {
         </View>
 
         <View style={styles.actions}>
-          <Button
-            variant="primary"
-            label="Sign in"
-            busy={busy}
-            disabled={!ready}
-            onPress={submit}
-            style={[styles.signIn, !ready && styles.signInOff]}
-          />
+          <Button variant="primary" label="Sign in" busy={busy} disabled={!ready} onPress={submit} />
           <Link href={DEMO_URL} asChild>
             <Pressable accessibilityRole="link" accessibilityLabel="Try it now" style={styles.demoLink}>
               <Text variant="bodyStrong" color="accent">
@@ -157,9 +150,6 @@ const makeStyles = (colors: Palette) =>
     // The one-time code: big, spaced digits that the scale has no role for (one caller), in the display role's face (800).
     // eslint-disable-next-line no-restricted-syntax
     passwordInput: { fontFamily: fonts.extraBold, fontSize: 26, letterSpacing: 8, fontVariant: ['tabular-nums'] },
-    // One-offs until brief 105d: the only large pill, and dimmer than other buttons while it can't be pressed.
-    signIn: { borderRadius: radius.pill },
-    signInOff: { opacity: 0.4 },
     // The Sign in button and the demo link right below it, as one group.
     actions: { gap: space.sm },
     // A 44pt touch target, as the conventions ask.

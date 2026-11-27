@@ -123,14 +123,7 @@ function LabelForm({ ledger }: { ledger: Ledger }) {
           {failure}
         </Text>
       ) : null}
-      <Button
-        variant="primary"
-        label="Save"
-        busy={busy}
-        disabled={unchanged}
-        onPress={save}
-        style={(busy || unchanged) && styles.dimmed}
-      />
+      <Button variant="primary" label="Save" busy={busy} disabled={unchanged} onPress={save} />
     </View>
   );
 }
@@ -208,7 +201,6 @@ function OwnerMembers({ ledgerId }: { ledgerId: number }) {
                     accessibilityLabel={`Remove ${member.username}`}
                     disabled={busy}
                     onPress={() => showPanel(member)}
-                    style={styles.remove}
                   />
                 )}
               </View>
@@ -297,7 +289,6 @@ function PendingList({
                   accessibilityLabel={`Revoke invite to ${invite.username}`}
                   disabled={busy}
                   onPress={() => revoke(invite)}
-                  style={styles.remove}
                 />
               </View>
             </Card>
@@ -371,14 +362,7 @@ function InviteForm({ ledgerId, onInvited }: { ledgerId: number; onInvited: () =
           {failure}
         </Text>
       ) : null}
-      <Button
-        variant="primary"
-        label="Invite"
-        busy={busy}
-        disabled={!name}
-        onPress={invite}
-        style={(busy || !name) && styles.dimmed}
-      />
+      <Button variant="primary" label="Invite" busy={busy} disabled={!name} onPress={invite} />
     </View>
   );
 }
@@ -482,16 +466,8 @@ function ConfirmPanel({
         </Text>
       ) : null}
       <View style={styles.panelButtons}>
-        <Button
-          variant="mutedText"
-          label={gone ? 'Close' : 'Back'}
-          disabled={busy}
-          onPress={onDismiss}
-          style={styles.dismiss}
-        />
-        {!gone && (
-          <Button variant="danger" label={action} accessibilityLabel={action} busy={busy} onPress={onConfirm} />
-        )}
+        <Button variant="mutedText" label={gone ? 'Close' : 'Back'} disabled={busy} onPress={onDismiss} />
+        {!gone && <Button variant="danger" label={action} busy={busy} onPress={onConfirm} />}
       </View>
     </View>
   );
@@ -507,7 +483,6 @@ const makeStyles = (colors: Palette) =>
     list: { gap: space.sm },
     line: { flexDirection: 'row', alignItems: 'center', gap: space.md },
     who: { flex: 1, minHeight: size.iconButton, justifyContent: 'center', gap: space.xxs },
-    remove: { minWidth: size.iconButton, paddingHorizontal: space.xs },
     panel: {
       gap: space.sm,
       padding: space.lg,
@@ -517,7 +492,6 @@ const makeStyles = (colors: Palette) =>
       backgroundColor: colors.surface,
     },
     panelButtons: { flexDirection: 'row', justifyContent: 'flex-end', alignItems: 'center', gap: space.sm },
-    dismiss: { paddingHorizontal: space.md },
     section: { gap: space.sm },
     input: {
       ...text.input,
@@ -529,6 +503,4 @@ const makeStyles = (colors: Palette) =>
       color: colors.text,
       paddingHorizontal: space.lg,
     },
-    // One-off until brief 105d: Save and Invite dim less than other buttons.
-    dimmed: { opacity: 0.5 },
   });

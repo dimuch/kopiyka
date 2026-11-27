@@ -11,7 +11,7 @@ None. The design roll-out (103–106) is complete; what comes next isn't chosen 
 
 ## Recently finished
 
-### 106 · The floating tab bar and its "+" (done: v1.24.0)
+### 106 · The floating tab bar and its "+" (done: #178, v1.24.0)
 
 Brief and plan: `docs/features/106-floating-tab-bar/`. A floating pill tab bar and a round "+" on every page with
 tabs, one component for both kinds of page; "+" opens the add-expense form on the category last used on this device.
@@ -103,7 +103,7 @@ rest, in order:
 | 105c  | `docs/features/105c-borderless-cards/brief.md`  | Borderless cards with shadows, one card per row (done, #175)                        |
 | 105d  | `docs/features/105d-one-look-controls/brief.md` | One look each for buttons, chips and icon buttons (done, #176)                      |
 | 105e  | `docs/features/105e-one-look-header/brief.md`   | The header, the toast, inputs, menus and sheets (done, #177)                        |
-| 106   | `docs/features/106-floating-tab-bar/brief.md`   | Floating pill tab bar with a round "+" (add expense) button (done)                  |
+| 106   | `docs/features/106-floating-tab-bar/brief.md`   | Floating pill tab bar with a round "+" (add expense) button (done, #178)            |
 
 Each 105 part's brief is written from the plan's "Later parts" after the previous part merges. 107 (budget polish,
 #146) already brought forward one 105 item: the same caution yellow in both themes.

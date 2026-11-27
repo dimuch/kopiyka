@@ -116,6 +116,13 @@ function rowName(data: StoreData, row: MonthRow): string {
   );
 }
 
+/** A category's row in a 'YYYY-MM' month: the listed one, or with `removed` the one removed from it. */
+function monthRow(data: StoreData, categoryId: number, month: string, removed: boolean): MonthRow | undefined {
+  return data.monthRows.find(
+    (row) => row.categoryId === categoryId && row.month === month && (row.removal !== null) === removed,
+  );
+}
+
 /** The API's `nameTaken`: another category listed in the month already has the name. */
 function nameTaken(data: StoreData, month: string, name: string, categoryId: number): boolean {
   return data.monthRows.some(
@@ -262,10 +269,7 @@ export const categoryRoutes: Route[] = [
       const id = Number(categoryId);
       const icon = iconOf(input);
       refuseIfEnded(month, now);
-      const row =
-        data.monthRows.find(
-          (candidate) => candidate.categoryId === id && candidate.month === month && candidate.removal === null,
-        ) ?? refuse(404, 'not_found');
+      const row = monthRow(data, id, month, false) ?? refuse(404, 'not_found');
       const category = data.categories.find((candidate) => candidate.categoryId === id) ?? refuse(404, 'not_found');
       const name = input.name?.trim();
       // Every check comes before the first write, as in the API.
@@ -286,10 +290,7 @@ export const categoryRoutes: Route[] = [
     answer: (data, { now }, [categoryId = '', month = '']) => {
       const id = Number(categoryId);
       refuseIfEnded(month, now);
-      const row =
-        data.monthRows.find(
-          (candidate) => candidate.categoryId === id && candidate.month === month && candidate.removal === null,
-        ) ?? refuse(404, 'not_found');
+      const row = monthRow(data, id, month, false) ?? refuse(404, 'not_found');
       // One removal number for the row and that month's live expenses, which its restore matches. The planned amount
       // stays.
       const removal = data.nextId++;
@@ -307,10 +308,7 @@ export const categoryRoutes: Route[] = [
     answer: (data, { now }, [categoryId = '', month = '']) => {
       const id = Number(categoryId);
       refuseIfEnded(month, now);
-      const row =
-        data.monthRows.find(
-          (candidate) => candidate.categoryId === id && candidate.month === month && candidate.removal !== null,
-        ) ?? refuse(404, 'not_found');
+      const row = monthRow(data, id, month, true) ?? refuse(404, 'not_found');
       // 409 here, unlike an add's 400: the request is fine, the month's names now clash with it (brief 037).
       if (nameTaken(data, month, rowName(data, row), id)) refuse(409, 'name_taken');
       refuseOverIncome(data, month, { plannedCents: data.planned.get(plannedKey(id, month)) ?? 0, incomeCents: 0 });

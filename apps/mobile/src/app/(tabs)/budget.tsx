@@ -1,7 +1,8 @@
-import { router, useLocalSearchParams } from 'expo-router';
+import { type Href, router, useLocalSearchParams } from 'expo-router';
 import { useRef, useState } from 'react';
 import { ActivityIndicator, ScrollView, type ScrollViewInstance, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import type { Category } from '@/api/types';
 import { useColors, useThemedStyles } from '@/appearance/AppearanceContext';
 import { useSession } from '@/auth/AuthContext';
 import { CategoryTile } from '@/components/CategoryTile';
@@ -12,7 +13,7 @@ import { IconButton } from '@/components/IconButton';
 import { LoadError } from '@/components/LoadError';
 import { MonthSwitcher } from '@/components/MonthSwitcher';
 import { Pressable } from '@/components/Pressable';
-import { ReorderList } from '@/components/ReorderList';
+import { type DragHandlers, ReorderList } from '@/components/ReorderList';
 import { ScreenHeader } from '@/components/ScreenHeader';
 import { useTabBarRoom } from '@/components/TabBar';
 import { Text } from '@/components/Text';
@@ -40,7 +41,6 @@ import { type Palette, size, space } from '@/theme';
 export default function Budget() {
   const colors = useColors();
   const styles = useThemedStyles(makeStyles);
-  const rowCard = useCardStyle('none');
   const pushOnce = usePushOnce();
   const { ledger } = useSession();
   const params = useLocalSearchParams<{ month?: string | string[] }>();
@@ -187,57 +187,9 @@ export default function Budget() {
                   disabled={order.saving}
                   onDragChange={setDragging}
                   scrollRef={scrollRef}
-                  renderRow={(category, drag) => {
-                    const planned = eur(toCents(category.plannedEur));
-                    const content = (
-                      <>
-                        <CategoryTile techName={category.techName} label={category.displayName} icon={category.icon} />
-                        <Text variant="bodyMedium" style={styles.rowName}>
-                          {category.displayName}
-                        </Text>
-                        <Text variant="amount">{planned}</Text>
-                      </>
-                    );
-                    // An ended month can't change, so its rows aren't buttons; they only take a long-press, so the
-                    // order (not month data) can still change. Screen readers and the keyboard meet what they did.
-                    if (ended) {
-                      return (
-                        <Pressable {...drag} accessible={false} focusable={false} style={[rowCard, styles.row]}>
-                          {content}
-                        </Pressable>
-                      );
-                    }
-                    // Two sibling buttons, not one inside the other: VoiceOver couldn't reach a nested one, and web would nest role="button".
-                    return (
-                      <View style={[rowCard, styles.openRow]}>
-                        <Pressable
-                          {...drag}
-                          accessibilityRole="button"
-                          accessibilityLabel={`${category.displayName}, ${planned} planned`}
-                          accessibilityHint="Edits its planned amount"
-                          onPress={() =>
-                            pushOnce({
-                              pathname: '/category-form',
-                              params: { categoryId: category.categoryId, month, focus: 'amount' },
-                            })
-                          }
-                          style={[styles.row, { flex: 1 }]}
-                        >
-                          {content}
-                        </Pressable>
-                        <IconButton
-                          icon="edit"
-                          label={`Edit ${category.displayName} in ${monthName(month)}`}
-                          tone="muted"
-                          iconSize={18}
-                          onPress={() =>
-                            pushOnce({ pathname: '/category-form', params: { categoryId: category.categoryId, month } })
-                          }
-                          style={styles.edit}
-                        />
-                      </View>
-                    );
-                  }}
+                  renderRow={(category, drag) => (
+                    <BudgetRow category={category} drag={drag} month={month} ended={ended} pushOnce={pushOnce} />
+                  )}
                 />
               </>
             )}
@@ -246,6 +198,71 @@ export default function Budget() {
       </ScrollView>
       {toast.offer ? <UndoToast offer={toast.offer} onUndo={toast.restore} /> : null}
     </SafeAreaView>
+  );
+}
+
+/** One category's row on the Budget list: opens its planned amount, or only drags in an ended month. */
+function BudgetRow({
+  category,
+  drag,
+  month,
+  ended,
+  pushOnce,
+}: {
+  category: Category;
+  drag: DragHandlers;
+  month: string;
+  ended: boolean;
+  pushOnce: (href: Href) => void;
+}) {
+  const styles = useThemedStyles(makeStyles);
+  const rowCard = useCardStyle('none');
+  const planned = eur(toCents(category.plannedEur));
+  const content = (
+    <>
+      <CategoryTile techName={category.techName} label={category.displayName} icon={category.icon} />
+      <Text variant="bodyMedium" style={styles.rowName}>
+        {category.displayName}
+      </Text>
+      <Text variant="amount">{planned}</Text>
+    </>
+  );
+  // An ended month can't change, so its rows aren't buttons; they only take a long-press, so the
+  // order (not month data) can still change. Screen readers and the keyboard meet what they did.
+  if (ended) {
+    return (
+      <Pressable {...drag} accessible={false} focusable={false} style={[rowCard, styles.row]}>
+        {content}
+      </Pressable>
+    );
+  }
+  // Two sibling buttons, not one inside the other: VoiceOver couldn't reach a nested one, and web would nest role="button".
+  return (
+    <View style={[rowCard, styles.openRow]}>
+      <Pressable
+        {...drag}
+        accessibilityRole="button"
+        accessibilityLabel={`${category.displayName}, ${planned} planned`}
+        accessibilityHint="Edits its planned amount"
+        onPress={() =>
+          pushOnce({
+            pathname: '/category-form',
+            params: { categoryId: category.categoryId, month, focus: 'amount' },
+          })
+        }
+        style={[styles.row, { flex: 1 }]}
+      >
+        {content}
+      </Pressable>
+      <IconButton
+        icon="edit"
+        label={`Edit ${category.displayName} in ${monthName(month)}`}
+        tone="muted"
+        iconSize={18}
+        onPress={() => pushOnce({ pathname: '/category-form', params: { categoryId: category.categoryId, month } })}
+        style={styles.edit}
+      />
+    </View>
   );
 }
 

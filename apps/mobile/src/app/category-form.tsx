@@ -1,29 +1,24 @@
-import { Stack, useLocalSearchParams } from 'expo-router';
+import { useLocalSearchParams } from 'expo-router';
 import { useState } from 'react';
-import { StyleSheet } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { useThemedStyles } from '@/appearance/AppearanceContext';
 import { useSession } from '@/auth/AuthContext';
 import { closeToBudget } from '@/closeToBudget';
 import { Button } from '@/components/Button';
 import { CategoryForm } from '@/components/CategoryForm';
 import { CategoryInMonth } from '@/components/CategoryInMonth';
 import { LoadError } from '@/components/LoadError';
-import { ScreenHeader } from '@/components/ScreenHeader';
+import { ModalFormScreen } from '@/components/ModalFormScreen';
 import { addToMonth, editInMonth } from '@/data/categories';
 import { changedFields } from '@/data/categoryForm';
 import { useCategoryTotals } from '@/data/useCategoryTotals';
 import { kyivMonth, monthName } from '@/format';
 import { parseIdParam, parseMonthParam } from '@/linkParams';
 import { usePushOnce } from '@/pushOnce';
-import { type Palette, space } from '@/theme';
 
 /**
  * Adds a category to a month, `/category-form?month=2026-11`, or edits one there, `&categoryId=4`, with its name and
  * planned amount together (brief 065); `&focus=amount` starts in the amount.
  */
 export default function CategoryFormScreen() {
-  const styles = useThemedStyles(makeStyles);
   const params = useLocalSearchParams<{
     categoryId?: string | string[];
     month?: string | string[];
@@ -37,14 +32,11 @@ export default function CategoryFormScreen() {
   const [busy, setBusy] = useState(false);
 
   return (
-    <SafeAreaView style={styles.screen} edges={['top', 'bottom']}>
-      {/* The iOS modal can’t be swiped away while a save is in flight either. */}
-      <Stack.Screen options={{ gestureEnabled: !busy }} />
-      <ScreenHeader
-        back={{ label: 'Back', onPress: () => closeToBudget(month), disabled: busy }}
-        title={editing ? 'Edit category' : 'Add a category'}
-      />
-
+    <ModalFormScreen
+      title={editing ? 'Edit category' : 'Add a category'}
+      onBack={() => closeToBudget(month)}
+      busy={busy}
+    >
       {editing ? (
         <EditCategory
           categoryId={parseIdParam(params.categoryId)}
@@ -68,7 +60,7 @@ export default function CategoryFormScreen() {
       ) : (
         <LoadError message="That link isn’t valid." />
       )}
-    </SafeAreaView>
+    </ModalFormScreen>
   );
 }
 
@@ -126,8 +118,3 @@ function EditCategory({
     </CategoryInMonth>
   );
 }
-
-const makeStyles = (colors: Palette) =>
-  StyleSheet.create({
-    screen: { flex: 1, backgroundColor: colors.bg, paddingHorizontal: space.xl, paddingTop: space.sm },
-  });

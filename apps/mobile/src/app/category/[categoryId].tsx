@@ -128,7 +128,7 @@ function CategoryBreakdown({ categoryId, month, ended }: { categoryId: number; m
         >
           {error && <LoadError message="Couldn’t refresh. Check your connection and try again." onRetry={reload} />}
           <View style={styles.titleRow}>
-            <CategoryTile techName={category.techName} label={category.displayName} size={52} />
+            <CategoryTile techName={category.techName} label={category.displayName} icon={category.icon} size={52} />
             <View>
               <Text variant="display">{category.displayName}</Text>
               <Text variant="labelRegular" color="muted" tabular>

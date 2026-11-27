@@ -222,7 +222,7 @@ export default function Budget() {
                     const planned = eur(toCents(category.plannedEur));
                     const content = (
                       <>
-                        <CategoryTile techName={category.techName} label={category.displayName} />
+                        <CategoryTile techName={category.techName} label={category.displayName} icon={category.icon} />
                         <Text variant="bodyMedium" style={styles.rowName}>
                           {category.displayName}
                         </Text>

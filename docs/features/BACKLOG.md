@@ -172,8 +172,8 @@ brief 109.
 | Row | Slug                      | Brief | State       |
 | --- | ------------------------- | ----- | ----------- |
 | R1  | api-descriptive-names     | 117   | done (#189) |
-| R2  | api-extract-long-handlers | 118   | in review   |
-| R3  | throttle-attempt-steps    |       | not started |
+| R2  | api-extract-long-handlers | 118   | done (#190) |
+| R3  | throttle-attempt-steps    | 119   | in review   |
 | R4  | api-small-structure       |       | not started |
 | R5  | mcp-tools-layout          |       | not started |
 | R6  | demo-store-helpers        |       | not started |

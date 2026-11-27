@@ -38,10 +38,10 @@ count after a good login" (username 0, ip 4). Known-device upsert: "remembers a 
 login", "remembers no device for a login without a device id", "remembers devices for parallel logins". **Thin:** the
 blocked-path rollback and the rollback when `check` throws. No test sees either one.
 
-- [ ] 0. Bump version to 1.26.5
+- [x] 0. Bump version to 1.26.5
   - Files: package.json, apps/mobile/app.json
   - Change: set both to 1.26.5
-- [ ] 1. Pin that a throttled attempt rolls back when blocked or when its check throws (~35 lines)
+- [x] 1. Pin that a throttled attempt rolls back when blocked or when its check throws (~35 lines)
   - Files: apps/api/test/throttle.int.test.ts (add `vi` to the vitest import and a second top-level
     `describe.skipIf(…)('throttledAttempt (MySQL)')` with its own `resetSchema`/`createDb`/`clearData`, reusing the
     module's `now` and `ahead`)
@@ -56,7 +56,7 @@ blocked-path rollback and the rollback when `check` throws. No test sees either 
   - Proof: passes on Base. Bite check by hand: delete each `conn.rollback()` and watch its case fail, then restore.
     The rows read lands in the same session because the describe's pool opens one connection (tests run in sequence,
     `resetOnRelease` off), so it also sees uncommitted rows.
-- [ ] 2. Extract the per-key row locking from throttledAttempt
+- [x] 2. Extract the per-key row locking from throttledAttempt
   - Files: apps/api/src/auth/throttle.ts
   - Change: move lines 85–105 (the loop and its two comments) into `lockStates`. The call becomes
     `const states = await lockStates(conn, keys);`. One-line JSDoc. Commit body: the lock order (username, ip, device =
@@ -64,7 +64,7 @@ blocked-path rollback and the rollback when `check` throws. No test sees either 
     `pruneThrottle`'s DELETE, so the loop moves unchanged.
   - Proof: slice 1 cases; `auth.int.test.ts` "counts parallel wrong codes", "remembers devices for parallel logins",
     "blocks the username for 24 h after 5 wrong codes"; `throttle.int.test.ts` pruneThrottle case.
-- [ ] 3. Extract the outcome writes from throttledAttempt
+- [x] 3. Extract the outcome writes from throttledAttempt
   - Files: apps/api/src/auth/throttle.ts
   - Change: move lines 112–136 (the per-key writes, the ip comment, the device upsert) into `recordOutcome`. The call
     `await recordOutcome(conn, keys, states, value, now);` goes between `check` and `commit`. `throttledAttempt` ends
@@ -72,7 +72,7 @@ blocked-path rollback and the rollback when `check` throws. No test sees either 
   - Proof: slice 1 cases; `auth.int.test.ts` "clears the username count after a good login", "counts a known device's
     wrong codes against the username", "remembers a device's first and last successful login", "remembers no device for
     a login without a device id", "lets a known device log in while its username is locked".
-- [ ] 4. Mark R3 in review in the backlog
+- [x] 4. Mark R3 in review in the backlog
   - Files: docs/features/BACKLOG.md (Refactor roadmap table: R3 → brief `119`, state `in review`), this plan's ticks
 
 Every slice: gates (§7) and `find-short-names.sh --diff origin/main` clean.

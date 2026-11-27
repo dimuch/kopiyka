@@ -33,7 +33,7 @@ Why: §8b `patch` row (styling). The tile's look changes in production and nothi
 - [x] 0. Bump version to 1.24.2
   - Files: package.json, apps/mobile/app.json
   - Change: set both to 1.24.2
-- [ ] 1. Make the category tile a circle, to match the chip's round ends
+- [x] 1. Make the category tile a circle, to match the chip's round ends
   - Files: apps/mobile/src/components/CategoryTile.tsx, docs/design/design-system.md
   - Change: `borderRadius: radius.pill` (import `radius`), remove the radius line's disable and comment, reword the
     font size comment; in the doc, take "category tile" out of `sm 10` and add it to `pill 999`. About 8 lines.

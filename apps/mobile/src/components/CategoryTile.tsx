@@ -10,7 +10,7 @@ export function CategoryTile({ techName, label, size = 40 }: { techName: string;
       style={{
         width: size,
         height: size,
-        // A circle at any size, so the tile follows the round ends of the chip it sits in.
+        // A circle at any size: one tile shape, matching the chip's round ends.
         borderRadius: radius.pill,
         backgroundColor: tile.bg,
         alignItems: 'center',

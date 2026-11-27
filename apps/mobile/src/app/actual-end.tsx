@@ -1,7 +1,6 @@
-import { Stack, useLocalSearchParams } from 'expo-router';
+import { useLocalSearchParams } from 'expo-router';
 import { useRef, useState } from 'react';
 import { ActivityIndicator, ScrollView, StyleSheet, View } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
 import { useAnnouncedError } from '@/announcedError';
 import { ApiError } from '@/api/apiError';
 import type { MonthBalance } from '@/api/types';
@@ -11,7 +10,7 @@ import { closeToBudget } from '@/closeToBudget';
 import { Button } from '@/components/Button';
 import { ErrorLine } from '@/components/ErrorLine';
 import { LoadError } from '@/components/LoadError';
-import { ScreenHeader } from '@/components/ScreenHeader';
+import { ModalFormScreen } from '@/components/ModalFormScreen';
 import { Text } from '@/components/Text';
 import { fieldStyle, TextField } from '@/components/TextField';
 import { clearActualEnd, setActualEnd } from '@/data/actualEnd';
@@ -27,26 +26,15 @@ const noBalanceText = (month: string) => `${monthLabel(month)} has no balance ye
  * `/actual-end?month=2026-11`, opened from the Budget line. The next month starts from it.
  */
 export default function ActualEndScreen() {
-  const styles = useThemedStyles(makeStyles);
   const params = useLocalSearchParams<{ month?: string | string[] }>();
   const month = parseMonthParam(params.month);
   // A save in flight closes the modal when it ends, so the user can't leave meanwhile.
   const [busy, setBusy] = useState(false);
 
   return (
-    <SafeAreaView style={styles.screen} edges={['top', 'bottom']}>
-      {/* The iOS modal can’t be swiped away while a save is in flight either. */}
-      <Stack.Screen options={{ gestureEnabled: !busy }} />
-      <ScreenHeader back={{ label: 'Back', onPress: () => closeToBudget(month), disabled: busy }} title="Actual end" />
-
-      {month ? (
-        <BalanceLoader month={month} busy={busy} setBusy={setBusy} />
-      ) : (
-        <View style={styles.body}>
-          <LoadError message="That link isn’t valid." />
-        </View>
-      )}
-    </SafeAreaView>
+    <ModalFormScreen title="Actual end" onBack={() => closeToBudget(month)} busy={busy}>
+      {month ? <BalanceLoader month={month} busy={busy} setBusy={setBusy} /> : null}
+    </ModalFormScreen>
   );
 }
 
@@ -171,7 +159,6 @@ function ActualEndForm({ month, balance, busy, setBusy }: { month: string; balan
 
 const makeStyles = (colors: Palette) =>
   StyleSheet.create({
-    screen: { flex: 1, backgroundColor: colors.bg, paddingHorizontal: space.xl, paddingTop: space.sm },
     body: { gap: space.lg, paddingTop: space.lg, paddingBottom: space.huge },
     group: { gap: space.sm },
     input: fieldStyle(colors),

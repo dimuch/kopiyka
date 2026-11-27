@@ -3,8 +3,8 @@ import type { Currency } from '@/api/types';
 import { useColors, useThemedStyles } from '@/appearance/AppearanceContext';
 import { Icon } from '@/components/Icon';
 import { Text } from '@/components/Text';
-import { TextField } from '@/components/TextField';
-import { type Palette, radius, size, space, text } from '@/theme';
+import { fieldStyle, symbolStyle, TextField } from '@/components/TextField';
+import { type Palette, size, space } from '@/theme';
 
 interface Props {
   /** The side the user typed; it shows `amountText`, the other side shows `otherText`. */
@@ -87,17 +87,6 @@ const makeStyles = (colors: Palette) =>
     row: { flexDirection: 'row', alignItems: 'flex-end', gap: space.sm },
     column: { flex: 1, gap: space.sm },
     swap: { height: size.control, width: 20, alignItems: 'center', justifyContent: 'center' },
-    symbol: { position: 'absolute', left: 14, top: 13, zIndex: 1 },
-    input: {
-      height: size.control,
-      borderRadius: radius.md,
-      borderWidth: 1,
-      borderColor: colors.fill,
-      backgroundColor: colors.fill,
-      paddingLeft: space.xxxl,
-      paddingRight: space.lg,
-      color: colors.text,
-      ...text.input,
-      fontVariant: ['tabular-nums'],
-    },
+    symbol: symbolStyle,
+    input: { ...fieldStyle(colors), paddingLeft: space.xxxl, fontVariant: ['tabular-nums'] },
   });

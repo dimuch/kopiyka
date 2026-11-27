@@ -75,6 +75,7 @@ src/components/HomeCards.tsx
 src/components/Icon.tsx
 src/components/IconButton.tsx
 src/components/LoadError.tsx
+src/components/LoadState.tsx
 src/components/ModalFormScreen.tsx
 src/components/MonthSwitcher.tsx
 src/components/NameCombobox.tsx

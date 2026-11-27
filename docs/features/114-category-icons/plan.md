@@ -446,6 +446,16 @@ PR A (slices 0–3): reused 0 · extracted 0 · left 3.
 - `CATEGORY_ICONS` / `IconKey`: LEAVE. No other key list or enum of the kind in the API.
 - `categoryIcons.migration.int.test.ts`: LEAVE. One test per migration is the repo's pattern (018's is its template).
 
+PR B (slices 4–9): reused 2 · extracted 1 · left 3.
+
+- `StrokeIcon` (`Icon.tsx`): EXTRACT, as planned. `Icon` and the category tile and picker draw through one Svg setup.
+- `CategoryTile` and the picker: REUSE `categoryTile()` colours and the `Pressable` + `aria-checked` radio pattern.
+- `CategoryIconPicker`: LEAVE. `AppearancePicker` and `LedgerPicker` are one row of pills in a `Card`; this is a
+  themed wrap grid of icon cells. Sharing would need a generic radio-grid for two shapes.
+- The form's Icon field: LEAVE. Its nearest twin, Statistics' period button, is a title-sized header control.
+- The demo's `iconOf`: LEAVE. The demo mirrors the API's schema by design (conventions §2); it calls
+  `findCategoryIcon` rather than a second key list.
+
 ## Revision 1
 
 Skeptic verdict: APPROVE WITH EDITS. Origin/main moved to ac5a1036 (1.24.1), and the brief became 114. Applied:

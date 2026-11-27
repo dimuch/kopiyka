@@ -2,6 +2,7 @@ import { router } from 'expo-router';
 import { useRef, useState } from 'react';
 import { AccessibilityInfo, ActivityIndicator, ScrollView, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useAnnouncedError } from '@/announcedError';
 import { ApiError } from '@/api/apiError';
 import type { Ledger, Member, PendingInvite } from '@/api/types';
 import { useColors, useThemedStyles } from '@/appearance/AppearanceContext';
@@ -54,16 +55,10 @@ function LabelForm({ ledger }: { ledger: Ledger }) {
   const { openLedger } = useSession();
   const [draft, setDraft] = useState(ledger.label ?? '');
   const [busy, setBusy] = useState(false);
-  const [failure, setFailure] = useState<string | null>(null);
+  const { error: failure, showError: fail, clearError } = useAnnouncedError();
   // `busy` disables the button only after a re-render; two taps in one tick would both get here.
   const inFlight = useRef(false);
   const unchanged = draft.trim() === (ledger.label ?? '');
-
-  function fail(message: string) {
-    // role="alert" covers web; VoiceOver needs an explicit announcement.
-    setFailure(message);
-    AccessibilityInfo.announceForAccessibility(message);
-  }
 
   async function save() {
     if (inFlight.current) return;
@@ -71,7 +66,7 @@ function LabelForm({ ledger }: { ledger: Ledger }) {
     if (label === null) return fail('A label can have up to 40 characters.');
     inFlight.current = true;
     setBusy(true);
-    setFailure(null);
+    clearError();
     try {
       try {
         await setLedgerLabel(ledger.ledgerId, label);
@@ -131,7 +126,7 @@ function OwnerMembers({ ledgerId }: { ledgerId: number }) {
   // The member whose Remove was tapped once; nothing is sent until the panel's Remove.
   const [confirming, setConfirming] = useState<Member | null>(null);
   const [busy, setBusy] = useState(false);
-  const [failure, setFailure] = useState<string | null>(null);
+  const { error: failure, showError: fail, clearError } = useAnnouncedError();
   // They had already left: trying again can't help, so the panel offers only Close.
   const [gone, setGone] = useState(false);
   // `busy` disables the buttons only after a re-render; two taps in one tick would both get here.
@@ -142,7 +137,7 @@ function OwnerMembers({ ledgerId }: { ledgerId: number }) {
   function showPanel(member: Member | null) {
     if (gone) reload();
     setConfirming(member);
-    setFailure(null);
+    clearError();
     setGone(false);
   }
 
@@ -150,7 +145,7 @@ function OwnerMembers({ ledgerId }: { ledgerId: number }) {
     if (inFlight.current) return;
     inFlight.current = true;
     setBusy(true);
-    setFailure(null);
+    clearError();
     try {
       await removeMember(ledgerId, member.userId);
       setConfirming(null);
@@ -161,9 +156,7 @@ function OwnerMembers({ ledgerId }: { ledgerId: number }) {
         ? `${member.username} isn’t in this ledger any more.`
         : 'Couldn’t remove. Check your connection and try again.';
       setGone(notHere);
-      // role="alert" covers web; VoiceOver needs an explicit announcement.
-      setFailure(message);
-      AccessibilityInfo.announceForAccessibility(message);
+      fail(message);
     } finally {
       inFlight.current = false;
       setBusy(false);
@@ -235,7 +228,7 @@ function PendingList({
 }) {
   const styles = useThemedStyles(makeStyles);
   const [busy, setBusy] = useState(false);
-  const [failure, setFailure] = useState<string | null>(null);
+  const { error: failure, showError: fail, clearError } = useAnnouncedError();
   // `busy` disables the buttons only after a re-render; two taps in one tick would both get here.
   const inFlight = useRef(false);
 
@@ -243,7 +236,7 @@ function PendingList({
     if (inFlight.current) return;
     inFlight.current = true;
     setBusy(true);
-    setFailure(null);
+    clearError();
     try {
       await revokeInvite(ledgerId, invite.inviteId);
       onChange();
@@ -253,9 +246,7 @@ function PendingList({
       const message = gone
         ? `${invite.username}’s invite has already expired or been answered.`
         : 'Couldn’t revoke. Check your connection and try again.';
-      // role="alert" covers web; VoiceOver needs an explicit announcement.
-      setFailure(message);
-      AccessibilityInfo.announceForAccessibility(message);
+      fail(message);
       if (gone) onChange();
     } finally {
       inFlight.current = false;
@@ -302,7 +293,7 @@ function InviteForm({ ledgerId, onInvited }: { ledgerId: number; onInvited: () =
   const styles = useThemedStyles(makeStyles);
   const [username, setUsername] = useState('');
   const [busy, setBusy] = useState(false);
-  const [failure, setFailure] = useState<string | null>(null);
+  const { error: failure, showError: fail, clearError } = useAnnouncedError();
   // `busy` disables the button only after a re-render; two taps in one tick would both get here.
   const inFlight = useRef(false);
   const name = username.trim();
@@ -311,7 +302,7 @@ function InviteForm({ ledgerId, onInvited }: { ledgerId: number; onInvited: () =
     if (inFlight.current || !name) return;
     inFlight.current = true;
     setBusy(true);
-    setFailure(null);
+    clearError();
     try {
       const invited = await inviteMember(ledgerId, name);
       setUsername('');
@@ -323,9 +314,7 @@ function InviteForm({ ledgerId, onInvited }: { ledgerId: number; onInvited: () =
         err instanceof ApiError && err.code === 'cannot_invite'
           ? `Can’t invite ${name}. Check the spelling; they may already be in this ledger or invited to it.`
           : 'Couldn’t invite. Check your connection and try again.';
-      // role="alert" covers web; VoiceOver needs an explicit announcement.
-      setFailure(message);
-      AccessibilityInfo.announceForAccessibility(message);
+      fail(message);
     } finally {
       inFlight.current = false;
       setBusy(false);
@@ -383,28 +372,27 @@ function MemberLeave({ ledger }: { ledger: Ledger }) {
   const { user } = useSession();
   const [confirming, setConfirming] = useState(false);
   const [busy, setBusy] = useState(false);
-  const [failure, setFailure] = useState<string | null>(null);
+  const { error: failure, showError: fail, clearError } = useAnnouncedError();
   // `busy` disables the buttons only after a re-render; two taps in one tick would both get here.
   const inFlight = useRef(false);
 
   function showPanel(show: boolean) {
     setConfirming(show);
-    setFailure(null);
+    clearError();
   }
 
   async function leave() {
     if (inFlight.current) return;
     inFlight.current = true;
     setBusy(true);
-    setFailure(null);
+    clearError();
     try {
       await removeMember(ledger.ledgerId, user.userId);
     } catch (err) {
       // Removed by the owner meanwhile: they're out either way, and the ledger-gone handler is already moving them.
       if (!(err instanceof ApiError && err.code === 'ledger_not_found')) {
         const message = 'Couldn’t leave. Check your connection and try again.';
-        setFailure(message);
-        AccessibilityInfo.announceForAccessibility(message);
+        fail(message);
         inFlight.current = false;
         setBusy(false);
         return;

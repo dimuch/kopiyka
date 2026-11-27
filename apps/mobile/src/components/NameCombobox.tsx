@@ -10,17 +10,16 @@ import {
   type TextInputKeyPressEvent,
   type TextStyle,
 } from 'react-native';
-import { useThemedStyles } from '@/appearance/AppearanceContext';
+import { useAppearance, useThemedStyles } from '@/appearance/AppearanceContext';
 import { Pressable } from '@/components/Pressable';
 import { Text } from '@/components/Text';
 import { TextField } from '@/components/TextField';
 import { matchingNames } from '@/data/nameSuggestions';
-import { type Palette, radius, size, space } from '@/theme';
+import { type Palette, radius, shadow, size, space } from '@/theme';
 
 /** Rows shown before the list scrolls; each row is the 44pt touch minimum high. */
 const VISIBLE_ROWS = 5;
 const ROW_HEIGHT = size.iconButton;
-const LIST_BORDER = 1;
 const isWeb = Platform.OS === 'web';
 
 // On web a press on an option would blur the field first, closing the list before the press lands; keeping the
@@ -50,6 +49,7 @@ interface Props {
  */
 export function NameCombobox({ value, onChangeText, names, editable, style, ...field }: Props) {
   const styles = useThemedStyles(makeStyles);
+  const { scheme } = useAppearance();
   const listId = useId();
   const listRef = useRef<ScrollViewInstance>(null);
   // How far the list is scrolled, so moving the highlight only scrolls when the row is out of view.
@@ -154,8 +154,7 @@ export function NameCombobox({ value, onChangeText, names, editable, style, ...f
             scrollY.current = event.nativeEvent.contentOffset.y;
           }}
           scrollEventThrottle={16}
-          // The border adds to the height, so five whole rows still fit.
-          style={[styles.list, { maxHeight: VISIBLE_ROWS * ROW_HEIGHT + 2 * LIST_BORDER }]}
+          style={[styles.list, { maxHeight: VISIBLE_ROWS * ROW_HEIGHT, boxShadow: shadow[scheme].float }]}
           keyboardShouldPersistTaps="handled"
           nestedScrollEnabled
         >
@@ -192,8 +191,6 @@ const makeStyles = (colors: Palette) =>
       marginTop: space.xs,
       borderRadius: radius.md,
       backgroundColor: colors.surface,
-      borderWidth: LIST_BORDER,
-      borderColor: colors.borderStrong,
     },
     option: { height: ROW_HEIGHT, justifyContent: 'center', paddingHorizontal: space.md },
     active: { backgroundColor: colors.accentTint },

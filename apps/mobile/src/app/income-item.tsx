@@ -243,10 +243,10 @@ function IncomeForm({
         </Text>
       ) : null}
 
-      {gone ? null : <Button variant="primary" size="large" label="Save" busy={busy} onPress={save} />}
+      {gone ? null : <Button variant="primary" label="Save" busy={busy} onPress={save} />}
 
       {remove && !gone ? (
-        <Button variant="dangerText" size="medium" label="Delete item" disabled={busy} onPress={deleteItem} />
+        <Button variant="dangerText" label="Delete item" disabled={busy} onPress={deleteItem} />
       ) : null}
     </ScrollView>
   );

@@ -170,7 +170,7 @@ today stops working, and no API, data, connector or demo-store change.
       Every button dims to 0.4 while busy or disabled, and a busy one shows a spinner before its label." And "A chip's
       touch area is 44pt high around its 32pt pill."
   - Verify: `yarn format:check`.
-- [ ] 2. Give each button look one shape, with one disabled look and the spinner before the label (≈ 130 lines)
+- [x] 2. Give each button look one shape, with one disabled look and the spinner before the label (≈ 130 lines)
   - Files: `apps/mobile/src/components/Button.tsx`, plus the 26 callers' `size` lines in `PendingInvites`,
     `members`, `ScreenHeader`, `LoadError`, `category-form`, `income-item`, `EmptyMonth`, `delete-category`,
     `actual-end`, `CategoryForm`, `login`, `no-ledger`, `expense`, `(tabs)/settings`

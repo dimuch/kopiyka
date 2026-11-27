@@ -149,7 +149,7 @@ export function CategoryForm({
 
       {gone ? null : (
         <>
-          <Button variant="primary" size="large" label="Save" busy={busy} onPress={submit} />
+          <Button variant="primary" label="Save" busy={busy} onPress={submit} />
           {children}
         </>
       )}

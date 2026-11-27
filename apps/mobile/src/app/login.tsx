@@ -95,7 +95,6 @@ export default function Login() {
         <View style={styles.actions}>
           <Button
             variant="primary"
-            size="large"
             label="Sign in"
             busy={busy}
             disabled={!ready}

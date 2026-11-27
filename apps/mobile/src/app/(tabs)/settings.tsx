@@ -103,7 +103,7 @@ export default function Settings() {
         </View>
         {/* Pins Sign out to the bottom when there's room, and keeps a gap above it when the page scrolls. */}
         <View style={styles.spacer} />
-        <Button variant="outlinedDanger" size="medium" label="Sign out" onPress={logout} style={styles.signOut} />
+        <Button variant="outlinedDanger" label="Sign out" onPress={logout} style={styles.signOut} />
       </ScrollView>
     </PlaceholderPage>
   );

@@ -112,7 +112,7 @@ function LoadFailed({ message, onRetry }: { message: string; onRetry?: () => voi
   return (
     <View>
       <LoadError message={message} onRetry={onRetry} />
-      <Button variant="mutedText" size="compact" label="Back" onPress={leave} style={styles.failedBack} />
+      <Button variant="mutedText" label="Back" onPress={leave} style={styles.failedBack} />
     </View>
   );
 }
@@ -357,7 +357,6 @@ function ExpenseForm({ draft, ledgerId }: { draft: ExpenseDraftData; ledgerId: n
           <>
             <Button
               variant="primary"
-              size="large"
               label={expense ? 'Update' : 'Add'}
               icon={expense ? undefined : 'plus'}
               busy={busy}
@@ -365,9 +364,7 @@ function ExpenseForm({ draft, ledgerId }: { draft: ExpenseDraftData; ledgerId: n
               onPress={save}
             />
 
-            {expense && (
-              <Button variant="dangerText" size="medium" label="Delete expense" disabled={busy} onPress={remove} />
-            )}
+            {expense && <Button variant="dangerText" label="Delete expense" disabled={busy} onPress={remove} />}
           </>
         )}
 

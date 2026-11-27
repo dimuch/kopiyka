@@ -26,7 +26,6 @@ export function EmptyMonth({
       {action && (
         <Button
           variant="primary"
-          size="large"
           label={action.label}
           busy={action.busy}
           onPress={action.onPress}

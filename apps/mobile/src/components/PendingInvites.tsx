@@ -41,7 +41,6 @@ export function PendingInvites({
             <View style={styles.buttons}>
               <Button
                 variant="mutedText"
-                size="compact"
                 label="Decline"
                 accessibilityLabel={`Decline invite from ${from}`}
                 disabled={busy}
@@ -50,7 +49,6 @@ export function PendingInvites({
               />
               <Button
                 variant="primary"
-                size="compact"
                 label="Accept"
                 accessibilityLabel={`Accept invite from ${from}`}
                 busy={busyId === invite.inviteId}

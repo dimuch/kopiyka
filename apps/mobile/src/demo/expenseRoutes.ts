@@ -67,13 +67,30 @@ function newestFirst(left: Expense, right: Expense): number {
   );
 }
 
+interface NameSuggestion {
+  name: string;
+  key: string;
+  uses: number;
+  latestDate: string;
+}
+
+/** Most uses first, then the newest date, then A–Z by key (by code unit, as the API: not `localeCompare`). */
+function byRank(left: NameSuggestion, right: NameSuggestion): number {
+  if (left.uses !== right.uses) return right.uses - left.uses;
+  if (left.latestDate > right.latestDate) return -1;
+  if (left.latestDate < right.latestDate) return 1;
+  if (left.key < right.key) return -1;
+  if (left.key > right.key) return 1;
+  return 0;
+}
+
 /**
  * The API's `rankNames` (apps/api/src/expenses/nameSuggestions.ts) over newest-first expenses: one entry per name
  * ignoring case and surrounding spaces, in its newest spelling, without empty names; most uses, then the newest date,
  * then A–Z ignoring case.
  */
 function rankNames(newest: Expense[]): string[] {
-  const byKey = new Map<string, { name: string; key: string; uses: number; latestDate: string }>();
+  const byKey = new Map<string, NameSuggestion>();
   for (const expense of newest) {
     const name = expense.name.trim();
     if (!name) continue;
@@ -82,14 +99,7 @@ function rankNames(newest: Expense[]): string[] {
     if (seen) seen.uses += 1;
     else byKey.set(key, { name, key, uses: 1, latestDate: expense.expenseDate });
   }
-  return [...byKey.values()]
-    .sort(
-      (a, b) =>
-        b.uses - a.uses ||
-        (a.latestDate === b.latestDate ? 0 : a.latestDate > b.latestDate ? -1 : 1) ||
-        (a.key === b.key ? 0 : a.key < b.key ? -1 : 1),
-    )
-    .map((suggestion) => suggestion.name);
+  return [...byKey.values()].sort(byRank).map((suggestion) => suggestion.name);
 }
 
 export const expenseRoutes: Route[] = [

@@ -1,7 +1,8 @@
 import { Stack, useLocalSearchParams } from 'expo-router';
 import { useRef, useState } from 'react';
-import { AccessibilityInfo, ActivityIndicator, ScrollView, StyleSheet, View } from 'react-native';
+import { ActivityIndicator, ScrollView, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useAnnouncedError } from '@/announcedError';
 import { ApiError } from '@/api/apiError';
 import type { MonthBalance } from '@/api/types';
 import { useColors, useThemedStyles } from '@/appearance/AppearanceContext';
@@ -83,24 +84,18 @@ function ActualEndForm({ month, balance, busy, setBusy }: { month: string; balan
   const styles = useThemedStyles(makeStyles);
   const { ledger } = useSession();
   const [amountText, setAmountText] = useState(balance.closingEur);
-  const [error, setError] = useState<string | null>(null);
+  const { error, showError, clearError } = useAnnouncedError();
   // The month lost its line meanwhile: saving again can't help.
   const [gone, setGone] = useState(false);
   // `busy` disables the buttons only after a re-render; two presses in one tick would both get here.
   const inFlight = useRef(false);
   const locked = busy || gone;
 
-  // The alert role covers web; VoiceOver needs an explicit announcement.
-  function showError(message: string) {
-    setError(message);
-    AccessibilityInfo.announceForAccessibility(message);
-  }
-
   /** Runs a save or a clear, then closes; a refusal or failure keeps the form with its text and its reason. */
   async function run(action: () => Promise<void>, failed: string) {
     inFlight.current = true;
     setBusy(true);
-    setError(null);
+    clearError();
     try {
       await action();
       closeToBudget(month);
@@ -147,7 +142,7 @@ function ActualEndForm({ month, balance, busy, setBusy }: { month: string; balan
           value={amountText}
           onChangeText={(typed) => {
             setAmountText(typed);
-            setError(null);
+            clearError();
           }}
           onSubmitEditing={save}
           editable={!locked}

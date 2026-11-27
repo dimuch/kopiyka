@@ -151,6 +151,20 @@ export async function restoreToMonth(
   });
 }
 
+/** Sets a category's icon (brief 114): a key the caller has checked against categories/icons.ts, or null. */
+async function storeIcon(
+  conn: PoolConnection,
+  ledgerId: number,
+  categoryId: number,
+  icon: string | null,
+): Promise<void> {
+  await conn.query('UPDATE categories SET icon = ? WHERE category_id = ? AND ledger_id = ?', [
+    icon,
+    categoryId,
+    ledgerId,
+  ]);
+}
+
 /** Stores a category's planned EUR for a month (first day); the caller has checked the income rule. */
 async function storePlanned(conn: PoolConnection, categoryId: number, first: string, amount: string): Promise<void> {
   await conn.query(
@@ -160,14 +174,19 @@ async function storePlanned(conn: PoolConnection, categoryId: number, first: str
   );
 }
 
-/** What an edit changes; a field left out stays as it is. `name` is trimmed, `amount` is EUR ('12.50', ≥ 0). */
+/**
+ * What an edit changes; a field left out stays as it is. `name` is trimmed, `amount` is EUR ('12.50', ≥ 0), `icon` a
+ * key from categories/icons.ts or null for the letter (brief 114).
+ */
 interface CategoryEdit {
   name?: string;
   amount?: string;
+  icon?: string | null;
 }
 
 /**
- * Changes a category's name, planned amount or both in a 'YYYY-MM' month only (briefs 036, 037), all or nothing.
+ * Changes a category's name, planned amount or both in a 'YYYY-MM' month only (briefs 036, 037), and its icon, which
+ * is the category's own and so the same in every month (brief 114), all or nothing.
  * 'not_found' when it isn't in the month's list (unknown, foreign, deleted, removed, or the month has no budget);
  * 'name_taken' when another category there has the name; the refusal when the raise would plan the month above its
  * income (brief 060).
@@ -177,7 +196,7 @@ export async function editInMonth(
   ledgerId: number,
   categoryId: number,
   month: string,
-  { name, amount }: CategoryEdit,
+  { name, amount, icon }: CategoryEdit,
 ): Promise<'edited' | 'not_found' | 'name_taken' | OverIncome> {
   const first = monthStart(month);
   return withTransaction(db, async (conn) => {
@@ -208,6 +227,7 @@ export async function editInMonth(
       );
     }
     if (amount !== undefined) await storePlanned(conn, categoryId, first, amount);
+    if (icon !== undefined) await storeIcon(conn, ledgerId, categoryId, icon);
     return 'edited';
   });
 }
@@ -260,7 +280,8 @@ async function findByName(
  * It reuses the ledger's category with that name that isn't in the month already (see findByName), so its history
  * stays one category; a removed row comes back, and the expenses removed with it stay deleted. Without a match it
  * creates a category at the end of the ledger's order. Writes nothing on 'name_taken', when a category in the month
- * has the name, or on the refusal when the amount would plan the month above its income (brief 060).
+ * has the name, or on the refusal when the amount would plan the month above its income (brief 060). An `icon` given
+ * (a key or null) is written to the new or reused category; left out, a reused category keeps its own (brief 114).
  */
 export async function addToMonth(
   db: Db,
@@ -268,6 +289,7 @@ export async function addToMonth(
   month: string,
   name: string,
   amount: string,
+  icon?: string | null,
 ): Promise<AddedCategory | 'name_taken' | OverIncome> {
   const first = monthStart(month);
   return withTransaction(db, async (conn) => {
@@ -287,7 +309,9 @@ export async function addToMonth(
          ON DUPLICATE KEY UPDATE deleted_at = NULL, display_name = ?`,
         [found.categoryId, first, name, name],
       );
-      return found;
+      if (icon === undefined) return found;
+      await storeIcon(conn, ledgerId, found.categoryId, icon);
+      return { ...found, icon };
     }
 
     // Deleted categories count for both: their tech_names stay taken (brief 014) and their order stays theirs.
@@ -308,8 +332,8 @@ export async function addToMonth(
       techName = `${base}_${suffix}`;
     }
     const [created] = await conn.query<ResultSetHeader>(
-      'INSERT INTO categories (ledger_id, tech_name, display_name, sort_order) VALUES (?, ?, ?, ?)',
-      [ledgerId, techName, name, sortOrder],
+      'INSERT INTO categories (ledger_id, tech_name, display_name, sort_order, icon) VALUES (?, ?, ?, ?, ?)',
+      [ledgerId, techName, name, sortOrder, icon ?? null],
     );
     await conn.query('INSERT INTO category_months (category_id, list_month, display_name) VALUES (?, ?, ?)', [
       created.insertId,
@@ -317,7 +341,7 @@ export async function addToMonth(
       name,
     ]);
     await storePlanned(conn, created.insertId, first, amount);
-    return { categoryId: created.insertId, techName, sortOrder, icon: null };
+    return { categoryId: created.insertId, techName, sortOrder, icon: icon ?? null };
   });
 }
 

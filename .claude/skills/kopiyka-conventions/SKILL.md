@@ -227,6 +227,10 @@ CI also builds both web flavours (`yarn mobile export:web`) and runs `yarn mobil
 hold nothing of the demo's. A module that newly reaches the demo is accepted in its PR with
 `yarn mobile check-builds --accept`, and the list's diff is the review.
 
+CI also runs `yarn skills:check`. Copilot's copies of the `kopiyka-*` skills and of the agents in `.claude/` are
+generated: after editing those, run `yarn skills:build` and commit the result. How the marks for one tool's text work:
+`docs/copilot.md`.
+
 New dependency checklist: needed by an AC; no existing code/module does it;
 maintained; size acceptable for the app bundle; SDK-compatible (mobile).
 State it in the plan and the PR.

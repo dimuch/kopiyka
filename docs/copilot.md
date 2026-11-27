@@ -46,9 +46,24 @@ brief → plan → skeptic → your approval → atomic commits → review → y
 
 ## Keeping the two copies in step
 
-The `SKILL.md` of each `.github/skills/kopiyka-*` skill, and `.github/agents/`, are adapted copies of the `.claude/`
-files. Only the parts about tools differ (delegation, browser, web fetch, paths). When you change a rule, change both
-copies, or drop the `.claude/` side once you've moved for good.
+`.claude/` is the one source. The `SKILL.md` of each `.github/skills/kopiyka-*` skill, and every
+`.github/agents/*.agent.md`, are generated from it by `scripts/build-copilot-skills.mjs`:
+
+- Edit `.claude/skills/kopiyka-*/SKILL.md` or `.claude/agents/*.md`, then run `yarn skills:build` and commit both
+  sides. Never edit the generated files by hand: each says so on its second line, and CI's `yarn skills:check` fails
+  when one differs from what the build writes.
+- Wording that is the same rule for both tools (paths, "Spawn" → "Delegate to", Bash → the terminal) is a
+  substitution list in the script. An agent's Copilot front matter and its "read these SKILL.md files first" line are
+  built from its Claude front matter.
+- Text that only one tool gets is marked in the source:
+  - `<!-- claude -->…<!-- /claude -->` in the body: only Claude gets it.
+  - `<!-- copilot: <id> -->` in the body: Copilot gets the text named `<id>` there. The text itself sits in the front
+    matter as YAML comment lines, `# copilot text <id>:` followed by `# | <line>` (`# |` alone is an empty line).
+    Claude Code shows HTML comments in a skill body to the model, but never the front matter, so this keeps
+    Copilot's text out of what Claude reads.
+  - `# copilot: <key>: <value>` in the front matter: a key only Copilot gets.
+- When you change text inside a `claude` block, update its `copilot` text too. No check can tell that the two still
+  say the same thing.
 
 Everything that is the same for both tools is a symlink into `.claude/skills/`, so it has one copy: the vendored skill
 folders (`.github/skills/<name>` → `.claude/skills/<name>`) and the kopiyka skills' scripts and references. After

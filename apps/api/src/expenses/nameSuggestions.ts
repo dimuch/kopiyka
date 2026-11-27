@@ -24,10 +24,10 @@ export function rankNames(newestFirst: readonly { name: string; expenseDate: str
   }
   return [...byKey.values()]
     .sort(
-      (a, b) =>
-        b.uses - a.uses ||
-        (a.latestDate === b.latestDate ? 0 : a.latestDate > b.latestDate ? -1 : 1) ||
-        (a.key === b.key ? 0 : a.key < b.key ? -1 : 1),
+      (left, right) =>
+        right.uses - left.uses ||
+        (left.latestDate === right.latestDate ? 0 : left.latestDate > right.latestDate ? -1 : 1) ||
+        (left.key === right.key ? 0 : left.key < right.key ? -1 : 1),
     )
     .map((suggestion) => suggestion.name);
 }

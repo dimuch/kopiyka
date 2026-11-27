@@ -29,19 +29,19 @@ export interface ExpenseDto {
 const EXPENSE_COLUMNS = `e.expense_id, e.category_id, e.expense_date, e.name, e.amount_eur, e.amount_uah,
   e.eur_uah_rate, e.entered_currency, e.created_by, e.created_at, e.updated_at`;
 
-function toDto(r: RowDataPacket): ExpenseDto {
+function toDto(row: RowDataPacket): ExpenseDto {
   return {
-    expenseId: Number(r.expense_id),
-    categoryId: r.category_id,
-    expenseDate: r.expense_date,
-    name: r.name,
-    amountEur: r.amount_eur,
-    amountUah: r.amount_uah,
-    eurUahRate: r.eur_uah_rate,
-    enteredCurrency: r.entered_currency,
-    createdBy: r.created_by,
-    createdAt: (r.created_at as Date).toISOString(),
-    updatedAt: (r.updated_at as Date).toISOString(),
+    expenseId: Number(row.expense_id),
+    categoryId: row.category_id,
+    expenseDate: row.expense_date,
+    name: row.name,
+    amountEur: row.amount_eur,
+    amountUah: row.amount_uah,
+    eurUahRate: row.eur_uah_rate,
+    enteredCurrency: row.entered_currency,
+    createdBy: row.created_by,
+    createdAt: (row.created_at as Date).toISOString(),
+    updatedAt: (row.updated_at as Date).toISOString(),
   };
 }
 
@@ -53,7 +53,10 @@ const ExpenseBody = z.object({
   amount: z
     .union([z.string(), z.number()])
     .transform(String)
-    .refine((a) => AMOUNT_RE.test(a) && toCents(a) > 0n, 'expected a positive amount with at most 2 decimals'),
+    .refine(
+      (amount) => AMOUNT_RE.test(amount) && toCents(amount) > 0n,
+      'expected a positive amount with at most 2 decimals',
+    ),
   currency: z.enum(['EUR', 'UAH']),
 });
 type ExpenseInput = z.infer<typeof ExpenseBody>;
@@ -149,7 +152,7 @@ export async function expenseRoutes(app: FastifyInstance, deps: AppDeps): Promis
         ORDER BY e.expense_date DESC, e.created_at DESC, e.expense_id DESC`,
       [req.ledger!.ledgerId, categoryId, previousMonthStart(month), nextMonthStart(month)],
     );
-    return { names: rankNames(rows.map((r) => ({ name: r.name, expenseDate: r.expense_date }))) };
+    return { names: rankNames(rows.map((row) => ({ name: row.name, expenseDate: row.expense_date }))) };
   });
 
   app.get('/api/ledgers/:id/expenses/:expenseId', guards, async (req, reply) => {

@@ -110,6 +110,7 @@ src/data/reorder.ts
 src/data/undo.ts
 src/data/useCategoryOrder.ts
 src/data/useCategoryTotals.ts
+src/data/useCopyPrevious.ts
 src/data/useExpenseDraft.ts
 src/data/useExpenseNames.ts
 src/data/useFocusLoad.ts

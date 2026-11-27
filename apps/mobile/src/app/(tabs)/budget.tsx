@@ -2,7 +2,6 @@ import { router, useLocalSearchParams } from 'expo-router';
 import { useRef, useState } from 'react';
 import { ActivityIndicator, ScrollView, type ScrollViewInstance, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { ApiError } from '@/api/apiError';
 import { useColors, useThemedStyles } from '@/appearance/AppearanceContext';
 import { useSession } from '@/auth/AuthContext';
 import { CategoryTile } from '@/components/CategoryTile';
@@ -19,14 +18,14 @@ import { useTabBarRoom } from '@/components/TabBar';
 import { Text } from '@/components/Text';
 import { UndoToast, useToastRoom } from '@/components/UndoToast';
 import { copyPreviousMonth } from '@/data/categories';
-import { copyRefusedText } from '@/data/monthCopy';
 import { balanceLine } from '@/data/monthBalance';
 import { incomeCents, plannedCents } from '@/data/monthSummary';
 import { tabTitle } from '@/data/tabItems';
 import { useUndoOffer } from '@/data/undo';
 import { useCategoryOrder } from '@/data/useCategoryOrder';
+import { useCopyPrevious } from '@/data/useCopyPrevious';
 import { useIncome } from '@/data/useIncome';
-import { type MonthData, useMonth } from '@/data/useMonth';
+import { useMonth } from '@/data/useMonth';
 import { useMonthBalance } from '@/data/useMonthBalance';
 import { useMonthCategories } from '@/data/useMonthCategories';
 import { eur, kyivMonth, monthName, shiftMonth, toCents } from '@/format';
@@ -71,48 +70,15 @@ export default function Budget() {
   const [dragging, setDragging] = useState(false);
   const scrollRef = useRef<ScrollViewInstance>(null);
 
-  const [busy, setBusy] = useState(false);
-  // Tagged with their ledger and month, so switching either clears them without an effect.
-  const shown = `${ledger.ledgerId}/${month}`;
-  const [refused, setRefused] = useState<{ shown: string; text: string } | null>(null);
-  const [failed, setFailed] = useState<string | null>(null);
-  // The empty month loaded before a successful copy: useMonth keeps it until the reload lands, so without this Copy
-  // would flash back.
-  const [copiedOver, setCopiedOver] = useState<MonthData | null>(null);
-  // `busy` disables the button only after a re-render; two presses in one tick would both get here.
-  const inFlight = useRef(false);
-
-  async function copy() {
-    if (inFlight.current) return;
-    inFlight.current = true;
-    setBusy(true);
-    setFailed(null);
-    const before = data;
-    try {
-      await copyPreviousMonth(ledger.ledgerId, month);
-      setCopiedOver(before);
-      reload();
-    } catch (err) {
-      const refusedText = err instanceof ApiError ? copyRefusedText(err.code, month) : null;
-      if (refusedText) {
-        setRefused({ shown, text: refusedText });
-        // A budget_exists brings the list in; a no_previous_budget refreshes the previous month.
-        reload();
-        previous.reload();
-      } else {
-        setFailed(shown);
-      }
-    } finally {
-      // The screen stays mounted, so a later copy into another month must work.
-      inFlight.current = false;
-      setBusy(false);
-    }
-  }
-
-  const refusal = refused?.shown === shown ? refused.text : null;
-  const canCopy =
-    !ended && previous.status === 'ready' && previous.categories.length > 0 && !refusal && data !== copiedOver;
-  const note = refusal ?? (failed === shown ? 'Couldn’t copy. Check your connection and try again.' : null);
+  const { busy, note, hideCopy, startCopy } = useCopyPrevious({
+    ledgerId: ledger.ledgerId,
+    month,
+    copy: copyPreviousMonth,
+    current: data,
+    reload,
+    reloadPrevious: previous.reload,
+  });
+  const canCopy = !ended && previous.status === 'ready' && previous.categories.length > 0 && !hideCopy;
 
   return (
     <SafeAreaView style={styles.screen} edges={['top']}>
@@ -174,7 +140,7 @@ export default function Budget() {
                   text={`No budget for ${monthName(month)} yet`}
                   action={
                     canCopy
-                      ? { label: `Copy ${monthName(previousMonth)}’s categories`, onPress: copy, busy }
+                      ? { label: `Copy ${monthName(previousMonth)}’s categories`, onPress: startCopy, busy }
                       : undefined
                   }
                   note={note}

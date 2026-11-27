@@ -31,6 +31,5 @@ Expenses card use it. Each keeps its own card, labels, values and accessibility 
 
 ## Notes
 
-Covered by: no tests (UI); layout records of both cards. Base: R16's branch (`chore/load-state`, in review), rebased on
-`origin/main` once it merges. Baseline: API 549 passed + 2 skipped, MCP 329, app 547. R16 takes 1.26.18, so this PR is
+Covered by: no tests (UI); layout records of both cards. Base: `origin/main` after R16 (#204). Baseline: API 549 passed + 2 skipped, MCP 329, app 547. R16 takes 1.26.18, so this PR is
 1.26.19. This is the last roadmap row: after it merges, `main` is deployed.

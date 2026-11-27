@@ -33,7 +33,7 @@ Why: §8b `patch` (styling/copy, no new capability): the card's order and screen
 - [x] 0. Bump version to 1.24.1
   - Files: package.json, apps/mobile/app.json
   - Change: set both to 1.24.1
-- [ ] 1. Show Spent, Budgeted and Remaining on the Expenses card, as on Budget (~15 lines)
+- [x] 1. Show Spent, Budgeted and Remaining on the Expenses card, as on Budget (~15 lines)
   - Files: apps/mobile/src/data/monthSummary.ts, apps/mobile/src/app/(tabs)/expenses.tsx,
     apps/mobile/test/monthSummary.test.ts
   - Change: label order, JSDoc and the return type's field order (`spent, budgeted, remaining, over, label`) in

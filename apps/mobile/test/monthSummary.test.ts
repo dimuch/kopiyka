@@ -126,10 +126,10 @@ describe('spendingFigures', () => {
       categories: [category('600.00', 1), category('400.00', 2)],
       expected: {
         spent: '€250.50',
-        remaining: '€749.50',
         budgeted: '€1,000',
+        remaining: '€749.50',
         over: false,
-        label: 'Spent €250.50, remaining €749.50, budgeted €1,000',
+        label: 'Spent €250.50, budgeted €1,000, remaining €749.50',
       },
     },
     {
@@ -138,10 +138,10 @@ describe('spendingFigures', () => {
       categories: [category('1000.00')],
       expected: {
         spent: '€1,009',
-        remaining: '−€9',
         budgeted: '€1,000',
+        remaining: '−€9',
         over: true,
-        label: 'Spent €1,009, remaining −€9, budgeted €1,000',
+        label: 'Spent €1,009, budgeted €1,000, remaining −€9',
       },
     },
     {
@@ -150,10 +150,10 @@ describe('spendingFigures', () => {
       categories: [category('1000.00')],
       expected: {
         spent: '€1,000',
-        remaining: '€0',
         budgeted: '€1,000',
+        remaining: '€0',
         over: false,
-        label: 'Spent €1,000, remaining €0, budgeted €1,000',
+        label: 'Spent €1,000, budgeted €1,000, remaining €0',
       },
     },
     {
@@ -162,19 +162,19 @@ describe('spendingFigures', () => {
       categories: [category('0.00', 1), category('0.00', 2)],
       expected: {
         spent: '€12',
-        remaining: '−€12',
         budgeted: '€0',
+        remaining: '−€12',
         over: true,
-        label: 'Spent €12, remaining −€12, budgeted €0',
+        label: 'Spent €12, budgeted €0, remaining −€12',
       },
     },
     {
       name: 'no budget',
       spent: 0,
       categories: [],
-      expected: { spent: '€0', remaining: '—', budgeted: 'Not set', over: false, label: 'Spent €0, budget not set' },
+      expected: { spent: '€0', budgeted: 'Not set', remaining: '—', over: false, label: 'Spent €0, budget not set' },
     },
-  ])('shows Spent, Remaining and Budgeted: $name', ({ spent, categories, expected }) => {
+  ])('shows Spent, Budgeted and Remaining: $name', ({ spent, categories, expected }) => {
     expect(spendingFigures(spent, categories)).toEqual(expected);
   });
 });

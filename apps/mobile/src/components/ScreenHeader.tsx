@@ -92,7 +92,7 @@ export function ScreenHeader(props: Props) {
 const makeStyles = (colors: Palette) =>
   StyleSheet.create({
     modal: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: space.sm },
-    modalBack: { marginLeft: -space.sm, paddingHorizontal: space.sm },
+    modalBack: { marginLeft: -space.sm },
     // About Back's width, so the title sits near the row's centre.
     spacer: { width: 52 },
     month: { flexDirection: 'row', alignItems: 'center', paddingBottom: space.sm },

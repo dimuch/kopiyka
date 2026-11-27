@@ -4,7 +4,7 @@ import { Button } from '@/components/Button';
 import { Card } from '@/components/Card';
 import { LoadError } from '@/components/LoadError';
 import { Text } from '@/components/Text';
-import { type Palette, radius, size, space } from '@/theme';
+import { type Palette, space } from '@/theme';
 
 /** A month with nothing in it yet ("No budget for November yet"), an optional action and its outcome. */
 export function EmptyMonth({
@@ -47,6 +47,6 @@ const makeStyles = (colors: Palette) =>
       alignItems: 'center',
     },
     text: { textAlign: 'center' },
-    // Full width in a centred card. One-off until brief 105d: 48pt with radius.md, and the large size's spinner.
-    button: { alignSelf: 'stretch', minHeight: size.control, borderRadius: radius.md },
+    // Full width in a centred card.
+    button: { alignSelf: 'stretch' },
   });

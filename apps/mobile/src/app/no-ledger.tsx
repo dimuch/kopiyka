@@ -58,5 +58,5 @@ const makeStyles = (colors: Palette) =>
       maxWidth: 420,
       alignSelf: 'center',
     },
-    check: { alignSelf: 'flex-start', marginLeft: -space.sm, paddingHorizontal: space.sm },
+    check: { alignSelf: 'flex-start', marginLeft: -space.sm },
   });

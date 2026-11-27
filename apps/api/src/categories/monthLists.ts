@@ -276,6 +276,51 @@ async function findByName(
     : null;
 }
 
+/** The ledger's first free tech_name for `name`: its base, else the base with the first free `_2`, `_3`… suffix. */
+async function freeTechName(conn: PoolConnection, ledgerId: number, name: string): Promise<string> {
+  const base = techNameBase(name);
+  let techName = base;
+  // Compared under the column's own collation, the one its unique index uses.
+  for (let suffix = 2; ; suffix++) {
+    const [rows] = await conn.query<RowDataPacket[]>(
+      'SELECT 1 FROM categories WHERE ledger_id = ? AND tech_name = ? LIMIT 1',
+      [ledgerId, techName],
+    );
+    if (!rows.length) break;
+    techName = `${base}_${suffix}`;
+  }
+  return techName;
+}
+
+/** Creates a category called `name` at the end of the ledger's order, listed in the month with `amount` planned. */
+async function createCategory(
+  conn: PoolConnection,
+  ledgerId: number,
+  first: string,
+  name: string,
+  amount: string,
+  icon?: CategoryIconKey | null,
+): Promise<AddedCategory> {
+  // Deleted categories count for both: their tech_names stay taken (brief 014) and their order stays theirs.
+  const [[order]] = await conn.query<RowDataPacket[]>(
+    'SELECT COALESCE(MAX(sort_order), 0) + 10 AS next FROM categories WHERE ledger_id = ?',
+    [ledgerId],
+  );
+  const sortOrder = Number(order!.next);
+  const techName = await freeTechName(conn, ledgerId, name);
+  const [created] = await conn.query<ResultSetHeader>(
+    'INSERT INTO categories (ledger_id, tech_name, display_name, sort_order, icon) VALUES (?, ?, ?, ?, ?)',
+    [ledgerId, techName, name, sortOrder, icon ?? null],
+  );
+  await conn.query('INSERT INTO category_months (category_id, list_month, display_name) VALUES (?, ?, ?)', [
+    created.insertId,
+    first,
+    name,
+  ]);
+  await storePlanned(conn, created.insertId, first, amount);
+  return { categoryId: created.insertId, techName, sortOrder, icon: icon ?? null };
+}
+
 /**
  * Adds a category called `name` (trimmed) to a 'YYYY-MM' month with `amount` planned in EUR ('12.50', ≥ 0; brief 038).
  * It reuses the ledger's category with that name that isn't in the month already (see findByName), so its history
@@ -315,34 +360,7 @@ export async function addToMonth(
       return { ...found, icon };
     }
 
-    // Deleted categories count for both: their tech_names stay taken (brief 014) and their order stays theirs.
-    const [[order]] = await conn.query<RowDataPacket[]>(
-      'SELECT COALESCE(MAX(sort_order), 0) + 10 AS next FROM categories WHERE ledger_id = ?',
-      [ledgerId],
-    );
-    const sortOrder = Number(order!.next);
-    const base = techNameBase(name);
-    let techName = base;
-    // Compared under the column's own collation, the one its unique index uses.
-    for (let suffix = 2; ; suffix++) {
-      const [rows] = await conn.query<RowDataPacket[]>(
-        'SELECT 1 FROM categories WHERE ledger_id = ? AND tech_name = ? LIMIT 1',
-        [ledgerId, techName],
-      );
-      if (!rows.length) break;
-      techName = `${base}_${suffix}`;
-    }
-    const [created] = await conn.query<ResultSetHeader>(
-      'INSERT INTO categories (ledger_id, tech_name, display_name, sort_order, icon) VALUES (?, ?, ?, ?, ?)',
-      [ledgerId, techName, name, sortOrder, icon ?? null],
-    );
-    await conn.query('INSERT INTO category_months (category_id, list_month, display_name) VALUES (?, ?, ?)', [
-      created.insertId,
-      first,
-      name,
-    ]);
-    await storePlanned(conn, created.insertId, first, amount);
-    return { categoryId: created.insertId, techName, sortOrder, icon: icon ?? null };
+    return createCategory(conn, ledgerId, first, name, amount, icon);
   });
 }
 

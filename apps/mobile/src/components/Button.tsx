@@ -6,19 +6,19 @@ import { Text, type TextVariant } from '@/components/Text';
 import { type Palette, radius, size, space } from '@/theme';
 
 /**
- * primary, danger: filled, a 48pt pill. outlinedDanger: the same pill on surface, with a 1pt borderStrong edge and a
- * danger label. dangerText, mutedText, accentText: only the label, a 44pt pill with no fill.
+ * primary: accent with an onAccent label; danger: fill with a danger label; both a 48pt pill.
+ * dangerText, mutedText, accentLabel: only the label (danger, muted, accent), a 44pt pill with no fill. accentLabel
+ * draws `accent`, not the palette's `accentText`, which is for text on `accentTint`.
  * Every look dims to 0.4 while busy or disabled; a busy one shows a spinner before its label.
  */
-type ButtonVariant = 'primary' | 'danger' | 'outlinedDanger' | 'dangerText' | 'mutedText' | 'accentText';
+type ButtonVariant = 'primary' | 'danger' | 'dangerText' | 'mutedText' | 'accentLabel';
 
 const labels: Record<ButtonVariant, { variant: TextVariant; color: keyof Palette }> = {
   primary: { variant: 'bodyStrong', color: 'onAccent' },
-  danger: { variant: 'bodyStrong', color: 'onAccent' },
-  outlinedDanger: { variant: 'bodyStrong', color: 'danger' },
+  danger: { variant: 'bodyStrong', color: 'danger' },
   dangerText: { variant: 'bodyMedium', color: 'danger' },
   mutedText: { variant: 'bodyMedium', color: 'muted' },
-  accentText: { variant: 'bodyStrong', color: 'accent' },
+  accentLabel: { variant: 'bodyStrong', color: 'accent' },
 };
 
 /** Only the filled looks have a spinner (busy) or an icon. */
@@ -26,7 +26,7 @@ type Look =
   | {
       variant: 'primary' | 'danger';
       /** Shows the spinner, sets aria-busy and disables the button. */
-      busy: boolean;
+      busy?: boolean;
       /** Before the label, hidden while busy: the expense form's "+". */
       icon?: IconName;
     }
@@ -53,7 +53,7 @@ export function Button({
 }) {
   const colors = useColors();
   const styles = useThemedStyles(makeStyles);
-  const filled = variant === 'primary' || variant === 'danger' || variant === 'outlinedDanger';
+  const filled = variant === 'primary' || variant === 'danger';
   const off = Boolean(busy) || disabled;
   const labelColor = labels[variant].color;
   return (
@@ -84,11 +84,10 @@ const makeStyles = (colors: Palette) =>
     filled: { minHeight: size.control, borderRadius: radius.pill, paddingHorizontal: space.lg },
     text: { minHeight: size.iconButton, borderRadius: radius.pill, paddingHorizontal: space.sm },
     primary: { backgroundColor: colors.accent },
-    danger: { backgroundColor: colors.danger },
-    outlinedDanger: { borderWidth: 1, borderColor: colors.borderStrong, backgroundColor: colors.surface },
+    danger: { backgroundColor: colors.fill },
     dangerText: {},
     mutedText: {},
-    accentText: {},
+    accentLabel: {},
     off: { opacity: 0.4 },
     // flexShrink: a label too long for the row (a large text size) wraps, centred, instead of running out.
     label: { textAlign: 'center', flexShrink: 1 },

@@ -431,7 +431,7 @@ function MemberLeave({ ledger }: { ledger: Ledger }) {
       onDismiss={() => showPanel(false)}
     />
   ) : (
-    <Button variant="outlinedDanger" label="Leave ledger" onPress={() => showPanel(true)} />
+    <Button variant="danger" label="Leave ledger" onPress={() => showPanel(true)} />
   );
 }
 

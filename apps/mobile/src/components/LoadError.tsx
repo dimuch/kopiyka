@@ -17,7 +17,7 @@ export function LoadError({ message, onRetry }: { message: string; onRetry?: () 
       <Text accessibilityRole="alert" variant="labelRegular" color="muted">
         {message}
       </Text>
-      {onRetry && <Button variant="accentText" label="Retry" onPress={onRetry} style={styles.retry} />}
+      {onRetry && <Button variant="accentLabel" label="Retry" onPress={onRetry} style={styles.retry} />}
     </View>
   );
 }

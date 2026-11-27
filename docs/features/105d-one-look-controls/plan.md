@@ -202,7 +202,7 @@ today stops working, and no API, data, connector or demo-store change.
     ScreenHeader's `spacer`. None of those styles
     sets a height, `minHeight`, `borderRadius`, `padding*` or `opacity`. `rg -n "opacity: 0\.[456]" apps/mobile/src`
     finds only Button's `off` (0.4) and UndoToast's Undo (0.6, 105e's).
-- [ ] 4. Draw the danger button in the design system's grey with a red label, and name the accent text look (≈ 26 lines)
+- [x] 4. Draw the danger button in the design system's grey with a red label, and name the accent text look (≈ 26 lines)
   - Files: `components/Button.tsx`, `app/(tabs)/settings.tsx`, `app/no-ledger.tsx`, `app/members.tsx`,
     `app/actual-end.tsx`, `components/LoadError.tsx`, `test/theme.test.ts`
   - Change:

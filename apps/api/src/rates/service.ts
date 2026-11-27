@@ -11,7 +11,7 @@ const MAX_FALLBACK_DAYS = 7;
 export const RateDate = z
   .string()
   .refine(isCalendarDate, 'expected a YYYY-MM-DD date')
-  .refine((d) => d >= '2000-01-01', 'too early');
+  .refine((date) => date >= '2000-01-01', 'too early');
 
 /** True after tomorrow in Kyiv: the NBU publishes tomorrow's rate in the afternoon, later ones can't exist yet. */
 export function isAfterRateHorizon(date: string, now: Date): boolean {

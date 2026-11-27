@@ -2,7 +2,7 @@
 
 Status: approved <!-- draft → skeptic-approved → approved (by the user) -->
 Brief: ./brief.md
-Branch: PR A `feat/category-icons` (API); PR B `feat/category-icons-app` (app), stacked on PR A
+Branch: PR A `feat/category-icons` (API, #182, merged); PR B `feat/category-icons-app` (app), from main after PR A
 Base: origin/main (ac5a1036, version 1.24.1)
 
 ## Approach
@@ -274,7 +274,7 @@ two callers.
     - The existing `{}` → 400 still holds. The `describe.each` guard tests cover 401 and 404 for a non-member on edit,
       and "needs a session and a ledger of mine" on add.
 
-### PR B: app (`feat/category-icons-app`, stacked on PR A)
+### PR B: app (`feat/category-icons-app`, from main after PR A, #182, merged)
 
 - [x] 4. Bump version to 1.26.0
   - Files: package.json, apps/mobile/app.json

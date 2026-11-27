@@ -24,6 +24,8 @@ export function CategoryIconPicker({
 }) {
   const colors = useColors();
   const styles = useThemedStyles(makeStyles);
+  // A key this build doesn't draw (a newer API's) checks no radio: the tile shows the letter, and saving untouched
+  // keeps the key, as changedFields sends only a change.
   const letterChecked = value === null;
   return (
     <View accessibilityRole="radiogroup" accessibilityLabel="Icon" style={styles.group}>

@@ -30,6 +30,8 @@ describe('the category icon set', () => {
   it('draws every icon with paths only, and no arc with run-together flags', () => {
     for (const icon of icons) {
       expect(icon.paths.length, icon.key).toBeGreaterThan(0);
+      // Each path is its own React key when drawn.
+      expect(new Set(icon.paths).size, icon.key).toBe(icon.paths.length);
       for (const path of icon.paths) {
         expect(path, icon.key).toMatch(PATH);
         expect(path, icon.key).not.toMatch(RUN_TOGETHER_FLAGS);

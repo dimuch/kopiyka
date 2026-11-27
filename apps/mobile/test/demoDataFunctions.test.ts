@@ -25,6 +25,26 @@ describe('the app’s data functions against the demo store', () => {
     await expect(categories.copyPreviousMonth(1, '2026-12')).resolves.toBeUndefined();
   });
 
+  it('keeps a reused category’s icon when the add picks none, and replaces it when the add picks one', async () => {
+    // Brief 114: a null icon is left out of the add body, so re-adding a category by name can't clear its icon for
+    // every month and every member.
+    const rentIcon = async () =>
+      (
+        await swap.api!<{ categories: { categoryId: number; icon: string | null }[] }>(
+          '/api/ledgers/1/categories?month=2026-11',
+        )
+      ).categories.find((category) => category.categoryId === 1)?.icon;
+    await categories.editInMonth(1, 1, '2026-11', { icon: 'house' });
+
+    await categories.removeFromMonth(1, 1, '2026-11');
+    await categories.addToMonth(1, '2026-11', 'rent', '0', null);
+    expect(await rentIcon()).toBe('house');
+
+    await categories.removeFromMonth(1, 1, '2026-11');
+    await categories.addToMonth(1, '2026-11', 'rent', '0', 'dog');
+    expect(await rentIcon()).toBe('dog');
+  });
+
   it('runs every expense function', async () => {
     const saved = await expenses.saveExpense(1, null, {
       categoryId: 1,

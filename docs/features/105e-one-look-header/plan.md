@@ -163,7 +163,7 @@ data, connector or demo-store change.
 - [x] 0. Bump version to 1.23.16
   - Files: package.json, apps/mobile/app.json
   - Change: set both to 1.23.16
-- [ ] 1. Record the dark float ring, the toast's height and the header, input, menu and sheet looks in the design
+- [x] 1. Record the dark float ring, the toast's height and the header, input, menu and sheet looks in the design
       system (≈ 22 lines, docs)
   - Files: `docs/design/design-system.md`
   - Change:

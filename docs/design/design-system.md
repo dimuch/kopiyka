@@ -74,7 +74,8 @@ example, "€15 left" in `cautionText`, just as an over-plan row shows "€9 ove
 they keep their values from before brief 105 (`#6E757E`, `#6FD08C`, `#132A1C`,
 `rgba(5,6,8,0.62)`). `hairline` is `rgba(237,236,242,0.06)`, dark `text` at 6% as light's is
 light `text` at 6% (1.12:1 on `bg`, 1.16:1 on `surface`; light's is 1.13:1 on both). In dark
-mode, shadows are off: elevation comes from `surface` being lighter than `bg`.
+mode, cards have no shadow: elevation comes from `surface` being lighter than `bg`; floating
+surfaces get a `hairline` ring instead (see Elevation).
 
 ## Type
 
@@ -105,18 +106,21 @@ tabular digits) are used for every figure.
 - **Screen gutter:** `lg` (16). Gap between cards: `sm` (8). Card padding: `md` to `lg`.
 - **Radius:** `sm 10` (category tile, small chip), `md 14` (input), `lg 20` (card), `xl 28` (sheet,
   hero), `pill 999` (buttons, chips, tab bar).
-- **Control heights:** `control 48` (button, input), `iconButton 44` (touch minimum), `chip 32`.
+- **Control heights:** `control 48` (button, input), `iconButton 44` (touch minimum), `chip 32`,
+  `toast 56` (the Undo bar).
 
 ## Elevation
 
 React Native 0.88 supports `boxShadow` on iOS and web, so no library is needed.
 
-| Token          | Light                            | Use                        |
-| -------------- | -------------------------------- | -------------------------- |
-| `shadow.card`  | `0 2px 8px rgba(17,16,20,0.06)`  | every card                 |
-| `shadow.float` | `0 4px 24px rgba(17,16,20,0.12)` | tab bar, "+" button, toast |
+| Token          | Light                            | Dark                               | Use                               |
+| -------------- | -------------------------------- | ---------------------------------- | --------------------------------- |
+| `shadow.card`  | `0 2px 8px rgba(17,16,20,0.06)`  | none                               | every card                        |
+| `shadow.float` | `0 4px 24px rgba(17,16,20,0.12)` | `0 0 0 1px rgba(237,236,242,0.06)` | tab bar, "+" button, toast, menus |
 
-Dark mode uses no shadows.
+In dark mode a card is told from the page by `surface` being lighter than `bg`. A floating `surface` can sit over a
+`surface` card, though, so dark `shadow.float` is a 1pt `hairline` ring, by Principle 1's rule; a spread-only ring
+takes no layout room.
 
 ## Components
 
@@ -133,6 +137,9 @@ Dark mode uses no shadows.
 
 Text buttons have no fill: the label in `danger`, `muted` or `accent`, 44pt high. Every button dims to 0.4 while busy
 or disabled, and a busy one shows a spinner before its label. A chip's touch area is 44pt high around its 32pt pill.
+ScreenHeader's sides are each at least 44pt wide, so the title sits on the screen's centre, and the row spans the
+screen with the gutter inside. An input is `fill` with a 1pt `fill` border that turns `accent` on focus. Menus float
+on `shadow.float` with no edge, and sheets sit on the backdrop with none.
 
 ## Roll-out (one brief each, in order)
 

@@ -5,7 +5,7 @@ import { copyRefusedText } from '@/data/monthCopy';
 /**
  * The "copy last month" button's flow for a 'YYYY-MM' month (Budget's categories, Income's items): `startCopy` runs
  * `copy`, then reloads. `note` is the refusal or failure to show; `hideCopy` is true once a copy was refused in this
- * month or has just landed, so the button doesn't come back.
+ * ledger and month or has just landed (and while the list is still null), so the button doesn't come back.
  */
 export function useCopyPrevious({
   ledgerId,

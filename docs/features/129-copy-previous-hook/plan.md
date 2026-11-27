@@ -3,7 +3,7 @@
 Status: approved <!-- draft → skeptic-approved → approved (by the user) -->
 Brief: ./brief.md
 Branch: chore/copy-previous-hook
-Base: origin/main (after R11 #199, 470b7cd7)
+Base: origin/main (after R12 #200)
 
 ## Approach
 
@@ -92,26 +92,26 @@ Every slice: gates green, with tests unchanged (api 549 + 2 skipped, mcp 329, mo
 characterization tests: no logic moves into a pure function. `copyRefusedText` stays where it is, and
 `monthCopy.test` still covers it.
 
-- [ ] 0. Bump version to 1.26.15
+- [x] 0. Bump version to 1.26.15
   - Files: package.json, apps/mobile/app.json
   - Change: set both to 1.26.15
-- [ ] 1. Share the copy-previous flow in useCopyPrevious, starting with Budget
+- [x] 1. Share the copy-previous flow in useCopyPrevious, starting with Budget
   - Files: apps/mobile/src/data/useCopyPrevious.ts (new), src/app/(tabs)/budget.tsx, apps/mobile/demo-modules.txt
   - Change: hook as in Contracts. Budget's lines 74–110 go, and lines 112–115 become `canCopy` as above.
     `yarn mobile export:web && yarn mobile check-builds --accept`: the only new line is `src/data/useCopyPrevious.ts`,
     after `useCategoryTotals.ts`. Budget is in the demo (`demo-app/(tabs)/budget.tsx` re-exports it). ~110 lines.
   - Verify: web check, Budget rows
-- [ ] 2. Use useCopyPrevious on the Income tab
+- [x] 2. Use useCopyPrevious on the Income tab
   - Files: src/app/(tabs)/income.tsx
   - Change: lines 48–85 go. `canCopy` is as above, and `totalText` stays. `check-builds` passes with no list change. ~45 lines.
   - Verify: web check, Income rows
-- [ ] 3. Draw Budget's category rows with an in-file BudgetRow
+- [x] 3. Draw Budget's category rows with an in-file BudgetRow
   - Files: src/app/(tabs)/budget.tsx
   - Change: as in Contracts. The two comments (ended rows, sibling buttons) move with their lines, and BudgetRow gets
     a one-line JSDoc. Add `type Href` (expo-router), `type Category` (`@/api/types`) and `type DragHandlers`
     (`@/components/ReorderList`) to the imports. ~70 lines, mostly moved.
   - Verify: web check, row part
-- [ ] 4. Mark R13 in review in the backlog
+- [x] 4. Mark R13 in review in the backlog
   - Files: docs/features/BACKLOG.md: R13 → `129 | in review`. If #200 has merged when slice 4 is written, rebase first
     and also set R12 → `done (#200)`. If it merges later, resolve the rebase conflict by keeping main's R11/R12 rows,
     setting R12 → `done (#200)` and keeping R13 → `129 | in review`. Never touch R11 (#200 owns it).
@@ -189,5 +189,10 @@ the cookie. Tab A doesn't reload when it gets focus back, so it keeps the state 
   expects a refusal note to come back when returning to its month (as on base), runs the worktree's own API with the
   main checkout's `apps/api/.env` copied in, waits until port 3000 is really free before the failure step, and checks
   ended rows in the demo build rather than with a fresh QA user.
+- Web proof as recorded page text with positions (not screenshots), base before slice 1 vs branch after slice 2, with
+  the test ledger reset in between: Copy success on Budget and Income, `budget_exists` and `income_exists` refusals, and
+  a failure with the API stopped: identical (the first Budget record on base caught the page mid-load; the Copy press
+  that followed matched). `BudgetRow`: the December list's text, positions and button labels were identical with and
+  without the slice. The ended-row check in the demo build was not run: the `ended` branch moved verbatim.
 
 ## Consolidate

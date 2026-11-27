@@ -137,7 +137,7 @@ takes no layout room.
 
 Text buttons have no fill: the label in `danger`, `muted` or `accent`, 44pt high. Every button dims to 0.4 while busy
 or disabled, and a busy one shows a spinner before its label. A chip's touch area is 44pt high around its 32pt pill.
-ScreenHeader's sides are each at least 44pt wide, so the title sits on the screen's centre, and the row spans the
+ScreenHeader's sides are each one 44pt slot when there's a title, so the title sits on the screen's centre, and the row spans the
 screen with the gutter inside. An input is `fill` with a 1pt `fill` border that turns `accent` on focus. Menus float
 on `shadow.float` with no edge, and sheets sit on the backdrop with none.
 

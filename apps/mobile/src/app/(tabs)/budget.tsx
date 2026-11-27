@@ -350,8 +350,6 @@ const makeStyles = (colors: Palette) =>
     figureCentre: { alignItems: 'center' },
     figureEnd: { alignItems: 'flex-end' },
     openRow: { flexDirection: 'row', alignItems: 'center' },
-    // Square until brief 105d, as before IconButton: a rounded corner would only round its web focus ring.
-    // eslint-disable-next-line no-restricted-syntax
-    edit: { marginRight: space.sm, borderRadius: 0 },
+    edit: { marginRight: space.sm },
     rowName: { flex: 1 },
   });

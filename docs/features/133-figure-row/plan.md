@@ -3,7 +3,7 @@
 Status: approved <!-- draft → skeptic-approved → approved (by the user) -->
 Brief: ./brief.md
 Branch: chore/figure-row
-Base: stacked on chore/load-state (R16, brief 132, in review); rebased onto origin/main once R16 merges. The PR says so
+Base: origin/main (after R16 #204)
 until then.
 
 ## Approach
@@ -91,10 +91,10 @@ Every slice ends with:
 
 There are no characterization tests: the change is UI only, with no logic to pin (brief, Notes).
 
-- [ ] 0. Bump version to 1.26.19
+- [x] 0. Bump version to 1.26.19
   - Files: package.json, apps/mobile/app.json
   - Change: set both to 1.26.19
-- [ ] 1. Draw Budget's income figures with a shared FigureRow
+- [x] 1. Draw Budget's income figures with a shared FigureRow
   - Files: apps/mobile/src/components/FigureRow.tsx (new), apps/mobile/src/app/(tabs)/budget.tsx,
     apps/mobile/demo-modules.txt
   - Change: the component, and `IncomeFigures` uses it. Budget's `figure`/`figureCentre`/`figureEnd` styles are deleted;
@@ -102,12 +102,12 @@ There are no characterization tests: the change is UI only, with no logic to pin
     adds exactly one line, `src/components/FigureRow.tsx` (between `ErrorLine.tsx` and `FocusStyles.tsx`). The commit
     body says why. ~45 lines.
   - Verify: web records of Budget (see below)
-- [ ] 2. Use FigureRow for the Expenses summary card
+- [x] 2. Use FigureRow for the Expenses summary card
   - Files: apps/mobile/src/app/(tabs)/expenses.tsx
   - Change: as in Contracts. Its three figure styles are deleted; `figures`, `card` and their comment stay. ~25 lines.
     `demo-modules.txt` unchanged.
   - Verify: web records of Expenses (see below)
-- [ ] 3. Mark R17 in review in the backlog
+- [x] 3. Mark R17 in review in the backlog
   - Files: docs/features/BACKLOG.md. The roadmap row R17 becomes `| R17 | figure-row | 133 | in review |` (padded like
     its neighbours), and only that row changes. On a rebase conflict, keep `main`'s other rows.
 
@@ -167,6 +167,12 @@ There are no characterization tests: the change is UI only, with no logic to pin
 - none found.
 
 ## Deviations
+
+- Budget can't show a negative Remaining with test data (the API refuses planning above income), so the danger colour
+  was checked on Expenses, which uses the same `FigureRow`. Web proof: page trees with inline styles recorded on the
+  base and compared after each slice for Budget and Expenses in light and dark, Expenses while loading (muted "—") and
+  with a negative Remaining: identical. `?month=2026-12` on Expenses showed the current month, so the no-categories
+  state wasn't reached.
 
 <filled by the developer during build>
 

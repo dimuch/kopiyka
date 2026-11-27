@@ -327,14 +327,7 @@ function ExpenseForm({ draft, ledgerId }: { draft: ExpenseDraftData; ledgerId: n
           </>
         )}
 
-        {added ? (
-          <View accessibilityRole="summary" style={styles.added}>
-            <Icon name="check" size={18} color={colors.accent} strokeWidth={2.4} />
-            <Text variant="labelRegular" style={styles.addedText}>
-              {added}
-            </Text>
-          </View>
-        ) : null}
+        <AddedNote text={added} />
       </ScrollView>
     </KeyboardAvoidingView>
   );
@@ -383,6 +376,21 @@ function CategorySection({
       ) : (
         <ActivityIndicator color={colors.accent} />
       )}
+    </View>
+  );
+}
+
+/** The line after a save in add mode: what was added, where and for how much. */
+function AddedNote({ text }: { text: string | null }) {
+  const colors = useColors();
+  const styles = useThemedStyles(makeStyles);
+  if (!text) return null;
+  return (
+    <View accessibilityRole="summary" style={styles.added}>
+      <Icon name="check" size={18} color={colors.accent} strokeWidth={2.4} />
+      <Text variant="labelRegular" style={styles.addedText}>
+        {text}
+      </Text>
     </View>
   );
 }

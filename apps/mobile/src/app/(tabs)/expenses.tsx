@@ -80,8 +80,8 @@ export default function Expenses() {
           >
             {[
               { label: 'Spent', value: figures?.spent },
-              { label: 'Remaining', value: figures?.remaining, over: figures?.over },
               { label: 'Budgeted', value: figures?.budgeted },
+              { label: 'Remaining', value: figures?.remaining, over: figures?.over },
             ].map((figure, index) => (
               <View
                 key={figure.label}
@@ -205,7 +205,7 @@ const makeStyles = (colors: Palette) =>
     content: { gap: space.lg, paddingTop: space.xs, paddingHorizontal: space.xl },
     loading: { marginTop: space.xxl },
     card: { gap: space.sm },
-    // Spread across the card's full width: Spent at the left edge, Remaining centred, Budgeted at the right edge.
+    // Spread across the card's full width, as on Budget: Spent at the left, Budgeted centred, Remaining at the right.
     figures: { flexDirection: 'row', justifyContent: 'space-between', gap: space.sm },
     figure: { gap: space.xs },
     figureCentre: { alignItems: 'center' },

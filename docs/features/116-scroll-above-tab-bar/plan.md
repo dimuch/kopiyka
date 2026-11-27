@@ -74,7 +74,7 @@ and no API or connector changes.
     again. Budget and Expenses: long-press a row and drag it towards the bottom. The list starts scrolling as the finger
     nears the gap above the bar, the same place as on main (check main side by side), and stops once the last row is
     in view. Do the same checks on iPhone (home indicator inset).
-- [ ] 2. Stop the add-expense form and category page 16pt above the tab bar
+- [x] 2. Stop the add-expense form and category page 16pt above the tab bar
   - Files: apps/mobile/src/app/expense.tsx, apps/mobile/src/app/category/[categoryId].tsx
   - Change: `expense.tsx` gives the room to the `KeyboardAvoidingView` (`style={{ flex: 1, marginBottom: barRoom }}`),
     not to the ScrollView. With the keyboard up, KAV pads by its frame's overlap with the keyboard. A shorter frame means

@@ -30,7 +30,7 @@ Why: §8b `patch` row (styling). The tile's look changes in production and nothi
 
 ## Slices
 
-- [ ] 0. Bump version to 1.24.2
+- [x] 0. Bump version to 1.24.2
   - Files: package.json, apps/mobile/app.json
   - Change: set both to 1.24.2
 - [ ] 1. Make the category tile a circle, to match the chip's round ends
@@ -44,11 +44,11 @@ Why: §8b `patch` row (styling). The tile's look changes in production and nothi
 
 ## AC → evidence
 
-| AC                                                | Evidence                                                                         |
-| ------------------------------------------------- | -------------------------------------------------------------------------------- |
+| AC                                                | Evidence                                                                                                                               |
+| ------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------- |
 | Chip tile is a circle concentric with the pill    | Slice 1 check: Add expense chips are circles 3pt in from the pill's top and bottom (see Open questions), web at phone width and iPhone |
-| Budget/Expenses/category screen/sheet tiles round | Slice 1 check of the four screens: circles, same size, letter centred            |
-| Size, letter, font, colours unchanged             | Diff only touches `borderRadius`; slice 1 visual check against main, Light/Dark |
+| Budget/Expenses/category screen/sheet tiles round | Slice 1 check of the four screens: circles, same size, letter centred                                                                  |
+| Size, letter, font, colours unchanged             | Diff only touches `borderRadius`; slice 1 visual check against main, Light/Dark                                                        |
 
 ## Not doing (YAGNI)
 

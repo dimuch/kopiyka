@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { ActivityIndicator, type LayoutRectangle, ScrollView, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import type { SummaryCategory, SummaryTotals } from '@/api/types';
+import type { SummaryCategory, SummaryMonth, SummaryTotals } from '@/api/types';
 import { useAppearance, useColors, useThemedStyles } from '@/appearance/AppearanceContext';
 import { useSession } from '@/auth/AuthContext';
 import { Card } from '@/components/Card';
@@ -79,40 +79,7 @@ export default function Statistics() {
               <>
                 <TotalsCard totals={summary.totals} />
                 {summary.categories.length > 0 && <CategoryRows categories={summary.categories} />}
-                {summary.months.length > 1 && (
-                  <>
-                    <Text variant="heading" style={styles.sectionTitle}>
-                      By month
-                    </Text>
-                    <View style={styles.list}>
-                      {summary.months.map((month) => {
-                        const income = eur(toCents(month.incomeEur));
-                        const spent = eur(toCents(month.spentEur));
-                        const leftCents = toCents(month.leftEur);
-                        const label = shortMonthLabel(month.month);
-                        return (
-                          <Card
-                            key={month.month}
-                            padding="none"
-                            accessible
-                            accessibilityLabel={`${label}, income ${income}, spent ${spent}, left ${eur(leftCents)}`}
-                            style={styles.row}
-                          >
-                            <View style={styles.rowText}>
-                              <Text variant="bodyMedium">{label}</Text>
-                              <Text variant="caption" color="muted" tabular>
-                                Income {income} · Spent {spent}
-                              </Text>
-                            </View>
-                            <Text variant="amount" color={leftCents < 0 ? 'danger' : 'text'}>
-                              {eur(leftCents)}
-                            </Text>
-                          </Card>
-                        );
-                      })}
-                    </View>
-                  </>
-                )}
+                {summary.months.length > 1 && <MonthRows months={summary.months} />}
               </>
             )}
           </>
@@ -297,6 +264,45 @@ function CategoryRows({ categories }: { categories: SummaryCategory[] }) {
                   of {planned}
                 </Text>
               </View>
+            </Card>
+          );
+        })}
+      </View>
+    </>
+  );
+}
+
+/** Each month of a longer period, with its income, spent and what's left. */
+function MonthRows({ months }: { months: SummaryMonth[] }) {
+  const styles = useThemedStyles(makeStyles);
+  return (
+    <>
+      <Text variant="heading" style={styles.sectionTitle}>
+        By month
+      </Text>
+      <View style={styles.list}>
+        {months.map((month) => {
+          const income = eur(toCents(month.incomeEur));
+          const spent = eur(toCents(month.spentEur));
+          const leftCents = toCents(month.leftEur);
+          const label = shortMonthLabel(month.month);
+          return (
+            <Card
+              key={month.month}
+              padding="none"
+              accessible
+              accessibilityLabel={`${label}, income ${income}, spent ${spent}, left ${eur(leftCents)}`}
+              style={styles.row}
+            >
+              <View style={styles.rowText}>
+                <Text variant="bodyMedium">{label}</Text>
+                <Text variant="caption" color="muted" tabular>
+                  Income {income} · Spent {spent}
+                </Text>
+              </View>
+              <Text variant="amount" color={leftCents < 0 ? 'danger' : 'text'}>
+                {eur(leftCents)}
+              </Text>
             </Card>
           );
         })}

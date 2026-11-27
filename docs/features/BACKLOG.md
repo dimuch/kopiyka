@@ -193,7 +193,8 @@ brief 109.
 
 - **Drop the four `notion_*` tables** (`notion_grocery_rows`, `notion_syncs`, `notion_total_adds`,
   `notion_counted_expenses`) once brief 109's release has run fine (109, Out of scope).
-- **One modal-form kit** for `income-item.tsx`, `category-form.tsx` and `actual-end.tsx` (102 follow-up): roadmap R12, brief 128 (`ModalFormScreen`).
+- **One modal-form kit** for `income-item.tsx`, `category-form.tsx` and `actual-end.tsx` (102 follow-up): roadmap R12,
+  brief 128 (`ModalFormScreen`), in review.
 - **Statistics' category list follows the member's order** as a tie-break, if wanted (092 follow-up).
 - **Chips that are silent on web**: `aria-selected` isn't valid on `role="button"`, so the category and date chips
   may not say "selected" on web. Pick `aria-pressed` or a radio group as in `AppearancePicker` (095 follow-up).

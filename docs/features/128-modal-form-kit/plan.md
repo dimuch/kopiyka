@@ -142,6 +142,9 @@ first body line starts.
 
 ## Follow-ups
 
+- `body` (`gap lg, paddingTop lg, paddingBottom huge`) is copied in `ModalFormScreen`, `actual-end` and `income-item`
+  so the bad-link line starts where the loaders do; one shared style could follow.
+
 - Category's bad-link and loading lines sit `space.lg` higher than income's and end's. Unifying them would change how
   the screen looks, so it needs its own brief.
 - `components/CategoryForm.tsx` could take `& Saving` for its `busy`/`setBusy` props: a small follow-up, outside R12.
@@ -151,6 +154,7 @@ first body line starts.
 - Web proof by recorded element trees (role, text, aria-label, aria-disabled, rect, colours, opacity) instead of
   screenshots: taken on the base before slice 1 for actual End, income (add, edit, bad link) and category (add, edit,
   bad link) in light, three of them in dark, and compared after each slice: all identical. Back reads
-  `aria-disabled=true` while a save is held (API paused with `kill -STOP`) on actual End (base) and income (branch).
+  `aria-disabled=true` while a save is held (API paused with `kill -STOP`) on actual End (base) and income (branch); one check per side is enough because
+  the lock is now one shared code path in `ModalFormScreen`.
 
 ## Consolidate

@@ -51,7 +51,7 @@ const CategoryParams = z.object({ categoryId: z.coerce.number().int().positive()
  * and copy's and add's path.
  */
 const Month = z.object({ month: MonthString });
-const MonthParams = CategoryParams.extend(Month.shape);
+const CategoryMonthParams = CategoryParams.extend(Month.shape);
 // 1–40 characters after trimming (brief 037).
 const NameBody = z.object({ name: z.string().trim().min(1).max(40) });
 // Money crosses the wire as decimal strings; €0 is a plan.
@@ -164,7 +164,7 @@ export async function categoryRoutes(app: FastifyInstance, { db, now }: AppDeps)
 
   // Brief 029. An ended month is read-only (brief 028's decisions), so it's refused before anything is read.
   app.delete('/api/ledgers/:id/categories/:categoryId/months/:month', guards, async (req, reply) => {
-    const { categoryId, month } = MonthParams.parse(req.params);
+    const { categoryId, month } = CategoryMonthParams.parse(req.params);
     const at = now();
     if (!checkMonthOpen(reply, at, month)) return reply;
     return (await removeFromMonth(db, req.ledger!.ledgerId, categoryId, month, at))
@@ -173,7 +173,7 @@ export async function categoryRoutes(app: FastifyInstance, { db, now }: AppDeps)
   });
 
   app.post('/api/ledgers/:id/categories/:categoryId/months/:month/restore', guards, async (req, reply) => {
-    const { categoryId, month } = MonthParams.parse(req.params);
+    const { categoryId, month } = CategoryMonthParams.parse(req.params);
     if (!checkMonthOpen(reply, now(), month)) return reply;
     const result = await restoreToMonth(db, req.ledger!.ledgerId, categoryId, month);
     if (result === 'not_found') return reply.code(404).send({ error: 'not_found' });
@@ -185,7 +185,7 @@ export async function categoryRoutes(app: FastifyInstance, { db, now }: AppDeps)
 
   // Brief 065. An ended month is read-only, so it's refused before anything is read.
   app.patch('/api/ledgers/:id/categories/:categoryId/months/:month', guards, async (req, reply) => {
-    const { categoryId, month } = MonthParams.parse(req.params);
+    const { categoryId, month } = CategoryMonthParams.parse(req.params);
     const changes = EditBody.parse(req.body);
     if (!checkMonthOpen(reply, now(), month)) return reply;
     const result = await editInMonth(db, req.ledger!.ledgerId, categoryId, month, changes);

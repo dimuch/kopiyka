@@ -8,7 +8,7 @@ import { type Palette, radius, size, space } from '@/theme';
 /**
  * A 32pt pill in `fill`, or `accentTint` with an `accentText` label while selected, with no edge. Its touch area is
  * 44pt high around the pill: `hitSlop` doesn't reach react-native-web, so the Pressable itself is the 44pt box. The
- * caller's `style` sets its width.
+ * caller's `style` sets its width. A leading tile or icon sits flush with the pill's left end.
  */
 export function Chip({
   label,
@@ -26,7 +26,7 @@ export function Chip({
   const styles = useThemedStyles(makeStyles);
   return (
     <Pressable {...rest} accessibilityRole="button" aria-selected={selected} style={[styles.touch, style]}>
-      <View style={[styles.pill, selected && styles.on]}>
+      <View style={[styles.pill, leading === undefined && styles.padStart, selected && styles.on]}>
         {leading}
         <Text numberOfLines={1} variant="label" color={selected ? 'accentText' : 'text'} style={styles.label}>
           {label}
@@ -44,11 +44,12 @@ const makeStyles = (colors: Palette) =>
       minHeight: size.chip,
       borderRadius: radius.pill,
       backgroundColor: colors.fill,
-      paddingHorizontal: space.sm,
+      paddingRight: space.sm,
       flexDirection: 'row',
       alignItems: 'center',
       gap: space.xs,
     },
+    padStart: { paddingLeft: space.sm },
     on: { backgroundColor: colors.accentTint },
     label: { flexShrink: 1 },
   });

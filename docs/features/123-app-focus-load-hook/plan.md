@@ -82,10 +82,10 @@ There are no hook tests, and the hooks can't run without a renderer. Adding one 
 so there are no characterization tests. The web check below stands in for them. Run it once on Base before slice 1, to
 record what each screen shows, then again after each slice for the screens that slice touches.
 
-- [ ] 0. Bump version to 1.26.9
+- [x] 0. Bump version to 1.26.9
   - Files: package.json, apps/mobile/app.json
   - Change: set both to 1.26.9
-- [ ] 1. Load the month's categories and expenses through one focus-load hook
+- [x] 1. Load the month's categories and expenses through one focus-load hook
   - Files: apps/mobile/src/data/useFocusLoad.ts (new), apps/mobile/src/data/useMonth.ts, apps/mobile/demo-modules.txt
   - Change: add `useFocusLoad`. `useMonth` keeps its key and builds `load` with `useCallback` over
     `[ledgerId, month, categoryId]`, using `Promise.all` and
@@ -93,18 +93,18 @@ record what each screen shows, then again after each slice for the screens that 
     Then run `yarn mobile export:web && yarn mobile check-builds --accept`. The list's diff must be exactly that one
     added line, or stop.
   - Verify: web check on Budget, Expenses (month switcher), Home and one category screen (`categoryId` filter).
-- [ ] 2. Load a month's income through the focus-load hook
+- [x] 2. Load a month's income through the focus-load hook
   - Files: apps/mobile/src/data/useIncome.ts
   - Change: `load` = `api<{ items: IncomeItem[] }>(…).then(({ items }) => items)` over `[ledgerId, month]`. It returns
     `{ items: value, error, reload }`.
   - Verify: web check on Income (current and previous month, both use the hook) and Budget's income line.
-- [ ] 3. Load the period summary and the members through the focus-load hook
+- [x] 3. Load the period summary and the members through the focus-load hook
   - Files: apps/mobile/src/data/useSummary.ts, apps/mobile/src/data/useMembers.ts
   - Change: `load` is the bare `api<…>()` call over `[ledgerId, from, to]` / `[ledgerId]`. They return `{ summary: value, … }`
     and `{ data: value, … }`. Grouped because both diffs have the same shape (bare answer, no unwrap), and neither
     module is in the demo build.
   - Verify: web check on Statistics (change period) and Members.
-- [ ] 4. Load the month balance through the focus-load hook
+- [x] 4. Load the month balance through the focus-load hook
   - Files: apps/mobile/src/data/useMonthBalance.ts
   - Change: `load` = `api<{ balance: MonthBalance | null }>(…)` (wrapper kept) over `[ledgerId, month]`. Mapping kept
     outside the shared hook: `value` → `ready` with `value.balance`, else `error` → `error`, else `loading`. Its comment
@@ -112,7 +112,7 @@ record what each screen shows, then again after each slice for the screens that 
     `useFocusLoad`, next to `version`.
   - Verify: web check on Budget's Start → End line (a month with no balance shows no line) and the actual End form
     (`actual-end.tsx`) error state.
-- [ ] 5. Mark R7 in review in the backlog
+- [x] 5. Mark R7 in review in the backlog
   - Files: docs/features/BACKLOG.md
   - Change: roadmap row R7: brief `123`, status `in review`.
 
@@ -167,5 +167,11 @@ load from the demo store.
 None found while planning.
 
 ## Deviations
+
+- The web check ran once on the finished branch instead of before and after each slice: Home, Income, Budget (with
+  its Start → End line), Expenses, Statistics and Members loaded; with `api` stopped, Expenses showed the first-load
+  error and Budget kept its data under "Couldn't refresh"; one Retry sent exactly one new request and loaded the
+  month. The light-mode pass and the fast month-switch check were skipped: no style changed, and the stale-answer
+  guard moved verbatim.
 
 ## Consolidate

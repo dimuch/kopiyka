@@ -176,8 +176,8 @@ brief 109.
 | R3  | throttle-attempt-steps    | 119   | done (#191) |
 | R4  | api-small-structure       | 120   | done (#192) |
 | R5  | mcp-tools-layout          | 121   | done (#193) |
-| R6  | demo-store-helpers        | 122   | in review   |
-| R7  | app-focus-load-hook       |       | not started |
+| R6  | demo-store-helpers        | 122   | done (#194) |
+| R7  | app-focus-load-hook       | 123   | in review   |
 | R8  | app-short-names           |       | not started |
 | R9  | app-back-fallback         |       | not started |
 | R10 | app-field-style           |       | not started |

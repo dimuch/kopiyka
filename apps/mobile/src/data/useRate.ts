@@ -29,7 +29,7 @@ export function useRate(date: string): Rate {
   return loaded?.date === date ? loaded.rate : LOADING;
 }
 
-/** The line under the amount fields: the NBU rate the amounts use, or why there's none yet. */
+/** The line under the amount fields for a 'YYYY-MM-DD' date: the NBU rate the amounts use, or why there's none yet. */
 export function rateLabel(rate: Rate, date: string): string {
   if (rate.status === 'loading') return 'Fetching the NBU rate…';
   if (rate.status === 'unavailable') {

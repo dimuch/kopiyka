@@ -193,3 +193,5 @@ screenshots, checking text, order, spacing, alerts and focus.
   JSX moved verbatim).
 
 ## Consolidate
+
+CONSOLIDATE: n/a (refactor).

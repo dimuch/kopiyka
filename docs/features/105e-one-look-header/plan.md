@@ -2,7 +2,6 @@
 
 Status: approved <!-- draft → skeptic-approved → approved (by the user) -->
 Gate A: skeptic APPROVE WITH EDITS (applied); approved 2026-11-27 under the user's standing OK, open questions as recommended.
-Gate A: pre-approved under the user's standing OK (the user is away); open questions take the recommended answers.
 Brief: ./brief.md
 Branch: feat/one-look-header
 Base: origin/main (210d798, version 1.23.15, after #176)
@@ -493,8 +492,25 @@ brief doesn't settle.** The dark ring was the one in 105d's outline, and the bri
 
 ## Deviations
 
-<filled by the developer during build>
+- Build: none. Each slice's browser checks ran once on the finished branch (Visual check), as the plan says.
+- Visual check: before (Base 210d798) and after (fdb770fc) on 27 November (Kyiv), 38 views × 2 themes, in a same-origin
+  390×844 iframe, compared in Node. A: texts equal apart from the header's "Back" text and the category page's month;
+  the accessibility record changes only where planned (the back button's name, "Back to November" on the category
+  views). B: the header row spans 0–390, Back/Home a round 44pt button at x 20, titles and MonthSwitcher centred at
+  x 195 (±0.5), the trailing button ending at 370, HeaderDivider edge to edge. C: the toast 56 high, no edge, the float
+  shadow in light and the ring in dark; the screens' room under it is 104 in both sets. D: every input `fill` with a
+  1pt `fill` border, 48 high; a real click shows the `accent` border and nothing moves. E: the three menus have no edge,
+  the shadow in light and the ring in dark; the name list is 90 → 88 high. F: the sheet's top edge is gone, and Members'
+  confirm panel has a 1px hairline. G: no `borderStrong` colour left. H: every move over 2pt is in What moves.
+- Focus couldn't be snapshotted (`.focus()` in the iframe doesn't take while the pane is unfocused); a real click
+  showed the focus border in both themes instead.
+- The dark ring at 3×: faint but visible on the category menu, the period menu over the totals card, and the toast.
+- Undo restored on Budget and the category page. Demo, light and dark: no console errors. `export:web` and
+  `check-builds` (no `--accept`) pass.
 
 ## Consolidate
 
-<filled in /kopiyka-hos Phase 3a>
+CONSOLIDATE: reused 1 · extracted 0 · left 0
+
+- **Reused:** UndoToast's exported `toastRoom` (from the toast's own tokens) replaces Budget's and the category
+  page's two hand-copied `104`s and their `eslint-disable`s.

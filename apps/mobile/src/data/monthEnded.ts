@@ -21,3 +21,14 @@ export function restoreRefusedText(code: string, month: string): string | null {
 export function lockedText(month: string): string {
   return `${monthName(month)} has ended, so its expenses can’t change.`;
 }
+
+/**
+ * The expense form's text when a save into a 'YYYY-MM' month is refused for the month (the category left it, or the
+ * month ended); null for any other failure.
+ */
+export function saveErrorText(code: string | null, month: string): string | null {
+  if (code === 'category_not_in_month') return `That category isn’t in ${monthName(month)}.`;
+  // The month ended while the form was open.
+  if (code === 'month_ended') return lockedText(month);
+  return null;
+}

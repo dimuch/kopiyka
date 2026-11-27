@@ -72,3 +72,5 @@ Why: §8b `patch` (styling/copy, no new capability): the card's order and screen
 ## Deviations
 
 ## Consolidate
+
+Skipped: the branch adds no new function, hook, component, route or query; it only reorders existing ones.

@@ -1,5 +1,6 @@
 import { useRef, useState } from 'react';
-import { AccessibilityInfo, ScrollView, StyleSheet, View } from 'react-native';
+import { ScrollView, StyleSheet, View } from 'react-native';
+import { useAnnouncedError } from '@/announcedError';
 import { useAppearance, useColors, useThemedStyles } from '@/appearance/AppearanceContext';
 import { useSession } from '@/auth/AuthContext';
 import { AppearancePicker } from '@/components/AppearancePicker';
@@ -26,7 +27,7 @@ export default function Settings() {
   const { user, ledger, ledgers, logout, openLedger } = useSession();
   const invites = useInvites();
   const [switching, setSwitching] = useState(false);
-  const [switchFailed, setSwitchFailed] = useState(false);
+  const { error: switchError, showError, clearError } = useAnnouncedError();
   // `switching` disables the picker only after a re-render; two taps in one tick would both get here.
   const inFlight = useRef(false);
 
@@ -34,13 +35,11 @@ export default function Settings() {
     if (inFlight.current) return;
     inFlight.current = true;
     setSwitching(true);
-    setSwitchFailed(false);
+    clearError();
     try {
       await openLedger(ledgerId);
     } catch {
-      setSwitchFailed(true);
-      // role="alert" covers web; VoiceOver needs an explicit announcement.
-      AccessibilityInfo.announceForAccessibility(SWITCH_FAILED);
+      showError(SWITCH_FAILED);
     } finally {
       inFlight.current = false;
       setSwitching(false);
@@ -86,11 +85,11 @@ export default function Settings() {
               Ledger
             </Text>
             <LedgerPicker ledgers={ledgers} selectedId={ledger.ledgerId} onSelect={switchTo} disabled={switching} />
-            {switchFailed && (
+            {switchError ? (
               <Text accessibilityRole="alert" variant="label" color="danger">
-                {SWITCH_FAILED}
+                {switchError}
               </Text>
-            )}
+            ) : null}
           </View>
         )}
         {/* On its own, always shown: with one ledger there's no Ledger section to put it in. */}

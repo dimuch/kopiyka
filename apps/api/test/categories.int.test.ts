@@ -116,6 +116,12 @@ describe.skipIf(!(await testDbReachable()))('categories API (MySQL)', () => {
       headers,
     });
 
+  /** A category's stored icon (brief 114). */
+  async function storedIcon(categoryId: number): Promise<string | null> {
+    const [[row]] = await db.query<RowDataPacket[]>('SELECT icon FROM categories WHERE category_id = ?', [categoryId]);
+    return row!.icon;
+  }
+
   /** How many categories the ledger has, deleted ones included. */
   async function categoryCount(ledgerId = owner.ledgerId): Promise<number> {
     const [[row]] = await db.query<RowDataPacket[]>('SELECT COUNT(*) AS n FROM categories WHERE ledger_id = ?', [
@@ -975,14 +981,6 @@ describe.skipIf(!(await testDbReachable()))('categories API (MySQL)', () => {
   });
 
   describe('icons (brief 114)', () => {
-    /** A category's stored icon. */
-    async function storedIcon(categoryId: number): Promise<string | null> {
-      const [[row]] = await db.query<RowDataPacket[]>('SELECT icon FROM categories WHERE category_id = ?', [
-        categoryId,
-      ]);
-      return row!.icon;
-    }
-
     const addWith = (payload: Record<string, unknown>, month = '2026-10') =>
       app.inject({
         method: 'POST',
@@ -1083,6 +1081,16 @@ describe.skipIf(!(await testDbReachable()))('categories API (MySQL)', () => {
       const res = await addWith({ name: 'eating out', icon: 'coffee' }, '2026-11');
       expect([res.statusCode, res.json().categoryId, res.json().icon]).toEqual([201, eatingOut, 'coffee']);
       expect(await storedIcon(eatingOut)).toBe('coffee');
+    });
+
+    it('… and clears it when null is sent', async () => {
+      const eatingOut = await idOf('eating_out');
+      await db.query("UPDATE categories SET icon = 'pizza' WHERE category_id = ?", [eatingOut]);
+      await storeMonthList(db, owner.ledgerId, '2026-11', ['eating_out']);
+
+      const res = await addWith({ name: 'eating out', icon: null }, '2026-11');
+      expect([res.statusCode, res.json().categoryId, res.json().icon]).toEqual([201, eatingOut, null]);
+      expect(await storedIcon(eatingOut)).toBeNull();
     });
 
     it('rejects an add with an unknown key, adding nothing', async () => {
@@ -1387,10 +1395,7 @@ describe.skipIf(!(await testDbReachable()))('categories API (MySQL)', () => {
       await storeIncome('2026-11', '100.00');
       const refused = await editNovember('rent', { amount: '101', icon: 'house' });
       expect([refused.statusCode, refused.json()]).toEqual([409, { error: 'over_income', overEur: '1.00' }]);
-      const [[row]] = await db.query<RowDataPacket[]>('SELECT icon FROM categories WHERE category_id = ?', [
-        await idOf('rent'),
-      ]);
-      expect(row!.icon).toBeNull();
+      expect(await storedIcon(await idOf('rent'))).toBeNull();
     });
 
     it('stores neither when the amount is over income', async () => {

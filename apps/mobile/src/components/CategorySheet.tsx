@@ -79,9 +79,7 @@ const makeStyles = (colors: Palette) =>
       backgroundColor: colors.faint,
     },
     head: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
-    // Square until brief 105d, as before IconButton: a rounded corner would only round its web focus ring.
-    // eslint-disable-next-line no-restricted-syntax
-    close: { marginRight: -space.sm, borderRadius: 0 },
+    close: { marginRight: -space.sm },
     // The 44pt touch areas meet, 12pt between the pills.
     grid: { flexDirection: 'row', flexWrap: 'wrap', columnGap: space.sm },
     item: { width: '48.5%' },

@@ -232,7 +232,7 @@ apps/mobile/src/components/Button.tsx` finds nothing; Visual check C.
   - Change: as Contracts. `optionOn` and its `accent` edge go, and a comment says why the picker isn't a Chip (a
     radio, not a button).
   - Verify: Visual check C on `settings`, in both themes (Light selected in light, Dark in dark).
-- [ ] 7. Round the icon buttons (≈ 14 lines)
+- [x] 7. Round the icon buttons (≈ 14 lines)
   - Files: `components/IconButton.tsx`, `components/CategorySheet.tsx`, `app/(tabs)/budget.tsx`
   - Change: `radius.md` → `radius.pill`, and the JSDoc says "round". Budget's `edit` and the sheet's `close` lose
     `borderRadius: 0`, their comment and their `eslint-disable`.

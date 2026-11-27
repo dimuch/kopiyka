@@ -4,7 +4,7 @@ import { Icon, type IconName } from '@/components/Icon';
 import { Pressable } from '@/components/Pressable';
 import { radius, size } from '@/theme';
 
-/** A 44×44 button with only an icon in it. Disabled, the icon turns `faint`; the button doesn't dim. */
+/** A round 44×44 button with only an icon in it. Disabled, the icon turns `faint`; the button doesn't dim. */
 export function IconButton({
   icon,
   label,
@@ -27,7 +27,7 @@ export function IconButton({
   disabled?: boolean;
   /** For a button that opens a menu. */
   'aria-expanded'?: boolean;
-  /** The caller's layout, and the two square corners listed in the 104d plan. */
+  /** The caller's layout: margins. */
   style?: StyleProp<ViewStyle>;
 }) {
   const colors = useColors();
@@ -51,6 +51,6 @@ const styles = StyleSheet.create({
     height: size.iconButton,
     alignItems: 'center',
     justifyContent: 'center',
-    borderRadius: radius.md,
+    borderRadius: radius.pill,
   },
 });

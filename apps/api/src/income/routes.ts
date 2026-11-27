@@ -6,7 +6,7 @@ import { monthEnded, monthOf, monthStart, previousMonthStart } from '../dates.js
 import { withTransaction } from '../db.js';
 import { lockLedger } from '../ledgers/lock.js';
 import { AMOUNT_RE, centsToString, toCents } from '../money.js';
-import { checkMonthOpen, MonthString } from '../monthChecks.js';
+import { checkMonthOpen, MonthParams } from '../monthChecks.js';
 import { checkIncome, overIncomeError, type OverIncome } from './limit.js';
 
 export interface IncomeItemDto {
@@ -18,7 +18,6 @@ export interface IncomeItemDto {
   addedBy: string;
 }
 
-const MonthParams = z.object({ month: MonthString });
 const IncomeParams = z.object({ incomeId: z.coerce.number().int().positive() });
 // 1–40 characters after trimming, like category names. Money crosses the wire as decimal strings.
 const IncomeBody = z.object({

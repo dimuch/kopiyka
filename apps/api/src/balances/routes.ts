@@ -5,7 +5,7 @@ import type { AppDeps } from '../app.js';
 import { kyivToday, monthOf, monthStart } from '../dates.js';
 import type { Db } from '../db.js';
 import { centsToString, SIGNED_AMOUNT_RE, toCents } from '../money.js';
-import { MonthString } from '../monthChecks.js';
+import { MonthParams } from '../monthChecks.js';
 import { incomeRows, spentRows } from '../summary/periodRows.js';
 import { carryBalance, type CarriedBalance, type KnownMonths, walkStart } from './carry.js';
 
@@ -18,8 +18,6 @@ export interface MonthBalanceDto {
   closingEur: string;
   actual: boolean;
 }
-
-const MonthParams = z.object({ month: MonthString });
 
 const ActualEndBody = z.object({
   amount: z.string().regex(SIGNED_AMOUNT_RE, 'expected an amount, 2 decimals at most'),

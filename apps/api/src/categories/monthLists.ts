@@ -6,6 +6,7 @@ import { type Db, withTransaction } from '../db.js';
 import { checkIncome, type OverIncome } from '../income/limit.js';
 import { lockLedger } from '../ledgers/lock.js';
 import { toCents } from '../money.js';
+import type { CategoryIconKey } from './icons.js';
 
 /**
  * SQL that is true when category `c` is in the list of the date's own month; nothing carries over (brief 033). The
@@ -156,7 +157,7 @@ async function storeIcon(
   conn: PoolConnection,
   ledgerId: number,
   categoryId: number,
-  icon: string | null,
+  icon: CategoryIconKey | null,
 ): Promise<void> {
   await conn.query('UPDATE categories SET icon = ? WHERE category_id = ? AND ledger_id = ?', [
     icon,
@@ -181,7 +182,7 @@ async function storePlanned(conn: PoolConnection, categoryId: number, first: str
 interface CategoryEdit {
   name?: string;
   amount?: string;
-  icon?: string | null;
+  icon?: CategoryIconKey | null;
 }
 
 /**
@@ -289,7 +290,7 @@ export async function addToMonth(
   month: string,
   name: string,
   amount: string,
-  icon?: string | null,
+  icon?: CategoryIconKey | null,
 ): Promise<AddedCategory | 'name_taken' | OverIncome> {
   const first = monthStart(month);
   return withTransaction(db, async (conn) => {

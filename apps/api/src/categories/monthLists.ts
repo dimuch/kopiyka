@@ -217,6 +217,7 @@ export interface AddedCategory {
   categoryId: number;
   techName: string;
   sortOrder: number;
+  icon: string | null;
 }
 
 /**
@@ -232,7 +233,7 @@ async function findByName(
 ): Promise<AddedCategory | null> {
   // inMonthList's own `m` shadows this query's; its `c` is this query's category, as meant.
   const [byRow] = await conn.query<RowDataPacket[]>(
-    `SELECT c.category_id, c.tech_name, c.sort_order
+    `SELECT c.category_id, c.tech_name, c.sort_order, c.icon
        FROM category_months m JOIN categories c ON c.category_id = m.category_id
       WHERE c.ledger_id = ? AND c.deleted_at IS NULL AND ${ROW_NAME} = ? AND NOT ${inMonthList('?')}
       ORDER BY m.list_month = ? DESC, m.list_month DESC, m.deleted_at IS NOT NULL, m.category_id
@@ -242,14 +243,16 @@ async function findByName(
   const [byCategory] = byRow.length
     ? [byRow]
     : await conn.query<RowDataPacket[]>(
-        `SELECT c.category_id, c.tech_name, c.sort_order FROM categories c
+        `SELECT c.category_id, c.tech_name, c.sort_order, c.icon FROM categories c
           WHERE c.ledger_id = ? AND c.deleted_at IS NULL AND c.display_name COLLATE utf8mb4_0900_ai_ci = ?
             AND NOT ${inMonthList('?')}
           ORDER BY c.category_id LIMIT 1`,
         [ledgerId, name, first],
       );
   const match = byCategory[0];
-  return match ? { categoryId: match.category_id, techName: match.tech_name, sortOrder: match.sort_order } : null;
+  return match
+    ? { categoryId: match.category_id, techName: match.tech_name, sortOrder: match.sort_order, icon: match.icon }
+    : null;
 }
 
 /**
@@ -314,7 +317,7 @@ export async function addToMonth(
       name,
     ]);
     await storePlanned(conn, created.insertId, first, amount);
-    return { categoryId: created.insertId, techName, sortOrder };
+    return { categoryId: created.insertId, techName, sortOrder, icon: null };
   });
 }
 

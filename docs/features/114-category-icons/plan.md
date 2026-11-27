@@ -241,7 +241,7 @@ two callers.
   - Tests: modelled on `monthActualEnds.migration.int.test.ts`.
     - `SHOW COLUMNS FROM categories WHERE Field = 'icon'` gives `['icon', 'varchar(40)', 'YES']` with a NULL default.
     - Running `runMigrations` again returns `[]`.
-- [ ] 2. Return each category's icon key, or null, from the category routes (≈ 45 lines)
+- [x] 2. Return each category's icon key, or null, from the category routes (≈ 45 lines)
   - Files: `apps/api/src/categories/routes.ts`, `apps/api/src/categories/monthLists.ts`,
     `apps/api/test/categories.int.test.ts`, `apps/api/test/categories.test.ts`
   - Change:

@@ -69,6 +69,7 @@ src/components/DateChips.tsx
 src/components/DateField.tsx
 src/components/EmptyMonth.tsx
 src/components/ErrorLine.tsx
+src/components/FigureRow.tsx
 src/components/FocusStyles.tsx
 src/components/HomeButton.tsx
 src/components/HomeCards.tsx

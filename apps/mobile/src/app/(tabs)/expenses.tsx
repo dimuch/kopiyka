@@ -139,6 +139,7 @@ export default function Expenses() {
                   disabled={order.saving}
                   onDragChange={setDragging}
                   scrollRef={scrollRef}
+                  bottomInset={barRoom}
                   renderRow={(row, drag) => (
                     // Two sibling buttons, not one inside the other: VoiceOver couldn't reach a nested one, and web
                     // would nest role="button" (as on Budget). Only the row drags; an ended month takes no new expenses.

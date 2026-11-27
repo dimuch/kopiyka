@@ -31,6 +31,8 @@ interface Props<T> {
   onDragChange: (dragging: boolean) => void;
   /** The scroll view the list sits in, scrolled while a held row is near its top or bottom. */
   scrollRef?: RefObject<ScrollViewInstance | null>;
+  /** The scroll view's bottom that the floating tab bar covers: a held row scrolls the list before it reaches the bar. */
+  bottomInset: number;
 }
 
 interface Held {
@@ -47,6 +49,7 @@ interface Latest {
   onDragChange: (dragging: boolean) => void;
   scrollRef: RefObject<ScrollViewInstance | null> | undefined;
   listRef: RefObject<HostInstance | null>;
+  bottomInset: number;
 }
 
 /** The scroll view's edges in the window and how far it's scrolled, measured at pick-up. */
@@ -153,12 +156,14 @@ class Drag {
           if (!this.held) return;
           const offset = scrollY - contentY;
           const listBottom = listY - contentY + listHeight;
+          const inset = this.latest?.bottomInset ?? 0;
           this.edges = {
             top: scrollY,
-            bottom: scrollY + viewportHeight,
+            bottom: scrollY + viewportHeight - inset,
             offset,
-            // Down to the list's end, never back from where the user left the view (padding below the list).
-            maxOffset: Math.max(offset, listBottom - viewportHeight),
+            // Down until the list's end is above the floating tab bar, never back from where the user left the view
+            // (padding below the list).
+            maxOffset: Math.max(offset, listBottom - (viewportHeight - inset)),
           };
           this.scrollAtEdges();
         });
@@ -207,7 +212,7 @@ class Drag {
  * a tap still opens the row and a scroll that starts before the long-press still scrolls.
  */
 export function ReorderList<T>(props: Props<T>) {
-  const { items, keyOf, renderRow, onMove, disabled, onDragChange, scrollRef } = props;
+  const { items, keyOf, renderRow, onMove, disabled, onDragChange, scrollRef, bottomInset } = props;
   // While disabled a long-press still needs a handler, or the Pressable would take a long hold as a tap.
   const ignore = () => {};
   const [held, setHeld] = useState<Held | null>(null);
@@ -220,6 +225,7 @@ export function ReorderList<T>(props: Props<T>) {
       onDragChange,
       scrollRef,
       listRef,
+      bottomInset,
     });
   });
   useEffect(() => () => drag.stop(), [drag]);

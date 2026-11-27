@@ -131,6 +131,9 @@ Dark mode uses no shadows.
 | `ProgressBar`    | 4pt track, rounded, with an 8pt dot at the end of the fill                                                                                                 |
 | `TabBar` (later) | floating pill, `shadow.float`, plus a separate round "+" button                                                                                            |
 
+Text buttons have no fill: the label in `danger`, `muted` or `accent`, 44pt high. Every button dims to 0.4 while busy
+or disabled, and a busy one shows a spinner before its label. A chip's touch area is 44pt high around its 32pt pill.
+
 ## Roll-out (one brief each, in order)
 
 1. **103 · Tokens and text roles** (split into 103 tabs, 103b components, 103c/103d other screens): add

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { darkColors, fonts, lightColors, progressColor, shadow, text } from '@/theme';
+import { categoryTile, darkColors, fonts, lightColors, progressColor, shadow, text } from '@/theme';
 
 // WCAG 2 contrast ratio of two '#RRGGBB' colours.
 function contrast(foreground: string, background: string): number {
@@ -146,5 +146,18 @@ describe('shadow', () => {
       light: { card: '0 2px 8px rgba(17,16,20,0.06)', float: '0 4px 24px rgba(17,16,20,0.12)' },
       dark: { card: undefined, float: '0 0 0 1px rgba(237,236,242,0.06)' },
     });
+  });
+});
+
+describe('categoryTile', () => {
+  it.each([
+    ['car', 'light', { bg: 'hsla(0, 70%, 45%, 0.14)', fg: 'hsl(0, 70%, 32%)' }],
+    ['groceries', 'dark', { bg: 'hsla(140, 70%, 60%, 0.16)', fg: 'hsl(140, 80%, 74%)' }],
+    ['pets', 'light', { bg: 'hsla(211, 70%, 45%, 0.14)', fg: 'hsl(211, 70%, 32%)' }],
+    ['pets', 'dark', { bg: 'hsla(211, 70%, 60%, 0.16)', fg: 'hsl(211, 80%, 74%)' }],
+    ['a', 'light', { bg: 'hsla(314, 70%, 45%, 0.14)', fg: 'hsl(314, 70%, 32%)' }],
+    ['', 'light', { bg: 'hsla(7, 70%, 45%, 0.14)', fg: 'hsl(7, 70%, 32%)' }],
+  ] as const)('%s in %s gives its tile colours', (techName, scheme, expected) => {
+    expect(categoryTile(techName, scheme)).toEqual(expected);
   });
 });

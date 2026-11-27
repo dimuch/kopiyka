@@ -180,7 +180,7 @@ data, connector or demo-store change.
       - An input is `fill` with a 1pt `fill` border that turns `accent` on focus.
       - Menus float on `shadow.float` with no edge, and sheets sit on the backdrop with none.
   - Verify: `yarn format:check`.
-- [ ] 2. Draw every screen header in one shape: a round Back or Home, a centred title, one trailing action (≈ 212 lines)
+- [x] 2. Draw every screen header in one shape: a round Back or Home, a centred title, one trailing action (≈ 212 lines)
   - Files: `components/ScreenHeader.tsx`, `components/CollapsingSummary.tsx`, `app/(tabs)/budget.tsx`, `income.tsx`,
     `expenses.tsx`, `app/category/[categoryId].tsx`, `app/members.tsx`, `app/category-form.tsx`,
     `app/delete-category.tsx`, `app/income-item.tsx`, `app/actual-end.tsx`, `app/expense.tsx`

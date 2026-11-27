@@ -13,6 +13,7 @@ import { IconButton } from '@/components/IconButton';
 import { LoadError } from '@/components/LoadError';
 import { Pressable } from '@/components/Pressable';
 import { ReorderList } from '@/components/ReorderList';
+import { MonthSwitcher } from '@/components/MonthSwitcher';
 import { ScreenHeader } from '@/components/ScreenHeader';
 import { Text } from '@/components/Text';
 import { UndoToast } from '@/components/UndoToast';
@@ -112,10 +113,9 @@ export default function Budget() {
   return (
     <SafeAreaView style={styles.screen} edges={['top']}>
       <ScreenHeader
-        variant="month"
-        title={tabTitle('budget')}
-        month={month}
-        onMonthChange={(m) => router.setParams({ month: m })}
+        title={
+          <MonthSwitcher title={tabTitle('budget')} month={month} onChange={(m) => router.setParams({ month: m })} />
+        }
         trailing={
           // Like the Expenses tab's "+"; an ended month can't change, and nothing shows before the month loads.
           data && !ended ? (

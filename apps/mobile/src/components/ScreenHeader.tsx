@@ -1,120 +1,69 @@
 import type { ReactNode } from 'react';
 import { StyleSheet, View } from 'react-native';
-import { useColors, useThemedStyles } from '@/appearance/AppearanceContext';
-import { Button } from '@/components/Button';
 import { HeaderDivider } from '@/components/CollapsingSummary';
 import { HomeButton } from '@/components/HomeButton';
-import { Icon } from '@/components/Icon';
-import { MonthSwitcher } from '@/components/MonthSwitcher';
-import { Pressable } from '@/components/Pressable';
+import { IconButton } from '@/components/IconButton';
 import { Text } from '@/components/Text';
-import { type Palette, size, space } from '@/theme';
+import { size, space } from '@/theme';
 
-/** On a screen whose list scrolls under the header: the hairline's opacity from `useCollapsingSummary`. */
-type Collapsing = { dividerStyle?: object };
-
-type Props =
-  | {
-      /** The forms: a text Back and a centred title. */
-      variant: 'modal';
-      title: string;
-      onBack: () => void;
-      /** While a save is in flight. */
-      disabled?: boolean;
-    }
-  | ({
-      /** Budget, Income and Expenses: Home, the month switcher, and the tab's action on equal-width sides. */
-      variant: 'month';
-      /** The tab's title for MonthSwitcher's caption, not a title the header draws (unlike `modal`'s). */
-      title: string;
-      month: string;
-      onMonthChange: (month: string) => void;
-      trailing?: ReactNode;
-    } & Collapsing)
-  | ({
-      /** The category page and Members: Back with an icon and a label. */
-      variant: 'page';
-      /** The month the category page returns to, or "Back". */
-      backLabel: string;
-      onBack: () => void;
-      trailing?: ReactNode;
-    } & Collapsing);
-
-/** A screen's top row, in one of three looks (`variant`). The screen keeps its own top padding. */
-export function ScreenHeader(props: Props) {
-  const colors = useColors();
-  const styles = useThemedStyles(makeStyles);
-  if (props.variant === 'modal') {
-    return (
-      <View style={styles.modal}>
-        <Button
-          variant="mutedText"
-          label="Back"
-          disabled={props.disabled}
-          onPress={props.onBack}
-          style={styles.modalBack}
-        />
-        <Text accessibilityRole="header" variant="title">
-          {props.title}
-        </Text>
-        <View style={styles.spacer} />
-      </View>
-    );
-  }
-  const lifted = props.dividerStyle ? styles.lifted : null;
-  const divider = props.dividerStyle ? <HeaderDivider style={props.dividerStyle} /> : null;
-  if (props.variant === 'month') {
-    return (
-      <View style={[styles.month, lifted]}>
-        <View style={styles.side}>
-          <HomeButton />
-        </View>
-        <MonthSwitcher title={props.title} month={props.month} onChange={props.onMonthChange} />
-        <View style={[styles.side, styles.sideEnd]}>{props.trailing}</View>
-        {divider}
-      </View>
-    );
-  }
+/**
+ * A screen's top row, in one shape: a round Back (or Home, with no `back`), a centred title, and one trailing
+ * action. The row spans the screen with the gutter inside, so HeaderDivider draws edge to edge. The screen keeps its
+ * own top padding.
+ */
+export function ScreenHeader({
+  back,
+  title,
+  trailing,
+  dividerStyle,
+}: {
+  /** The round back button; its label is the accessible name. Without it, the leading button is Home. */
+  back?: { label: string; onPress: () => void; disabled?: boolean };
+  /** A string is drawn as the screen's `title`; the month tabs pass their MonthSwitcher. */
+  title?: ReactNode;
+  trailing?: ReactNode;
+  /** On a screen whose list scrolls under the header: the hairline's opacity from `useCollapsingSummary`. */
+  dividerStyle?: object;
+}) {
   return (
-    <View style={[styles.page, lifted]}>
-      <Pressable accessibilityRole="button" onPress={props.onBack} style={styles.pageBack}>
-        <Icon name="back" color={colors.muted} />
-        <Text variant="bodyMedium" color="muted">
-          {props.backLabel}
-        </Text>
-      </Pressable>
-      {props.trailing !== undefined ? <View style={styles.trailing}>{props.trailing}</View> : null}
-      {divider}
+    <View style={[styles.row, dividerStyle && styles.lifted]}>
+      <View style={styles.side}>
+        {back ? (
+          <IconButton icon="back" label={back.label} tone="muted" disabled={back.disabled} onPress={back.onPress} />
+        ) : (
+          <HomeButton />
+        )}
+      </View>
+      {/* Drawn even with no title: it takes the row's middle and pushes the trailing side to the end. */}
+      <View style={styles.title}>
+        {typeof title === 'string' ? (
+          <Text accessibilityRole="header" variant="title">
+            {title}
+          </Text>
+        ) : (
+          title
+        )}
+      </View>
+      <View style={[styles.side, styles.trailing]}>{trailing}</View>
+      {dividerStyle ? <HeaderDivider style={dividerStyle} /> : null}
     </View>
   );
 }
 
-const makeStyles = (colors: Palette) =>
-  StyleSheet.create({
-    modal: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: space.sm },
-    modalBack: { marginLeft: -space.sm },
-    // About Back's width, so the title sits near the row's centre.
-    spacer: { width: 52 },
-    month: { flexDirection: 'row', alignItems: 'center', paddingBottom: space.sm },
-    // Equal-width sides keep the month switcher on the header's true centre; flexBasis 0 matters on web.
-    side: { flex: 1, flexBasis: 0, flexDirection: 'row' },
-    sideEnd: { justifyContent: 'flex-end' },
-    page: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      justifyContent: 'space-between',
-      gap: space.md,
-      paddingBottom: space.sm,
-    },
-    pageBack: {
-      height: size.iconButton,
-      flexDirection: 'row',
-      alignItems: 'center',
-      gap: space.xs,
-      marginLeft: -space.sm,
-      paddingHorizontal: space.sm,
-    },
-    trailing: { flexDirection: 'row', alignItems: 'center', gap: space.xs, flexShrink: 1 },
-    // Over the list that scrolls under the header.
-    lifted: { zIndex: 1 },
-  });
+const styles = StyleSheet.create({
+  row: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: space.sm,
+    marginHorizontal: -space.xl,
+    paddingHorizontal: space.xl,
+    paddingBottom: space.sm,
+  },
+  // At least a button wide on both sides, so the title sits on the screen's centre even with one side empty.
+  side: { minWidth: size.iconButton, flexDirection: 'row', alignItems: 'center' },
+  // flexBasis 0 matters on web.
+  title: { flex: 1, flexBasis: 0, alignItems: 'center' },
+  trailing: { justifyContent: 'flex-end', gap: space.xs, flexShrink: 1 },
+  // Over the list that scrolls under the header.
+  lifted: { zIndex: 1 },
+});

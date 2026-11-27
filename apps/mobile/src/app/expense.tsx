@@ -76,7 +76,7 @@ export default function ExpenseScreen() {
     <View style={styles.page}>
       {/* The tab bar pads the bottom inset. */}
       <SafeAreaView style={styles.screen} edges={['top']}>
-        <ScreenHeader variant="modal" title={editing ? 'Edit expense' : 'New expense'} onBack={leave} />
+        <ScreenHeader back={{ label: 'Back', onPress: leave }} title={editing ? 'Edit expense' : 'New expense'} />
 
         {editing && expenseId === null ? (
           <LoadFailed message="That link isn’t valid." />

@@ -1,7 +1,8 @@
 import { router, Stack, useLocalSearchParams } from 'expo-router';
 import { useRef, useState } from 'react';
-import { AccessibilityInfo, ScrollView, StyleSheet } from 'react-native';
+import { ScrollView, StyleSheet } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useAnnouncedError } from '@/announcedError';
 import { ApiError } from '@/api/apiError';
 import type { CategoryWithTotals } from '@/api/types';
 import { useThemedStyles } from '@/appearance/AppearanceContext';
@@ -74,7 +75,7 @@ function Confirm({
 }: { category: CategoryWithTotals; month: string; ledgerId: number; toBudget: boolean } & Removing) {
   const styles = useThemedStyles(makeStyles);
   const warning = removeWarning(category, month);
-  const [error, setError] = useState<string | null>(null);
+  const { error, showError, clearError } = useAnnouncedError();
   // The month ended, or the category left it meanwhile: pressing again can't help.
   const [gone, setGone] = useState(false);
 
@@ -85,7 +86,7 @@ function Confirm({
     if (inFlight.current) return;
     inFlight.current = true;
     setBusy(true);
-    setError(null);
+    clearError();
     const { categoryId, displayName, expenseCount } = category;
     try {
       await removeFromMonth(ledgerId, categoryId, month);
@@ -108,9 +109,7 @@ function Confirm({
             ? notInMonthText(displayName, month)
             : 'Couldn’t remove. Check your connection and try again.';
       setGone(code === 'month_ended' || code === 'not_found');
-      // The alert role covers web; VoiceOver needs an explicit announcement.
-      setError(message);
-      AccessibilityInfo.announceForAccessibility(message);
+      showError(message);
       inFlight.current = false;
       setBusy(false);
     }

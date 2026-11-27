@@ -10,6 +10,7 @@ import {
   View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useAnnouncedError } from '@/announcedError';
 import { ApiError } from '@/api/apiError';
 import type { Category, Currency } from '@/api/types';
 import { useColors, useThemedStyles } from '@/appearance/AppearanceContext';
@@ -141,7 +142,7 @@ function ExpenseForm({ draft, ledgerId }: { draft: ExpenseDraftData; ledgerId: n
   const [busy, setBusy] = useState(false);
   // `busy` disables the button only after a re-render; two presses in one tick would both get here.
   const inFlight = useRef(false);
-  const [error, setError] = useState<string | null>(null);
+  const { error, showError, clearError } = useAnnouncedError();
   const [added, setAdded] = useState<string | null>(null);
 
   const rate = useRate(date);
@@ -171,14 +172,8 @@ function ExpenseForm({ draft, ledgerId }: { draft: ExpenseDraftData; ledgerId: n
 
   function edit(setter: (next: string) => void, value: string) {
     setter(value);
-    setError(null);
+    clearError();
     setAdded(null);
-  }
-
-  // The alert role covers web; VoiceOver needs an explicit announcement.
-  function showError(message: string) {
-    setError(message);
-    AccessibilityInfo.announceForAccessibility(message);
   }
 
   function typeAmount(currency: Currency, typed: string) {
@@ -189,7 +184,7 @@ function ExpenseForm({ draft, ledgerId }: { draft: ExpenseDraftData; ledgerId: n
 
   function pickCategory(category: Category) {
     setCategoryId(category.categoryId);
-    setError(null);
+    clearError();
   }
 
   function pickDate(value: string) {
@@ -213,7 +208,7 @@ function ExpenseForm({ draft, ledgerId }: { draft: ExpenseDraftData; ledgerId: n
       return;
     }
     setBusy(true);
-    setError(null);
+    clearError();
     const body = { categoryId: selectedId, expenseDate: date, name: name.trim(), amount, currency: entered };
     try {
       const saved = await saveExpense(ledgerId, expense?.expenseId ?? null, body);

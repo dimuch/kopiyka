@@ -1,7 +1,8 @@
 import { Stack, useLocalSearchParams } from 'expo-router';
 import { useRef, useState } from 'react';
-import { AccessibilityInfo, ActivityIndicator, ScrollView, StyleSheet, View } from 'react-native';
+import { ActivityIndicator, ScrollView, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useAnnouncedError } from '@/announcedError';
 import { ApiError } from '@/api/apiError';
 import type { IncomeItem } from '@/api/types';
 import { useColors, useThemedStyles } from '@/appearance/AppearanceContext';
@@ -143,29 +144,23 @@ function IncomeForm({
   const styles = useThemedStyles(makeStyles);
   const [title, setTitle] = useState(initial?.title ?? '');
   const [amountText, setAmountText] = useState(initial?.amountEur ?? '');
-  const [error, setError] = useState<string | null>(null);
+  const { error, showError, clearError } = useAnnouncedError();
   // The month ended, or the item left it meanwhile: saving again can't help.
   const [gone, setGone] = useState(false);
   // `busy` disables the button only after a re-render; two presses in one tick would both get here.
   const inFlight = useRef(false);
   const locked = busy || gone;
 
-  // The alert role covers web; VoiceOver needs an explicit announcement.
-  function showError(message: string) {
-    setError(message);
-    AccessibilityInfo.announceForAccessibility(message);
-  }
-
   function edit(setter: (value: string) => void, typed: string) {
     setter(typed);
-    setError(null);
+    clearError();
   }
 
   /** Runs a save or a delete, then leaves; a refusal or failure keeps the form open with its reason. */
   async function run(action: () => Promise<void>, failed: string) {
     inFlight.current = true;
     setBusy(true);
-    setError(null);
+    clearError();
     try {
       await action();
       leave(month);

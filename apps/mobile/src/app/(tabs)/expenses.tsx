@@ -159,7 +159,7 @@ export default function Expenses() {
                         }
                         style={[styles.row, { flex: 1 }]}
                       >
-                        <CategoryTile techName={row.techName} label={row.displayName} />
+                        <CategoryTile techName={row.techName} label={row.displayName} icon={row.icon} />
                         <View style={styles.rowBody}>
                           <View style={styles.rowTop}>
                             <Text variant="bodyMedium" numberOfLines={1} style={styles.rowName}>

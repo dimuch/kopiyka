@@ -32,7 +32,7 @@ export function CategoryPicker({ quick, more, selectedId, onPick, disabled = fal
           <Chip
             key={c.categoryId}
             label={c.displayName}
-            leading={<CategoryTile techName={c.techName} label={c.displayName} size={26} />}
+            leading={<CategoryTile techName={c.techName} label={c.displayName} icon={c.icon} size={26} />}
             selected={on}
             disabled={disabled}
             onPress={() => onPick(c)}

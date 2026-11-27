@@ -57,6 +57,21 @@ export function Icon({
   color: ColorValue;
   strokeWidth?: number;
 }) {
+  return <StrokeIcon paths={PATHS[name]} size={size} color={color} strokeWidth={strokeWidth} />;
+}
+
+/** Any 24×24 stroke icon given as paths: the app's own above, and the category icons (brief 114). */
+export function StrokeIcon({
+  paths,
+  size,
+  color,
+  strokeWidth = 2,
+}: {
+  paths: readonly string[];
+  size: number;
+  color: ColorValue;
+  strokeWidth?: number;
+}) {
   return (
     <Svg
       width={size}
@@ -68,7 +83,7 @@ export function Icon({
       strokeLinecap="round"
       strokeLinejoin="round"
     >
-      {PATHS[name].map((d) => (
+      {paths.map((d) => (
         <Path key={d} d={d} />
       ))}
     </Svg>

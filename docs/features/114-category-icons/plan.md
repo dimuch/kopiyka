@@ -313,7 +313,7 @@ two callers.
     - Demo: POST with an icon returns it.
   - Check: run `yarn mobile export:web` and `yarn mobile check-builds --accept`; commit the `demo-modules.txt` diff,
     which adds `src/components/categoryIcons.ts`.
-- [ ] 7. Draw a category's icon in its tile instead of the letter (≈ 45 lines)
+- [x] 7. Draw a category's icon in its tile instead of the letter (≈ 45 lines)
   - Files: `apps/mobile/src/components/Icon.tsx` (extract `StrokeIcon`; `Icon` unchanged in output),
     `CategoryTile.tsx`, `CategoryPicker.tsx`, `CategorySheet.tsx`, `src/app/(tabs)/budget.tsx`,
     `src/app/(tabs)/expenses.tsx`, `src/app/category/[categoryId].tsx`
@@ -429,6 +429,8 @@ two callers.
 ## Deviations
 
 - PR A: rebased onto main after #181 (brief 113, 1.24.2) merged; the bump is now 1.24.2 → 1.25.0, still minor.
+- slice 7: checked on the demo web build that letters, tab bar and header icons are unchanged; the icon in each tile
+  is checked in slice 8, where the picker can set one, instead of by `curl` against a local API.
 - slice 5: the script re-writes every path from its parsed commands with a space between all numbers, not only the
   arcs, so no arc flags run together and the native parser reads one simple form. Same drawing; ≈ 9.8 KB gzipped
   rather than ≈ 7.5 KB, and ≈ 1,000 formatted lines rather than ≈ 620.

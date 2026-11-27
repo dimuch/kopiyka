@@ -44,7 +44,7 @@ export function CategorySheet({ visible, categories, onPick, onClose }: Props) {
                 <Chip
                   key={c.categoryId}
                   label={c.displayName}
-                  leading={<CategoryTile techName={c.techName} label={c.displayName} size={28} />}
+                  leading={<CategoryTile techName={c.techName} label={c.displayName} icon={c.icon} size={28} />}
                   onPress={() => onPick(c)}
                   style={styles.item}
                 />

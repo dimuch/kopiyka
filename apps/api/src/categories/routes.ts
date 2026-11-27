@@ -75,14 +75,14 @@ const OrderBody = z.object({
     .refine((ids) => new Set(ids).size === ids.length, 'expected each id once'),
 });
 
-function toDto(r: RowDataPacket): CategoryDto {
+function toDto(row: RowDataPacket): CategoryDto {
   return {
-    categoryId: r.category_id,
-    techName: r.tech_name,
-    displayName: r.display_name,
-    sortOrder: r.sort_order,
-    plannedEur: r.planned_eur,
-    icon: r.icon,
+    categoryId: row.category_id,
+    techName: row.tech_name,
+    displayName: row.display_name,
+    sortOrder: row.sort_order,
+    plannedEur: row.planned_eur,
+    icon: row.icon,
   };
 }
 
@@ -143,13 +143,13 @@ export async function categoryRoutes(app: FastifyInstance, { db, now }: AppDeps)
         req.ledger!.ledgerId,
       ],
     );
-    const r = rows[0];
-    if (!r) return reply.code(404).send({ error: 'not_found' });
+    const row = rows[0];
+    if (!row) return reply.code(404).send({ error: 'not_found' });
     const dto: CategoryWithTotalsDto = {
-      ...toDto(r),
-      expenseCount: r.expense_count,
-      totalEur: r.total_eur,
-      inMonth: Boolean(r.in_month),
+      ...toDto(row),
+      expenseCount: row.expense_count,
+      totalEur: row.total_eur,
+      inMonth: Boolean(row.in_month),
     };
     return dto;
   });

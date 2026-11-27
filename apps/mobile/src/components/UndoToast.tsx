@@ -7,7 +7,7 @@ import type { UndoOffer } from '@/data/undo';
 import { type Palette, radius, shadow, size, space } from '@/theme';
 
 /**
- * The scroll room a screen leaves under its content while the bar shows: the floating tab bar's room, the bar's height
+ * The room a page leaves under its scroll view while the Undo bar shows: the floating tab bar's room, the bar's height
  * and a 16pt gap.
  */
 export function useToastRoom(): number {

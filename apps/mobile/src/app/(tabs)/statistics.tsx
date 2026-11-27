@@ -62,7 +62,7 @@ export default function Statistics() {
         onLayout={setAnchor}
       />
 
-      <ScrollView style={styles.scroll} contentContainerStyle={[styles.content, { paddingBottom: barRoom }]}>
+      <ScrollView style={[styles.scroll, { marginBottom: barRoom }]} contentContainerStyle={styles.content}>
         {!summary ? (
           error ? (
             <LoadError message="Couldn’t load these figures. Check your connection and try again." onRetry={reload} />
@@ -296,7 +296,8 @@ const makeStyles = (colors: Palette) =>
     header: { flexDirection: 'row', alignItems: 'center', gap: space.sm, paddingBottom: space.sm },
     // Out to the screen's edges, with the gutter inside, so the scroll view doesn't clip the cards' side shadows.
     scroll: { marginHorizontal: -space.xl },
-    content: { gap: space.lg, paddingTop: space.xs, paddingHorizontal: space.xl },
+    // The 8pt under the last card keeps its shadow from being cut at the scroll view's edge.
+    content: { gap: space.lg, paddingTop: space.xs, paddingBottom: space.sm, paddingHorizontal: space.xl },
     loading: { marginTop: space.xxl },
     switcher: {
       flexDirection: 'row',

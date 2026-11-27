@@ -157,8 +157,7 @@ class Drag {
             top: scrollY,
             bottom: scrollY + viewportHeight,
             offset,
-            // Down until the list's end reaches the scroll view's bottom, never back from where the user left the view
-            // (padding below the list).
+            // Down until the list's end reaches the scroll view's bottom, never back from where the user left the view.
             maxOffset: Math.max(offset, listBottom - viewportHeight),
           };
           this.scrollAtEdges();

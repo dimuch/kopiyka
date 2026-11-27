@@ -5,6 +5,7 @@ import { refuseOverIncome } from './incomeLimit';
 import {
   type DemoCategory,
   inMonth,
+  liveExpensesIn,
   type MonthRow,
   nameInMonth,
   plannedKey,
@@ -188,12 +189,7 @@ export const categoryRoutes: Route[] = [
       const month = query.get('month') ?? '';
       const category =
         data.categories.find((candidate) => candidate.categoryId === Number(categoryId)) ?? refuse(404, 'not_found');
-      const expenses = data.expenses.filter(
-        (expense) =>
-          expense.categoryId === category.categoryId &&
-          expense.removal === null &&
-          expense.expenseDate.startsWith(`${month}-`),
-      );
+      const expenses = liveExpensesIn(data, month).filter((expense) => expense.categoryId === category.categoryId);
       const totals: CategoryWithTotals = {
         ...toDto(data, category, month),
         expenseCount: expenses.length,
@@ -295,10 +291,8 @@ export const categoryRoutes: Route[] = [
       // stays.
       const removal = data.nextId++;
       row.removal = removal;
-      for (const expense of data.expenses) {
-        if (expense.categoryId === id && expense.removal === null && expense.expenseDate.startsWith(`${month}-`)) {
-          expense.removal = removal;
-        }
+      for (const expense of liveExpensesIn(data, month)) {
+        if (expense.categoryId === id) expense.removal = removal;
       }
     },
   },

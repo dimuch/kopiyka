@@ -125,6 +125,35 @@ function monthRow(data: StoreData, categoryId: number, month: string, removed: b
   );
 }
 
+/**
+ * The API's add: reuses the ledger's category called `name` that isn't in the month, or creates one at the end of the
+ * order. Either way it's listed in the month, and an `icon` given is set.
+ */
+function reuseOrCreate(data: StoreData, month: string, name: string, icon: string | null | undefined): DemoCategory {
+  const found = findByName(data, month, name);
+  if (found) {
+    // A removed row comes back; the expenses removed with it stay deleted.
+    const row = data.monthRows.find(
+      (candidate) => candidate.categoryId === found.categoryId && candidate.month === month,
+    );
+    if (row) Object.assign(row, { displayName: name, removal: null });
+    else data.monthRows.push({ categoryId: found.categoryId, month, displayName: name, removal: null });
+    // Left out, a reused category keeps its icon.
+    if (icon !== undefined) found.icon = icon;
+    return found;
+  }
+  const category: DemoCategory = {
+    categoryId: data.nextId++,
+    techName: techNameBase(name),
+    displayName: name,
+    sortOrder: Math.max(0, ...data.categories.map((existing) => existing.sortOrder)) + 10,
+    icon: icon ?? null,
+  };
+  data.categories.push(category);
+  data.monthRows.push({ categoryId: category.categoryId, month, displayName: name, removal: null });
+  return category;
+}
+
 /** The API's `nameTaken`: another category listed in the month already has the name. */
 function nameTaken(data: StoreData, month: string, name: string, categoryId: number): boolean {
   return data.monthRows.some(
@@ -224,28 +253,7 @@ export const categoryRoutes: Route[] = [
       // All of it is a raise: nothing the category planned before counts until it's back in the month.
       refuseOverIncome(data, month, { plannedCents: amountCents, incomeCents: 0 });
 
-      let category = findByName(data, month, name);
-      if (category) {
-        const found = category;
-        // A removed row comes back; the expenses removed with it stay deleted.
-        const row = data.monthRows.find(
-          (candidate) => candidate.categoryId === found.categoryId && candidate.month === month,
-        );
-        if (row) Object.assign(row, { displayName: name, removal: null });
-        else data.monthRows.push({ categoryId: found.categoryId, month, displayName: name, removal: null });
-        // Left out, a reused category keeps its icon.
-        if (icon !== undefined) found.icon = icon;
-      } else {
-        category = {
-          categoryId: data.nextId++,
-          techName: techNameBase(name),
-          displayName: name,
-          sortOrder: Math.max(0, ...data.categories.map((existing) => existing.sortOrder)) + 10,
-          icon: icon ?? null,
-        };
-        data.categories.push(category);
-        data.monthRows.push({ categoryId: category.categoryId, month, displayName: name, removal: null });
-      }
+      const category = reuseOrCreate(data, month, name, icon);
       data.planned.set(plannedKey(category.categoryId, month), amountCents);
       const added: Category = {
         categoryId: category.categoryId,

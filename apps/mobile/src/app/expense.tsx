@@ -25,6 +25,7 @@ import { NameCombobox } from '@/components/NameCombobox';
 import { ScreenHeader } from '@/components/ScreenHeader';
 import { PageTabBar, useTabBarRoom } from '@/components/TabBar';
 import { Text } from '@/components/Text';
+import { fieldStyle } from '@/components/TextField';
 import { expenseLocked, firstOpenDate } from '@/data/expenseLock';
 import { lockedText, restoreRefusedText } from '@/data/monthEnded';
 import { deleteExpense, restoreExpense, saveExpense } from '@/data/expenses';
@@ -36,7 +37,7 @@ import { useMonthCategories } from '@/data/useMonthCategories';
 import { type Rate, useRate } from '@/data/useRate';
 import { eur, kyivToday, monthName, normalizeAmount, otherAmountText, shortDate, toCents } from '@/format';
 import { parseIdParam } from '@/linkParams';
-import { type Palette, radius, size, space, text } from '@/theme';
+import { type Palette, radius, space } from '@/theme';
 
 function errorText(err: unknown, doing: 'load' | 'save'): string {
   if (err instanceof ApiError) {
@@ -386,23 +387,15 @@ function ExpenseForm({ draft, ledgerId }: { draft: ExpenseDraftData; ledgerId: n
   );
 }
 
-const makeStyles = (colors: Palette) => {
-  const field = {
-    height: size.control,
-    borderRadius: radius.md,
-    borderWidth: 1,
-    borderColor: colors.fill,
-    backgroundColor: colors.fill,
-  } as const;
-
-  return StyleSheet.create({
+const makeStyles = (colors: Palette) =>
+  StyleSheet.create({
     page: { flex: 1, backgroundColor: colors.bg },
     screen: { flex: 1, backgroundColor: colors.bg, paddingHorizontal: space.xl, paddingTop: space.sm },
     form: { gap: space.xxl },
     group: { gap: space.sm },
     // The name suggestions float over the amount fields below; 2 clears the ₴/€ symbols' zIndex 1 there on web.
     nameGroup: { zIndex: 2 },
-    input: { ...field, ...text.input, paddingHorizontal: space.lg, color: colors.text },
+    input: fieldStyle(colors),
     added: {
       flexDirection: 'row',
       alignItems: 'center',
@@ -413,4 +406,3 @@ const makeStyles = (colors: Palette) => {
     },
     addedText: { flex: 1 },
   });
-};

@@ -12,11 +12,11 @@ import { Card } from '@/components/Card';
 import { LoadError } from '@/components/LoadError';
 import { ScreenHeader } from '@/components/ScreenHeader';
 import { Text } from '@/components/Text';
-import { TextField } from '@/components/TextField';
+import { fieldStyle, TextField } from '@/components/TextField';
 import { normalizeLabel } from '@/data/ledgerLabel';
 import { inviteMember, removeMember, revokeInvite, setLedgerLabel } from '@/data/members';
 import { useMembers } from '@/data/useMembers';
-import { type Palette, radius, size, space, text } from '@/theme';
+import { type Palette, radius, size, space } from '@/theme';
 
 /**
  * Everyone sets their own label for the open ledger at the top. Below, its owner sees the members, can remove them and
@@ -488,14 +488,5 @@ const makeStyles = (colors: Palette) =>
     },
     panelButtons: { flexDirection: 'row', justifyContent: 'flex-end', alignItems: 'center', gap: space.sm },
     section: { gap: space.sm },
-    input: {
-      ...text.input,
-      height: size.control,
-      borderRadius: radius.md,
-      borderWidth: 1,
-      borderColor: colors.fill,
-      backgroundColor: colors.fill,
-      color: colors.text,
-      paddingHorizontal: space.lg,
-    },
+    input: fieldStyle(colors),
   });

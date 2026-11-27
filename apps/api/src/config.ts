@@ -44,7 +44,7 @@ export function loadConfig(source: NodeJS.ProcessEnv = process.env): Config {
     sessionTtlMinutes: env.SESSION_TTL_MINUTES,
     cookieSecure: env.COOKIE_SECURE ?? env.NODE_ENV === 'production',
     corsOrigins: env.CORS_ORIGINS.split(',')
-      .map((o) => o.trim())
+      .map((origin) => origin.trim())
       .filter(Boolean),
     ...(env.MCP_ENABLED ? { apiTokens: { ttlMinutes: env.API_TOKEN_TTL_MINUTES } } : {}),
   };

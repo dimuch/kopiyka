@@ -33,9 +33,9 @@ export function e4ToString(e4: bigint): string {
   return `${e4 / 10_000n}.${(e4 % 10_000n).toString().padStart(4, '0')}`;
 }
 
-/** a / b for non-negative bigints, rounded half up. */
-function divRound(a: bigint, b: bigint): bigint {
-  return (a * 2n + b) / (b * 2n);
+/** numerator / divisor for non-negative bigints, rounded half up. */
+function divRound(numerator: bigint, divisor: bigint): bigint {
+  return (numerator * 2n + divisor) / (divisor * 2n);
 }
 
 /** The entered amount in both currencies; the entered side stays exact. */

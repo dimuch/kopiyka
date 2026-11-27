@@ -17,8 +17,8 @@ export async function runMigrations(databaseUrl: string, dir = MIGRATIONS_DIR): 
        )`,
     );
     const [rows] = await conn.query<mysql.RowDataPacket[]>('SELECT version FROM schema_migrations');
-    const applied = new Set(rows.map((r) => r.version as string));
-    const files = (await readdir(dir)).filter((f) => f.endsWith('.sql')).sort();
+    const applied = new Set(rows.map((row) => row.version as string));
+    const files = (await readdir(dir)).filter((file) => file.endsWith('.sql')).sort();
 
     const ran: string[] = [];
     for (const file of files) {

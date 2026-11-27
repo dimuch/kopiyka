@@ -78,4 +78,9 @@ Why: conventions §8b `patch` row (styling). The chip's look changes in producti
 
 ## Deviations
 
+- After review the user changed the inset from 0pt (flush) to 3pt on both sides. Slice 1 stays as committed; a new
+  commit replaces `padStart` with an `inset` style (`paddingHorizontal: 3`, with an eslint-disable and its reason:
+  (32 − 26) / 2, no 3pt token) applied when `leading !== undefined`. Brief ACs updated to match. Checked on web at
+  phone width: tile chips 3pt / 3pt, date chips 8pt / 8pt, height 32.
+
 ## Consolidate

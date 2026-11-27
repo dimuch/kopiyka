@@ -215,7 +215,7 @@ the last used category. Everything that exists keeps working.
 
 ## Slices
 
-- [ ] 0. Bump version to 1.24.0
+- [x] 0. Bump version to 1.24.0
   - Files: package.json, apps/mobile/app.json
   - Change: set both to 1.24.0
 - [ ] 1. Record the floating tab bar's size and place in the design system (≈ 16 lines, docs)

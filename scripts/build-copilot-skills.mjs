@@ -139,7 +139,6 @@ function agentCopy(source, fields, body) {
   const field = (key, expected) => {
     const value = fields.get(key);
     const ok = expected === 'list' ? Array.isArray(value) : typeof value === 'string' && value !== '';
-    // tools is required here: in Claude a missing tools line means every tool, which has no Copilot list.
     if (!ok) fail(source, `front matter "${key}" must be ${expected === 'list' ? 'a "  - item" list' : 'one line'}`);
     return value;
   };
@@ -147,6 +146,7 @@ function agentCopy(source, fields, body) {
   const front = [
     `name: ${field('name', 'line')}`,
     `description: ${field('description', 'line')}`,
+    // Required: in Claude a missing tools line means every tool, which has no Copilot list.
     `tools: ${flowList(copilotTools(source, field('tools', 'line')))}`,
     `skills: ${flowList(skills)}`,
   ];

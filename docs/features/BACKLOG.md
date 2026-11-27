@@ -146,10 +146,10 @@ Each 105 part's brief is written from the plan's "Later parts" after the previou
 Drafted on 2026-11-25, after PR #167 turned Copilot's identical copies of the skills into symlinks. Run 110 before
 111, because 111 edits `kopiyka-hos`, which 110 makes single-source. Neither changes the app or API.
 
-| Brief | Draft                                              | What                                                                             |
-| ----- | -------------------------------------------------- | -------------------------------------------------------------------------------- |
-| 110   | `docs/features/110-one-source-for-skills/brief.md` | Generate Copilot's `kopiyka-*` skills and agents from `.claude`, with a CI check |
-| 111   | `docs/features/111-plan-outcomes/brief.md`         | Replace shipped plans with short outcomes, as an after-merge flow step           |
+| Brief | Draft                                              | What                                                                                         |
+| ----- | -------------------------------------------------- | -------------------------------------------------------------------------------------------- |
+| 110   | `docs/features/110-one-source-for-skills/brief.md` | Generate Copilot's `kopiyka-*` skills and agents from `.claude`, with a CI check (in review) |
+| 111   | `docs/features/111-plan-outcomes/brief.md`         | Replace shipped plans with short outcomes, as an after-merge flow step                       |
 
 Item 3 of the same review, finishing the design system with 104f and 105, is already planned above.
 

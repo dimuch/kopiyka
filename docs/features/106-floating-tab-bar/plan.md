@@ -281,7 +281,7 @@ the last used category. Everything that exists keeps working.
     - the same holds on the category page's bar;
     - on `budget`, the tab and icon boxes match Base's (one snapshot);
     - `rg -n "tabBar(Icon|Badge|Button|Label|Style)" apps/mobile/src` finds nothing.
-- [ ] 4. Float the tab bar as a pill over the page, with every list's room and the Undo bar above it (≈ 95 lines)
+- [x] 4. Float the tab bar as a pill over the page, with every list's room and the Undo bar above it (≈ 95 lines)
   - Files: `src/theme.ts`, `src/components/TabBar.tsx`, `src/components/UndoToast.tsx`, `src/app/(tabs)/budget.tsx`,
     `income.tsx`, `expenses.tsx`, `statistics.tsx`, `settings.tsx`, `src/app/category/[categoryId].tsx`,
     `src/app/expense.tsx`

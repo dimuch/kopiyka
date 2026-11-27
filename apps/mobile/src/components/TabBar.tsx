@@ -2,19 +2,28 @@ import { router } from 'expo-router';
 import { PlatformPressable, useNavigationState } from 'expo-router/react-navigation';
 import { Platform, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useColors, useThemedStyles } from '@/appearance/AppearanceContext';
+import { useAppearance, useColors, useThemedStyles } from '@/appearance/AppearanceContext';
 import { Icon } from '@/components/Icon';
 import { pressedOpacity } from '@/components/Pressable';
 import { readTabs, type TabItem, type TabName, useTabItems } from '@/data/tabItems';
 import { tabHref } from '@/tabRoutes';
-import { fonts, type Palette, radius, space } from '@/theme';
+import { fonts, type Palette, radius, shadow, size, space } from '@/theme';
 
-// The library bar's phone metrics (expo-router 58, BottomTabBar.js, TabBarIcon.js, Badge.js), so this copy lines up
-// with the bar on the tab pages. Recheck them after an expo-router upgrade.
-const BAR_HEIGHT = 49;
+// Today's icon and badge sizes, from the library bar the tab pages drew before brief 106.
 const ICON_BOX = { width: 31, height: 28 };
 const ICON_SIZE = 25;
 const BADGE_SIZE = ICON_SIZE * 0.75;
+
+/** The floating bar's distance from the screen's bottom: 20, or the home indicator's inset where that's more. */
+function barBottom(inset: number): number {
+  return Math.max(inset, space.xl);
+}
+
+/** The room a scroll view leaves under its content so its last row can scroll above the floating tab bar. */
+export function useTabBarRoom(): number {
+  const insets = useSafeAreaInsets();
+  return barBottom(insets.bottom) + size.tabBar + space.lg;
+}
 
 /**
  * The tab bar, on the tab pages and on the pages pushed above them (brief 106: one bar for both). `active` and `params`
@@ -31,42 +40,47 @@ export function TabBar({
 }) {
   const colors = useColors();
   const styles = useThemedStyles(makeStyles);
+  const { scheme } = useAppearance();
   const insets = useSafeAreaInsets();
   const { tabs } = useTabItems();
+  const float = { boxShadow: shadow[scheme].float };
 
   return (
-    <View role="tablist" style={[styles.bar, { height: BAR_HEIGHT + insets.bottom, paddingBottom: insets.bottom }]}>
-      {tabs.map((tab, position) => {
-        const focused = tab.name === active;
-        const { badge, label } = tab;
-        const color = focused ? colors.accent : colors.muted;
-        return (
-          // A link on web, so a Cmd-click or middle click opens the tab in a new browser tab, while a plain click
-          // navigates in the app (PlatformPressable only takes plain left clicks). On iOS the href is ignored.
-          <PlatformPressable
-            key={tab.name}
-            href={tabHref(tab.href, params[tab.name])}
-            pressOpacity={pressedOpacity}
-            // Same roles and names as the library bar: iOS reads "Settings, 1 invite, tab, 6 of 6". The aria props, not
-            // accessibility*, because react-native-web only renders aria-label and aria-selected from these. The role
-            // comes after PlatformPressable's own `link`, so it wins.
-            role={Platform.select({ ios: 'button', default: 'tab' })}
-            aria-selected={focused}
-            aria-label={Platform.OS === 'ios' ? `${label}, tab, ${position + 1} of ${tabs.length}` : label}
-            accessibilityShowsLargeContentViewer
-            accessibilityLargeContentTitle={label}
-            onPress={() => onTabPress(tab)}
-            style={styles.item}
-          >
-            <View style={ICON_BOX}>
-              <View style={styles.icon}>
-                <Icon name={tab.icon} color={color} size={ICON_SIZE} />
+    // A floating pill over the page (the design system's TabBar); the pages leave room for it (`useTabBarRoom`).
+    <View style={[styles.dock, { bottom: barBottom(insets.bottom) }]}>
+      <View role="tablist" style={[styles.pill, float]}>
+        {tabs.map((tab, position) => {
+          const focused = tab.name === active;
+          const { badge, label } = tab;
+          const color = focused ? colors.accent : colors.muted;
+          return (
+            // A link on web, so a Cmd-click or middle click opens the tab in a new browser tab, while a plain click
+            // navigates in the app (PlatformPressable only takes plain left clicks). On iOS the href is ignored.
+            <PlatformPressable
+              key={tab.name}
+              href={tabHref(tab.href, params[tab.name])}
+              pressOpacity={pressedOpacity}
+              // Same roles and names as the library bar: iOS reads "Settings, 1 invite, tab, 6 of 6". The aria props, not
+              // accessibility*, because react-native-web only renders aria-label and aria-selected from these. The role
+              // comes after PlatformPressable's own `link`, so it wins.
+              role={Platform.select({ ios: 'button', default: 'tab' })}
+              aria-selected={focused}
+              aria-label={Platform.OS === 'ios' ? `${label}, tab, ${position + 1} of ${tabs.length}` : label}
+              accessibilityShowsLargeContentViewer
+              accessibilityLargeContentTitle={label}
+              onPress={() => onTabPress(tab)}
+              style={styles.item}
+            >
+              <View style={ICON_BOX}>
+                <View style={styles.icon}>
+                  <Icon name={tab.icon} color={color} size={ICON_SIZE} />
+                </View>
+                {badge !== undefined ? <Text style={styles.badge}>{badge}</Text> : null}
               </View>
-              {badge !== undefined ? <Text style={styles.badge}>{badge}</Text> : null}
-            </View>
-          </PlatformPressable>
-        );
-      })}
+            </PlatformPressable>
+          );
+        })}
+      </View>
     </View>
   );
 }
@@ -93,15 +107,23 @@ export function PageTabBar({ fallback }: { fallback: TabName }) {
 
 function makeStyles(colors: Palette) {
   return StyleSheet.create({
-    bar: {
+    dock: {
+      position: 'absolute',
+      left: space.xl,
+      right: space.xl,
       flexDirection: 'row',
-      backgroundColor: colors.bg,
-      borderTopWidth: StyleSheet.hairlineWidth,
-      borderTopColor: colors.hairline,
+      alignItems: 'center',
+      gap: space.md,
+      pointerEvents: 'box-none',
     },
-    // expo-router's BottomTabItem pads 5, so these icons line up with the library bar on the tab pages.
-    // eslint-disable-next-line no-restricted-syntax
-    item: { flex: 1, alignItems: 'center', padding: 5 },
+    pill: {
+      flex: 1,
+      flexDirection: 'row',
+      height: size.tabBar,
+      borderRadius: radius.pill,
+      backgroundColor: colors.surface,
+    },
+    item: { flex: 1, alignItems: 'center', justifyContent: 'center' },
     icon: { ...StyleSheet.absoluteFill, alignItems: 'center', justifyContent: 'center' },
     badge: {
       position: 'absolute',

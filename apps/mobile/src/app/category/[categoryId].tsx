@@ -15,7 +15,7 @@ import { Pressable } from '@/components/Pressable';
 import { ScreenHeader } from '@/components/ScreenHeader';
 import { PageTabBar } from '@/components/TabBar';
 import { Text } from '@/components/Text';
-import { toastRoom, UndoToast } from '@/components/UndoToast';
+import { UndoToast, useToastRoom } from '@/components/UndoToast';
 import { expenseCount, groupByDay, sumCents } from '@/data/monthSummary';
 import { useUndoOffer } from '@/data/undo';
 import { useCategoryTotals } from '@/data/useCategoryTotals';
@@ -70,6 +70,7 @@ function CategoryBreakdown({ categoryId, month, ended }: { categoryId: number; m
   const { ledger } = useSession();
   const { data, error, reload } = useMonth(ledger.ledgerId, month, categoryId);
   const toast = useUndoOffer(reload);
+  const toastRoom = useToastRoom();
 
   const category = data?.categories.find((c) => c.categoryId === categoryId);
   const days = useMemo(() => groupByDay(data?.expenses ?? []), [data]);
@@ -120,7 +121,11 @@ function CategoryBreakdown({ categoryId, month, ended }: { categoryId: number; m
       ) : !category ? (
         <NotInMonth categoryId={categoryId} month={month} />
       ) : (
-        <Animated.ScrollView {...collapse.scrollProps} style={styles.scroll} contentContainerStyle={styles.content}>
+        <Animated.ScrollView
+          {...collapse.scrollProps}
+          style={styles.scroll}
+          contentContainerStyle={[styles.content, { paddingBottom: toastRoom }]}
+        >
           {error && <LoadError message="Couldn’t refresh. Check your connection and try again." onRetry={reload} />}
           <View style={styles.titleRow}>
             <CategoryTile techName={category.techName} label={category.displayName} size={52} />
@@ -244,7 +249,6 @@ const makeStyles = (colors: Palette) =>
       gap: space.lg,
       paddingTop: space.sm,
       paddingHorizontal: space.xl,
-      paddingBottom: toastRoom,
     },
     loading: { marginTop: space.xxl },
     days: { gap: space.lg },

@@ -9,6 +9,7 @@ import { Icon } from '@/components/Icon';
 import { LedgerPicker } from '@/components/LedgerPicker';
 import { PendingInvites } from '@/components/PendingInvites';
 import { PlaceholderPage } from '@/components/PlaceholderPage';
+import { useTabBarRoom } from '@/components/TabBar';
 import { Pressable } from '@/components/Pressable';
 import { Text } from '@/components/Text';
 import { useInvites } from '@/data/invites';
@@ -18,6 +19,7 @@ import { type Palette, radius, size, space } from '@/theme';
 export default function Settings() {
   const colors = useColors();
   const styles = useThemedStyles(makeStyles);
+  const barRoom = useTabBarRoom();
   const membersCard = useCardStyle('none');
   const pushOnce = usePushOnce();
   const { preference, setPreference } = useAppearance();
@@ -48,7 +50,12 @@ export default function Settings() {
   return (
     <PlaceholderPage title="Settings">
       {/* Scrolls once invites and the Ledger picker no longer fit above the tab bar. */}
-      <ScrollView style={styles.scroll} contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
+      <ScrollView
+        style={styles.scroll}
+        // The floating tab bar's room, which also keeps Sign out above it.
+        contentContainerStyle={[styles.content, { paddingBottom: barRoom }]}
+        showsVerticalScrollIndicator={false}
+      >
         <Card padding="padded" style={styles.account}>
           <View style={styles.avatar}>
             <Text variant="heading" color="accentText">
@@ -103,7 +110,7 @@ export default function Settings() {
         </View>
         {/* Pins Sign out to the bottom when there's room, and keeps a gap above it when the page scrolls. */}
         <View style={styles.spacer} />
-        <Button variant="danger" label="Sign out" onPress={logout} style={styles.signOut} />
+        <Button variant="danger" label="Sign out" onPress={logout} />
       </ScrollView>
     </PlaceholderPage>
   );
@@ -144,5 +151,4 @@ const makeStyles = (colors: Palette) =>
     // The same 8pt between sections as PlaceholderPage's own gap.
     content: { flexGrow: 1, gap: space.sm, paddingHorizontal: space.xl },
     spacer: { flexGrow: 1, minHeight: space.xxl },
-    signOut: { marginBottom: space.xl },
   });

@@ -15,6 +15,7 @@ import { Pressable } from '@/components/Pressable';
 import { ProgressBar } from '@/components/ProgressBar';
 import { ReorderList } from '@/components/ReorderList';
 import { ScreenHeader } from '@/components/ScreenHeader';
+import { useTabBarRoom } from '@/components/TabBar';
 import { Text } from '@/components/Text';
 import { barNote, budgetProgress } from '@/data/budgetProgress';
 import { spendingFigures, spentByCategory } from '@/data/monthSummary';
@@ -27,6 +28,7 @@ import { type Palette, space } from '@/theme';
 export default function Expenses() {
   const colors = useColors();
   const styles = useThemedStyles(makeStyles);
+  const barRoom = useTabBarRoom();
   const cardStyle = useCardStyle('padded');
   const rowCard = useCardStyle('none');
   const { ledger } = useSession();
@@ -68,7 +70,7 @@ export default function Expenses() {
         ref={scrollRef}
         style={styles.scroll}
         scrollEnabled={!dragging}
-        contentContainerStyle={styles.content}
+        contentContainerStyle={[styles.content, { paddingBottom: barRoom }]}
       >
         <Animated.View onLayout={collapse.onCardLayout} style={[cardStyle, styles.card, collapse.cardStyle]}>
           <View
@@ -199,7 +201,7 @@ const makeStyles = (colors: Palette) =>
     screen: { flex: 1, backgroundColor: colors.bg, paddingHorizontal: space.xl, paddingTop: space.xl },
     // Out to the screen's edges, with the gutter inside, so the scroll view doesn't clip the cards' side shadows.
     scroll: { marginHorizontal: -space.xl },
-    content: { gap: space.lg, paddingTop: space.xs, paddingBottom: space.xxl, paddingHorizontal: space.xl },
+    content: { gap: space.lg, paddingTop: space.xs, paddingHorizontal: space.xl },
     loading: { marginTop: space.xxl },
     card: { gap: space.sm },
     // Spread across the card's full width: Spent at the left edge, Remaining centred, Budgeted at the right edge.

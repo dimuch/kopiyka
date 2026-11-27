@@ -5,7 +5,7 @@ import type { AppDeps } from '../app.js';
 import { monthStart, nextMonthStart } from '../dates.js';
 import { overIncomeError } from '../income/limit.js';
 import { AMOUNT_RE, centsToString, toCents } from '../money.js';
-import { checkMonthOpen, MonthString } from '../monthChecks.js';
+import { checkMonthOpen, MonthParams } from '../monthChecks.js';
 import {
   addToMonth,
   copyPreviousMonth,
@@ -46,12 +46,9 @@ export interface CategoryWithTotalsDto extends CategoryDto {
 }
 
 const CategoryParams = z.object({ categoryId: z.coerce.number().int().positive() });
-/**
- * A required 'YYYY-MM' month: the list's and one category's query (every caller sends it since briefs 030 and 032),
- * and copy's and add's path.
- */
-const Month = z.object({ month: MonthString });
-const CategoryMonthParams = CategoryParams.extend(Month.shape);
+// `MonthParams` is a required month: the list's and one category's query (every caller sends it since briefs 030 and
+// 032), and copy's and add's path.
+const CategoryMonthParams = CategoryParams.extend(MonthParams.shape);
 // 1–40 characters after trimming (brief 037).
 const NameBody = z.object({ name: z.string().trim().min(1).max(40) });
 // Money crosses the wire as decimal strings; €0 is a plan.
@@ -99,7 +96,7 @@ export async function categoryRoutes(app: FastifyInstance, { db, now }: AppDeps)
   const guards = { preHandler: [app.requireAuth, app.requireLedger] };
 
   app.get('/api/ledgers/:id/categories', guards, async (req) => {
-    const { month } = Month.parse(req.query);
+    const { month } = MonthParams.parse(req.query);
     const first = monthStart(month);
     const [rows] = await db.query<RowDataPacket[]>(
       `SELECT c.category_id, c.tech_name, ${NAME_IN_MONTH} AS display_name, c.sort_order, c.icon,
@@ -118,7 +115,7 @@ export async function categoryRoutes(app: FastifyInstance, { db, now }: AppDeps)
 
   app.get('/api/ledgers/:id/categories/:categoryId', guards, async (req, reply) => {
     const { categoryId } = CategoryParams.parse(req.params);
-    const { month } = Month.parse(req.query);
+    const { month } = MonthParams.parse(req.query);
     const first = monthStart(month);
     // A category the month lacks is still named (the app says it isn't in that month). Its counts are 0: no live
     // expense can sit in a month whose list lacks its category.
@@ -197,7 +194,7 @@ export async function categoryRoutes(app: FastifyInstance, { db, now }: AppDeps)
 
   // Brief 033: sets up a month with no budget from the month before it.
   app.post('/api/ledgers/:id/months/:month/copy', guards, async (req, reply) => {
-    const { month } = Month.parse(req.params);
+    const { month } = MonthParams.parse(req.params);
     if (!checkMonthOpen(reply, now(), month)) return reply;
     const result = await copyPreviousMonth(db, req.ledger!.ledgerId, month);
     return result === 'copied' ? reply.code(204).send() : reply.code(409).send({ error: result });
@@ -205,7 +202,7 @@ export async function categoryRoutes(app: FastifyInstance, { db, now }: AppDeps)
 
   // Brief 038. An ended month is read-only, so it's refused before anything is read.
   app.post('/api/ledgers/:id/months/:month/categories', guards, async (req, reply) => {
-    const { month } = Month.parse(req.params);
+    const { month } = MonthParams.parse(req.params);
     const { name, amount, icon } = AddBody.parse(req.body);
     if (!checkMonthOpen(reply, now(), month)) return reply;
     const added = await addToMonth(db, req.ledger!.ledgerId, month, name, amount, icon);

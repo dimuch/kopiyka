@@ -35,6 +35,6 @@ three times: `month_summary`, `list_income` and `delete_income`.
 
 ## Notes
 
-Covered by: tools.test (47), mcp.test (18). Base `origin/main` after R2 (#190): gates green, API 546 passed + 2
+Covered by: tools.test (47), mcp.test (18). Base `origin/main` after R3 (#191): gates green, API 548 passed + 2
 skipped, MCP 327, app 510. R3 (#191) takes 1.26.5 and R4 (brief 120) 1.26.6, so this PR is 1.26.7 (re-bumped on rebase
 if needed).

@@ -1,8 +1,8 @@
 import { router } from 'expo-router';
 import { useMemo, useRef, useState } from 'react';
-import { ActivityIndicator, Animated, type ScrollViewInstance, StyleSheet, View } from 'react-native';
+import { Animated, type ScrollViewInstance, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useColors, useThemedStyles } from '@/appearance/AppearanceContext';
+import { useThemedStyles } from '@/appearance/AppearanceContext';
 import { useSession } from '@/auth/AuthContext';
 import { AddExpenseButton } from '@/components/AddExpenseButton';
 import { CategoryTile } from '@/components/CategoryTile';
@@ -10,6 +10,7 @@ import { useCollapsingSummary } from '@/components/CollapsingSummary';
 import { useCardStyle } from '@/components/Card';
 import { EmptyMonth } from '@/components/EmptyMonth';
 import { LoadError } from '@/components/LoadError';
+import { LoadState } from '@/components/LoadState';
 import { MonthSwitcher } from '@/components/MonthSwitcher';
 import { Pressable } from '@/components/Pressable';
 import { ProgressBar } from '@/components/ProgressBar';
@@ -26,7 +27,6 @@ import { eur, kyivMonth, monthName, toCents } from '@/format';
 import { type Palette, space } from '@/theme';
 
 export default function Expenses() {
-  const colors = useColors();
   const styles = useThemedStyles(makeStyles);
   const barRoom = useTabBarRoom();
   const cardStyle = useCardStyle('padded');
@@ -107,91 +107,94 @@ export default function Expenses() {
           </Text>
         </View>
 
-        {!rows ? (
-          error ? (
-            <LoadError message="Couldn’t load this month. Check your connection and try again." onRetry={reload} />
-          ) : (
-            <ActivityIndicator color={colors.accent} style={styles.loading} />
-          )
-        ) : (
-          <>
-            {error && <LoadError message="Couldn’t refresh. Check your connection and try again." onRetry={reload} />}
-            {rows.length === 0 ? (
-              <EmptyMonth
-                text={`No budget for ${monthName(month)} yet`}
-                // An ended month can't be set up any more, so there's nothing to go to (brief 035, Gate A).
-                action={
-                  ended
-                    ? undefined
-                    : {
-                        label: 'Go to Budget',
-                        onPress: () => router.navigate({ pathname: '/budget', params: { month } }),
-                        busy: false,
-                      }
-                }
-              />
-            ) : (
-              <>
-                {order.failed && <LoadError message="Couldn’t save the order. Check your connection and try again." />}
-                <ReorderList
-                  items={rows}
-                  keyOf={(row) => row.categoryId}
-                  onMove={order.move}
-                  disabled={order.saving}
-                  onDragChange={setDragging}
-                  scrollRef={scrollRef}
-                  renderRow={(row, drag) => (
-                    // Two sibling buttons, not one inside the other: VoiceOver couldn't reach a nested one, and web
-                    // would nest role="button" (as on Budget). Only the row drags; an ended month takes no new expenses.
-                    <View style={[rowCard, styles.openRow, !ended && styles.withAdd]}>
-                      <Pressable
-                        {...drag}
-                        accessibilityRole="button"
-                        accessibilityLabel={
-                          `${row.displayName}, ${eur(row.spent)} of ${eur(row.planned)} spent` +
-                          (row.note ? `, ${row.note.words}` : '')
+        <LoadState
+          data={rows}
+          error={error}
+          onRetry={reload}
+          loadMessage="Couldn’t load this month. Check your connection and try again."
+          spinnerStyle={styles.loading}
+        >
+          {(rows) => (
+            <>
+              {rows.length === 0 ? (
+                <EmptyMonth
+                  text={`No budget for ${monthName(month)} yet`}
+                  // An ended month can't be set up any more, so there's nothing to go to (brief 035, Gate A).
+                  action={
+                    ended
+                      ? undefined
+                      : {
+                          label: 'Go to Budget',
+                          onPress: () => router.navigate({ pathname: '/budget', params: { month } }),
+                          busy: false,
                         }
-                        onPress={() =>
-                          router.push({
-                            pathname: '/category/[categoryId]',
-                            params: { categoryId: row.categoryId, month },
-                          })
-                        }
-                        style={[styles.row, { flex: 1 }]}
-                      >
-                        <CategoryTile techName={row.techName} label={row.displayName} icon={row.icon} />
-                        <View style={styles.rowBody}>
-                          <View style={styles.rowTop}>
-                            <Text variant="bodyMedium" numberOfLines={1} style={styles.rowName}>
-                              {row.displayName}
-                            </Text>
-                            <Text variant="amount" style={styles.rowAmount}>
-                              {eur(row.spent)}
-                              <Text variant="body" color="muted">
-                                {' '}
-                                of {eur(row.planned)}
-                              </Text>
-                            </Text>
-                          </View>
-                          <ProgressBar fill={row.progress.fill} state={row.progress.state} />
-                          {/* The bar's colour in words, so colour is never the only signal (briefs 107 and 105): red
-                              "€9 over" is 5.3:1 on light `surface` and 7.8:1 on dark; "€5 left" in `cautionText` is
-                              5.3:1 and 11.2:1, where light's yellow bar is only 1.3:1. */}
-                          {row.note && (
-                            <Text variant="captionMedium" color={row.note.color} tabular>
-                              {row.note.words}
-                            </Text>
-                          )}
-                        </View>
-                      </Pressable>
-                      {!ended && <AddExpenseButton categoryId={row.categoryId} />}
-                    </View>
-                  )}
+                  }
                 />
-              </>
-            )}
-          </>
-        )}
+              ) : (
+                <>
+                  {order.failed && (
+                    <LoadError message="Couldn’t save the order. Check your connection and try again." />
+                  )}
+                  <ReorderList
+                    items={rows}
+                    keyOf={(row) => row.categoryId}
+                    onMove={order.move}
+                    disabled={order.saving}
+                    onDragChange={setDragging}
+                    scrollRef={scrollRef}
+                    renderRow={(row, drag) => (
+                      // Two sibling buttons, not one inside the other: VoiceOver couldn't reach a nested one, and web
+                      // would nest role="button" (as on Budget). Only the row drags; an ended month takes no new expenses.
+                      <View style={[rowCard, styles.openRow, !ended && styles.withAdd]}>
+                        <Pressable
+                          {...drag}
+                          accessibilityRole="button"
+                          accessibilityLabel={
+                            `${row.displayName}, ${eur(row.spent)} of ${eur(row.planned)} spent` +
+                            (row.note ? `, ${row.note.words}` : '')
+                          }
+                          onPress={() =>
+                            router.push({
+                              pathname: '/category/[categoryId]',
+                              params: { categoryId: row.categoryId, month },
+                            })
+                          }
+                          style={[styles.row, { flex: 1 }]}
+                        >
+                          <CategoryTile techName={row.techName} label={row.displayName} icon={row.icon} />
+                          <View style={styles.rowBody}>
+                            <View style={styles.rowTop}>
+                              <Text variant="bodyMedium" numberOfLines={1} style={styles.rowName}>
+                                {row.displayName}
+                              </Text>
+                              <Text variant="amount" style={styles.rowAmount}>
+                                {eur(row.spent)}
+                                <Text variant="body" color="muted">
+                                  {' '}
+                                  of {eur(row.planned)}
+                                </Text>
+                              </Text>
+                            </View>
+                            <ProgressBar fill={row.progress.fill} state={row.progress.state} />
+                            {/* The bar's colour in words, so colour is never the only signal (briefs 107 and 105): red
+                                "€9 over" is 5.3:1 on light `surface` and 7.8:1 on dark; "€5 left" in `cautionText` is
+                                5.3:1 and 11.2:1, where light's yellow bar is only 1.3:1. */}
+                            {row.note && (
+                              <Text variant="captionMedium" color={row.note.color} tabular>
+                                {row.note.words}
+                              </Text>
+                            )}
+                          </View>
+                        </Pressable>
+                        {!ended && <AddExpenseButton categoryId={row.categoryId} />}
+                      </View>
+                    )}
+                  />
+                </>
+              )}
+            </>
+          )}
+        </LoadState>
       </Animated.ScrollView>
     </SafeAreaView>
   );

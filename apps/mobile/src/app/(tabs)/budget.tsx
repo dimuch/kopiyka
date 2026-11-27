@@ -1,6 +1,6 @@
 import { type Href, router, useLocalSearchParams } from 'expo-router';
 import { useRef, useState } from 'react';
-import { ActivityIndicator, ScrollView, type ScrollViewInstance, StyleSheet, View } from 'react-native';
+import { ScrollView, type ScrollViewInstance, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import type { Category } from '@/api/types';
 import { useColors, useThemedStyles } from '@/appearance/AppearanceContext';
@@ -11,6 +11,7 @@ import { EmptyMonth } from '@/components/EmptyMonth';
 import { Icon } from '@/components/Icon';
 import { IconButton } from '@/components/IconButton';
 import { LoadError } from '@/components/LoadError';
+import { LoadState } from '@/components/LoadState';
 import { MonthSwitcher } from '@/components/MonthSwitcher';
 import { Pressable } from '@/components/Pressable';
 import { type DragHandlers, ReorderList } from '@/components/ReorderList';
@@ -125,76 +126,79 @@ export default function Budget() {
         scrollEnabled={!dragging}
         contentContainerStyle={styles.content}
       >
-        {!data ? (
-          error ? (
-            <LoadError message="Couldn’t load this month. Check your connection and try again." onRetry={reload} />
-          ) : (
-            <ActivityIndicator color={colors.accent} style={styles.loading} />
-          )
-        ) : (
-          <>
-            {error && <LoadError message="Couldn’t refresh. Check your connection and try again." onRetry={reload} />}
-            {data.categories.length === 0 ? (
-              <>
-                <EmptyMonth
-                  text={`No budget for ${monthName(month)} yet`}
-                  action={
-                    canCopy
-                      ? { label: `Copy ${monthName(previousMonth)}’s categories`, onPress: startCopy, busy }
-                      : undefined
-                  }
-                  note={note}
-                />
-                {!ended && previous.status === 'error' && (
-                  <LoadError
-                    message={`Couldn’t check ${monthName(previousMonth)}’s categories. Check your connection and try again.`}
-                    onRetry={previous.reload}
+        <LoadState
+          data={data}
+          error={error}
+          onRetry={reload}
+          loadMessage="Couldn’t load this month. Check your connection and try again."
+          spinnerStyle={styles.loading}
+        >
+          {(data) => (
+            <>
+              {data.categories.length === 0 ? (
+                <>
+                  <EmptyMonth
+                    text={`No budget for ${monthName(month)} yet`}
+                    action={
+                      canCopy
+                        ? { label: `Copy ${monthName(previousMonth)}’s categories`, onPress: startCopy, busy }
+                        : undefined
+                    }
+                    note={note}
                   />
-                )}
-              </>
-            ) : (
-              <>
-                {income.items ? (
-                  <>
-                    <IncomeFigures
-                      incomeCents={incomeCents(income.items)}
-                      plannedCents={plannedCents(data.categories)}
+                  {!ended && previous.status === 'error' && (
+                    <LoadError
+                      message={`Couldn’t check ${monthName(previousMonth)}’s categories. Check your connection and try again.`}
+                      onRetry={previous.reload}
                     />
-                    {income.error && (
-                      <LoadError
-                        message="Couldn’t refresh. Check your connection and try again."
-                        onRetry={income.reload}
-                      />
-                    )}
-                  </>
-                ) : income.error ? (
-                  <LoadError
-                    message={`Couldn’t load ${monthName(month)}’s income. Check your connection and try again.`}
-                    onRetry={income.reload}
-                  />
-                ) : null}
-                <View style={styles.sectionHead}>
-                  <Text variant="heading">Categories</Text>
-                  <Text variant="caption" color="muted" tabular>
-                    {eur(plannedCents(data.categories))} planned
-                  </Text>
-                </View>
-                {order.failed && <LoadError message="Couldn’t save the order. Check your connection and try again." />}
-                <ReorderList
-                  items={order.categories ?? data.categories}
-                  keyOf={(category) => category.categoryId}
-                  onMove={order.move}
-                  disabled={order.saving}
-                  onDragChange={setDragging}
-                  scrollRef={scrollRef}
-                  renderRow={(category, drag) => (
-                    <BudgetRow category={category} drag={drag} month={month} ended={ended} pushOnce={pushOnce} />
                   )}
-                />
-              </>
-            )}
-          </>
-        )}
+                </>
+              ) : (
+                <>
+                  {income.items ? (
+                    <>
+                      <IncomeFigures
+                        incomeCents={incomeCents(income.items)}
+                        plannedCents={plannedCents(data.categories)}
+                      />
+                      {income.error && (
+                        <LoadError
+                          message="Couldn’t refresh. Check your connection and try again."
+                          onRetry={income.reload}
+                        />
+                      )}
+                    </>
+                  ) : income.error ? (
+                    <LoadError
+                      message={`Couldn’t load ${monthName(month)}’s income. Check your connection and try again.`}
+                      onRetry={income.reload}
+                    />
+                  ) : null}
+                  <View style={styles.sectionHead}>
+                    <Text variant="heading">Categories</Text>
+                    <Text variant="caption" color="muted" tabular>
+                      {eur(plannedCents(data.categories))} planned
+                    </Text>
+                  </View>
+                  {order.failed && (
+                    <LoadError message="Couldn’t save the order. Check your connection and try again." />
+                  )}
+                  <ReorderList
+                    items={order.categories ?? data.categories}
+                    keyOf={(category) => category.categoryId}
+                    onMove={order.move}
+                    disabled={order.saving}
+                    onDragChange={setDragging}
+                    scrollRef={scrollRef}
+                    renderRow={(category, drag) => (
+                      <BudgetRow category={category} drag={drag} month={month} ended={ended} pushOnce={pushOnce} />
+                    )}
+                  />
+                </>
+              )}
+            </>
+          )}
+        </LoadState>
       </ScrollView>
       {toast.offer ? <UndoToast offer={toast.offer} onUndo={toast.restore} /> : null}
     </SafeAreaView>

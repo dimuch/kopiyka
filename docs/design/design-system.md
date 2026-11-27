@@ -141,8 +141,7 @@ ScreenHeader's sides are each one 44pt slot when there's a title, so the title s
 screen with the gutter inside. An input is `fill` with a 1pt `fill` border that turns `accent` on focus. Menus float
 on `shadow.float` with no edge, and sheets sit on the backdrop with none.
 The tab bar floats 20pt in from each side and 20pt off the bottom, or the home indicator's inset where that's more,
-with the "+" 12pt to its right. Scroll views leave that room plus 16pt under their content, and the Undo bar sits
-16pt above the bar.
+and scroll views end 16pt above the bar, or above the Undo bar while it shows. The Undo bar sits 16pt above the bar.
 
 ## Roll-out (one brief each, in order)
 

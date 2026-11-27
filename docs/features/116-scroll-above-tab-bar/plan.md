@@ -51,7 +51,7 @@ and no API or connector changes.
 - [x] 0. Bump version to 1.26.2
   - Files: package.json, apps/mobile/app.json
   - Change: set both to 1.26.2
-- [ ] 1. Stop the tab pages' lists 16pt above the tab bar instead of behind it
+- [x] 1. Stop the tab pages' lists 16pt above the tab bar instead of behind it
   - Files: apps/mobile/src/app/(tabs)/{budget,expenses,income,statistics,settings}.tsx,
     apps/mobile/src/components/ReorderList.tsx, apps/mobile/src/components/TabBar.tsx,
     apps/mobile/src/components/UndoToast.tsx, docs/design/design-system.md

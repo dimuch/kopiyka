@@ -68,9 +68,10 @@ export default function Expenses() {
       <Animated.ScrollView
         {...collapse.scrollProps}
         ref={scrollRef}
-        style={styles.scroll}
+        // Ends 16pt above the tab bar, so no row scrolls behind it.
+        style={[styles.scroll, { marginBottom: barRoom }]}
         scrollEnabled={!dragging}
-        contentContainerStyle={[styles.content, { paddingBottom: barRoom }]}
+        contentContainerStyle={styles.content}
       >
         <Animated.View onLayout={collapse.onCardLayout} style={[cardStyle, styles.card, collapse.cardStyle]}>
           <View
@@ -139,7 +140,6 @@ export default function Expenses() {
                   disabled={order.saving}
                   onDragChange={setDragging}
                   scrollRef={scrollRef}
-                  bottomInset={barRoom}
                   renderRow={(row, drag) => (
                     // Two sibling buttons, not one inside the other: VoiceOver couldn't reach a nested one, and web
                     // would nest role="button" (as on Budget). Only the row drags; an ended month takes no new expenses.

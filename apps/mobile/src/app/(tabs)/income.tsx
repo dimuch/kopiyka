@@ -112,7 +112,7 @@ export default function Income() {
         }
       />
 
-      <ScrollView style={styles.scroll} contentContainerStyle={[styles.content, { paddingBottom: barRoom }]}>
+      <ScrollView style={[styles.scroll, { marginBottom: barRoom }]} contentContainerStyle={styles.content}>
         {!items ? (
           error ? (
             <LoadError
@@ -204,7 +204,8 @@ const makeStyles = (colors: Palette) =>
     screen: { flex: 1, backgroundColor: colors.bg, paddingHorizontal: space.xl, paddingTop: space.xl },
     // Out to the screen's edges, with the gutter inside, so the scroll view doesn't clip the cards' side shadows.
     scroll: { marginHorizontal: -space.xl },
-    content: { gap: space.lg, paddingTop: space.xs, paddingHorizontal: space.xl },
+    // The 8pt under the last card keeps its shadow from being cut at the scroll view's edge.
+    content: { gap: space.lg, paddingTop: space.xs, paddingBottom: space.sm, paddingHorizontal: space.xl },
     loading: { marginTop: space.xxl },
     sectionHead: {
       flexDirection: 'row',

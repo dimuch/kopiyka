@@ -148,12 +148,12 @@ export default function Budget() {
         </Pressable>
       ) : null}
 
-      {/* Room under the last row, so neither the tab bar nor the Undo bar covers it. */}
+      {/* Ends 16pt above the tab bar, or above the Undo bar while it shows, so no row scrolls behind either. */}
       <ScrollView
         ref={scrollRef}
-        style={styles.scroll}
+        style={[styles.scroll, { marginBottom: bottomRoom }]}
         scrollEnabled={!dragging}
-        contentContainerStyle={[styles.content, { paddingBottom: bottomRoom }]}
+        contentContainerStyle={styles.content}
       >
         {!data ? (
           error ? (
@@ -217,7 +217,6 @@ export default function Budget() {
                   disabled={order.saving}
                   onDragChange={setDragging}
                   scrollRef={scrollRef}
-                  bottomInset={bottomRoom}
                   renderRow={(category, drag) => {
                     const planned = eur(toCents(category.plannedEur));
                     const content = (

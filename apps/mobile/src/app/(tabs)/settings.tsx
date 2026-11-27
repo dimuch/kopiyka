@@ -51,9 +51,9 @@ export default function Settings() {
     <PlaceholderPage title="Settings">
       {/* Scrolls once invites and the Ledger picker no longer fit above the tab bar. */}
       <ScrollView
-        style={styles.scroll}
-        // The floating tab bar's room, which also keeps Sign out above it.
-        contentContainerStyle={[styles.content, { paddingBottom: barRoom }]}
+        // Ends 16pt above the floating tab bar, which also keeps Sign out above it.
+        style={[styles.scroll, { marginBottom: barRoom }]}
+        contentContainerStyle={styles.content}
         showsVerticalScrollIndicator={false}
       >
         <Card padding="padded" style={styles.account}>

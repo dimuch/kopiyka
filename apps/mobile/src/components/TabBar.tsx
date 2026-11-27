@@ -19,7 +19,7 @@ function barBottom(inset: number): number {
   return Math.max(inset, space.xl);
 }
 
-/** The room a scroll view leaves under its content so its last row can scroll above the floating tab bar. */
+/** The room a page leaves under its scroll view, so the view ends 16pt above the floating tab bar. */
 export function useTabBarRoom(): number {
   const insets = useSafeAreaInsets();
   return barBottom(insets.bottom) + size.tabBar + space.lg;
@@ -46,7 +46,7 @@ export function TabBar({
   const float = { boxShadow: shadow[scheme].float };
 
   return (
-    // A floating pill over the page (the design system's TabBar); the pages leave room for it (`useTabBarRoom`).
+    // A floating pill over the page (the design system's TabBar); the pages' scroll views end above it (`useTabBarRoom`).
     <View style={[styles.dock, { bottom: barBottom(insets.bottom) }]}>
       <View role="tablist" style={[styles.pill, float]}>
         {tabs.map((tab, position) => {

@@ -59,7 +59,8 @@ const styles = StyleSheet.create({
     paddingHorizontal: space.xl,
     paddingBottom: space.sm,
   },
-  // At least a button wide on both sides, so the title sits on the screen's centre even with one side empty.
+  // One 44pt slot on each side (a button, or nothing), so the title sits on the screen's centre even with one side
+  // empty. A wider side (the category page's trailing) only comes with no title.
   side: { minWidth: size.iconButton, flexDirection: 'row', alignItems: 'center' },
   // flexBasis 0 matters on web.
   title: { flex: 1, flexBasis: 0, alignItems: 'center' },

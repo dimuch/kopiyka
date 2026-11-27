@@ -430,6 +430,13 @@ two callers.
 
 ## Consolidate
 
+PR A (slices 0–3): reused 0 · extracted 0 · left 3.
+
+- `storeIcon` (`monthLists.ts`): LEAVE. Its nearest twin, `storePlanned`, writes `category_budgets` per month with an
+  upsert; this is one `UPDATE` of the category's own column.
+- `CATEGORY_ICONS` / `IconKey`: LEAVE. No other key list or enum of the kind in the API.
+- `categoryIcons.migration.int.test.ts`: LEAVE. One test per migration is the repo's pattern (018's is its template).
+
 ## Revision 1
 
 Skeptic verdict: APPROVE WITH EDITS. Origin/main moved to ac5a1036 (1.24.1), and the brief became 114. Applied:

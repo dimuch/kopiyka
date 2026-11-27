@@ -315,7 +315,7 @@ the last used category. Everything that exists keeps working.
   - Verify: typecheck. Gate B: on iPhone, hold a row on Expenses (seeded long) and move it down toward the bar. The list
     scrolls once the finger is within 56pt above the bar, and the last row can be dropped last. Synthetic drags don't
     fire on web, so this is an iPhone check.
-- [ ] 6. Add a round "+" beside the tab bar that opens the add-expense form (≈ 22 lines)
+- [x] 6. Add a round "+" beside the tab bar that opens the add-expense form (≈ 22 lines)
   - Files: `src/components/TabBar.tsx`
   - Change: the `add` Pressable and style, `usePushOnce`, `colors.onAccent`, and the dock's `gap`. It has a one-line
     JSDoc on why it carries no category: the form starts on the last used one.

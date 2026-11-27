@@ -253,7 +253,7 @@ the last used category. Everything that exists keeps working.
     - set the key to `999999`: the first quick category;
     - `/expense?categoryId=<N>`: N;
     - updating an expense leaves the key alone.
-- [ ] 3. Draw the tab pages' bar with the same component as the pages above them, each tab still a link (≈ 80 lines)
+- [x] 3. Draw the tab pages' bar with the same component as the pages above them, each tab still a link (≈ 80 lines)
   - Files: `src/components/TabBar.tsx`, `src/app/(tabs)/_layout.tsx`, `src/app/expense.tsx`,
     `src/app/category/[categoryId].tsx`, `src/tabRoutes.ts`, `test/tabs.test.ts`
   - Change:

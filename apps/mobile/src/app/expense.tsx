@@ -22,7 +22,7 @@ import { Icon } from '@/components/Icon';
 import { LoadError } from '@/components/LoadError';
 import { NameCombobox } from '@/components/NameCombobox';
 import { ScreenHeader } from '@/components/ScreenHeader';
-import { TabBar } from '@/components/TabBar';
+import { PageTabBar } from '@/components/TabBar';
 import { Text } from '@/components/Text';
 import { expenseLocked, firstOpenDate } from '@/data/expenseLock';
 import { lockedText, restoreRefusedText } from '@/data/monthEnded';
@@ -85,7 +85,7 @@ export default function ExpenseScreen() {
           <ExpenseLoader expenseId={expenseId} categoryId={parseIdParam(params.categoryId)} />
         )}
       </SafeAreaView>
-      <TabBar fallback="index" />
+      <PageTabBar fallback="index" />
     </View>
   );
 }

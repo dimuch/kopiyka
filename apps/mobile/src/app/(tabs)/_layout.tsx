@@ -1,11 +1,7 @@
 import { Tabs } from 'expo-router/js-tabs';
-import { PlatformPressable } from 'expo-router/react-navigation';
-import { Platform } from 'react-native';
 import { useColors } from '@/appearance/AppearanceContext';
-import { Icon } from '@/components/Icon';
-import { pressedOpacity } from '@/components/Pressable';
-import { useTabItems } from '@/data/tabItems';
-import { fonts } from '@/theme';
+import { TabBar } from '@/components/TabBar';
+import { readTabs, useTabItems } from '@/data/tabItems';
 
 export default function TabsLayout() {
   const colors = useColors();
@@ -13,36 +9,23 @@ export default function TabsLayout() {
   return (
     <Tabs
       screenListeners={{ focus: onTabFocus }}
-      screenOptions={{
-        headerShown: false,
-        tabBarShowLabel: false,
-        tabBarActiveTintColor: colors.accent,
-        tabBarInactiveTintColor: colors.muted,
-        tabBarStyle: { backgroundColor: colors.bg, borderTopColor: colors.hairline },
-        sceneStyle: { backgroundColor: colors.bg },
-        // The library's tabs don't dim by default.
-        tabBarButton: (props) => <PlatformPressable {...props} pressOpacity={pressedOpacity} />,
-      }}
+      // One bar for both kinds of page (brief 106), so a tab page and a page above it draw the same bar. readTabs reads
+      // the tab navigator's state as the root stack holds it, so both bars get the active tab and the string params
+      // from one tested function.
+      tabBar={({ state, navigateToTab }) => (
+        <TabBar
+          {...readTabs([{ name: '(tabs)', state }], 'index')}
+          onTabPress={(tab) => {
+            const index = state.routes.findIndex((route) => route.name === tab.name);
+            if (index !== -1 && index !== state.index) navigateToTab(state.routes[index].key);
+          }}
+        />
+      )}
+      screenOptions={{ headerShown: false, sceneStyle: { backgroundColor: colors.bg } }}
     >
-      {tabs.map((tab) => {
-        const { badge, label } = tab;
-        return (
-          <Tabs.Screen
-            key={tab.name}
-            name={tab.name}
-            options={{
-              title: tab.title,
-              // The label is hidden; iOS builds "Settings, 2 invites, tab, 6 of 6" from it.
-              tabBarLabel: label,
-              // Without labels the web tab has no name.
-              tabBarAccessibilityLabel: Platform.OS === 'web' ? label : undefined,
-              tabBarBadge: badge,
-              tabBarBadgeStyle: { backgroundColor: colors.accent, color: colors.onAccent, fontFamily: fonts.regular },
-              tabBarIcon: ({ color, size }) => <Icon name={tab.icon} color={color} size={size} />,
-            }}
-          />
-        );
-      })}
+      {tabs.map((tab) => (
+        <Tabs.Screen key={tab.name} name={tab.name} options={{ title: tab.title }} />
+      ))}
     </Tabs>
   );
 }

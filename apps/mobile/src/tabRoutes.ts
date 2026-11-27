@@ -35,3 +35,14 @@ export function readTabRoutes<Name extends string>(
   const focused = tabs.routes[tabs.index ?? 0]?.name;
   return { active: focused !== undefined && isTab(focused) ? focused : fallback, params };
 }
+
+/**
+ * A tab's link: its path with its current params as a query string, in their order, each part URI-encoded. Not
+ * `URLSearchParams`: Hermes' copy of it is partial, and this runs on iOS too.
+ */
+export function tabHref(path: string, params?: Record<string, string>): string {
+  const query = Object.entries(params ?? {})
+    .map(([key, value]) => `${encodeURIComponent(key)}=${encodeURIComponent(value)}`)
+    .join('&');
+  return query ? `${path}?${query}` : path;
+}

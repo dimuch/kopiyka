@@ -3,14 +3,20 @@
 A snapshot so work can pick up in any tool (Claude Code or Copilot) without the chat history.
 Update it when a brief ships, is planned or is dropped.
 
-Snapshot: 2026-11-27, `main` at v1.23.13 (`dc1e234`, after PR #174: brief 105b is done).
+Snapshot: 2026-11-27, `main` at v1.23.14 (`e83f8c9`, after PR #175: brief 105c is done).
 
 ## In progress
 
-Brief 105c (the fresh look, part 3: borderless cards and one card per row) on `feat/borderless-cards`, v1.23.14.
-Then 105d, then 106: see the design-system roll-out below.
+Brief 105d (the fresh look, part 4: one look per button, chip and icon button) on `feat/one-look-controls`,
+v1.23.15. At its Gate A it was split: 105e (the header, the toast, inputs, menus, sheets) follows, then 106. See the
+design-system roll-out below.
 
 ## Recently finished
+
+### 105c · Borderless cards and one card per row (done: #175, v1.23.14)
+
+Brief and plan: `docs/features/105c-borderless-cards/`. Cards lost their edge for the doc's shadow in light, lists
+put each row on its own card 8pt apart, and the few edges left are a faint `hairline`.
 
 ### 105b · Inter and the type mapping (done: #174, v1.23.13)
 
@@ -74,14 +80,15 @@ the plan's "Later parts", and 104f's Gate A split it into 104f–104h.
 103, 103b, 103c and 103d (tokens) are merged (#145, #147, #149, #151), and 104 (shared components) is done. The
 rest, in order:
 
-| Brief | Draft                                             | What                                                                                |
-| ----- | ------------------------------------------------- | ----------------------------------------------------------------------------------- |
-| 104   | `docs/features/104-shared-components/brief.md`    | Shared components, split into 104–104h: done, see Recently finished                 |
-| 105   | `docs/features/105-fresh-look/brief.md`           | Part 1: the palettes, violet bars, the caution label, light by default (done, #173) |
-| 105b  | `docs/features/105b-inter-type/brief.md`          | Inter and the type mapping, the weight fixes, DateField's hidden input (done, #174) |
-| 105c  | `docs/features/105c-borderless-cards/brief.md`    | Borderless cards with shadows, one card per row (in progress)                       |
-| 105d  | outline in `docs/features/105-fresh-look/plan.md` | One look each for buttons, chips, the header, the toast and inputs                  |
-| 106   | `docs/features/106-floating-tab-bar/brief.md`     | Floating pill tab bar with a round "+" (add expense) button                         |
+| Brief | Draft                                                     | What                                                                                |
+| ----- | --------------------------------------------------------- | ----------------------------------------------------------------------------------- |
+| 104   | `docs/features/104-shared-components/brief.md`            | Shared components, split into 104–104h: done, see Recently finished                 |
+| 105   | `docs/features/105-fresh-look/brief.md`                   | Part 1: the palettes, violet bars, the caution label, light by default (done, #173) |
+| 105b  | `docs/features/105b-inter-type/brief.md`                  | Inter and the type mapping, the weight fixes, DateField's hidden input (done, #174) |
+| 105c  | `docs/features/105c-borderless-cards/brief.md`            | Borderless cards with shadows, one card per row (done, #175)                        |
+| 105d  | `docs/features/105d-one-look-controls/brief.md`           | One look each for buttons, chips and icon buttons (in progress)                     |
+| 105e  | outline in `docs/features/105d-one-look-controls/plan.md` | The header, the toast, inputs, menus and sheets                                     |
+| 106   | `docs/features/106-floating-tab-bar/brief.md`             | Floating pill tab bar with a round "+" (add expense) button                         |
 
 Each 105 part's brief is written from the plan's "Later parts" after the previous part merges. The 106 brief is a
 **draft** written from the design doc: read and correct it before running `/kopiyka-hos` on it. 107 (budget polish,

@@ -152,7 +152,7 @@ today stops working, and no API, data, connector or demo-store change.
 
 ## Slices
 
-- [ ] 0. Bump version to 1.23.15
+- [x] 0. Bump version to 1.23.15
   - Files: package.json, apps/mobile/app.json
   - Change: set both to 1.23.15
 - [ ] 1. Record 105c as done and the 105d/105e split in the backlog and design system (≈ 22 lines, docs)

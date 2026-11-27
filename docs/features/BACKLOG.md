@@ -178,8 +178,8 @@ brief 109.
 | R5  | mcp-tools-layout          | 121   | done (#193) |
 | R6  | demo-store-helpers        | 122   | done (#194) |
 | R7  | app-focus-load-hook       | 123   | done (#195) |
-| R8  | app-short-names           | 124   | in review   |
-| R9  | app-back-fallback         |       | not started |
+| R8  | app-short-names           | 124   | done (#196) |
+| R9  | app-back-fallback         | 125   | in review   |
 | R10 | app-field-style           |       | not started |
 | R11 | app-announced-errors      |       | not started |
 | R12 | modal-form-kit            |       | not started |

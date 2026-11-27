@@ -11,6 +11,11 @@ None. The design roll-out (103–106) is complete; what comes next isn't chosen 
 
 ## Recently finished
 
+### The tab bar's "+" removed (no brief)
+
+The round "+" beside the tab bar (brief 106) is gone: each page already has its own way to add an expense, income
+or budget. The pill now spans the bar's full width.
+
 ### 106 · The floating tab bar and its "+" (done: #178, v1.24.0)
 
 Brief and plan: `docs/features/106-floating-tab-bar/`. A floating pill tab bar and a round "+" on every page with

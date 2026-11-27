@@ -136,11 +136,18 @@ const flowList = (items) => `[${items.map((item) => `'${item}'`).join(', ')}]`;
 
 // Copilot doesn't preload an agent's skills everywhere, so its body starts by naming them.
 function agentCopy(source, fields, body) {
-  const skills = fields.get('skills') ?? [];
+  const field = (key, expected) => {
+    const value = fields.get(key);
+    const ok = expected === 'list' ? Array.isArray(value) : typeof value === 'string' && value !== '';
+    // tools is required here: in Claude a missing tools line means every tool, which has no Copilot list.
+    if (!ok) fail(source, `front matter "${key}" must be ${expected === 'list' ? 'a "  - item" list' : 'one line'}`);
+    return value;
+  };
+  const skills = field('skills', 'list');
   const front = [
-    `name: ${fields.get('name')}`,
-    `description: ${fields.get('description')}`,
-    `tools: ${flowList(copilotTools(source, fields.get('tools') ?? ''))}`,
+    `name: ${field('name', 'line')}`,
+    `description: ${field('description', 'line')}`,
+    `tools: ${flowList(copilotTools(source, field('tools', 'line')))}`,
     `skills: ${flowList(skills)}`,
   ];
   const skillPaths = skills.map((skill) => `\`.github/skills/${skill}/SKILL.md\``).join(' and ');
@@ -206,35 +213,22 @@ function orphanCopies(allJobs) {
 async function main() {
   const allJobs = jobs();
   const substitutionHits = SUBSTITUTIONS.map(() => 0);
-  const outOfDate = [];
+  // Everything builds before anything is written, so a failing source leaves the tree as it was.
+  const changed = [];
   for (const job of allJobs) {
     const raw = readFileSync(path.join(root, job.source), 'utf8');
     const targetPath = path.join(root, job.target);
     const options = { ...(await prettier.resolveConfig(targetPath)), filepath: targetPath };
     const copy = await prettier.format(buildCopy(job, raw, substitutionHits), options);
     const committed = existsSync(targetPath) ? readFileSync(targetPath, 'utf8') : null;
-    if (copy !== committed) {
-      outOfDate.push(job.target);
-      if (!checkOnly) {
-        // A new kopiyka skill has no folder in .github/skills yet.
-        mkdirSync(path.dirname(targetPath), { recursive: true });
-        writeFileSync(targetPath, copy);
-      }
-    }
+    if (copy !== committed) changed.push({ target: job.target, targetPath, copy });
   }
   SUBSTITUTIONS.forEach(([from], index) => {
     if (substitutionHits[index] === 0)
       fail('scripts/build-copilot-skills.mjs', `substitution "${from}" matches nothing`);
   });
-  for (const orphan of orphanCopies(allJobs)) {
-    outOfDate.push(orphan);
-    if (!checkOnly) {
-      const orphanPath = path.join(root, orphan);
-      rmSync(orphanPath);
-      // A removed skill's folder goes too, unless something else (a script, a reference) is left in it.
-      if (readdirSync(path.dirname(orphanPath)).length === 0) rmSync(path.dirname(orphanPath), { recursive: true });
-    }
-  }
+  const orphans = orphanCopies(allJobs);
+  const outOfDate = [...changed.map((change) => change.target), ...orphans];
 
   if (checkOnly) {
     if (outOfDate.length === 0) {
@@ -244,6 +238,18 @@ async function main() {
     console.error(['Out of date, run yarn skills:build:', ...outOfDate].join('\n'));
     process.exitCode = 1;
     return;
+  }
+
+  for (const { targetPath, copy } of changed) {
+    // A new kopiyka skill has no folder in .github/skills yet.
+    mkdirSync(path.dirname(targetPath), { recursive: true });
+    writeFileSync(targetPath, copy);
+  }
+  for (const orphan of orphans) {
+    const orphanPath = path.join(root, orphan);
+    rmSync(orphanPath);
+    // A removed skill's folder goes too, unless something else (a script, a reference) is left in it.
+    if (readdirSync(path.dirname(orphanPath)).length === 0) rmSync(path.dirname(orphanPath), { recursive: true });
   }
   console.log(`wrote ${outOfDate.length} files`);
 }

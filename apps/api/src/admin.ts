@@ -42,7 +42,12 @@ export async function createUserWithLedger(
       userId,
     ]);
     await conn.query('INSERT INTO categories (ledger_id, tech_name, display_name, sort_order) VALUES ?', [
-      DEFAULT_CATEGORIES.map((c, i) => [ledgerId, c.techName, c.displayName, (i + 1) * 10]),
+      DEFAULT_CATEGORIES.map((category, position) => [
+        ledgerId,
+        category.techName,
+        category.displayName,
+        (position + 1) * 10,
+      ]),
     ]);
     // The ledger's first month has a budget; other months are set up later (brief 033).
     await conn.query(

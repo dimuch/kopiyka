@@ -109,5 +109,7 @@ Why: §8b says a behaviour-preserving refactor of shipped code (the demo web bui
 ## Deviations
 
 - The comparator is named `byRank`, not `rankNames` as the brief says: `rankNames` is already the function that holds it.
+- The suggestion interface is `NameSuggestion`, not `Suggestion`: in the demo file it sits next to other types, and
+  the longer name says what it holds.
 
 ## Consolidate

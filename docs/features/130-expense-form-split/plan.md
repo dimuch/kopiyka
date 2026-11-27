@@ -71,10 +71,10 @@ api 549 + 2 skipped and mcp 329. Mobile goes 531 → 536 after slice 1, then 547
 `find-short-names.sh --diff origin/main` clean and `yarn mobile export:web && yarn mobile check-builds` with no list
 change. No existing test changes; slice 2 only adds `saveErrorText` to an import line.
 
-- [ ] 0. Bump version to 1.26.16
+- [x] 0. Bump version to 1.26.16
   - Files: package.json, apps/mobile/app.json
   - Change: set both to 1.26.16
-- [ ] 1. Move the rate line text next to the rate hook (~40 lines)
+- [x] 1. Move the rate line text next to the rate hook (~40 lines)
   - Files: apps/mobile/src/data/useRate.ts, apps/mobile/src/app/expense.tsx, apps/mobile/test/useRate.test.ts (new)
   - Change: tests first, on the verbatim copy (see Approach). Then delete the screen's copy. Its import becomes
     `{ rateLabel, useRate }` (`Rate` is no longer used there).
@@ -90,7 +90,7 @@ change. No existing test changes; slice 2 only adds `saveErrorText` to an import
     - Bite: each of these breaks makes a row fail: `!==` → `===`, `toFixed(4)` → `toFixed(2)`, `rate.rateDate` →
       `date` in the ok line, `shortDate(date)` → `date` in the unavailable line, and editing the loading text.
   - Verify: web check, the add rows (rate line).
-- [ ] 2. Name the expense form's save error texts (~40 lines)
+- [x] 2. Name the expense form's save error texts (~40 lines)
   - Files: apps/mobile/src/data/monthEnded.ts, apps/mobile/src/app/expense.tsx, apps/mobile/test/monthEnded.test.ts
   - Change: add `saveErrorText` (Contracts). The ternary becomes an `if` chain, and its comment moves with the
     `month_ended` line. The screen calls it as in Contracts.
@@ -104,17 +104,17 @@ change. No existing test changes; slice 2 only adds `saveErrorText` to an import
     - Bite: each of these breaks fails a row: swap the two branches, return `null` first, pass the raw `month` to
       `monthName`'s place, return `lockedText(month)` at the end.
   - Verify: web check, the save-with-API-stopped row.
-- [ ] 3. Show the expense form's category group as its own section (~40 lines)
+- [x] 3. Show the expense form's category group as its own section (~40 lines)
   - Files: apps/mobile/src/app/expense.tsx
   - Change: add `CategorySection` (Contracts) and replace the group with
     `<CategorySection noBudget={noBudget} … onPick={pickCategory} />`. Import `type MonthCategories`. The host tree and
     the branch order stay the same. `CategoryPicker` stays at the same position, so its open sheet's state survives.
   - Verify: web check, every row.
-- [ ] 4. Show the added note as its own piece (~20 lines)
+- [x] 4. Show the added note as its own piece (~20 lines)
   - Files: apps/mobile/src/app/expense.tsx
   - Change: add `AddedNote` (Contracts) and render `<AddedNote text={added} />` where the ternary was.
   - Verify: web check, the add rows (the note and when it clears).
-- [ ] 5. Mark R14 in review in the backlog
+- [x] 5. Mark R14 in review in the backlog
   - Files: docs/features/BACKLOG.md
   - Change: rebase on `origin/main` first. On a conflict in the roadmap table, keep main's rows and then apply only
     these edits:
@@ -184,5 +184,12 @@ screenshots, checking text, order, spacing, alerts and focus.
   needs its own refactor brief.
 
 ## Deviations
+
+- `CategorySection` takes the whole Category group (its `View` and label too), as Contracts' line range says.
+- Web proof: page tree (role, label, text, position, size) recorded with `origin/main`'s `src` checked out in the
+  worktree, then compared on the branch: add form, UAH preview, edit, category not in the month, light and dark for
+  two: identical. After Add, the note's text and position matched; the page differed only by a name suggestion that
+  the base run's own expense added. The no-budget and save-error rows were not run (the texts are unit-tested and the
+  JSX moved verbatim).
 
 ## Consolidate

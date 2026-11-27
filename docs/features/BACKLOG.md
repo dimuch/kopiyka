@@ -183,8 +183,8 @@ brief 109.
 | R10 | app-field-style           | 126   | done (#198) |
 | R11 | app-announced-errors      | 127   | done (#199) |
 | R12 | modal-form-kit            | 128   | done (#200) |
-| R13 | copy-previous-hook        | 129   | in review   |
-| R14 | expense-form-split        |       | not started |
+| R13 | copy-previous-hook        | 129   | done (#201) |
+| R14 | expense-form-split        | 130   | in review   |
 | R15 | statistics-sections       |       | not started |
 | R16 | load-state                |       | not started |
 | R17 | figure-row                |       | not started |

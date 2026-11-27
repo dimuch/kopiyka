@@ -169,10 +169,25 @@ R7, R13), E (button actions → R9, R11), F (UI pieces → R10, R16, R17) and H 
 `expense.tsx` → R14; splitting `members.tsx` is left alone). A, C and G merged (#138, #140, #143); B was dropped with
 brief 109.
 
-| PRs    | Area           | State       |
-| ------ | -------------- | ----------- |
-| R1–R5  | API, connector | not started |
-| R6–R17 | App            | not started |
+| Row | Slug                      | Brief | State       |
+| --- | ------------------------- | ----- | ----------- |
+| R1  | api-descriptive-names     | 117   | in review   |
+| R2  | api-extract-long-handlers |       | not started |
+| R3  | throttle-attempt-steps    |       | not started |
+| R4  | api-small-structure       |       | not started |
+| R5  | mcp-tools-layout          |       | not started |
+| R6  | demo-store-helpers        |       | not started |
+| R7  | app-focus-load-hook       |       | not started |
+| R8  | app-short-names           |       | not started |
+| R9  | app-back-fallback         |       | not started |
+| R10 | app-field-style           |       | not started |
+| R11 | app-announced-errors      |       | not started |
+| R12 | modal-form-kit            |       | not started |
+| R13 | copy-previous-hook        |       | not started |
+| R14 | expense-form-split        |       | not started |
+| R15 | statistics-sections       |       | not started |
+| R16 | load-state                |       | not started |
+| R17 | figure-row                |       | not started |
 
 ### Named in earlier briefs and plans as "its own brief"
 

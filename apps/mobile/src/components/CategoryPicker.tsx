@@ -6,7 +6,6 @@ import { Chip } from '@/components/Chip';
 import { CategorySheet } from '@/components/CategorySheet';
 import { CategoryTile } from '@/components/CategoryTile';
 import { Icon } from '@/components/Icon';
-import { Text } from '@/components/Text';
 import { type Palette, space } from '@/theme';
 
 interface Props {
@@ -30,26 +29,26 @@ export function CategoryPicker({ quick, more, selectedId, onPick, disabled = fal
       {quick.map((c) => {
         const on = c.categoryId === selectedId;
         return (
-          <Chip key={c.categoryId} selected={on} disabled={disabled} onPress={() => onPick(c)} style={styles.cat}>
-            <CategoryTile techName={c.techName} label={c.displayName} size={26} />
-            <Text numberOfLines={1} variant="label" style={styles.catText}>
-              {c.displayName}
-            </Text>
-          </Chip>
+          <Chip
+            key={c.categoryId}
+            label={c.displayName}
+            leading={<CategoryTile techName={c.techName} label={c.displayName} size={26} />}
+            selected={on}
+            disabled={disabled}
+            onPress={() => onPick(c)}
+            style={styles.cat}
+          />
         );
       })}
       {more.length > 0 && (
         <Chip
           accessibilityLabel="More categories"
+          label={`${more.length} more`}
+          leading={<Icon name="more" color={colors.muted} />}
           disabled={disabled}
           onPress={() => setSheetOpen(true)}
-          style={[styles.cat, styles.more]}
-        >
-          <Icon name="more" color={colors.muted} />
-          <Text variant="label" color="muted" style={{ flex: 0 }}>
-            {more.length} more
-          </Text>
-        </Chip>
+          style={styles.cat}
+        />
       )}
       <CategorySheet
         visible={sheetOpen}
@@ -66,14 +65,7 @@ export function CategoryPicker({ quick, more, selectedId, onPick, disabled = fal
 
 const makeStyles = (colors: Palette) =>
   StyleSheet.create({
-    grid: { flexDirection: 'row', flexWrap: 'wrap', gap: space.sm },
+    // The 44pt touch areas meet, 12pt between the pills.
+    grid: { flexDirection: 'row', flexWrap: 'wrap', columnGap: space.sm },
     cat: { width: '31.5%' },
-    catText: { flex: 1 },
-    // "N more" opens the sheet rather than picking, so it's drawn as an empty slot (a one-off, until brief 105d).
-    more: {
-      borderStyle: 'dashed',
-      borderColor: colors.faint,
-      backgroundColor: 'transparent',
-      justifyContent: 'center',
-    },
   });

@@ -64,6 +64,8 @@ const textPairs = [
 const iconPairs = [
   ['faint', 'bg'],
   ['faint', 'surface'],
+  // The "N more" chip's icon.
+  ['muted', 'fill'],
 ] as const;
 
 describe('contrast', () => {

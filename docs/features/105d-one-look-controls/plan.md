@@ -213,7 +213,7 @@ today stops working, and no API, data, connector or demo-store change.
     - In `theme.test.ts`, `['danger', 'fill']` is added to `textPairs` and `['onAccent', 'danger']` is removed.
   - Tests: `theme.test.ts` › "keeps every text and icon pair readable" with the new pair, in both themes (4.63, 7.13).
     Verify: `rg -n "outlinedDanger|variant=\"accentText\"" apps/mobile/src` finds nothing.
-- [ ] 5. Draw chips as a 32pt pill in a 44pt touch area, with room for "education" (≈ 115 lines)
+- [x] 5. Draw chips as a 32pt pill in a 44pt touch area, with room for "education" (≈ 115 lines)
   - Files: `components/Chip.tsx`, `CategoryPicker.tsx`, `DateChips.tsx`, `CategorySheet.tsx`, `apps/mobile/src/theme.ts`,
     `test/theme.test.ts`
   - Change:

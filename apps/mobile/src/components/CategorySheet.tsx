@@ -41,12 +41,13 @@ export function CategorySheet({ visible, categories, onPick, onClose }: Props) {
             </Text>
             <View style={styles.grid}>
               {categories.map((c) => (
-                <Chip key={c.categoryId} onPress={() => onPick(c)} style={styles.item}>
-                  <CategoryTile techName={c.techName} label={c.displayName} size={28} />
-                  <Text numberOfLines={1} variant="label" style={styles.itemText}>
-                    {c.displayName}
-                  </Text>
-                </Chip>
+                <Chip
+                  key={c.categoryId}
+                  label={c.displayName}
+                  leading={<CategoryTile techName={c.techName} label={c.displayName} size={28} />}
+                  onPress={() => onPick(c)}
+                  style={styles.item}
+                />
               ))}
             </View>
           </View>
@@ -81,8 +82,7 @@ const makeStyles = (colors: Palette) =>
     // Square until brief 105d, as before IconButton: a rounded corner would only round its web focus ring.
     // eslint-disable-next-line no-restricted-syntax
     close: { marginRight: -space.sm, borderRadius: 0 },
-    grid: { flexDirection: 'row', flexWrap: 'wrap', gap: space.sm },
-    // The design system's chip grey, a step off the sheet's own surface, which a plain chip would match.
-    item: { width: '48.5%', backgroundColor: colors.fill },
-    itemText: { flex: 1 },
+    // The 44pt touch areas meet, 12pt between the pills.
+    grid: { flexDirection: 'row', flexWrap: 'wrap', columnGap: space.sm },
+    item: { width: '48.5%' },
   });

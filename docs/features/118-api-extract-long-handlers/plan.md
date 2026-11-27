@@ -47,10 +47,10 @@ All three extract slices keep the test files unchanged. Each slice's proof is: g
 `find-short-names.sh --diff origin/main` clean (run after `git fetch`), the handler's line count read off the diff, and
 reading the diff by eye to check it only moves lines: same SQL text, same params, same order.
 
-- [ ] 0. Bump version to 1.26.4
+- [x] 0. Bump version to 1.26.4
   - Files: package.json, apps/mobile/app.json
   - Change: set both to 1.26.4
-- [ ] 1. Split the summary into month and category figures
+- [x] 1. Split the summary into month and category figures
   - Files: apps/api/src/summary/routes.ts
   - Change: add `monthFigures` and `categoryFigures` below `periodMonths`, each with a one-line JSDoc. The GET keeps
     the `planned`, `spentRows`, `incomeRows` and `named` queries in today's order and is ~35 lines (now 67).
@@ -58,7 +58,7 @@ reading the diff by eye to check it only moves lines: same SQL text, same params
     zeros for a month with no data", "its categories add up to the totals, largest spent first" (order + sort_order
     tie-break), "names a category as in the period's last month", "leaves out a deleted category, its plan and
     expenses, and a deleted expense" (`inPeriod`), "never counts another ledger's data".
-- [ ] 2. Split creating a category out of addToMonth
+- [x] 2. Split creating a category out of addToMonth
   - Files: apps/api/src/categories/monthLists.ts
   - Change: add `freeTechName` and `createCategory` between `findByName` and `addToMonth`. The reuse-by-name branch
     stays in `addToMonth`, which drops to ~34 lines (now 61).
@@ -69,7 +69,7 @@ reading the diff by eye to check it only moves lines: same SQL text, same params
     first", "brings back a category removed from the month at €0, its expenses still deleted"; "icons (brief 114)" ›
     "adds a category with an icon", "keeps a reused category's icon unless one is sent" (+ "… replaces", "… clears");
     "holds when two members add at once" (one transaction under the lock); `categories.test.ts` "techNameBase".
-- [ ] 3. Split the expense insert out of the POST handler
+- [x] 3. Split the expense insert out of the POST handler
   - Files: apps/api/src/expenses/routes.ts
   - Change: add `insertExpense` right after `ExpenseInput`/`ExpenseParams`. The POST keeps `checkMonthOpen` → `checkCategory` → `price` → `at` →
     `withTransaction(findRepeat, insertExpense)` → `loadExpense`, and is ~35 lines (now 52).
@@ -78,8 +78,8 @@ reading the diff by eye to check it only moves lines: same SQL text, same params
     string", "answers 503 without saving when there is no rate"; `expenses.repeat.int.test.ts` "saves the same call
     once…", "saves one of two calls made at once", "treats a call as a repeat for 10 minutes" (`created_at` = `at`),
     "saves a call with another %s", "leaves the app alone: two identical adds both save".
-- [ ] 4. Mark R2 in review in the backlog
-  - Files: docs/features/BACKLOG.md (R2 row: brief 118, in review), this plan's ticks
+- [x] 4. Mark R2 in review in the backlog
+  - Files: docs/features/BACKLOG.md (R1 row: done (#189); R2 row: brief 118, in review), this plan's ticks
   - Verify: `yarn format:check`
 
 Estimated size: ~110 changed lines (about 35 + 45 + 25 + 5, mostly moved lines). The largest is slice 2, ~45.

@@ -40,12 +40,19 @@ export function CategorySheet({ visible, categories, onPick, onClose }: Props) {
               Your pick takes the last spot in the quick row.
             </Text>
             <View style={styles.grid}>
-              {categories.map((c) => (
+              {categories.map((category) => (
                 <Chip
-                  key={c.categoryId}
-                  label={c.displayName}
-                  leading={<CategoryTile techName={c.techName} label={c.displayName} icon={c.icon} size={28} />}
-                  onPress={() => onPick(c)}
+                  key={category.categoryId}
+                  label={category.displayName}
+                  leading={
+                    <CategoryTile
+                      techName={category.techName}
+                      label={category.displayName}
+                      icon={category.icon}
+                      size={28}
+                    />
+                  }
+                  onPress={() => onPick(category)}
                   style={styles.item}
                 />
               ))}

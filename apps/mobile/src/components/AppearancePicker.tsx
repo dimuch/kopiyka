@@ -26,20 +26,20 @@ export function AppearancePicker({
   const styles = useThemedStyles(makeStyles);
   return (
     <Card padding="group" accessibilityRole="radiogroup" style={styles.group}>
-      {OPTIONS.map((o) => {
-        const checked = value === o.value;
+      {OPTIONS.map((option) => {
+        const checked = value === option.value;
         return (
           <Pressable
-            key={o.value}
+            key={option.value}
             accessibilityRole="radio"
-            accessibilityLabel={o.label}
+            accessibilityLabel={option.label}
             aria-checked={checked}
-            onPress={() => onChange(o.value)}
+            onPress={() => onChange(option.value)}
             style={styles.option}
           >
             <View style={[styles.pill, checked && styles.pillOn]}>
               <Text variant="label" color={checked ? 'accentText' : 'text'}>
-                {o.label}
+                {option.label}
               </Text>
             </View>
           </Pressable>

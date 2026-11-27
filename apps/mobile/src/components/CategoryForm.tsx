@@ -7,6 +7,7 @@ import { useColors, useThemedStyles } from '@/appearance/AppearanceContext';
 import { Button } from '@/components/Button';
 import { CategoryIconPicker } from '@/components/CategoryIconPicker';
 import { findCategoryIcon } from '@/components/categoryIcons';
+import { ErrorLine } from '@/components/ErrorLine';
 import { Icon, StrokeIcon } from '@/components/Icon';
 import { Pressable } from '@/components/Pressable';
 import { Text } from '@/components/Text';
@@ -185,11 +186,7 @@ export function CategoryForm({
         ) : null}
       </View>
 
-      {error ? (
-        <Text accessibilityRole="alert" variant="label" color="danger">
-          {error}
-        </Text>
-      ) : null}
+      <ErrorLine text={error} />
 
       {gone ? null : (
         <>

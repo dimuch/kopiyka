@@ -13,6 +13,7 @@ import { LoadError } from '@/components/LoadError';
 import { MonthSwitcher } from '@/components/MonthSwitcher';
 import { Pressable } from '@/components/Pressable';
 import { ScreenHeader } from '@/components/ScreenHeader';
+import { useTabBarRoom } from '@/components/TabBar';
 import { Text } from '@/components/Text';
 import { copyPreviousIncome } from '@/data/income';
 import { copyRefusedText } from '@/data/monthCopy';
@@ -31,6 +32,7 @@ import { type Palette, space } from '@/theme';
 export default function Income() {
   const colors = useColors();
   const styles = useThemedStyles(makeStyles);
+  const barRoom = useTabBarRoom();
   const rowCard = useCardStyle('none');
   const pushOnce = usePushOnce();
   const { ledger } = useSession();
@@ -110,7 +112,7 @@ export default function Income() {
         }
       />
 
-      <ScrollView style={styles.scroll} contentContainerStyle={styles.content}>
+      <ScrollView style={styles.scroll} contentContainerStyle={[styles.content, { paddingBottom: barRoom }]}>
         {!items ? (
           error ? (
             <LoadError
@@ -202,7 +204,7 @@ const makeStyles = (colors: Palette) =>
     screen: { flex: 1, backgroundColor: colors.bg, paddingHorizontal: space.xl, paddingTop: space.xl },
     // Out to the screen's edges, with the gutter inside, so the scroll view doesn't clip the cards' side shadows.
     scroll: { marginHorizontal: -space.xl },
-    content: { gap: space.lg, paddingTop: space.xs, paddingBottom: space.xxl, paddingHorizontal: space.xl },
+    content: { gap: space.lg, paddingTop: space.xs, paddingHorizontal: space.xl },
     loading: { marginTop: space.xxl },
     sectionHead: {
       flexDirection: 'row',

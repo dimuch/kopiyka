@@ -77,7 +77,7 @@ export const space = { xxs: 2, xs: 4, sm: 8, md: 12, lg: 16, xl: 20, xxl: 24, xx
 /** Corner radii; `pill` rounds any box fully (a radius is clamped to half the side). */
 export const radius = { sm: 10, md: 14, lg: 20, xl: 28, pill: 999 } as const;
 /** Control heights; `iconButton` is also the 44pt touch minimum. */
-export const size = { control: 48, iconButton: 44, chip: 32, toast: 56 } as const;
+export const size = { control: 48, iconButton: 44, chip: 32, toast: 56, tabBar: 56 } as const;
 
 // Type roles from the design system, in Inter. The face carries the weight: each face has one weight, and a fontWeight
 // would make web draw a fake bolder one.

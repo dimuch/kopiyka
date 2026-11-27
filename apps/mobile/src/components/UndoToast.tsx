@@ -1,12 +1,18 @@
 import { StyleSheet, View } from 'react-native';
 import { useAppearance, useThemedStyles } from '@/appearance/AppearanceContext';
 import { Pressable } from '@/components/Pressable';
+import { useTabBarRoom } from '@/components/TabBar';
 import { Text } from '@/components/Text';
 import type { UndoOffer } from '@/data/undo';
 import { type Palette, radius, shadow, size, space } from '@/theme';
 
-/** The scroll room a screen leaves under its content while the bar shows: its bottom offset, its height and a 16pt gap. */
-export const toastRoom = space.xxxl + size.toast + space.lg;
+/**
+ * The scroll room a screen leaves under its content while the bar shows: the floating tab bar's room, the bar's height
+ * and a 16pt gap.
+ */
+export function useToastRoom(): number {
+  return useTabBarRoom() + size.toast + space.lg;
+}
 
 /**
  * The bar over the bottom of a screen after a delete: what went and Undo, Retry after a failed Undo, or only the
@@ -15,8 +21,10 @@ export const toastRoom = space.xxxl + size.toast + space.lg;
 export function UndoToast({ offer, onUndo }: { offer: UndoOffer; onUndo: () => void }) {
   const styles = useThemedStyles(makeStyles);
   const { scheme } = useAppearance();
+  // 16pt above the floating tab bar.
+  const bottom = useTabBarRoom();
   return (
-    <View accessibilityLiveRegion="polite" style={[styles.toast, { boxShadow: shadow[scheme].float }]}>
+    <View accessibilityLiveRegion="polite" style={[styles.toast, { bottom, boxShadow: shadow[scheme].float }]}>
       <Text
         numberOfLines={2}
         variant="bodyMedium"
@@ -46,7 +54,6 @@ const makeStyles = (colors: Palette) =>
       position: 'absolute',
       left: space.xl,
       right: space.xl,
-      bottom: space.xxxl,
       minHeight: size.toast,
       borderRadius: radius.lg,
       backgroundColor: colors.surface,

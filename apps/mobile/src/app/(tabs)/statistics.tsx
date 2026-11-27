@@ -11,6 +11,7 @@ import { Icon } from '@/components/Icon';
 import { IconButton } from '@/components/IconButton';
 import { Pressable } from '@/components/Pressable';
 import { Text } from '@/components/Text';
+import { useTabBarRoom } from '@/components/TabBar';
 import {
   canStepForward,
   matchingChoice,
@@ -33,6 +34,7 @@ import { type Palette, radius, shadow, size, space } from '@/theme';
 export default function Statistics() {
   const colors = useColors();
   const styles = useThemedStyles(makeStyles);
+  const barRoom = useTabBarRoom();
   const { ledger } = useSession();
   // Read once, like Income's thisMonth, so the period doesn't move while the screen is open.
   const [now] = useState(() => new Date());
@@ -60,7 +62,7 @@ export default function Statistics() {
         onLayout={setAnchor}
       />
 
-      <ScrollView style={styles.scroll} contentContainerStyle={styles.content}>
+      <ScrollView style={styles.scroll} contentContainerStyle={[styles.content, { paddingBottom: barRoom }]}>
         {!summary ? (
           error ? (
             <LoadError message="Couldn’t load these figures. Check your connection and try again." onRetry={reload} />
@@ -294,7 +296,7 @@ const makeStyles = (colors: Palette) =>
     header: { flexDirection: 'row', alignItems: 'center', gap: space.sm, paddingBottom: space.sm },
     // Out to the screen's edges, with the gutter inside, so the scroll view doesn't clip the cards' side shadows.
     scroll: { marginHorizontal: -space.xl },
-    content: { gap: space.lg, paddingTop: space.xs, paddingBottom: space.xxl, paddingHorizontal: space.xl },
+    content: { gap: space.lg, paddingTop: space.xs, paddingHorizontal: space.xl },
     loading: { marginTop: space.xxl },
     switcher: {
       flexDirection: 'row',

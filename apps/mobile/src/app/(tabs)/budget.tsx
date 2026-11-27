@@ -15,8 +15,9 @@ import { MonthSwitcher } from '@/components/MonthSwitcher';
 import { Pressable } from '@/components/Pressable';
 import { ReorderList } from '@/components/ReorderList';
 import { ScreenHeader } from '@/components/ScreenHeader';
+import { useTabBarRoom } from '@/components/TabBar';
 import { Text } from '@/components/Text';
-import { toastRoom, UndoToast } from '@/components/UndoToast';
+import { UndoToast, useToastRoom } from '@/components/UndoToast';
 import { copyPreviousMonth } from '@/data/categories';
 import { copyRefusedText } from '@/data/monthCopy';
 import { balanceLine } from '@/data/monthBalance';
@@ -57,6 +58,9 @@ export default function Budget() {
     reload();
     monthBalance.reload();
   });
+  const barRoom = useTabBarRoom();
+  const toastRoom = useToastRoom();
+  const bottomRoom = toast.offer ? toastRoom : barRoom;
   const previousMonth = shiftMonth(month, -1);
   const previous = useMonthCategories(ledger.ledgerId, previousMonth);
   const ended = month < thisMonth;
@@ -144,12 +148,12 @@ export default function Budget() {
         </Pressable>
       ) : null}
 
-      {/* Room under the last row, so the Undo bar can't cover it. */}
+      {/* Room under the last row, so neither the tab bar nor the Undo bar covers it. */}
       <ScrollView
         ref={scrollRef}
         style={styles.scroll}
         scrollEnabled={!dragging}
-        contentContainerStyle={[styles.content, toast.offer && styles.toastRoom]}
+        contentContainerStyle={[styles.content, { paddingBottom: bottomRoom }]}
       >
         {!data ? (
           error ? (
@@ -326,8 +330,7 @@ const makeStyles = (colors: Palette) =>
     },
     // Out to the screen's edges, with the gutter inside, so the scroll view doesn't clip the cards' side shadows.
     scroll: { marginHorizontal: -space.xl },
-    content: { gap: space.lg, paddingTop: space.xs, paddingBottom: space.xxl, paddingHorizontal: space.xl },
-    toastRoom: { paddingBottom: toastRoom },
+    content: { gap: space.lg, paddingTop: space.xs, paddingHorizontal: space.xl },
     loading: { marginTop: space.xxl },
     sectionHead: {
       flexDirection: 'row',

@@ -22,7 +22,7 @@ import { Icon } from '@/components/Icon';
 import { LoadError } from '@/components/LoadError';
 import { NameCombobox } from '@/components/NameCombobox';
 import { ScreenHeader } from '@/components/ScreenHeader';
-import { PageTabBar } from '@/components/TabBar';
+import { PageTabBar, useTabBarRoom } from '@/components/TabBar';
 import { Text } from '@/components/Text';
 import { expenseLocked, firstOpenDate } from '@/data/expenseLock';
 import { lockedText, restoreRefusedText } from '@/data/monthEnded';
@@ -74,7 +74,7 @@ export default function ExpenseScreen() {
 
   return (
     <View style={styles.page}>
-      {/* The tab bar pads the bottom inset. */}
+      {/* The tab bar floats over the bottom inset. */}
       <SafeAreaView style={styles.screen} edges={['top']}>
         <ScreenHeader back={{ label: 'Back', onPress: leave }} title={editing ? 'Edit expense' : 'New expense'} />
 
@@ -120,6 +120,7 @@ function LoadFailed({ message, onRetry }: { message: string; onRetry?: () => voi
 function ExpenseForm({ draft, ledgerId }: { draft: ExpenseDraftData; ledgerId: number }) {
   const colors = useColors();
   const styles = useThemedStyles(makeStyles);
+  const barRoom = useTabBarRoom();
   const { expense } = draft;
   // Kyiv dates, like the NBU rates they're priced at; read the clock once, when the form opens.
   const [today] = useState(() => kyivToday(new Date()));
@@ -274,7 +275,7 @@ function ExpenseForm({ draft, ledgerId }: { draft: ExpenseDraftData; ledgerId: n
 
   return (
     <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={{ flex: 1 }}>
-      <ScrollView contentContainerStyle={styles.form} keyboardShouldPersistTaps="handled">
+      <ScrollView contentContainerStyle={[styles.form, { paddingBottom: barRoom }]} keyboardShouldPersistTaps="handled">
         {expense && locked ? <Text variant="bodyMedium">{lockedText(expense.expenseDate.slice(0, 7))}</Text> : null}
 
         <View style={styles.group}>
@@ -393,7 +394,7 @@ const makeStyles = (colors: Palette) => {
   return StyleSheet.create({
     page: { flex: 1, backgroundColor: colors.bg },
     screen: { flex: 1, backgroundColor: colors.bg, paddingHorizontal: space.xl, paddingTop: space.sm },
-    form: { gap: space.xxl, paddingBottom: space.huge },
+    form: { gap: space.xxl },
     group: { gap: space.sm },
     // The name suggestions float over the amount fields below; 2 clears the ₴/€ symbols' zIndex 1 there on web.
     nameGroup: { zIndex: 2 },

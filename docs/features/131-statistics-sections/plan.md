@@ -146,6 +146,9 @@ moves, and the pure parts stay covered by `periodSummary.test` and `period.test`
 
 ## Deviations
 
+- The three components sit after `PeriodMenu`, next to the other in-file components, not between `Statistics` and
+  `PeriodSwitcher`; no effect.
+
 - Web proof with a lighter matrix (skeptic suggestion): page tree (role, label, text, position, size) recorded on the
   base for Current, Previous (empty), Last 3 months and This year in light and Current and Last 3 in dark; the two dark
   views compared after each slice, and all six after slice 3: identical. Load and refresh errors were not rerun: the

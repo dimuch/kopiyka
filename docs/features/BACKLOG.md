@@ -175,8 +175,8 @@ brief 109.
 | R2  | api-extract-long-handlers | 118   | done (#190) |
 | R3  | throttle-attempt-steps    | 119   | done (#191) |
 | R4  | api-small-structure       | 120   | done (#192) |
-| R5  | mcp-tools-layout          | 121   | in review   |
-| R6  | demo-store-helpers        |       | not started |
+| R5  | mcp-tools-layout          | 121   | done (#193) |
+| R6  | demo-store-helpers        | 122   | in review   |
 | R7  | app-focus-load-hook       |       | not started |
 | R8  | app-short-names           |       | not started |
 | R9  | app-back-fallback         |       | not started |

@@ -187,7 +187,7 @@ only OK.' | claude -p --model haiku --max-turns 1 --permission-mode plan` in the
 instructions that mentions Copilot, delegating or .github; else reply NONE."` → NONE, or only lines whose sole Copilot mention is a `<!-- copilot: <id> -->` placeholder (no
     Copilot text). The planner preloads kopiyka-conventions, whose `browser`, `deny-list` and `if-installed`
     placeholders reach the model as comments. Gates.
-- [ ] 3. Fail CI when Copilot's skill and agent copies are out of date
+- [x] 3. Fail CI when Copilot's skill and agent copies are out of date
   - Files: .github/workflows/ci.yml
   - Change: `- run: yarn skills:check` right after `yarn format:check` in the `check` job. `deploy.yml`'s `gates` job
     reuses `ci.yml`, so Deploy runs it too. ~2 lines.

@@ -1,13 +1,14 @@
 import { router, useLocalSearchParams } from 'expo-router';
 import { useState } from 'react';
-import { ActivityIndicator, ScrollView, StyleSheet, View } from 'react-native';
+import { ScrollView, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useColors, useThemedStyles } from '@/appearance/AppearanceContext';
+import { useThemedStyles } from '@/appearance/AppearanceContext';
 import { useSession } from '@/auth/AuthContext';
 import { useCardStyle } from '@/components/Card';
 import { EmptyMonth } from '@/components/EmptyMonth';
 import { IconButton } from '@/components/IconButton';
 import { LoadError } from '@/components/LoadError';
+import { LoadState } from '@/components/LoadState';
 import { MonthSwitcher } from '@/components/MonthSwitcher';
 import { Pressable } from '@/components/Pressable';
 import { ScreenHeader } from '@/components/ScreenHeader';
@@ -28,7 +29,6 @@ import { type Palette, space } from '@/theme';
  * (`/income?month=2026-11`), like the Budget tab's.
  */
 export default function Income() {
-  const colors = useColors();
   const styles = useThemedStyles(makeStyles);
   const barRoom = useTabBarRoom();
   const rowCard = useCardStyle('none');
@@ -79,89 +79,87 @@ export default function Income() {
       />
 
       <ScrollView style={[styles.scroll, { marginBottom: barRoom }]} contentContainerStyle={styles.content}>
-        {!items ? (
-          error ? (
-            <LoadError
-              message="Couldn’t load this month’s income. Check your connection and try again."
-              onRetry={reload}
-            />
-          ) : (
-            <ActivityIndicator color={colors.accent} style={styles.loading} />
-          )
-        ) : (
-          <>
-            {error && <LoadError message="Couldn’t refresh. Check your connection and try again." onRetry={reload} />}
-            {items.length === 0 ? (
-              <>
-                <EmptyMonth
-                  text={`No income for ${monthName(month)} yet`}
-                  action={
-                    canCopy
-                      ? { label: `Copy ${monthName(previousMonth)}’s income`, onPress: startCopy, busy }
-                      : undefined
-                  }
-                  note={note}
-                />
-                {!ended && !previous.items && previous.error && (
-                  <LoadError
-                    message={`Couldn’t check ${monthName(previousMonth)}’s income. Check your connection and try again.`}
-                    onRetry={previous.reload}
+        <LoadState
+          data={items}
+          error={error}
+          onRetry={reload}
+          loadMessage="Couldn’t load this month’s income. Check your connection and try again."
+          spinnerStyle={styles.loading}
+        >
+          {(items) => (
+            <>
+              {items.length === 0 ? (
+                <>
+                  <EmptyMonth
+                    text={`No income for ${monthName(month)} yet`}
+                    action={
+                      canCopy
+                        ? { label: `Copy ${monthName(previousMonth)}’s income`, onPress: startCopy, busy }
+                        : undefined
+                    }
+                    note={note}
                   />
-                )}
-              </>
-            ) : (
-              <>
-                <View style={styles.sectionHead}>
-                  <Text variant="heading">Income</Text>
-                  <View accessible accessibilityLabel={`Total ${totalText}`}>
-                    {/* The month's total, as big and bold as the heading beside it (brief 107). */}
-                    <Text variant="heading" tabular>
-                      {totalText}
-                    </Text>
+                  {!ended && !previous.items && previous.error && (
+                    <LoadError
+                      message={`Couldn’t check ${monthName(previousMonth)}’s income. Check your connection and try again.`}
+                      onRetry={previous.reload}
+                    />
+                  )}
+                </>
+              ) : (
+                <>
+                  <View style={styles.sectionHead}>
+                    <Text variant="heading">Income</Text>
+                    <View accessible accessibilityLabel={`Total ${totalText}`}>
+                      {/* The month's total, as big and bold as the heading beside it (brief 107). */}
+                      <Text variant="heading" tabular>
+                        {totalText}
+                      </Text>
+                    </View>
                   </View>
-                </View>
-                <View style={styles.list}>
-                  {items.map((item) => {
-                    const amount = eur(toCents(item.amountEur));
-                    const label = `${item.title}, ${amount}, added by ${item.addedBy}`;
-                    const style = [rowCard, styles.row];
-                    const content = (
-                      <>
-                        <View style={styles.rowText}>
-                          <Text variant="bodyMedium">{item.title}</Text>
-                          <Text variant="caption" color="muted">
-                            Added by {item.addedBy}
-                          </Text>
+                  <View style={styles.list}>
+                    {items.map((item) => {
+                      const amount = eur(toCents(item.amountEur));
+                      const label = `${item.title}, ${amount}, added by ${item.addedBy}`;
+                      const style = [rowCard, styles.row];
+                      const content = (
+                        <>
+                          <View style={styles.rowText}>
+                            <Text variant="bodyMedium">{item.title}</Text>
+                            <Text variant="caption" color="muted">
+                              Added by {item.addedBy}
+                            </Text>
+                          </View>
+                          <Text variant="amount">{amount}</Text>
+                        </>
+                      );
+                      // An ended month can't change, so its rows aren't buttons; either way, one stop for screen
+                      // readers instead of three.
+                      return ended ? (
+                        <View key={item.incomeId} accessible accessibilityLabel={label} style={style}>
+                          {content}
                         </View>
-                        <Text variant="amount">{amount}</Text>
-                      </>
-                    );
-                    // An ended month can't change, so its rows aren't buttons; either way, one stop for screen
-                    // readers instead of three.
-                    return ended ? (
-                      <View key={item.incomeId} accessible accessibilityLabel={label} style={style}>
-                        {content}
-                      </View>
-                    ) : (
-                      <Pressable
-                        key={item.incomeId}
-                        accessibilityRole="button"
-                        accessibilityLabel={label}
-                        accessibilityHint="Edits the item"
-                        onPress={() =>
-                          pushOnce({ pathname: '/income-item', params: { month, incomeId: item.incomeId } })
-                        }
-                        style={style}
-                      >
-                        {content}
-                      </Pressable>
-                    );
-                  })}
-                </View>
-              </>
-            )}
-          </>
-        )}
+                      ) : (
+                        <Pressable
+                          key={item.incomeId}
+                          accessibilityRole="button"
+                          accessibilityLabel={label}
+                          accessibilityHint="Edits the item"
+                          onPress={() =>
+                            pushOnce({ pathname: '/income-item', params: { month, incomeId: item.incomeId } })
+                          }
+                          style={style}
+                        >
+                          {content}
+                        </Pressable>
+                      );
+                    })}
+                  </View>
+                </>
+              )}
+            </>
+          )}
+        </LoadState>
       </ScrollView>
     </SafeAreaView>
   );

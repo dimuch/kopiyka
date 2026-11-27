@@ -1,11 +1,15 @@
 import { useCallback, useEffect, useState } from 'react';
 import { api } from '@/api/client';
 import type { Category } from '@/api/types';
+import { startCategoryId } from '@/data/quick';
 
 export type MonthCategories = {
   reload: () => void;
-  /** The first quick category of the first list that loaded; null before that. Fixed afterwards. */
-  firstQuickId: number | null;
+  /**
+   * A new expense's start: the last used category when the first list that loaded has it, else that list's first
+   * quick one; null before that. Fixed afterwards, so it doesn't follow the date (brief 030).
+   */
+  startId: number | null;
 } & ({ status: 'loading' } | { status: 'error' } | { status: 'ready'; categories: Category[]; quickIds: number[] });
 
 type Loaded = { status: 'error' } | { status: 'ready'; categories: Category[]; quickIds: number[] };
@@ -14,13 +18,12 @@ type Loaded = { status: 'error' } | { status: 'ready'; categories: Category[]; q
  * A 'YYYY-MM' month's categories and its quick row, for the expense form and the Budget tab's Copy check (does the
  * previous month have any?); loads again when `month` changes.
  */
-export function useMonthCategories(ledgerId: number, month: string): MonthCategories {
+export function useMonthCategories(ledgerId: number, month: string, lastUsedId: number | null = null): MonthCategories {
   const [version, setVersion] = useState(0);
   // Tagged with its request, so a new month (or a reload) reads as loading without resetting state in the effect.
   const key = `${ledgerId}/${month}/${version}`;
   const [loaded, setLoaded] = useState<{ key: string; list: Loaded } | null>(null);
-  // A new expense's default category: the one the form opened with, so it doesn't follow the date (brief 030).
-  const [firstQuickId, setFirstQuickId] = useState<number | null>(null);
+  const [startId, setStartId] = useState<number | null>(null);
 
   useEffect(() => {
     let live = true;
@@ -28,14 +31,14 @@ export function useMonthCategories(ledgerId: number, month: string): MonthCatego
       .then((c) => {
         if (!live) return;
         setLoaded({ key, list: { status: 'ready', categories: c.categories, quickIds: c.quickCategoryIds } });
-        setFirstQuickId((id) => id ?? c.quickCategoryIds[0] ?? null);
+        setStartId((id) => id ?? startCategoryId(lastUsedId, c.categories, c.quickCategoryIds));
       })
       .catch(() => live && setLoaded({ key, list: { status: 'error' } }));
     return () => {
       live = false;
     };
-  }, [key, ledgerId, month]);
+  }, [key, ledgerId, month, lastUsedId]);
 
   const reload = useCallback(() => setVersion((v) => v + 1), []);
-  return loaded?.key === key ? { ...loaded.list, reload, firstQuickId } : { status: 'loading', reload, firstQuickId };
+  return loaded?.key === key ? { ...loaded.list, reload, startId } : { status: 'loading', reload, startId };
 }

@@ -12,7 +12,7 @@ Next: brief 106, the floating tab bar. Its brief in `docs/features/106-floating-
 
 ## Recently finished
 
-### 105e · The header, the toast, inputs, menus and sheets (done: v1.23.16)
+### 105e · The header, the toast, inputs, menus and sheets (done: #177, v1.23.16)
 
 Brief and plan: `docs/features/105e-one-look-header/`. One header shape (a round Back or Home, a centred title, one
 action), the Undo bar and menus on `shadow.float` (a `hairline` ring in dark), inputs in `fill` with an edge only on
@@ -38,7 +38,7 @@ and IBM Plex Sans; every role and `Text` pair takes the doc's weight, with no `f
 
 Brief and plan: `docs/features/105-fresh-look/`. The palettes, violet bars, the "€X left" caution label, and light by
 default. At Gate A the brief was split into 105, 105b, 105c and 105d, each its own brief, PR and patch bump; the later
-parts' outlines are in its plan under "Later parts". The fresh look is complete: 105–105e (#173–#176 and 105e's PR).
+parts' outlines are in its plan under "Later parts". The fresh look is complete: 105–105e (#173–#177).
 
 ### 104 · Shared components (done: 104–104h, #156–#171, v1.23.11)
 

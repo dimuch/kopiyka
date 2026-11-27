@@ -554,11 +554,40 @@ that the brief and the user's 2026-11-26 decisions don't settle.
 
 ## Deviations
 
-<filled by the developer during build>
+- Build: none from the Contracts. The slices' own browser checks ran once on the finished branch, with the Visual
+  check; a demo-build look after slice 4 showed the pill at y 768 and the tabs as `<a>` links.
+- Visual check: before (Base 3899b99) and after (d4f0f176) on 27 November (Kyiv), 42 shared views plus 2 after-only,
+  in a same-origin 390×844 iframe, compared in Node.
+  - A: texts, order and type equal on all 42 pairs; the one accessibility change is an "Add expense" button per bar
+    view; the Expenses rows' "+" unchanged; the child pages' tabs go from `div` to `a`.
+  - B: the pill at x 20, y 768, 282×56, `surface`, no edge, the light shadow or the dark ring; six tabs 47 wide; the
+    "+" 56×56 in `accent` at x 314, not a link; the badge at the Settings icon's top right.
+  - C: the bar's boxes identical on budget, category and expense-new.
+  - D: bottom room 92 on the tab pages, Settings and the expense form, 164 on the category page and while Budget's
+    Undo bar shows; the last card's slot ends at 752; Home's last card ends at or above 752.
+  - E: the Undo bar at y 696–752 on Budget and the category page.
+  - F: the start category: no key or `999999` → the first quick one; `?categoryId=N` → N; after an add in O → O, with
+    `kopiyka.lastCategory.<ledgerId>` stored; an edit leaves it; another ledger starts on its own first quick one.
+  - G: moves over 2pt, all in What moves: rows scrolled to the end −19 (Budget, Expenses) and −11 (category page); the
+    Undo bar −11; Sign out −23.
+  - H: the tab pages' hrefs equal Base's (`/budget?month=2026-10`); the child pages' tabs link to each tab.
+- Real clicks: every tab switches, Budget keeps its month, the open tab does nothing; "+" works on Home, an ended
+  month, the category page and the expense form (a second, fresh form), and a double click opens one form. A Cmd-click
+  is left to the browser (the app doesn't navigate), but the in-app browser has no new tabs, so "opens in a new
+  browser tab" is left for a real browser (Gate B).
+- Demo, light and dark: no console errors, "+" with a stored last category, Undo above the pill. `export:web` and
+  `check-builds` (no `--accept`) pass.
 
 ## Consolidate
 
-<filled in /kopiyka-hos Phase 3a: CONSOLIDATE line, each reuse/extract, each LEAVE + reason>
+CONSOLIDATE: reused 0 · extracted 0 · left 3
+
+- **Left:** `tabHref`: expo-router has no public href builder that resolves a nested tab from a child page.
+- **Left:** `rememberLastCategory`/`readLastCategory` beside AppearanceContext's and AuthContext's AsyncStorage use:
+  each parses something different; a shared helper would only wrap AsyncStorage.
+- **Left:** `startCategoryId` beside `monthPicker`/`withQuick`: a different rule (which one to start on, not the row).
+- `useTabBarRoom`, `useToastRoom` and `PageTabBar` replace the old code (the `toastRoom` constant, the old `TabBar`);
+  nothing old is left.
 
 ## Revision 1
 

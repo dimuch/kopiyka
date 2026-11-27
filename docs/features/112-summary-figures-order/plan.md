@@ -25,14 +25,14 @@ consolidation pass.
 
 ## Version
 
-Bump: patch — 1.23.16 → 1.23.17
+Bump: patch — 1.24.0 → 1.24.1
 Why: §8b `patch` (styling/copy, no new capability): the card's order and screen reader label change in the app.
 
 ## Slices
 
-- [ ] 0. Bump version to 1.23.17
+- [x] 0. Bump version to 1.24.1
   - Files: package.json, apps/mobile/app.json
-  - Change: set both to 1.23.17
+  - Change: set both to 1.24.1
 - [ ] 1. Show Spent, Budgeted and Remaining on the Expenses card, as on Budget (~15 lines)
   - Files: apps/mobile/src/data/monthSummary.ts, apps/mobile/src/app/(tabs)/expenses.tsx,
     apps/mobile/test/monthSummary.test.ts

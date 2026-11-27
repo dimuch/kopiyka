@@ -3,7 +3,7 @@
 Status: approved <!-- draft → skeptic-approved → approved (by the user) -->
 Brief: ./brief.md
 Branch: chore/app-back-fallback
-Base: stacked on chore/app-short-names (R8, brief 124, in review); rebase onto origin/main once R8 merges. Until then
+Base: origin/main (after R8 #196)
 the PR says it is stacked on R8.
 
 ## Approach
@@ -73,17 +73,17 @@ The web check runs from this worktree at exactly http://127.0.0.1:8084, with the
 at 390×844 in light and dark. Each screen gets two checks. (a) With history: open it from the app, press Back, and you
 land back where you came from. (b) Opened directly by URL in a fresh tab: press Back, and you land on its fallback.
 
-- [ ] 0. Bump version to 1.26.11
+- [x] 0. Bump version to 1.26.11
   - Files: package.json, apps/mobile/app.json
   - Change: set both to 1.26.11
-- [ ] 1. Give the app one Back-with-fallback and route closeToBudget through it
+- [x] 1. Give the app one Back-with-fallback and route closeToBudget through it
   - Files: apps/mobile/src/closeToBudget.ts
   - Change: add `backOr` as in Contracts, import `type Href`, make `closeToBudget`'s body `backOr(...)`, and trim its
     JSDoc so the web-link reason isn't said twice.
   - Verify: web check (a) and (b) for the two `closeToBudget` callers. Budget → add category (`category-form`) → Back
     returns to Budget on that month; `/category-form?month=2026-10` by URL → Back lands on Budget, October 2026. The
     same for Budget's Start→End line (`actual-end`) and `/actual-end?month=2026-10`.
-- [ ] 2. Use backOr for Back in members, expense, income, category and remove
+- [x] 2. Use backOr for Back in members, expense, income, category and remove
   - Files: apps/mobile/src/app/members.tsx, expense.tsx, income-item.tsx, category/[categoryId].tsx,
     delete-category.tsx
   - Change: delete `goBack`/`leave` and their comments in the four screens with a fixed fallback. Their callers become
@@ -101,7 +101,7 @@ land back where you came from. (b) Opened directly by URL in a fresh tab: press 
       `/category/<id>?month=<this month>` by URL → Back lands on Expenses, this month.
     - `delete-category`: a category → Remove → Back returns to the category;
       `/delete-category?categoryId=<id>&month=<this month>` by URL → Back lands on Home.
-- [ ] 3. Mark R9 in review in the backlog
+- [x] 3. Mark R9 in review in the backlog
   - Files: docs/features/BACKLOG.md
   - Change: roadmap table row R9: Brief `125`, State `in review`.
   - Verify: `yarn format:check`.
@@ -142,5 +142,8 @@ land back where you came from. (b) Opened directly by URL in a fresh tab: press 
 ## Follow-ups
 
 ## Deviations
+
+- The category screen keeps a one-line why-comment above its first `backOr('/expenses')` (Expenses opens on the
+  current month, not the screen's), as the skeptic suggested. Web check ran in dark only: no style changed.
 
 ## Consolidate

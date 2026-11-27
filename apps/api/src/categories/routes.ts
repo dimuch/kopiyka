@@ -46,8 +46,6 @@ export interface CategoryWithTotalsDto extends CategoryDto {
 }
 
 const CategoryParams = z.object({ categoryId: z.coerce.number().int().positive() });
-// `MonthParams` is a required month: the list's and one category's query (every caller sends it since briefs 030 and
-// 032), and copy's and add's path.
 const CategoryMonthParams = CategoryParams.extend(MonthParams.shape);
 // 1–40 characters after trimming (brief 037).
 const NameBody = z.object({ name: z.string().trim().min(1).max(40) });
@@ -96,6 +94,7 @@ export async function categoryRoutes(app: FastifyInstance, { db, now }: AppDeps)
   const guards = { preHandler: [app.requireAuth, app.requireLedger] };
 
   app.get('/api/ledgers/:id/categories', guards, async (req) => {
+    // A required month: the list's and one category's query (every caller sends it since briefs 030 and 032).
     const { month } = MonthParams.parse(req.query);
     const first = monthStart(month);
     const [rows] = await db.query<RowDataPacket[]>(

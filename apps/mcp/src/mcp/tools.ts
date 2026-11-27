@@ -88,6 +88,12 @@ function incomeFields(item: ApiIncomeItem) {
   return { incomeId: item.incomeId, title: item.title, amount: eur(toCents(item.amountEur)), addedBy: item.addedBy };
 }
 
+/** A month's income items in a ledger, as the API lists them. */
+async function readIncome(scope: RequestScope, ledgerId: number, month: string): Promise<ApiIncomeItem[]> {
+  const { items } = await scope.read<{ items: ApiIncomeItem[] }>(`/api/ledgers/${ledgerId}/months/${month}/income`);
+  return items;
+}
+
 const errorResult = (text: string): CallToolResult => ({ content: [{ type: 'text', text }], isError: true });
 
 /** Runs a tool, handing a refusal or an API error to the LLM as a result it can read, not a protocol failure. */
@@ -152,10 +158,10 @@ export function buildServer(scope: RequestScope): McpServer {
     },
     ({ ledgerId, month }) =>
       toolResult(scope, 'month_summary', async () => {
-        const [{ categories }, { expenses }, { items }] = await Promise.all([
+        const [{ categories }, { expenses }, items] = await Promise.all([
           scope.read<{ categories: ApiCategory[] }>(`/api/ledgers/${ledgerId}/categories?month=${month}`),
           scope.read<{ expenses: ApiExpense[] }>(`/api/ledgers/${ledgerId}/expenses?month=${month}`),
-          scope.read<{ items: ApiIncomeItem[] }>(`/api/ledgers/${ledgerId}/months/${month}/income`),
+          readIncome(scope, ledgerId, month),
         ]);
         return { ledgerId, month, currency: 'EUR', ...monthSummary(categories, expenses, items) };
       }),
@@ -170,9 +176,7 @@ export function buildServer(scope: RequestScope): McpServer {
     },
     ({ ledgerId, month }) =>
       toolResult(scope, 'list_income', async () => {
-        const { items } = await scope.read<{ items: ApiIncomeItem[] }>(
-          `/api/ledgers/${ledgerId}/months/${month}/income`,
-        );
+        const items = await readIncome(scope, ledgerId, month);
         return {
           ledgerId,
           month,
@@ -415,9 +419,7 @@ export function buildServer(scope: RequestScope): McpServer {
         'delete_income',
         async () => {
           // There's no single-item read and the delete answers 204, so find the item in its month first.
-          const { items } = await scope.read<{ items: ApiIncomeItem[] }>(
-            `/api/ledgers/${ledgerId}/months/${month}/income`,
-          );
+          const items = await readIncome(scope, ledgerId, month);
           const item = items.find((candidate) => candidate.incomeId === incomeId);
           if (!item) throw new ApiError(404, 'not_found');
           await scope.write('DELETE', `/api/ledgers/${ledgerId}/income/${incomeId}`);

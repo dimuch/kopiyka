@@ -279,7 +279,7 @@ two callers.
 - [x] 4. Bump version to 1.26.0
   - Files: package.json, apps/mobile/app.json
   - Change: set both to 1.26.0.
-- [ ] 5. Add the category icon set, copied from Lucide with its licence (≈ 45 hand-written lines + ≈ 620 generated +
+- [x] 5. Add the category icon set, copied from Lucide with its licence (≈ 45 hand-written lines + ≈ 620 generated +
       ≈ 45 verbatim)
   - Files: `apps/mobile/src/components/categoryIcons.ts` (generated data, plus `findCategoryIcon`),
     `apps/mobile/src/components/categoryIcons.LICENSE.txt` (Lucide's `LICENSE` at 1.81.0, verbatim),
@@ -429,6 +429,9 @@ two callers.
 ## Deviations
 
 - PR A: rebased onto main after #181 (brief 113, 1.24.2) merged; the bump is now 1.24.2 → 1.25.0, still minor.
+- slice 5: the script re-writes every path from its parsed commands with a space between all numbers, not only the
+  arcs, so no arc flags run together and the native parser reads one simple form. Same drawing; ≈ 9.8 KB gzipped
+  rather than ≈ 7.5 KB, and ≈ 1,000 formatted lines rather than ≈ 620.
 
 ## Consolidate
 

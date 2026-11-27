@@ -130,7 +130,8 @@ const HUES: Record<string, number> = {
 };
 
 export function categoryTile(techName: string, scheme: Scheme): { bg: string; fg: string } {
-  const hue = HUES[techName] ?? [...techName].reduce((h, ch) => (h * 31 + ch.charCodeAt(0)) % 360, 7);
+  const hue =
+    HUES[techName] ?? [...techName].reduce((hash, character) => (hash * 31 + character.charCodeAt(0)) % 360, 7);
   // The pale dark-theme text is unreadable on white, so light tiles use deeper tones.
   if (scheme === 'light') return { bg: `hsla(${hue}, 70%, 45%, 0.14)`, fg: `hsl(${hue}, 70%, 32%)` };
   return { bg: `hsla(${hue}, 70%, 60%, 0.16)`, fg: `hsl(${hue}, 80%, 74%)` };

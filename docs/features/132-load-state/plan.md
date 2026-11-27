@@ -62,26 +62,26 @@ Every slice ends with:
 
 There are no characterization tests: the change is UI only, and there's no logic to pin (brief, Notes).
 
-- [ ] 0. Bump version to 1.26.18
+- [x] 0. Bump version to 1.26.18
   - Files: package.json, apps/mobile/app.json
   - Change: set both to 1.26.18
-- [ ] 1. Draw Income's loading and refresh states with a shared LoadState
+- [x] 1. Draw Income's loading and refresh states with a shared LoadState
   - Files: apps/mobile/src/components/LoadState.tsx (new), apps/mobile/src/app/(tabs)/income.tsx,
     apps/mobile/demo-modules.txt
   - Change: the component, and Income uses it. Income is in the demo (`demo-app/(tabs)/income.tsx`), so
     `check-builds --accept` adds exactly one line, `src/components/LoadState.tsx`. The commit body says why. ~65 lines.
   - Verify: web record, Income (4 states)
-- [ ] 2. Use LoadState on Budget and Expenses
+- [x] 2. Use LoadState on Budget and Expenses
   - Files: apps/mobile/src/app/(tabs)/budget.tsx, apps/mobile/src/app/(tabs)/expenses.tsx
   - Change: as in Contracts. Inside the children, `data.categories` becomes `categories`, and `rows` becomes
     `loadedRows`. The bodies keep their indentation. ~60 lines. `demo-modules.txt` unchanged.
   - Verify: web record, Budget and Expenses (4 states each)
-- [ ] 3. Use LoadState on Statistics and Members
+- [x] 3. Use LoadState on Statistics and Members
   - Files: apps/mobile/src/app/(tabs)/statistics.tsx, apps/mobile/src/app/members.tsx
   - Change: as in Contracts. Members' fragment moves into the children, 4 columns deeper. Check it with
     `git show --color-moved=zebra --color-moved-ws=allow-indentation-change`. ~70 lines.
   - Verify: web record, Statistics and Members (4 states each)
-- [ ] 4. Mark R16 in review in the backlog
+- [x] 4. Mark R16 in review in the backlog
   - Files: docs/features/BACKLOG.md. The roadmap row R16 becomes `| R16 | load-state | 132 | in review |`, and only
     that row changes. On a rebase conflict, keep `main`'s other rows.
 
@@ -141,6 +141,13 @@ There are no characterization tests: the change is UI only, and there's no logic
   shape if a third copy ever appears.
 
 ## Deviations
+
+- Each render callback's parameter keeps the screen's own name (`items`, `data`, `rows`, `summary`), shadowing the
+  nullable one, so the children moved without a single edit.
+- Web proof: page tree with inline styles recorded on the base and compared on the branch for the loaded state (Budget
+  also in dark), the spinner and the first-load error on all five (reached by tab navigation with `fetch` held or
+  failed in the page, the same path both runs), and Members' refresh error: identical. The spinner's SVG circles were
+  left out of the comparison because their box changes with the rotation; the spinner's colour matched.
 
 - Members' refresh error: no second QA user. A console `fetch` override makes a POST to `/invites` answer 201 without
   writing anything and the `/members` GET that follows fail, so the refresh line shows (skeptic suggestion). Each

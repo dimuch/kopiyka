@@ -169,25 +169,25 @@ R7, R13), E (button actions → R9, R11), F (UI pieces → R10, R16, R17) and H 
 `expense.tsx` → R14; splitting `members.tsx` is left alone). A, C and G merged (#138, #140, #143); B was dropped with
 brief 109.
 
-| Row | Slug                      | Brief | State       |
-| --- | ------------------------- | ----- | ----------- |
-| R1  | api-descriptive-names     | 117   | done (#189) |
-| R2  | api-extract-long-handlers | 118   | done (#190) |
-| R3  | throttle-attempt-steps    | 119   | done (#191) |
-| R4  | api-small-structure       | 120   | done (#192) |
-| R5  | mcp-tools-layout          | 121   | done (#193) |
-| R6  | demo-store-helpers        | 122   | done (#194) |
-| R7  | app-focus-load-hook       | 123   | done (#195) |
-| R8  | app-short-names           | 124   | done (#196) |
-| R9  | app-back-fallback         | 125   | done (#197) |
-| R10 | app-field-style           | 126   | done (#198) |
-| R11 | app-announced-errors      | 127   | done (#199) |
-| R12 | modal-form-kit            | 128   | done (#200) |
-| R13 | copy-previous-hook        | 129   | done (#201) |
-| R14 | expense-form-split        | 130   | done (#202) |
-| R15 | statistics-sections       | 131   | in review   |
-| R16 | load-state                |       | not started |
-| R17 | figure-row                |       | not started |
+| Row | Slug                      | Brief | State                                                                              |
+| --- | ------------------------- | ----- | ---------------------------------------------------------------------------------- |
+| R1  | api-descriptive-names     | 117   | done (#189)                                                                        |
+| R2  | api-extract-long-handlers | 118   | done (#190)                                                                        |
+| R3  | throttle-attempt-steps    | 119   | done (#191)                                                                        |
+| R4  | api-small-structure       | 120   | done (#192)                                                                        |
+| R5  | mcp-tools-layout          | 121   | done (#193)                                                                        |
+| R6  | demo-store-helpers        | 122   | done (#194)                                                                        |
+| R7  | app-focus-load-hook       | 123   | done (#195)                                                                        |
+| R8  | app-short-names           | 124   | done (#196)                                                                        |
+| R9  | app-back-fallback         | 125   | done (#197)                                                                        |
+| R10 | app-field-style           | 126   | done (#198)                                                                        |
+| R11 | app-announced-errors      | 127   | done (#199)                                                                        |
+| R12 | modal-form-kit            | 128   | done (#200)                                                                        |
+| R13 | copy-previous-hook        | 129   | done (#201)                                                                        |
+| R14 | expense-form-split        | 130   | done (#202)                                                                        |
+| R15 | statistics-sections       | 131   | done (#203)                                                                        |
+| R16 | load-state                | 132   | in review; category screen left out (its refresh line sits inside its scroll view) |
+| R17 | figure-row                |       | not started                                                                        |
 
 ### Named in earlier briefs and plans as "its own brief"
 

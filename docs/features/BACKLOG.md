@@ -3,30 +3,42 @@
 A snapshot so work can pick up in any tool (Claude Code or Copilot) without the chat history.
 Update it when a brief ships, is planned or is dropped.
 
-Snapshot: 2026-11-28, `main` at v1.26.19 (`b0e5aef5`); brief 134 in progress on `feat/statistics-chart-view`.
+Snapshot: 2026-11-28, `main` at v1.27.0 (`060a593f`, after PR #206: brief 134 is done).
 
 ## In progress
 
-### 134 · Statistics: Chart / Table switch, with a category bar chart (in progress, branch `feat/statistics-chart-view`, v1.27.0)
+### 111 · Replace shipped plans with short outcomes (building, branch `chore/plan-outcomes`, no version)
+
+Brief and plan: `docs/features/111-plan-outcomes/`. Once a brief's last PR merges, a short `outcome.md` (from
+`docs/features/_outcome-template.md`) replaces its `plan.md`, as an after-merge step in `/kopiyka-hos` and
+`/kopiyka-hos-refactoring`. One pass does it for every brief that has already shipped.
+
+## Recently finished
+
+### 134 · Statistics: Chart / Table switch, with a category bar chart (done: #206, v1.27.0)
 
 Brief and plan: `docs/features/134-statistics-chart-view/`. Statistics opens on a Chart view: the totals, then the
 period's spending per category as bars in each category's tile colour (the summary now sends `techName`). Two icon
 buttons beside the period switcher pick Chart or Table (today's lists). Left: the iPhone check with VoiceOver. Next
-steps towards more charts (pie, stacked) are not briefed yet.
+steps towards more charts (pie, stacked) are not briefed yet. Merged while 111 was being built, so its plan stays until
+its own after-merge step.
 
-### 110 · One source for the skills and agents (in review, branch `chore/one-source-for-skills`, no version)
+### 110 · One source for the skills and agents (done: #187, no version)
 
 Brief and plan: `docs/features/110-one-source-for-skills/`. `yarn skills:build` generates Copilot's `kopiyka-*`
-skills and agents from `.claude`, and CI's `yarn skills:check` fails when they differ. Brief 111 comes next. From now
-on, skills-sync's commits to `.claude/skills/kopiyka-*` or `.claude/agents` need `yarn skills:build` too.
+skills and agents from `.claude`, and CI's `yarn skills:check` fails when they differ. Skills-sync's commits to
+`.claude/skills/kopiyka-*` or `.claude/agents` need `yarn skills:build` too.
 
-### 116 · Scroll areas end above the tab bar (in review, branch `fix/scroll-above-tab-bar`, v1.26.2)
+### 116 · Scroll areas end above the tab bar (done: #185, v1.26.2)
 
 Brief and plan: `docs/features/116-scroll-above-tab-bar/`. Every page with the floating tab bar ends its scroll view
 16pt above the bar, or above the Undo bar while it shows, so no row scrolls behind it. Follow-up:
 `docs/design/design-system.md`'s `TabBar` component row still describes the round "+" removed in a465e421.
 
-## Recently finished
+### 112 · Expenses card in Budget's order (done: #179, v1.24.1)
+
+Brief and plan: `docs/features/112-summary-figures-order/`. The Expenses card shows Spent · Budgeted · Remaining, in
+Budget's order, label included.
 
 ### 115 · Chip tile inset (done: #184, v1.26.1, live with v1.26.2)
 
@@ -127,13 +139,12 @@ the plan's "Later parts", and 104f's Gate A split it into 104f–104h.
 - **102 · Month balance in the app**: all 4 PRs are merged (#144, #152, #153 v1.22.0, #155 v1.23.0). Its AC7 iPhone
   check (Expo Go: the Budget tab's Start → End line and the actual End form) was left for the user with PR 4.
 - **108 · Expense name suggestions**: #148 (with #150) merged, v1.20.0.
-- **Releases:** the newest tag is v1.20.0. Versions 1.20.1–1.23.0 are merged but untagged. Tag a version only once it's
-  deployed (conventions §8b).
+- **Releases:** the tags after v1.20.0 are v1.26.2 and v1.26.19, the versions that were deployed. The versions between
+  them were merged but never deployed on their own, so they get no tag (conventions §8b).
 
-## Planned: design-system roll-out (`docs/design/design-system.md`)
+## Design-system roll-out, done (`docs/design/design-system.md`)
 
-103, 103b, 103c and 103d (tokens) are merged (#145, #147, #149, #151), and 104 (shared components) is done. The
-rest, in order:
+103, 103b, 103c and 103d (tokens) are merged (#145, #147, #149, #151). Every brief of the roll-out has shipped:
 
 | Brief | Draft                                           | What                                                                                |
 | ----- | ----------------------------------------------- | ----------------------------------------------------------------------------------- |
@@ -145,26 +156,8 @@ rest, in order:
 | 105e  | `docs/features/105e-one-look-header/brief.md`   | The header, the toast, inputs, menus and sheets (done, #177)                        |
 | 106   | `docs/features/106-floating-tab-bar/brief.md`   | Floating pill tab bar with a round "+" (add expense) button (done, #178)            |
 
-Each 105 part's brief is written from the plan's "Later parts" after the previous part merges. 107 (budget polish,
-#146) already brought forward one 105 item: the same caution yellow in both themes.
-
-## Planned: repo tooling
-
-Drafted on 2026-11-25, after PR #167 turned Copilot's identical copies of the skills into symlinks. Run 110 before
-111, because 111 edits `kopiyka-hos`, which 110 makes single-source. Neither changes the app or API.
-
-| Brief | Draft                                              | What                                                                                         |
-| ----- | -------------------------------------------------- | -------------------------------------------------------------------------------------------- |
-| 110   | `docs/features/110-one-source-for-skills/brief.md` | Generate Copilot's `kopiyka-*` skills and agents from `.claude`, with a CI check (in review) |
-| 111   | `docs/features/111-plan-outcomes/brief.md`         | Replace shipped plans with short outcomes, as an after-merge flow step                       |
-
-Item 3 of the same review, finishing the design system with 104f and 105, is already planned above.
-
-## Planned: small fixes
-
-| Brief | Draft                                              | What                                                                           |
-| ----- | -------------------------------------------------- | ------------------------------------------------------------------------------ |
-| 112   | `docs/features/112-summary-figures-order/brief.md` | Expenses card in Budget's order: Spent · Budgeted · Remaining (label included) |
+Each 105 part's brief was written from the 105 plan's "Later parts" after the previous part merged. 107 (budget
+polish, #146) brought forward one 105 item: the same caution yellow in both themes.
 
 ## Not briefed yet
 
@@ -234,8 +227,8 @@ inside its scroll view.
 - Personal Claude skills (`~/.claude/skills`: `incremental-implementation`, `test-driven-development`,
   `debugging-and-error-recovery`, `security-and-hardening`, `source-driven-development`, `code-simplification`) don't
   travel with the repo. Copy them to `~/.copilot/skills/` on the new laptop if you want them (conventions §8a).
-- Claude's memory for this project (`~/.claude/projects/…/memory`) stays on the old laptop. This file and the plans in
-  `docs/features/` are the record to work from.
+- Claude's memory for this project (`~/.claude/projects/…/memory`) stays on the old laptop. This file and the briefs and
+  outcomes in `docs/features/` are the record to work from.
 - Local QA data doesn't travel either: the dev database, its QA users and their TOTP secrets exist
   only on the old laptop.
   - On a new laptop, create a fresh user per brief with `yarn api create-user`, using `--username claude-qa-<NNN>`

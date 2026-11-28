@@ -13,7 +13,7 @@ With them on `Button` that is one change; without, it is 17 copies plus 3 helper
 ## What
 
 Give `Button` the outlined and text looks and move these buttons onto it. **It draws today's look**, so nothing
-visibly changes. The outline in `docs/features/104-shared-components/plan.md` ("Later parts", 104c) is the starting
+visibly changes. The outline in `git show 6b547bc1:docs/features/104-shared-components/plan.md` ("Later parts", 104c) is the starting
 point.
 
 | Look            | Button                           | Where                                  | Today                                                                                                        |

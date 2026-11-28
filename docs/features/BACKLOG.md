@@ -98,7 +98,7 @@ parts' outlines are in its plan under "Later parts". The fresh look is complete:
 
 ### 104 · Shared components (done: 104–104h, #156–#171, v1.23.11)
 
-Brief and plan: `docs/features/104-shared-components/`. At Gate A the brief was split into six sequential briefs,
+Brief and outcome: `docs/features/104-shared-components/`. At Gate A the brief was split into six sequential briefs,
 each branched from `main` after the previous one merges, each a patch bump. Each part's brief was written from
 the plan's "Later parts", and 104f's Gate A split it into 104f–104h.
 

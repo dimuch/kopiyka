@@ -230,6 +230,11 @@ inside its scroll view.
 - Deploy: move the deploy key to a root-owned `AuthorizedKeysFile` (sshd `Match User kopiyka`) (016).
 - After a delete-category opened from a web link, browser Back from Home reached "Category not found." Not
   reproduced since the screen changed to remove from one month; check before fixing (018).
+- Drop `categories.deleted_at` and its filters in a migration; nothing has set it since 032 (028).
+- `MONTH_RE` accepts `9999-12`, so a crafted month most likely ends in a 500; add a year cap (029).
+- `apps/mobile/src/linkParams.ts` says `MONTH_RE` mirrors `apps/api/src/expenses/routes.ts`; it lives in
+  `apps/api/src/dates.ts` (030).
+- `CompactTotal`'s JSDoc says "the budget part appears once budgets exist", but its only caller passes `null` (034).
 
 ## Outside this repo
 

@@ -102,7 +102,7 @@ rollback is unaffected because there's no migration. If another PR takes 1.27.0 
     - One category → fill `1`.
     - `[]` and all-`'0.00'` → `[]`.
   - ~45 lines.
-- [ ] 3. Add a Chart view to Statistics, with spending per category as bars
+- [x] 3. Add a Chart view to Statistics, with spending per category as bars
   - Files: apps/mobile/src/components/Icon.tsx, apps/mobile/src/components/IconButton.tsx,
     apps/mobile/src/app/(tabs)/statistics.tsx
   - Change:
@@ -222,7 +222,8 @@ Total ≈ 200 changed lines (slice 0 not counted).
 
 ## Deviations
 
-<filled by the developer during build>
+- slice 3: the bar colour falls back to the category name when `techName` is missing (an older API during a
+  rollback), as decided at Gate A.
 
 ## Consolidate
 

@@ -49,5 +49,5 @@ Each role is also usable on its own: the `kopiyka-plan`, `kopiyka-develop`, and
 
 - Acceptance criteria are the contract. If you can't say how you'd check one, rewrite it.
 - "Out of scope" is how you keep the plan small. List the tempting extras.
-- One brief, one PR, plus its after-merge outcome PR. If it needs more than ~400 changed lines, split it into briefs that
-  can each ship on their own.
+- One brief, one PR, plus its after-merge outcome PR. If it needs more than ~400 changed
+  lines, split it into briefs that can each ship on their own.

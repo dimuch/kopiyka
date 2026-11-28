@@ -94,7 +94,7 @@ and IBM Plex Sans; every role and `Text` pair takes the doc's weight, with no `f
 
 Brief and outcome: `docs/features/105-fresh-look/`. The palettes, violet bars, the "€X left" caution label, and light by
 default. At Gate A the brief was split into 105, 105b, 105c and 105d, each its own brief, PR and patch bump; the later
-parts' outlines are in its plan under "Later parts". The fresh look is complete: 105–105e (#173–#177).
+parts' outlines were in its plan under "Later parts" (`git show 1e6f6f5d:docs/features/105-fresh-look/plan.md`). The fresh look is complete: 105–105e (#173–#177).
 
 ### 104 · Shared components (done: 104–104h, #156–#171, v1.23.11)
 
@@ -222,7 +222,6 @@ Each row's outcome is in its brief's folder, `docs/features/<brief>-<slug>/outco
   `null` (002).
 - `INSERT IGNORE INTO exchange_rates` (`rates/service.ts`) silently clamps an out-of-range rate;
   `ON DUPLICATE KEY UPDATE rate_date = rate_date` would ignore only duplicates (002).
-- `createUserWithLedger` in `admin.ts` runs its own `beginTransaction`; it could use `withTransaction` (013).
 - Deploy: add `shellcheck deploy/*.sh` to `ci.yml` (016).
 - Deploy: build on the GitHub runner and ship artifacts, to spare the droplet and keep build-time dependency code off
   it (016).
@@ -235,8 +234,8 @@ Each row's outcome is in its brief's folder, `docs/features/<brief>-<slug>/outco
 - `apps/mobile/src/linkParams.ts` says `MONTH_RE` mirrors `apps/api/src/expenses/routes.ts`; it lives in
   `apps/api/src/dates.ts` (030).
 - `CompactTotal`'s JSDoc says "the budget part appears once budgets exist", but its only caller passes `null` (034).
-- `createUserWithLedger`'s own rollback isn't guarded like `withTransaction`'s, so a lost connection could hide the
-  first error (051).
+- `createUserWithLedger` in `admin.ts` runs its own `beginTransaction`, and its rollback isn't guarded like
+  `withTransaction`'s, so a lost connection could hide the first error; it could use `withTransaction` (013, 051).
 - Settings still shows "Coming soon." from `PlaceholderPage` above the real settings (052).
 - Conventions §3 could state: from 2026-11, a write that raises a month's planned total or lowers its income checks
   `checkIncome` under `lockLedger`; and list income among what an ended month refuses (058, 060).

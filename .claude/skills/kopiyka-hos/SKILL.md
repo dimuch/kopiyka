@@ -258,14 +258,21 @@ the full text stays in git history.
    `docs/features/_outcome-template.md` (≤ 40 lines). PRs with links and the
    version in `package.json` at each merge commit; decisions from the plan's
    Gate A notes and Deviations; what was left out from Not doing; follow-ups
-   from Follow-ups. Its last line names
+   from Follow-ups, each marked in BACKLOG.md, done (`done in <NNN>, #PR`) or
+   dropped (with why). Keep each PR entry on one line, even past 120
+   characters: its version is read from that line. Its last line names
    `git log -1 --format=%h origin/main -- docs/features/<dir>/plan.md`.
    Then delete `plan.md`.
 4. **Links**: `rg -n --fixed-strings '<dir>/plan.md' docs .claude .github deploy CLAUDE.md AGENTS.md README.md`
    and point each hit at the outcome, or at the `git show` line where the
-   exact text matters.
-5. **Backlog**: move the brief to "Recently finished" (`Brief and outcome: …`)
-   and add each follow-up the outcome marks "in BACKLOG.md".
+   exact text matters. A hit inside another brief's plan needs nothing if
+   that plan goes in the same commit; otherwise repoint it too.
+5. **Backlog**: move the brief to "Recently finished", turning its
+   `Brief and plan: docs/features/<dir>/` line into `Brief and outcome: …`,
+   and add each follow-up the outcome marks "in BACKLOG.md" under "Small
+   follow-ups" (with the brief number). A row of a roadmap table (such as the
+   refactor roadmap) only needs its state set to `done (#PR)`; the table says
+   the outcomes are in each brief's folder.
 6. **Commit**: run the gates, then one commit,
    `Record the outcome of <NNN> <title>`. Push and open the PR (no version
    bump: docs only) only with the user's OK, as at Gate B.

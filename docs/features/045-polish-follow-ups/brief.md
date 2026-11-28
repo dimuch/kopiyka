@@ -5,7 +5,7 @@ Type: fix
 ## Why
 
 The reviews of briefs 043 and 044 left three small follow-ups (see
-`docs/features/044-remove-from-rename-screen/plan.md` Follow-ups):
+`git show 2a5fd3f5:docs/features/044-remove-from-rename-screen/plan.md`, Follow-ups):
 
 - A fast double tap on a button that opens a screen can open it twice: rename's "Remove from {Month}", a Budget
   row's pencil, and the Category screen's ⋯ → "Remove from {Month}". Two stacked screens mean two Backs, or two

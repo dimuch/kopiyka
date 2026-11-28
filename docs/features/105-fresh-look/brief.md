@@ -91,12 +91,12 @@ plan says which one wins and why.
 - **Where each hand-off is written down:**
   - The plans for 104b (`104b-filled-buttons`), 104c (`104c-text-buttons`), 104d (`104d-icon-buttons-chips`) and 104e
     (`104e-screen-header`), under Follow-ups: "For brief 105, delete these with the old look".
-  - `104f-text-component/plan.md`, Follow-ups, "For 105": the Inter weights, the overline role, the `tabular` flag on
+  - `git show 3b0c637b:docs/features/104f-text-component/plan.md`, Follow-ups, "For 105": the Inter weights, the overline role, the `tabular` flag on
     captions with no digits (it can go), and naming the pairs in the doc's `Text` row.
   - `git show 89d43f74:docs/features/103c-design-tokens-screens/plan.md`: DateField's hidden web date input.
   - 104b: Members' confirm passes `accessibilityLabel={action}`, which is the same as its label. It can go now.
 - **This brief is meant to change how the app looks.** 104's "nothing moves" snapshots don't apply here. The check is
-  screenshots compared with the doc. The snapshot script (in `104h-text-other-screens/plan.md`, under Visual check)
+  screenshots compared with the doc. The snapshot script (in `docs/design/layout-snapshots.md`)
   can still prove what shouldn't change, such as the accessibility record.
 - **Test data:** QA users seeded through the API and deleted when the brief is done:
   - an owner with November data that includes under-plan, near-plan and over-plan categories, an actual End, income

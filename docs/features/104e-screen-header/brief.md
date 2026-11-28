@@ -13,7 +13,7 @@ the new type roles). With one `ScreenHeader` that is one component; without it, 
 ## What
 
 Add `apps/mobile/src/components/ScreenHeader.tsx` with three variants, no booleans, and move the headers onto it.
-**It draws today's look**, so nothing visibly changes. The outline in `docs/features/104-shared-components/plan.md`
+**It draws today's look**, so nothing visibly changes. The outline in `git show 6b547bc1:docs/features/104-shared-components/plan.md`
 ("Later parts", 104e) is the starting point.
 
 | Variant | Screens                                                               | Today                                                                                                              |

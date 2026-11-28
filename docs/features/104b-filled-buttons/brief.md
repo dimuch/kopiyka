@@ -12,7 +12,7 @@ own height, corner, padding, disabled opacity and spinner. Brief 105 turns them 
 ## What
 
 Add `apps/mobile/src/components/Button.tsx` and move the 11 filled buttons onto it. **It draws today's look**, so
-nothing visibly changes. The outline in `docs/features/104-shared-components/plan.md` ("Later parts", 104b) is the
+nothing visibly changes. The outline in `git show 6b547bc1:docs/features/104-shared-components/plan.md` ("Later parts", 104b) is the
 starting point.
 
 | Button                     | Where                       | Today                                                          |

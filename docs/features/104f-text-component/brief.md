@@ -15,7 +15,7 @@ component; without it, 118 style objects and 61 face overrides to edit by hand.
 ## What
 
 Add `apps/mobile/src/components/Text.tsx` and move the app's text onto it. **It draws today's look**, so nothing
-visibly changes. The outline in `docs/features/104-shared-components/plan.md` ("Later parts", 104f) is the starting
+visibly changes. The outline in `git show 6b547bc1:docs/features/104-shared-components/plan.md` ("Later parts", 104f) is the starting
 point.
 
 - `Text` takes a `variant` (the `text` roles: `display`, `title`, `heading`, `body`, `bodyStrong`, `label`, `caption`,

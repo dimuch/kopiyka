@@ -13,7 +13,7 @@ and `Chip` that is two components to change; without them, 14 copies.
 ## What
 
 Add `apps/mobile/src/components/IconButton.tsx` and `Chip.tsx` and move these onto them. **They draw today's look**, so
-nothing visibly changes. The outline in `docs/features/104-shared-components/plan.md` ("Later parts", 104d) is the
+nothing visibly changes. The outline in `git show 6b547bc1:docs/features/104-shared-components/plan.md` ("Later parts", 104d) is the
 starting point.
 
 **IconButton** (44×44, the icon centred):

@@ -18,7 +18,7 @@ exceptions.
 ## What
 
 Move every `<Text>` on these screens onto `Text` (`apps/mobile/src/components/Text.tsx`). **It draws today's look**,
-so nothing visibly changes. The outline is in `docs/features/104f-text-component/plan.md`, under "Later parts" › 104h.
+so nothing visibly changes. The outline is in `git show 3b0c637b:docs/features/104f-text-component/plan.md`, under "Later parts" › 104h.
 
 - **Screens:** 50 `<Text>` elements in 8 files under `app/`:
   - `(tabs)/settings.tsx`

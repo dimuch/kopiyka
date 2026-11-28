@@ -477,7 +477,7 @@ sandbox. It stores one public rate.
 
 The score is `sudo systemd-analyze security <unit> | tail -1`; lower is safer. Take the "before" ones while the old units
 are still installed, then the "after" ones once each new unit runs. The order of the whole rollout, with the read-only
-checks first, is in `docs/features/072-security-leftovers/plan.md` ("Owner steps"). Measured:
+checks first, is in `git show 8be3b47c:docs/features/072-security-leftovers/plan.md` ("Owner steps"). Measured:
 
 | Unit                  | systemd | Before      | After  |
 | --------------------- | ------- | ----------- | ------ |
@@ -674,7 +674,7 @@ Not run: a second Claude account in the two-browser test, by the owner's decisio
 browser B signed in to that account (`git show 79c7101e:docs/features/063-mcp-connector/plan.md`, slice 14).
 
 To repeat the hostile tests, for example if Claude changes how it adds connectors, follow
-`docs/features/068-connector-tests/plan.md`, with its Deviations for the second one.
+`git show ec7569a6:docs/features/068-connector-tests/plan.md`, with its Deviations for the second one.
 
 For a test, use a throwaway user, never a real account: first-deploy step 10's command with `--username claude-qa-mcp --email
 claude-qa-mcp@example.com --ledger "QA"`. Delete it afterwards, ledger first, in `sudo mysql kopiyka`:

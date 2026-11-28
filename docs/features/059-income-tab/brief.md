@@ -3,7 +3,7 @@
 Type: feature
 
 Part 1 of 2 of the Income tab: this brief lists and adds income; 061 (edit, delete and copy) comes next. Design:
-./plan.md, slices 1–5.
+`git show e9ca9d41:docs/features/059-income-tab/plan.md`, slices 1–5.
 
 Part 2 of 3 of ledger income; builds on 058's income API.
 

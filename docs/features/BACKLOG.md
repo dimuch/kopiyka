@@ -238,6 +238,14 @@ inside its scroll view.
 - `createUserWithLedger`'s own rollback isn't guarded like `withTransaction`'s, so a lost connection could hide the
   first error (051).
 - Settings still shows "Coming soon." from `PlaceholderPage` above the real settings (052).
+- Conventions §3 could state: from 2026-11, a write that raises a month's planned total or lowers its income checks
+  `checkIncome` under `lockLedger`; and list income among what an ended month refuses (058, 060).
+- Fold `incomeCents`, `sumCents` and `plannedCents` in `data/monthSummary.ts` into one helper (059, 061).
+- Connector: support CIMD (`client_id_metadata_document_supported`) with an allowlist of client hosts, once Claude or
+  the spec drops DCR (063).
+- Conventions §2 could get an `apps/mcp` row group: route modules, `seal.ts`, `limits.ts`, the boundary rule (063).
+- Build the app's device id with a cryptographic random source (`crypto.getRandomValues` or `expo-crypto`) instead of
+  `Math.random()` in `api/client.ts`; 072 deferred it to its own brief (064).
 
 ## Outside this repo
 

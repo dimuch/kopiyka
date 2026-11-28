@@ -2,8 +2,8 @@
 
 Type: feature
 
-Part 2 of 2 of the Income tab, after 059. Design: `../059-income-tab/plan.md`, slices 6–8; plan this brief from
-../059-income-tab/plan.md, slices 6–8. It builds on 059's Income tab and 058's income API. 060 (the over-income rule)
+Part 2 of 2 of the Income tab, after 059. Design: `git show e9ca9d41:docs/features/059-income-tab/plan.md`, slices 6–8; plan this brief from
+that plan, slices 6–8. It builds on 059's Income tab and 058's income API. 060 (the over-income rule)
 ships only after this brief is live: 060's message changes the edit and delete screens added here.
 
 ## Why

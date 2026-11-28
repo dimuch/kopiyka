@@ -227,4 +227,12 @@ Total ≈ 200 changed lines (slice 0 not counted).
 
 ## Consolidate
 
-<filled in /kopiyka-hos Phase 3a: CONSOLIDATE line, each reuse/extract, each LEAVE + reason>
+CONSOLIDATE: reused 0 · extracted 0 · left 3
+
+- LEAVE `spentBars` vs `budgetProgress` (`data/budgetProgress.ts`): both give a 0–1 `fill`, but against different
+  things (spent ÷ the largest category's spent vs spent ÷ planned, capped at 1). Sharing one helper would add a mode
+  flag and hide the rule.
+- LEAVE `SpentChart`'s bar vs `ProgressBar`: different look and meaning (8pt bar in the category's colour, no dot vs
+  a 4pt plan bar coloured by state, with a dot). Move the chart to `components/` when a second chart type lands (see
+  Follow-ups).
+- LEAVE the bar colour: it already calls `categoryTile`, the same function `CategoryTile` uses; nothing to extract.

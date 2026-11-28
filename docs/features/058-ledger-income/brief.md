@@ -2,7 +2,7 @@
 
 Type: feature
 
-Part 1 of 3 of ledger income. Design: ./plan.md
+Part 1 of 3 of ledger income. Design: `git show 5d3be3df:docs/features/058-ledger-income/plan.md`
 
 ## Why
 

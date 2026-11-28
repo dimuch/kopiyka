@@ -671,7 +671,7 @@ Results of 8 November 2026, brief 072's droplet files (version 1.6.1), installed
 - **Not yet:** a full Deploy with the new units. The next normal deploy covers it.
 
 Not run: a second Claude account in the two-browser test, by the owner's decision of 7 November. The owner has one. It needs
-browser B signed in to that account (063 plan, slice 14).
+browser B signed in to that account (`git show 79c7101e:docs/features/063-mcp-connector/plan.md`, slice 14).
 
 To repeat the hostile tests, for example if Claude changes how it adds connectors, follow
 `docs/features/068-connector-tests/plan.md`, with its Deviations for the second one.

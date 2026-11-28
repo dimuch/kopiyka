@@ -2,8 +2,8 @@
 
 Type: feature
 
-Part 3 of 3 of ledger income. Design: `../058-ledger-income/plan.md`, "Part 3" (slices 3.1–3.5); plan this brief
-from ../058-ledger-income/plan.md, Part 3. It ships only after 061 (edit, delete and copy income, after 059's Income
+Part 3 of 3 of ledger income. Design: `git show 5d3be3df:docs/features/058-ledger-income/plan.md`, "Part 3" (slices 3.1–3.5); plan this brief
+from that plan, Part 3. It ships only after 061 (edit, delete and copy income, after 059's Income
 tab) is live: otherwise a month planned with no income, like November 2026, refuses every raise and nobody can add
 income to fix it, and this brief's message changes the income edit and delete screens that 061 adds.
 

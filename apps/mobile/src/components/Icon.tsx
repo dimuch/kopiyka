@@ -31,6 +31,8 @@ const PATHS = {
   income: ['M12 3v12', 'M7 10l5 5 5-5', 'M5 21h14'],
   expenses: ['M6 3h12v18l-3-2-3 2-3-2-3 2z', 'M9 8h6', 'M9 12h6', 'M9 16h3'],
   stats: ['M4 20h16', 'M7 16v-5', 'M12 16V6', 'M17 16V9'],
+  // A grid: Statistics' Table view (brief 134).
+  table: ['M4 5h16v14H4z', 'M4 10h16', 'M4 15h16', 'M10 5v14'],
   settings: [
     'M4 6h9',
     'M17 6h3',

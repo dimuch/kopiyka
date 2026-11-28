@@ -23,10 +23,13 @@ import {
   presetPeriod,
   stepPeriod,
 } from '@/data/period';
-import { isEmptySummary, planGap } from '@/data/periodSummary';
+import { isEmptySummary, planGap, type SpentBar, spentBars } from '@/data/periodSummary';
 import { useSummary } from '@/data/useSummary';
 import { eur, shortMonthLabel, toCents } from '@/format';
-import { type Palette, radius, shadow, size, space } from '@/theme';
+import { categoryTile, type Palette, radius, shadow, size, space } from '@/theme';
+
+/** How Statistics shows a period (brief 134): bars per category, or today's lists. */
+type StatsView = 'chart' | 'table';
 
 /**
  * The open ledger's totals for a chosen period of whole months, all members together (brief 089). Home stays on the
@@ -41,8 +44,10 @@ export default function Statistics() {
   const [period, setPeriod] = useState<Period>(() => presetPeriod('current', now));
   const marked = matchingChoice(period, now);
   const [menuOpen, setMenuOpen] = useState(false);
-  // The switcher row's frame, so the menu opens right under it.
+  // The toolbar row's frame, so the menu opens right under the period button.
   const [anchor, setAnchor] = useState<LayoutRectangle | null>(null);
+  // Chart each time the screen opens; not remembered between visits.
+  const [view, setView] = useState<StatsView>('chart');
   const { summary, error, reload } = useSummary(ledger.ledgerId, period);
 
   return (
@@ -53,14 +58,32 @@ export default function Statistics() {
           Statistics
         </Text>
       </View>
-      <PeriodSwitcher
-        period={period}
-        forwardEnabled={canStepForward(period, now)}
-        menuOpen={menuOpen}
-        onStep={(by) => setPeriod(stepPeriod(period, by))}
-        onToggleMenu={() => setMenuOpen((open) => !open)}
-        onLayout={setAnchor}
-      />
+      {/* A direct child of the SafeAreaView, so its frame places the menu (see PeriodMenu). */}
+      <View style={styles.toolbar} onLayout={(event) => setAnchor(event.nativeEvent.layout)}>
+        <PeriodSwitcher
+          period={period}
+          forwardEnabled={canStepForward(period, now)}
+          menuOpen={menuOpen}
+          onStep={(by) => setPeriod(stepPeriod(period, by))}
+          onToggleMenu={() => setMenuOpen((open) => !open)}
+        />
+        <View style={styles.views}>
+          <IconButton
+            icon="stats"
+            label="Chart view"
+            tone={view === 'chart' ? 'accent' : 'muted'}
+            aria-selected={view === 'chart'}
+            onPress={() => setView('chart')}
+          />
+          <IconButton
+            icon="table"
+            label="Table view"
+            tone={view === 'table' ? 'accent' : 'muted'}
+            aria-selected={view === 'table'}
+            onPress={() => setView('table')}
+          />
+        </View>
+      </View>
 
       <ScrollView style={[styles.scroll, { marginBottom: barRoom }]} contentContainerStyle={styles.content}>
         <LoadState
@@ -74,6 +97,11 @@ export default function Statistics() {
             <>
               {isEmptySummary(summary) ? (
                 <EmptyMonth text="Nothing planned, spent or earned in this period." />
+              ) : view === 'chart' ? (
+                <>
+                  <TotalsCard totals={summary.totals} />
+                  <SpentChart bars={spentBars(summary.categories)} />
+                </>
               ) : (
                 <>
                   <TotalsCard totals={summary.totals} />
@@ -110,19 +138,17 @@ function PeriodSwitcher({
   menuOpen,
   onStep,
   onToggleMenu,
-  onLayout,
 }: {
   period: Period;
   forwardEnabled: boolean;
   menuOpen: boolean;
   onStep: (by: 1 | -1) => void;
   onToggleMenu: () => void;
-  onLayout: (frame: LayoutRectangle) => void;
 }) {
   const colors = useColors();
   const styles = useThemedStyles(makeStyles);
   return (
-    <View style={styles.switcher} onLayout={(event) => onLayout(event.nativeEvent.layout)}>
+    <View style={styles.switcher}>
       <IconButton icon="back" label="Previous month" tone="muted" onPress={() => onStep(-1)} />
       <Pressable
         accessibilityRole="button"
@@ -132,7 +158,8 @@ function PeriodSwitcher({
         onPress={onToggleMenu}
         style={styles.periodButton}
       >
-        <Text variant="title" numberOfLines={1} style={styles.periodText}>
+        {/* `heading`, not `title`, so a month's name fits beside the view buttons. */}
+        <Text variant="heading" numberOfLines={1} style={styles.periodText}>
           {periodLabel(period)}
         </Text>
         <Icon name="down" size={18} color={colors.muted} />
@@ -162,9 +189,10 @@ function PeriodMenu({
   const colors = useColors();
   const styles = useThemedStyles(makeStyles);
   const { scheme } = useAppearance();
-  // anchor.y already includes the SafeAreaView's padding (inset + 20). Absolute children are placed from its outer
-  // edge, so no inset is added here, unlike CategoryMenu.
-  const place = { top: anchor.y + anchor.height + 4, left: anchor.x + (anchor.width - MENU_WIDTH) / 2 };
+  // anchor is the toolbar row's frame. Its y already includes the SafeAreaView's padding (inset + 20). Absolute
+  // children are placed from its outer edge, so no inset is added here, unlike CategoryMenu. The card's left edge
+  // lines up with the period button, past the ‹ button and the switcher's gap.
+  const place = { top: anchor.y + anchor.height + 4, left: anchor.x + size.iconButton + space.xs };
   return (
     <View accessibilityViewIsModal style={styles.menuLayer}>
       <Pressable
@@ -223,6 +251,44 @@ function TotalsCard({ totals }: { totals: SummaryTotals }) {
             <Text variant="amount" color={cents < 0 ? 'danger' : 'text'}>
               {eur(cents)}
             </Text>
+          </View>
+        );
+      })}
+    </Card>
+  );
+}
+
+/** Chart view: what each category spent in the period, as bars against the largest (brief 134). */
+function SpentChart({ bars }: { bars: SpentBar[] }) {
+  const styles = useThemedStyles(makeStyles);
+  const { scheme } = useAppearance();
+  if (bars.length === 0) return <EmptyMonth text="Nothing spent in this period." />;
+  return (
+    <Card padding="padded" style={styles.chart}>
+      <Text variant="heading" accessibilityRole="header">
+        Spent by category
+      </Text>
+      {bars.map((bar) => {
+        const spent = eur(bar.spentCents);
+        return (
+          // One screen-reader stop per bar: 'groceries, spent €1,380.40'.
+          <View key={bar.categoryId} accessible accessibilityLabel={`${bar.name}, spent ${spent}`} style={styles.bar}>
+            <View style={styles.barLabel}>
+              <Text variant="bodyMedium" numberOfLines={1} style={styles.barName}>
+                {bar.name}
+              </Text>
+              <Text variant="amount">{spent}</Text>
+            </View>
+            <View style={styles.barTrack}>
+              <View
+                style={[
+                  styles.barFill,
+                  // The tile's icon colour, so a bar matches its category's tile. An older API sends no techName
+                  // (only during a rollback); the name then still gives the bar a steady colour instead of a crash.
+                  { width: `${bar.fill * 100}%`, backgroundColor: categoryTile(bar.techName ?? bar.name, scheme).fg },
+                ]}
+              />
+            </View>
           </View>
         );
       })}
@@ -320,13 +386,16 @@ const makeStyles = (colors: Palette) =>
     // The 8pt under the last card keeps its shadow from being cut at the scroll view's edge.
     content: { gap: space.lg, paddingTop: space.xs, paddingBottom: space.sm, paddingHorizontal: space.xl },
     loading: { marginTop: space.xxl },
-    switcher: {
+    toolbar: {
       flexDirection: 'row',
       alignItems: 'center',
-      justifyContent: 'center',
-      gap: space.xs,
+      justifyContent: 'space-between',
+      gap: space.sm,
       paddingBottom: space.sm,
     },
+    // It gives up room first: the period label truncates before the view buttons move.
+    switcher: { flexDirection: 'row', alignItems: 'center', gap: space.xs, flexShrink: 1 },
+    views: { flexDirection: 'row' },
     periodButton: {
       minHeight: size.iconButton,
       flexDirection: 'row',
@@ -365,4 +434,12 @@ const makeStyles = (colors: Palette) =>
     rowText: { flex: 1, gap: space.xxs },
     grow: { flex: 1 },
     amounts: { alignItems: 'flex-end', gap: space.xxs },
+    chart: { gap: space.md },
+    bar: { gap: space.xs },
+    barLabel: { flexDirection: 'row', alignItems: 'baseline', gap: space.sm },
+    barName: { flex: 1 },
+    // ProgressBar's track, twice as tall: here the bar is the figure, not a hint under it.
+    barTrack: { height: 8, backgroundColor: colors.track, borderRadius: radius.pill },
+    // At least a dot wide, so a small share still shows.
+    barFill: { height: 8, minWidth: 8, borderRadius: radius.pill },
   });

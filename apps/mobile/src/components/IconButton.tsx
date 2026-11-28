@@ -13,6 +13,7 @@ export function IconButton({
   iconSize,
   disabled,
   'aria-expanded': expanded,
+  'aria-selected': selected,
   style,
 }: {
   icon: IconName;
@@ -27,6 +28,8 @@ export function IconButton({
   disabled?: boolean;
   /** For a button that opens a menu. */
   'aria-expanded'?: boolean;
+  /** For one of a set of buttons that picks a view, like a tab. */
+  'aria-selected'?: boolean;
   /** The caller's layout: margins. */
   style?: StyleProp<ViewStyle>;
 }) {
@@ -36,6 +39,7 @@ export function IconButton({
       accessibilityRole="button"
       accessibilityLabel={label}
       aria-expanded={expanded}
+      aria-selected={selected}
       disabled={disabled}
       onPress={onPress}
       style={[styles.button, style]}

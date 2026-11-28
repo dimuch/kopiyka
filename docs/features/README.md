@@ -5,9 +5,11 @@ Kopiyka has no issue tracker: each piece of work starts as a brief in this folde
 ```
 docs/features/
   _template.md            # copy this to start
+  _outcome-template.md    # the shape of outcome.md
   001-<slug>/
     brief.md              # you write it: why, what, acceptance criteria, out of scope
     plan.md               # kopiyka-planner writes it; the skeptic and you approve it
+    outcome.md            # replaces plan.md once the brief's last PR merges
 ```
 
 ## Flow
@@ -28,6 +30,10 @@ description works too, and Claude drafts the brief for you to confirm.
 5. **Review**: `kopiyka-reviewer` reviews `origin/main...HEAD` against the brief, the plan and
    the conventions. Findings are fixed as new commits and re-reviewed, for up to 3 rounds.
 6. **You approve the push** (Gate B). Then Claude pushes and opens the PR.
+7. **After merge**: once the brief's last PR merges, a short `outcome.md` (from
+   `_outcome-template.md`) replaces `plan.md`, `BACKLOG.md` moves the brief to "Recently
+   finished", and the worktree is cleaned up. It lands as its own small `chore/outcome-<slug>`
+   PR. The full plan stays in git history, named on the outcome's last line.
 
 In GitHub Copilot the same `/kopiyka-hos` skill runs from `.github/skills/`, with the agents in
 `.github/agents/`; see `docs/copilot.md`. What's next and what's in flight: `BACKLOG.md`.
@@ -43,5 +49,5 @@ Each role is also usable on its own: the `kopiyka-plan`, `kopiyka-develop`, and
 
 - Acceptance criteria are the contract. If you can't say how you'd check one, rewrite it.
 - "Out of scope" is how you keep the plan small. List the tempting extras.
-- One brief, one PR. If it needs more than ~400 changed lines, split it into briefs that
+- One brief, one PR, plus its after-merge outcome PR. If it needs more than ~400 changed lines, split it into briefs that
   can each ship on their own.

@@ -224,9 +224,21 @@ describe.skipIf(!(await testDbReachable()))('GET /api/ledgers/:id/summary (MySQL
     expect(sum('plannedEur')).toBe(totals.plannedEur);
     expect(sum('spentEur')).toBe(totals.spentEur);
     expect(categories.slice(0, 3)).toEqual([
-      { categoryId: await categoryId('groceries'), name: 'groceries', plannedEur: '250.25', spentEur: '1380.40' },
-      { categoryId: await categoryId('rent'), name: 'rent', plannedEur: '1200.00', spentEur: '600.00' },
-      { categoryId: await categoryId('fun'), name: 'fun', plannedEur: '0.00', spentEur: '19.60' },
+      {
+        categoryId: await categoryId('groceries'),
+        name: 'groceries',
+        techName: 'groceries',
+        plannedEur: '250.25',
+        spentEur: '1380.40',
+      },
+      {
+        categoryId: await categoryId('rent'),
+        name: 'rent',
+        techName: 'rent',
+        plannedEur: '1200.00',
+        spentEur: '600.00',
+      },
+      { categoryId: await categoryId('fun'), name: 'fun', techName: 'fun', plannedEur: '0.00', spentEur: '19.60' },
     ]);
     // Equal spent (here nothing) falls back to the categories' own order.
     const [ordered] = await db.query<RowDataPacket[]>(
@@ -249,10 +261,11 @@ describe.skipIf(!(await testDbReachable()))('GET /api/ledgers/:id/summary (MySQL
       [await categoryId('groceries')],
     );
     const named = async (query: string) =>
-      (await summary(query)).json().categories.find((c: { categoryId: number }) => c.categoryId === groceries).name;
+      (await summary(query)).json().categories.find((c: { categoryId: number }) => c.categoryId === groceries);
     const groceries = await categoryId('groceries');
-    expect(await named('from=2026-09&to=2026-11')).toBe('food');
-    expect(await named('from=2026-09&to=2026-10')).toBe('groceries');
+    // The name follows the month; the tech name, which picks the colour, doesn't.
+    expect(await named('from=2026-09&to=2026-11')).toMatchObject({ name: 'food', techName: 'groceries' });
+    expect(await named('from=2026-09&to=2026-10')).toMatchObject({ name: 'groceries', techName: 'groceries' });
   });
 
   it('leaves out a deleted category, its plan and expenses, and a deleted expense', async () => {

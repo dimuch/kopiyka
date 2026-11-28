@@ -2,7 +2,7 @@
 
 Type: feature
 
-Part 4 of 4 of in-app ledger sharing. Design: `../052-ledger-invites/plan.md`, "Part 4" (slices 4.1–4.3); plan this
+Part 4 of 4 of in-app ledger sharing. Design: `git show 23c4705a:docs/features/052-ledger-invites/plan.md`, "Part 4" (slices 4.1–4.3); plan this
 brief from it.
 
 ## Why

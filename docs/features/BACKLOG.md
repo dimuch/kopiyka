@@ -235,6 +235,9 @@ inside its scroll view.
 - `apps/mobile/src/linkParams.ts` says `MONTH_RE` mirrors `apps/api/src/expenses/routes.ts`; it lives in
   `apps/api/src/dates.ts` (030).
 - `CompactTotal`'s JSDoc says "the budget part appears once budgets exist", but its only caller passes `null` (034).
+- `createUserWithLedger`'s own rollback isn't guarded like `withTransaction`'s, so a lost connection could hide the
+  first error (051).
+- Settings still shows "Coming soon." from `PlaceholderPage` above the real settings (052).
 
 ## Outside this repo
 

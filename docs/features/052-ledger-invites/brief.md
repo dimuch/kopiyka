@@ -3,7 +3,7 @@
 Type: feature
 
 Part 1 of 4 of in-app ledger sharing, split at Gate A (2026-11-02). Next: 053 Members screen, 054 invite API,
-055 invites in the app. The full design is in `./plan.md`; the original brief is kept below under "Whole feature".
+055 invites in the app. The full design is in `git show 23c4705a:docs/features/052-ledger-invites/plan.md`; the original brief is kept below under "Whole feature".
 
 ## Why
 

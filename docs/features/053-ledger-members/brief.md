@@ -2,7 +2,7 @@
 
 Type: feature
 
-Part 2 of 4 of in-app ledger sharing (after 052, the ledger switcher). Design: `../052-ledger-invites/plan.md`,
+Part 2 of 4 of in-app ledger sharing (after 052, the ledger switcher). Design: `git show 23c4705a:docs/features/052-ledger-invites/plan.md`,
 "Part 2" (slices 2.1–2.5); plan this brief from it.
 
 ## Why

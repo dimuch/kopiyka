@@ -31,30 +31,30 @@ skills and agents from `.claude`, and CI's `yarn skills:check` fails when they d
 
 ### 116 · Scroll areas end above the tab bar (done: #185, v1.26.2)
 
-Brief and plan: `docs/features/116-scroll-above-tab-bar/`. Every page with the floating tab bar ends its scroll view
+Brief and outcome: `docs/features/116-scroll-above-tab-bar/`. Every page with the floating tab bar ends its scroll view
 16pt above the bar, or above the Undo bar while it shows, so no row scrolls behind it. Follow-up:
 `docs/design/design-system.md`'s `TabBar` component row still describes the round "+" removed in a465e421.
 
 ### 112 · Expenses card in Budget's order (done: #179, v1.24.1)
 
-Brief and plan: `docs/features/112-summary-figures-order/`. The Expenses card shows Spent · Budgeted · Remaining, in
+Brief and outcome: `docs/features/112-summary-figures-order/`. The Expenses card shows Spent · Budgeted · Remaining, in
 Budget's order, label included.
 
 ### 115 · Chip tile inset (done: #184, v1.26.1, live with v1.26.2)
 
-Brief and plan: `docs/features/115-flush-chip-tile/`. A chip with a leading tile or icon has a 3pt inset on both
+Brief and outcome: `docs/features/115-flush-chip-tile/`. A chip with a leading tile or icon has a 3pt inset on both
 sides, so the tile sits concentric with the pill's round end; chips without one keep 8pt on both sides. Built flush
 first, changed to the 3pt inset after review. iPhone, large-text and Light-mode checks not done yet.
 
 ### 114 · Category icons (done: #182 API, v1.25.0; the app's PR, v1.26.0)
 
-Brief and plan: `docs/features/114-category-icons/`. A category can hold one of 101 icons copied from Lucide 1.81.0
+Brief and outcome: `docs/features/114-category-icons/`. A category can hold one of 101 icons copied from Lucide 1.81.0
 (ISC/MIT, licence beside `apps/mobile/src/components/categoryIcons.ts`), picked in the category form and stored on the
 category, so every member sees it in every month. No icon shows the letter. Shipped as two PRs: the API, then the app.
 
 ### 113 · Round category tile (done: #181, v1.24.2)
 
-Brief and plan: `docs/features/113-round-category-tile/`. The category tile is a circle everywhere, so it follows the
+Brief and outcome: `docs/features/113-round-category-tile/`. The category tile is a circle everywhere, so it follows the
 chip's round ends. Its centre sits 5pt in from the chip's end because of the chip's left padding; accepted at plan
 approval.
 
@@ -272,6 +272,12 @@ inside its scroll view.
 - iOS scroll indicators run under the tab bar; `scrollIndicatorInsets={{ bottom: room }}` would lift them (106).
 - Skills-sync's commits to `.claude/skills/kopiyka-*` or `.claude/agents` need `yarn skills:build` too;
   `.claude/skills-sync.json` doesn't say so yet (110).
+- `categories/monthLists.ts` is 410 lines, past the ~200-line split point; split it along with 092's `routes.ts`
+  (114).
+- `find-short-names.sh --diff` skips `apps/mcp/src` and `apps/mcp/test` (`app_dirs`), so connector briefs can't use it
+  as a gate; add them, then run `yarn skills:build` (121).
+- The demo store never checks `expenseDate`'s shape, unlike the API's Zod schema. A note, not a bug the app can hit
+  (122).
 
 ## Outside this repo
 

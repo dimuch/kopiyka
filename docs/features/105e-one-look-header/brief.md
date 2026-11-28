@@ -17,7 +17,7 @@ inputs, menus and sheets still draw a `borderStrong` edge, which the design syst
 ## What
 
 Apply the Components and Elevation sections of `docs/design/design-system.md`. The outline is in
-`docs/features/105d-one-look-controls/plan.md`, under "Later parts" › 105e.
+`git show 210d798b:docs/features/105d-one-look-controls/plan.md`, under "Later parts" › 105e.
 
 - **ScreenHeader, one shape:** a leading round button (Back, or Home on the month tabs), a centred title (a string, or
   the month tabs' MonthSwitcher), and one trailing action. Each side is at least 44pt wide, so the title sits on the

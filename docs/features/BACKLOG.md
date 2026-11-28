@@ -25,7 +25,7 @@ its own after-merge step.
 
 ### 110 · One source for the skills and agents (done: #187, no version)
 
-Brief and plan: `docs/features/110-one-source-for-skills/`. `yarn skills:build` generates Copilot's `kopiyka-*`
+Brief and outcome: `docs/features/110-one-source-for-skills/`. `yarn skills:build` generates Copilot's `kopiyka-*`
 skills and agents from `.claude`, and CI's `yarn skills:check` fails when they differ. Skills-sync's commits to
 `.claude/skills/kopiyka-*` or `.claude/agents` need `yarn skills:build` too.
 
@@ -65,34 +65,34 @@ or budget. The pill now spans the bar's full width.
 
 ### 106 · The floating tab bar and its "+" (done: #178, v1.24.0)
 
-Brief and plan: `docs/features/106-floating-tab-bar/`. A floating pill tab bar and a round "+" on every page with
+Brief and outcome: `docs/features/106-floating-tab-bar/`. A floating pill tab bar and a round "+" on every page with
 tabs, one component for both kinds of page; "+" opens the add-expense form on the category last used on this device.
 
 ### 105e · The header, the toast, inputs, menus and sheets (done: #177, v1.23.16)
 
-Brief and plan: `docs/features/105e-one-look-header/`. One header shape (a round Back or Home, a centred title, one
+Brief and outcome: `docs/features/105e-one-look-header/`. One header shape (a round Back or Home, a centred title, one
 action), the Undo bar and menus on `shadow.float` (a `hairline` ring in dark), inputs in `fill` with an edge only on
 focus, and `borderStrong` gone.
 
 ### 105d · One look per button, chip and icon button (done: #176, v1.23.15)
 
-Brief and plan: `docs/features/105d-one-look-controls/`. Filled buttons are one 48pt pill and text buttons 44pt, all
+Brief and outcome: `docs/features/105d-one-look-controls/`. Filled buttons are one 48pt pill and text buttons 44pt, all
 dimming to 0.4; danger is the doc's grey with a red label; chips are a 32pt pill in a 44pt touch area; icon buttons
 are round.
 
 ### 105c · Borderless cards and one card per row (done: #175, v1.23.14)
 
-Brief and plan: `docs/features/105c-borderless-cards/`. Cards lost their edge for the doc's shadow in light, lists
+Brief and outcome: `docs/features/105c-borderless-cards/`. Cards lost their edge for the doc's shadow in light, lists
 put each row on its own card 8pt apart, and the few edges left are a faint `hairline`.
 
 ### 105b · Inter and the type mapping (done: #174, v1.23.13)
 
-Brief and plan: `docs/features/105b-inter-type/`. Inter (four faces, one per weight) replaced Bricolage Grotesque
+Brief and outcome: `docs/features/105b-inter-type/`. Inter (four faces, one per weight) replaced Bricolage Grotesque
 and IBM Plex Sans; every role and `Text` pair takes the doc's weight, with no `fontWeight`.
 
 ### 105 · The fresh look, part 1 (done: #173, v1.23.12)
 
-Brief and plan: `docs/features/105-fresh-look/`. The palettes, violet bars, the "€X left" caution label, and light by
+Brief and outcome: `docs/features/105-fresh-look/`. The palettes, violet bars, the "€X left" caution label, and light by
 default. At Gate A the brief was split into 105, 105b, 105c and 105d, each its own brief, PR and patch bump; the later
 parts' outlines are in its plan under "Later parts". The fresh look is complete: 105–105e (#173–#177).
 
@@ -209,8 +209,6 @@ inside its scroll view.
   twice when the save ends (read in the code, not reproduced). Pass `disabled` up as the other forms do (104e).
 - `find-short-names.sh` misses a typed single-letter parameter on a line of its own, such as `  q: Db |`. Could also
   match `^\s+[a-z]: ` (100).
-- "Remaining" means income − budgeted on Budget and budgeted − spent on Expenses. The brief accepted it; worth a
-  second look when 104/105 restyle both strips (107).
 - Conventions §5 could say "states via `aria-*` props (react-native-web ignores `accessibilityState`)" (095).
 - Laptop data: July and August both hold `0.00 → -377.00`, and August's opening isn't July's closing. It came from
   brief 085's import. The importer is gone (109), so fix it by hand with an actual End on the Budget tab (090).
@@ -265,6 +263,15 @@ inside its scroll view.
   Budget and Income still use it (089).
 - A missing `DATABASE_URL` or `TOTP_ENC_KEY` prints a raw ZodError stack instead of a usage line; `create-user` still
   goes through `loadConfig` (098).
+- A text lint guard (104's follow-up) could also ban `fontWeight` in `apps/mobile/src` (105b).
+- Web: move the fonts to WOFF2 or a subset if the first web load proves slow (105b).
+- The tab screens' gutter is 20pt (`space.xl`) against the design doc's 16 (105c).
+- LedgerPicker's options sit 20pt in, against the cards' 12 (105c).
+- Light mode: the category tiles' initials are under 4.5:1 on `fill` (3.30:1) and on white (3.72:1) (105d).
+- Statistics' header could become a `ScreenHeader` with a centred "Statistics"; this moves its title (105e).
+- iOS scroll indicators run under the tab bar; `scrollIndicatorInsets={{ bottom: room }}` would lift them (106).
+- Skills-sync's commits to `.claude/skills/kopiyka-*` or `.claude/agents` need `yarn skills:build` too;
+  `.claude/skills-sync.json` doesn't say so yet (110).
 
 ## Outside this repo
 

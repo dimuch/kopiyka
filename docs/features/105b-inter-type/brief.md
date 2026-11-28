@@ -16,7 +16,7 @@ faces from before it. Two weight inconsistencies that 104f kept for this brief a
 
 ## What
 
-Apply the Type section of `docs/design/design-system.md`. The outline is in `docs/features/105-fresh-look/plan.md`,
+Apply the Type section of `docs/design/design-system.md`. The outline is in `git show 1e6f6f5d:docs/features/105-fresh-look/plan.md`,
 under "Later parts" › 105b.
 
 - **Font:** Inter (`@expo-google-fonts/inter`, weights 400, 500, 600 and 800) replaces Bricolage Grotesque and IBM

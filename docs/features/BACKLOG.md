@@ -190,6 +190,8 @@ inside its scroll view.
 | R16 | load-state                | 132   | done (#204) |
 | R17 | figure-row                | 133   | done (#205) |
 
+Each row's outcome is in its brief's folder, `docs/features/<brief>-<slug>/outcome.md`.
+
 ### Named in earlier briefs and plans as "its own brief"
 
 - **Drop the four `notion_*` tables** (`notion_grocery_rows`, `notion_syncs`, `notion_total_adds`,
@@ -208,7 +210,7 @@ inside its scroll view.
 - The expense form's Back stays enabled while a save is in flight; pressing it during an edit's save may go back
   twice when the save ends (read in the code, not reproduced). Pass `disabled` up as the other forms do (104e).
 - `find-short-names.sh` misses a typed single-letter parameter on a line of its own, such as `  q: Db |`. Could also
-  match `^\s+[a-z]: ` (100).
+  match `^\s+[a-z]: ` (100). It also misses destructured single letters, such as `const { y, height } = …` (124).
 - Conventions §5 could say "states via `aria-*` props (react-native-web ignores `accessibilityState`)" (095).
 - Laptop data: July and August both hold `0.00 → -377.00`, and August's opening isn't July's closing. It came from
   brief 085's import. The importer is gone (109), so fix it by hand with an actual End on the Budget tab (090).
@@ -278,6 +280,15 @@ inside its scroll view.
   as a gate; add them, then run `yarn skills:build` (121).
 - The demo store never checks `expenseDate`'s shape, unlike the API's Zod schema. A note, not a bug the app can hit
   (122).
+- `apps/mobile/test` still uses single-letter names, for example `format.test.ts`'s `d` (124).
+- `closeToBudget.ts` now also holds the general `backOr`; it could be renamed, for example to `backOr.ts` (125).
+- Sign-in's error has the alert role but no VoiceOver announcement, unlike every other form (`login.tsx`) (127).
+- The `body` style (`gap lg`, `paddingTop lg`, `paddingBottom huge`) is copied in `ModalFormScreen`, `actual-end` and
+  `income-item` (128).
+- The category form's bad-link and loading lines sit 16px higher than income's and actual End's. Lining them up
+  changes the look, so it needs its own brief (128).
+- `CategoryForm` could take `& Saving` for its `busy`/`setBusy` props instead of declaring its own (128).
+- `remove()` in `expense.tsx` could call `saveErrorText` for its `month_ended` line; a refactor brief (130).
 
 ## Outside this repo
 

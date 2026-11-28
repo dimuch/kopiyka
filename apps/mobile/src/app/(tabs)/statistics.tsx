@@ -283,8 +283,8 @@ function SpentChart({ bars }: { bars: SpentBar[] }) {
               <View
                 style={[
                   styles.barFill,
-                  // The tile's icon colour, so a bar matches its category's tile. An older API sends no techName
-                  // (only during a rollback); the name then still gives the bar a steady colour instead of a crash.
+                  // The tile's icon colour, so a bar matches its category's tile. An app newer than its API (an
+                  // installed build before the API deploy) gets no techName; the name then gives a steady colour.
                   { width: `${bar.fill * 100}%`, backgroundColor: categoryTile(bar.techName ?? bar.name, scheme).fg },
                 ]}
               />
@@ -405,7 +405,7 @@ const makeStyles = (colors: Palette) =>
       paddingHorizontal: space.xs,
     },
     periodText: { flexShrink: 1 },
-    // CategoryMenu's layer and card; the card's place comes from the switcher instead of a fixed corner.
+    // CategoryMenu's layer and card; the card's place comes from the toolbar row instead of a fixed corner.
     menuLayer: { ...StyleSheet.absoluteFill, zIndex: 2 },
     menuCard: {
       position: 'absolute',

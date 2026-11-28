@@ -17,3 +17,21 @@ export function planGap({ plannedEur, spentEur }: SummaryCategory): { text: stri
 export function isEmptySummary({ totals, categories }: PeriodSummary): boolean {
   return categories.length === 0 && toCents(totals.incomeEur) === 0;
 }
+
+/** A bar of Statistics' "Spent by category" chart (brief 134); `fill` is 0–1 of the track, 1 for the largest. */
+export interface SpentBar {
+  categoryId: number;
+  name: string;
+  techName: string;
+  spentCents: number;
+  fill: number;
+}
+
+/** The categories with spending > 0, in the summary's order (largest spent first), each measured against the largest. */
+export function spentBars(categories: SummaryCategory[]): SpentBar[] {
+  const spending = categories
+    .map(({ categoryId, name, techName, spentEur }) => ({ categoryId, name, techName, spentCents: toCents(spentEur) }))
+    .filter((category) => category.spentCents > 0);
+  const largestCents = Math.max(...spending.map((category) => category.spentCents));
+  return spending.map((category) => ({ ...category, fill: category.spentCents / largestCents }));
+}

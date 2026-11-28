@@ -91,7 +91,7 @@ rollback is unaffected because there's no migration. If another PR takes 1.27.0 
     - In "names a category as in the period's last month", assert that the renamed category's `techName` stays
       `'groceries'` while `name` is `'food'`.
   - ~15 lines.
-- [ ] 2. Work out the spent-by-category bars from a period's summary
+- [x] 2. Work out the spent-by-category bars from a period's summary
   - Files: apps/mobile/src/data/periodSummary.ts, apps/mobile/test/periodSummary.test.ts
   - Change: `SpentBar` + `spentBars`. Convert with `toCents`, drop `spentCents <= 0`, keep input order (the API sorts
     it), and set `fill = spentCents / max` over the kept bars.

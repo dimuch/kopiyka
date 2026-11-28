@@ -127,7 +127,7 @@ Each slice ends with `yarn format` (Prettier formats Markdown), then the four ga
     replaced. The roadmap and BACKLOG then point at the new file.
   - Verify: the copied `js` block is byte-identical to the one in
     `git show b0e5aef5:docs/features/104h-text-other-screens/plan.md` (`diff` of the two extracted fenced blocks).
-- [ ] 4. Bring BACKLOG.md up to date before any plan goes (~50)
+- [x] 4. Bring BACKLOG.md up to date before any plan goes (~50)
   - Files: `docs/features/BACKLOG.md`
   - Change:
     - Snapshot line: v1.26.19, `b0e5aef5`.

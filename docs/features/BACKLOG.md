@@ -223,6 +223,13 @@ inside its scroll view.
 - `INSERT IGNORE INTO exchange_rates` (`rates/service.ts`) silently clamps an out-of-range rate;
   `ON DUPLICATE KEY UPDATE rate_date = rate_date` would ignore only duplicates (002).
 - `createUserWithLedger` in `admin.ts` runs its own `beginTransaction`; it could use `withTransaction` (013).
+- Deploy: add `shellcheck deploy/*.sh` to `ci.yml` (016).
+- Deploy: build on the GitHub runner and ship artifacts, to spare the droplet and keep build-time dependency code off
+  it (016).
+- Deploy: database backups and uptime monitoring (016).
+- Deploy: move the deploy key to a root-owned `AuthorizedKeysFile` (sshd `Match User kopiyka`) (016).
+- After a delete-category opened from a web link, browser Back from Home reached "Category not found." Not
+  reproduced since the screen changed to remove from one month; check before fixing (018).
 
 ## Outside this repo
 

@@ -46,5 +46,5 @@ Two steps, in this order, because getting the second wrong would break every con
   55: making the field required in the Zod schema would answer `invalid_request`, not `invalid_grant`.
 - `startSignIn` in `apps/mcp/test/oauthFlow.ts` leaves `resource` out, and `authorize.test.ts` and `token.test.ts` each pin the
   old behaviour. The first flips its `resource` half and keeps `scope`; the second flips only if the token check changes. Plan 063 records the old rule as a decision, and also that clients MUST send `resource`.
-- Test 1b is in `docs/features/068-connector-tests/plan.md`, under Deviations.
+- Test 1b is in `git show ec7569a6:docs/features/068-connector-tests/plan.md`, under Deviations.
 - The security leftovers planned as 071 move to 072.

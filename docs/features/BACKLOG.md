@@ -246,6 +246,17 @@ inside its scroll view.
 - Conventions §2 could get an `apps/mcp` row group: route modules, `seal.ts`, `limits.ts`, the boundary rule (063).
 - Build the app's device id with a cryptographic random source (`crypto.getRandomValues` or `expo-crypto`) instead of
   `Math.random()` in `api/client.ts`; 072 deferred it to its own brief (064).
+- Conventions §5 could say new UI uses `@/components/Pressable` and `TextField`, perhaps with a lint rule against
+  React Native's own (066).
+- A failed `/api/ledgers` at launch signs the screen out whatever the reason (`AuthProvider`'s catch), so a 429 or a
+  network error shows login over a valid session; 072 deferred it as app behaviour (067).
+- `errForLog` drops `cause`, so an NBU connection failure logs only "fetch failed" without the root reason (069).
+- Connector: a `restore_expense` tool, adding the expense restore route to `WRITE_TOKEN_ROUTES`; the owner's decision
+  of 2026-11-08 made it a future feature (070).
+- Droplet: hide the other sites' world-readable files from both services; needs the droplet's layout (072).
+- Demo: a test that each name shared code imports from the three swapped modules exists on the demo's version (080).
+- Demo: put the droplet's measured export and build-check times and peak memory in `deploy.sh`'s "Measured peaks"
+  comment; only macOS figures are there (081).
 
 ## Outside this repo
 
@@ -265,8 +276,3 @@ inside its scroll view.
     and `--email claude-qa-<NNN>@example.test`. Keep its secret out of the repo, and delete the user when the brief
     is done.
   - For the 104 snapshot views, seed November data with at least one bar under plan, one near it and one over it.
-
-## Plans with unticked boxes
-
-These older plans still have `- [ ]` slices: 052 (11), 058 (10), 059 (3), 068 (9), 071 (1). Later briefs built on
-them, so most are probably stale ticks rather than missing work. Check the code before treating any as open.

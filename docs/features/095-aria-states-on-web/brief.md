@@ -53,5 +53,5 @@ react-native-web renders them into the page.
 - Checked in the installed code: `react-native` 0.88.1 `View.js` and `Pressable.js` merge `aria-busy`/`checked`/
   `disabled`/`expanded`/`selected` into `accessibilityState`; `react-native-web` 0.21.4 `createDOMProps` renders the
   `aria-*` props and has no `accessibilityState` mapping.
-- Found during the Statistics browser check (`docs/features/094-statistics-period-dropdown/plan.md`, Follow-ups).
+- Found during the Statistics browser check (`docs/features/094-statistics-period-dropdown/outcome.md`, Follow-ups).
 - Local QA user for signed-in web checks: `qa-user`, secret in the gitignored `apps/api/.env.qa`.

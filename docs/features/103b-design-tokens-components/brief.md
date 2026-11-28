@@ -13,7 +13,7 @@ their old values.
 ## What
 
 Move these 22 files onto the tokens from `apps/mobile/src/theme.ts`, using the snapping rules in
-`docs/features/103-design-tokens/plan.md` (Contracts → Snapping rules). Remove each file from `notOnTokensYet` in
+`git show b70a5d48:docs/features/103-design-tokens/plan.md` (Contracts → Snapping rules). Remove each file from `notOnTokensYet` in
 `apps/mobile/eslint.config.js` as it moves.
 
 | Where it shows             | Files                                                                   |

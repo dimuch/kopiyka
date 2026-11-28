@@ -11,7 +11,7 @@ still on the lint rule's `notOnTokensYet` list and hard-code their numbers. Unti
 ## What
 
 Move these 8 screens and `theme.dangerText` onto the tokens, with the snapping rules in
-`docs/features/103-design-tokens/plan.md` (Contracts → Snapping rules) and the `input` role from 103b. When the last
+`git show b70a5d48:docs/features/103-design-tokens/plan.md` (Contracts → Snapping rules) and the `input` role from 103b. When the last
 one moves, `notOnTokensYet` is empty and the rule's `ignores` drops it.
 
 | Screen                                    | File                                | Known cases (from the 103 plan's outline)                                                                                                            |

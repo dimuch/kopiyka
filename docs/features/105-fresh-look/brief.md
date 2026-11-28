@@ -93,7 +93,7 @@ plan says which one wins and why.
     (`104e-screen-header`), under Follow-ups: "For brief 105, delete these with the old look".
   - `104f-text-component/plan.md`, Follow-ups, "For 105": the Inter weights, the overline role, the `tabular` flag on
     captions with no digits (it can go), and naming the pairs in the doc's `Text` row.
-  - `103c-design-tokens-screens/plan.md`: DateField's hidden web date input.
+  - `git show 89d43f74:docs/features/103c-design-tokens-screens/plan.md`: DateField's hidden web date input.
   - 104b: Members' confirm passes `accessibilityLabel={action}`, which is the same as its label. It can go now.
 - **This brief is meant to change how the app looks.** 104's "nothing moves" snapshots don't apply here. The check is
   screenshots compared with the doc. The snapshot script (in `104h-text-other-screens/plan.md`, under Visual check)

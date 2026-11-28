@@ -263,6 +263,8 @@ inside its scroll view.
   (084).
 - `MonthSwitcher`'s arrows move with the month name's width, so fast taps can miss; a fixed label width would fix it.
   Budget and Income still use it (089).
+- A missing `DATABASE_URL` or `TOTP_ENC_KEY` prints a raw ZodError stack instead of a usage line; `create-user` still
+  goes through `loadConfig` (098).
 
 ## Outside this repo
 

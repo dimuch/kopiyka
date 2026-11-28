@@ -12,10 +12,10 @@ ignore list, and the new look (brief 105) can't be a `theme.ts` change for those
 ## What
 
 - Move `src/app/login.tsx`, `src/app/members.tsx` and `src/app/no-ledger.tsx` onto the tokens, with the snapping rules
-  in `docs/features/103-design-tokens/plan.md` (Contracts → Snapping rules) and the 16pt `input` role from 103b.
+  in `git show b70a5d48:docs/features/103-design-tokens/plan.md` (Contracts → Snapping rules) and the 16pt `input` role from 103b.
 - Delete `notOnTokensYet` and its comment from `apps/mobile/eslint.config.js`, so the rule covers all of `src` except
   `theme.ts`.
-- The outline in `docs/features/103c-design-tokens-screens/plan.md` ("Later part: 103d") is the starting point.
+- The outline in `git show 89d43f74:docs/features/103c-design-tokens-screens/plan.md` ("Later part: 103d") is the starting point.
 
 Known cases:
 

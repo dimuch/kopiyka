@@ -142,7 +142,7 @@ Each slice ends with `yarn format` (Prettier formats Markdown), then the four ga
   - Why first: AC2 reads `BACKLOG.md`'s in-progress and planned lists. Fixing them before the batches means no
     batch deletes a plan that `BACKLOG.md` still calls open.
   - Verify: each brief named under "In progress" or "Planned" has its `plan.md`, or never had one (086).
-- [ ] 5–16. Replace the plans of briefs `<range>` with outcomes. One commit per batch, below.
+- [x] 5–16. Replace the plans of briefs `<range>` with outcomes. One commit per batch, below.
   - Files per batch: the range's `outcome.md` (new) and `plan.md` (deleted), plus the link fixes and `BACKLOG.md`
     edits listed for it.
   - Drafting: one read-only subagent per batch. It gets the range, the template, these rules and the PR candidates,
@@ -283,8 +283,23 @@ ones. The table above places every one of them.
 
 ## Follow-ups
 
-None found while planning.
+- The batches added about 50 open follow-ups from the old plans to `BACKLOG.md`'s "Small follow-ups", each with its
+  brief number. Some are one-liners, some need a brief; none was fixed here.
 
 ## Deviations
 
+- **Drafting agents wrote the `outcome.md` files themselves** instead of returning their text: six read-only agents, two
+  batches each, could create only those files. The orchestrator then checked each batch with `check-outcomes.sh` and
+  the dead-link search, deleted its plans, fixed its links and committed it. Same checks, less copying.
+- **The dead-link search** compares the working tree with `origin/main`, uses `grep` (no `rg` in the shell), and skips
+  hits inside plans that a later batch deletes. The run over the whole branch has no such plans left.
+- **Brief 134 merged mid-build** (#206, v1.27.0). As Risks foresaw, its plan stays, and its outcome comes from the
+  after-merge step's first real run. The rebase onto it conflicted only in slice 4's `BACKLOG.md`, resolved by adding
+  134 to "Recently finished".
+- **A commit after batch 16** tightened Phase 7 with what the rehearsal found: how to mark each follow-up, PR entries
+  on one line, hits inside another plan, and BACKLOG's "Brief and plan" lines and roadmap rows.
+- **`BACKLOG.md`'s design-system roll-out section** is now titled done, since every brief in it shipped (slice 4).
+
 ## Consolidate
+
+Skipped: the branch adds no function, hook, component, route or query (docs and skills only).

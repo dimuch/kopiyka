@@ -257,6 +257,12 @@ inside its scroll view.
 - Demo: a test that each name shared code imports from the three swapped modules exists on the demo's version (080).
 - Demo: put the droplet's measured export and build-check times and peak memory in `deploy.sh`'s "Measured peaks"
   comment; only macOS figures are there (081).
+- Web: `/_sitemap` lists the route file names to anyone in production; `sitemap: false` in the expo-router plugin
+  would close it (084).
+- The root `package.json`'s `engines` is `>=24`, which allows Node 24.0–24.2 and 25, which SDK 58 doesn't support
+  (084).
+- `MonthSwitcher`'s arrows move with the month name's width, so fast taps can miss; a fixed label width would fix it.
+  Budget and Income still use it (089).
 
 ## Outside this repo
 

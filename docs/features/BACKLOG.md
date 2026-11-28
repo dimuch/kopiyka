@@ -216,6 +216,13 @@ inside its scroll view.
   brief 085's import. The importer is gone (109), so fix it by hand with an actual End on the Budget tab (090).
 - Reads across several queries without a transaction (balances, Statistics) could mix snapshots under a concurrent
   write. Harmless today; matters if balances are ever exported (102).
+- With `CORS_ORIGINS` set (dev only), an `OPTIONS` request without preflight headers gets a plain-text 400, not
+  JSON (002).
+- Expense POST (201) and restore (200) return `loadExpense(...)` unchecked, so a delete landing in between answers
+  `null` (002).
+- `INSERT IGNORE INTO exchange_rates` (`rates/service.ts`) silently clamps an out-of-range rate;
+  `ON DUPLICATE KEY UPDATE rate_date = rate_date` would ignore only duplicates (002).
+- `createUserWithLedger` in `admin.ts` runs its own `beginTransaction`; it could use `withTransaction` (013).
 
 ## Outside this repo
 

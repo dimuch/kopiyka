@@ -73,4 +73,4 @@ three briefs, each merged before the next starts, and all before 014 and 015:
   - Category delete and restore answer 204 with no body.
 - A refused single-expense restore shows up in the app as the expense Undo's "Couldn’t undo · Retry". Retry keeps
   failing until the bar times out.
-- Plan: `./plan.md`.
+- Outcome: `./outcome.md` (full plan: `git show ad7a5794:docs/features/013-delete-category/plan.md`).

@@ -143,7 +143,7 @@ rollback is unaffected because there's no migration. If another PR takes 1.27.0 
     - `yarn mobile check-builds` passes without `--accept`: Icon and IconButton are already in the demo, and nothing
       new reaches it.
   - ~130 lines.
-- [ ] 4. Record brief 134 in the backlog
+- [x] 4. Record brief 134 in the backlog
   - Files: docs/features/BACKLOG.md
   - Change: an "In progress" entry for 134 (branch, v1.27.0, what ships, which checks are left). Snapshot line
     updated.

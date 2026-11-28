@@ -105,7 +105,7 @@ change. Nothing reaches production, so there is no slice 0.
 
 Each slice ends with `yarn format` (Prettier formats Markdown), then the four gates and `yarn skills:check`.
 
-- [ ] 1. Add the outcome template and describe outcomes in the features README (~45)
+- [x] 1. Add the outcome template and describe outcomes in the features README (~45)
   - Files: `docs/features/_outcome-template.md` (new), `docs/features/README.md`
   - Change: add the template above, with one-line comments on where each part comes from. The README's folder tree
     gets `outcome.md` ("replaces plan.md once the brief's last PR merges"), and Flow gets step 7, After merge. Line 46's "One brief, one PR" gets "plus its after-merge outcome PR".

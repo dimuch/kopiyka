@@ -110,7 +110,7 @@ Each slice ends with `yarn format` (Prettier formats Markdown), then the four ga
   - Change: add the template above, with one-line comments on where each part comes from. The README's folder tree
     gets `outcome.md` ("replaces plan.md once the brief's last PR merges"), and Flow gets step 7, After merge. Line 46's "One brief, one PR" gets "plus its after-merge outcome PR".
   - Verify: `yarn format:check`; the template is ≤ 40 lines.
-- [ ] 2. Add the after-merge step to the brief and refactoring flows (~35 source, ~35 generated)
+- [x] 2. Add the after-merge step to the brief and refactoring flows (~35 source, ~35 generated)
   - Files: `.claude/skills/kopiyka-hos/SKILL.md`, `.claude/skills/kopiyka-hos-refactoring/SKILL.md`, and the copies
     `yarn skills:build` writes in `.github/skills/kopiyka-hos*/SKILL.md`
   - Change: Phase 7 and Phase 8 as in Contracts, plus the diagram, description and hard-rule lines.

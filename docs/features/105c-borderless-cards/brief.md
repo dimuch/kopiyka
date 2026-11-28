@@ -18,7 +18,7 @@ page, with a soft shadow instead of an edge, and keeps a hairline only where two
 ## What
 
 Apply the Elevation section, the `hairline` colour and the `Card` row of `docs/design/design-system.md`. The outline
-is in `docs/features/105-fresh-look/plan.md`, under "Later parts" › 105c.
+is in `git show 1e6f6f5d:docs/features/105-fresh-look/plan.md`, under "Later parts" › 105c.
 
 - **Tokens in `theme.ts`:**
   - `hairline`: light `rgba(17,16,20,0.06)` (the doc); dark, a matching value the plan derives and records in the

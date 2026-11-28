@@ -22,7 +22,7 @@ brief, 105d, covers Button, Chip, AppearancePicker, IconButton, their contrast p
 in this plan's "Later parts", its own brief after 105d merges) covers ScreenHeader, UndoToast and its room, inputs,
 menus, sheets, Members' panel and the `borderStrong` token. The items below that belong to 105e are marked (105e).
 
-Apply the Components section of `docs/design/design-system.md`. The outline is in `docs/features/105-fresh-look/plan.md`,
+Apply the Components section of `docs/design/design-system.md`. The outline is in `git show 1e6f6f5d:docs/features/105-fresh-look/plan.md`,
 under "Later parts" › 105d.
 
 - **Button:** filled looks are one 48pt pill (`size.control`) with one disabled opacity. `ButtonSize`, the `size`

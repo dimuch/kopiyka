@@ -1,6 +1,6 @@
 ---
 name: kopiyka-hos-refactoring
-description: High Order Skill (orchestrator) for behaviour-preserving refactors in the kopiyka repo. Scans a target for smells (read-only), turns the chosen cleanup into a refactor brief, then runs baseline gates → planner → skeptic → user approval → characterization tests and small refactor commits with tests unchanged → refactor review → user approval → push and PR. Use when the user runs /kopiyka-hos-refactoring, asks what to refactor or clean up in kopiyka, or wants a kopiyka module made cleaner and more readable without changing behaviour.
+description: High Order Skill (orchestrator) for behaviour-preserving refactors in the kopiyka repo. Scans a target for smells (read-only), turns the chosen cleanup into a refactor brief, then runs baseline gates → planner → skeptic → user approval → characterization tests and small refactor commits with tests unchanged → refactor review → user approval → push and PR → after merge, a short outcome.md replaces the plan. Use when the user runs /kopiyka-hos-refactoring, asks what to refactor or clean up in kopiyka, or wants a kopiyka module made cleaner and more readable without changing behaviour.
 # copilot: argument-hint: '<path | module | "goal" | resume <slug>> [scan] [auto] [dry-run]'
 # copilot: disable-model-invocation: true
 # copilot text delegating-note:
@@ -25,6 +25,7 @@ target ─► 0 SCAN (read-only) ─► brief ─► 1 BASELINE (gates + coverag
        ─► 4 BUILD (characterization tests → renames → structure → dead code)
        ─► 5 REVIEW (kopiyka-refactor-reviewer) ─► fix ─► re-review ≤3
        ─► 6 SELF-CHECK ─► ⛔ GATE B: user approves push ─► 7 SHIP (push + PR)
+       ─► 8 AFTER MERGE (outcome.md, BACKLOG, cleanup)
 ```
 
 ## Inputs
@@ -171,3 +172,9 @@ FOLLOW-UPS: <bugs pinned, not fixed | none>
 As `kopiyka-hos` Phase 6, pushing `chore/<slug>`. In the PR body, `## Summary` says it's a
 behaviour-preserving refactor and what got clearer; `## Test plan` lists the
 baseline vs final test counts and states that no existing assertion changed.
+
+## Phase 8 — After merge
+
+As `kopiyka-hos` Phase 7: once the PR merges, a short `outcome.md` replaces
+`plan.md` on its own `chore/outcome-<slug>` PR, `BACKLOG.md` moves the brief
+to "Recently finished", and the branch and worktree are cleaned up.

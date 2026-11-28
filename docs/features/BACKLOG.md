@@ -3,9 +3,16 @@
 A snapshot so work can pick up in any tool (Claude Code or Copilot) without the chat history.
 Update it when a brief ships, is planned or is dropped.
 
-Snapshot: 2026-11-27, `main` at v1.23.16 (`3899b99`, after PR #177: brief 105e is done).
+Snapshot: 2026-11-28, `main` at v1.26.19 (`b0e5aef5`); brief 134 in progress on `feat/statistics-chart-view`.
 
 ## In progress
+
+### 134 · Statistics: Chart / Table switch, with a category bar chart (in progress, branch `feat/statistics-chart-view`, v1.27.0)
+
+Brief and plan: `docs/features/134-statistics-chart-view/`. Statistics opens on a Chart view: the totals, then the
+period's spending per category as bars in each category's tile colour (the summary now sends `techName`). Two icon
+buttons beside the period switcher pick Chart or Table (today's lists). Left: the iPhone check with VoiceOver. Next
+steps towards more charts (pie, stacked) are not briefed yet.
 
 ### 110 · One source for the skills and agents (in review, branch `chore/one-source-for-skills`, no version)
 

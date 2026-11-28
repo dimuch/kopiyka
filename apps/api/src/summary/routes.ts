@@ -30,6 +30,8 @@ export interface SummaryCategoryDto {
   categoryId: number;
   /** Its name in the period's last month. */
   name: string;
+  /** Its stable tech name; the app picks the category's tile colour from it. */
+  techName: string;
   plannedEur: string;
   spentEur: string;
 }
@@ -97,6 +99,7 @@ function categoryFigures(
     .map((row) => ({
       categoryId: row.category_id as number,
       name: row.name as string,
+      techName: row.tech_name as string,
       sortOrder: row.sort_order as number,
       plannedCents: addRows(ofCategory(planned, row.category_id), 'planned_eur'),
       spentCents: addRows(ofCategory(spent, row.category_id), 'spent_eur'),
@@ -107,9 +110,10 @@ function categoryFigures(
         left.sortOrder - right.sortOrder ||
         left.categoryId - right.categoryId,
     )
-    .map(({ categoryId, name, plannedCents, spentCents }) => ({
+    .map(({ categoryId, name, techName, plannedCents, spentCents }) => ({
       categoryId,
       name,
+      techName,
       plannedEur: centsToString(plannedCents),
       spentEur: centsToString(spentCents),
     }));
@@ -150,7 +154,7 @@ export async function summaryRoutes(app: FastifyInstance, { db }: AppDeps): Prom
     };
     const months = monthFigures(from, to, income, spent);
     const [named] = await db.query<RowDataPacket[]>(
-      `SELECT c.category_id, ${NAME_IN_MONTH} AS name, c.sort_order FROM categories c
+      `SELECT c.category_id, ${NAME_IN_MONTH} AS name, c.tech_name, c.sort_order FROM categories c
         WHERE c.ledger_id = ? AND c.deleted_at IS NULL`,
       [last, ledgerId],
     );

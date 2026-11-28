@@ -5,6 +5,7 @@ import { isEmptySummary, planGap } from '@/data/periodSummary';
 const category = (plannedEur: string, spentEur: string): SummaryCategory => ({
   categoryId: 1,
   name: 'rent',
+  techName: 'rent',
   plannedEur,
   spentEur,
 });

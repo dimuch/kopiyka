@@ -136,6 +136,8 @@ export interface SummaryMonth {
 export interface SummaryCategory {
   categoryId: number;
   name: string;
+  /** Its stable tech name, which picks the category's tile colour. */
+  techName: string;
   plannedEur: string;
   spentEur: string;
 }

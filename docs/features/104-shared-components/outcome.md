@@ -23,6 +23,6 @@ Brief: ./brief.md · Finished 2026-11-24
 
 ## Follow-ups
 
-- The measured survey numbers for the later parts and 105 — done in 104b–104h (#160–#171) and 105 (#173–#177).
+- The measured survey numbers for the later parts and 105 — done in 104b–104h (#160, #161, #163, #166, #169, #170, #171) and 105 (#173–#177).
 
 Full plan: `git show 6b547bc1:docs/features/104-shared-components/plan.md`

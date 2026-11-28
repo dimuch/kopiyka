@@ -29,6 +29,6 @@ Brief: ./brief.md · Finished 2026-10-08
 - The load-error view: announce it, keep the form's header, tell "ledger gone" apart — done in 005, #17 and 052, #66
 - `useMonth` could use the same request tagging — done in 005, #17
 - Audit M12 (`{editingId && …}`) went away here, so 006 could drop it — done in 006, #18
-- On web, `accessibilityState` (selected, busy) renders nothing — in BACKLOG.md
+- On web, `accessibilityState` (selected, busy) renders nothing — done in 095, #137
 
 Full plan: `git show ba84e5f0:docs/features/004-expense-data-hooks/plan.md`

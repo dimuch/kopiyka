@@ -3,7 +3,7 @@
 Status: approved <!-- draft → skeptic-approved → approved (by the user) -->
 Brief: ./brief.md
 Branch: chore/plan-outcomes
-Base: origin/main (b0e5aef5, v1.26.19)
+Base: origin/main (b0e5aef5, v1.26.19; rebased onto 060a593f, v1.27.0, after 134 merged)
 
 ## Approach
 

@@ -23,7 +23,7 @@ Brief: ./brief.md · Finished 2026-10-07
 
 ## Follow-ups
 
-- On web the date chips and category tiles render no `aria-selected` — in BACKLOG.md
+- On web the date chips and category tiles render no `aria-selected` — done in 095, #137
 - `useMonth` keeps an `exhaustive-deps` suppression — done in 005, #17
 
 Full plan: `git show c813684d:docs/features/003-expense-kyiv-dates-and-derived-amount/plan.md`

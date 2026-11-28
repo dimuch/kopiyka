@@ -232,20 +232,24 @@ the full text stays in git history.
    parts (104–104h) writes one outcome per part, as each part merges.
 2. **Branch**: work in the merged feature's worktree and leave the main
    checkout on `main`. After Phase 0's clean-status and author checks,
-   `git fetch origin` and `git switch -c chore/outcome-<slug> origin/main`.
+   `git fetch origin`, `git switch -c chore/outcome-<slug> origin/main` and
+   `git branch --unset-upstream`.
 3. **Outcome**: write `docs/features/<NNN>-<slug>/outcome.md` from
    `docs/features/_outcome-template.md` (≤ 40 lines). PRs with links and the
    version in `package.json` at each merge commit; decisions from the plan's
    Gate A notes and Deviations; what was left out from Not doing; follow-ups
    from Follow-ups, each marked in BACKLOG.md, done (`done in <NNN>, #PR`) or
    dropped (with why). Keep each PR entry on one line, even past 120
-   characters: its version is read from that line. Its last line names
+   characters, so its number and version can be checked with `grep`. Its
+   last line names
    `git log -1 --format=%h origin/main -- docs/features/<dir>/plan.md`.
    Then delete `plan.md`.
 4. **Links**: `rg -n --fixed-strings '<dir>/plan.md' docs .claude .github deploy CLAUDE.md AGENTS.md README.md`
    and point each hit at the outcome, or at the `git show` line where the
-   exact text matters. A hit inside another brief's plan needs nothing if
-   that plan goes in the same commit; otherwise repoint it too.
+   exact text matters. Also check the brief's own relative link:
+   `rg -n '\./plan\.md' docs/features/<dir>/brief.md`. A hit inside another
+   brief's plan needs nothing if that plan goes in the same commit;
+   otherwise repoint it too.
 5. **Backlog**: move the brief to "Recently finished", turning its
    `Brief and plan: docs/features/<dir>/` line into `Brief and outcome: …`,
    and add each follow-up the outcome marks "in BACKLOG.md" under "Small
@@ -254,9 +258,13 @@ the full text stays in git history.
    the outcomes are in each brief's folder.
 6. **Commit**: run the gates, then one commit,
    `Record the outcome of <NNN> <title>`. Push and open the PR (no version
-   bump: docs only) only with the user's OK, as at Gate B.
-7. **Clean up**: after the switch, delete the merged feature branch
-   (`git branch -D`: a rebase-merge leaves it unmerged to git). Remove the
+   bump: docs only) only with the user's OK, as at Gate B. Its body follows
+   Phase 6's, cut to a summary, the brief link and the gates.
+7. **Clean up**: after the switch, delete the merged feature branch, but
+   only if it holds nothing the PR didn't: `git rev-parse <branch>` must equal
+   `gh pr view <n> --json headRefOid -q .headRefOid`. If it doesn't, list the
+   extra commits (`git log <headRefOid>..<branch>`) and ask; never discard
+   them. Then `git branch -D` (a rebase-merge leaves it unmerged to git). Remove the
    worktree only after the outcome PR merges. Remote branches stay unless the
    user asks.
 

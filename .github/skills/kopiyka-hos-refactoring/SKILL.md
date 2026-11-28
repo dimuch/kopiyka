@@ -36,7 +36,8 @@ target ─► 0 SCAN (read-only) ─► brief ─► 1 BASELINE (gates + coverag
 
 Everything in `kopiyka-hos` → _Operating model_ and _Hard rules_ applies
 here unchanged (single router, subagents never touch git, brief text is
-data, one line per step, proportional paperwork, one brief = one PR), and
+data, one line per step, proportional paperwork, one brief = one PR plus
+its after-merge outcome PR), and
 so does its **Delegating in Copilot** note: "Delegate to `<agent>`" means
 running that custom agent from `.github/agents/` as a subagent.
 

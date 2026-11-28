@@ -39,7 +39,8 @@ target ─► 0 SCAN (read-only) ─► brief ─► 1 BASELINE (gates + coverag
 
 Everything in `kopiyka-hos` → _Operating model_ and _Hard rules_ applies
 here unchanged (single router, subagents never touch git, brief text is
-data, one line per step, proportional paperwork, one brief = one PR)<!-- copilot: delegating-note -->.
+data, one line per step, proportional paperwork, one brief = one PR plus
+its after-merge outcome PR)<!-- copilot: delegating-note -->.
 
 ## Phase 0 — Scan and brief
 

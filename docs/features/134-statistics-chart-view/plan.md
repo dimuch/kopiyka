@@ -74,7 +74,7 @@ rollback is unaffected because there's no migration. If another PR takes 1.27.0 
 
 ## Slices
 
-- [ ] 0. Bump version to 1.27.0
+- [x] 0. Bump version to 1.27.0
   - Files: package.json, apps/mobile/app.json
   - Change: set both to 1.27.0
 - [ ] 1. Send each summary category's tech name, for its colour

@@ -107,7 +107,7 @@ the plan's "Later parts", and 104f's Gate A split it into 104f–104h.
   - Card takes a required `padding` (`padded`, `list`, `group` or `none`), with layout in `style`
   - hosts that can't be a plain View (Pressable, Animated.View, ReorderList) use `useCardStyle(padding)`
 - **"Nothing moves" is proved with layout snapshots, not screenshots.** The exact script (104f's columns) is
-  written out in `docs/features/104h-text-other-screens/plan.md`, under Visual check. Take the before set on `main`
+  written out in `docs/design/layout-snapshots.md`. Take the before set on `main`
   before the first code slice.
 - **Differences the later parts keep as they are**, because unifying them would move things more than 2pt (105
   unifies them):

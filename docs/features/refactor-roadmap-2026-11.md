@@ -14,7 +14,7 @@ Rules for every row (`kopiyka-refactoring`):
   list (`apps/mobile/demo-modules.txt`) unless the row says so.
 - Existing tests pass unmodified. Pure logic that moves gets characterization tests first.
 - Screen changes have no automated test (the app has no render tests): check them on web at 390×844 in light and dark,
-  and compare layout snapshots where the row says so (the script is in brief 104's plan, "Snapshot script").
+  and compare layout snapshots where the row says so (the script is in `docs/design/layout-snapshots.md`).
 - One kind of change per commit: rename, extract, move, or reuse.
 
 ## API and connector

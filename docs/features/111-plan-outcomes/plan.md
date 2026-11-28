@@ -116,7 +116,7 @@ Each slice ends with `yarn format` (Prettier formats Markdown), then the four ga
   - Change: Phase 7 and Phase 8 as in Contracts, plus the diagram, description and hard-rule lines.
   - Verify: `yarn skills:check` passes. `rg -n 'After merge' .claude/skills/kopiyka-hos* .github/skills/kopiyka-hos*`
     finds both skills in both trees.
-- [ ] 3. Give the layout snapshot script a lasting home (~75)
+- [x] 3. Give the layout snapshot script a lasting home (~75)
   - Files: `docs/design/layout-snapshots.md` (new), `docs/features/refactor-roadmap-2026-11.md` (line 17),
     `docs/features/BACKLOG.md` (line 103)
   - Change: copy the generic part of 104h's "Visual check", with the script block verbatim:
